@@ -175,13 +175,32 @@ def fetch_yahoo(tickers: list[str], start: str, logger: logging.Logger) -> pd.Da
 
 
 def fetch_fred(series: list[str], start: str, logger: logging.Logger) -> pd.DataFrame:
-    """Fetch daily series from FRED using pandas_datareader."""
-    from pandas_datareader import data as pdr
+    """Fetch daily series from FRED using the public CSV download endpoint.
 
+    FRED exposes every series at a stable, no-auth URL:
+        https://fred.stlouisfed.org/graph/fredgraph.csv?id=SERIES_ID
+    This avoids the pandas_datareader dependency (which is unmaintained and
+    breaks against pandas 3.x) and uses plain pandas.read_csv instead.
+    """
     logger.info(f"Fetching FRED: {series}")
-    df = pdr.DataReader(series, "fred", start=start)
+    frames = []
+    for s in series:
+        url = f"https://fred.stlouisfed.org/graph/fredgraph.csv?id={s}"
+        try:
+            one = pd.read_csv(url, parse_dates=["observation_date"])
+        except Exception as e:
+            raise RuntimeError(f"FRED fetch failed for {s}: {e}")
+        one = one.rename(columns={"observation_date": "DATE"})
+        one = one.set_index("DATE")
+        # FRED marks missing observations as "." — convert to NaN
+        one[s] = pd.to_numeric(one[s], errors="coerce")
+        frames.append(one)
+
+    df = pd.concat(frames, axis=1)
+    # Filter to start date
+    df = df[df.index >= pd.Timestamp(start)]
     if df.empty:
-        raise RuntimeError(f"FRED returned no data for {series}")
+        raise RuntimeError(f"FRED returned no data for {series} after {start}")
     logger.info(f"FRED: {len(df)} daily rows")
     return df
 
