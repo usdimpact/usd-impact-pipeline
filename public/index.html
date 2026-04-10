@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>USD Impact Score</title>
+<style>
+  body {
+    font-family: Georgia, 'DejaVu Serif', serif;
+    color: #222;
+    background: #fff;
+    max-width: 640px;
+    margin: 6rem auto;
+    padding: 0 2rem;
+    text-align: center;
+    line-height: 1.5;
+  }
+  h1 { color: #1B3A5F; font-size: 2.2rem; margin: 0 0 0.5rem; }
+  .subtitle {
+    color: #6B7280; font-style: italic;
+    margin-bottom: 3rem; font-size: 1.05rem;
+  }
+  .buttons { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+  .btn {
+    display: inline-block;
+    padding: 1rem 2rem;
+    border: 1px solid #1B3A5F;
+    color: #1B3A5F;
+    text-decoration: none;
+    font-family: inherit;
+    font-size: 1rem;
+    background: #F7F3EA;
+    transition: background 0.15s;
+  }
+  .btn:hover { background: #D0C2A2; }
+  .footer {
+    margin-top: 4rem;
+    padding-top: 1rem;
+    border-top: 1px solid #D0C2A2;
+    font-size: 0.75rem;
+    color: #6B7280;
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+  <h1>USD Impact Score</h1>
+  <div class="subtitle">Weekly cross-asset dollar regime reading — Lectura semanal del régimen del dólar</div>
+  <div class="buttons">
+    <a href="./en/" class="btn">Read in English →</a>
+    <a href="./es/" class="btn">Leer en español →</a>
+  </div>
+  <div class="footer">
+    USD Impact — Read the Dollar First. Educational. Not investment advice.
+  </div>
+  <script>
+    (function() {
+      var lang = (navigator.language || 'en').toLowerCase();
+      if (lang.indexOf('es') === 0) {
+        window.location.replace('./es/');
+      } else {
+        window.location.replace('./en/');
+      }
+    })();
+  </script>
+</body>
+</html>

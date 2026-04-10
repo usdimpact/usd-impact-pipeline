@@ -1,0 +1,46 @@
+{
+  "generated_at_utc": "2026-04-10T16:54:28.051547+00:00",
+  "aggregate_hit_rate": 0.845,
+  "regimes": [
+    {
+      "name": "2015-16 oil/EM stress",
+      "expected_sign": 1,
+      "weeks": 31,
+      "hits": 31,
+      "hit_rate": 1.0,
+      "mean_score": 0.335574265069334
+    },
+    {
+      "name": "2018 Fed tightening",
+      "expected_sign": 1,
+      "weeks": 31,
+      "hits": 31,
+      "hit_rate": 1.0,
+      "mean_score": 0.21754648959324324
+    },
+    {
+      "name": "2020 COVID funding stress (phase 1)",
+      "expected_sign": 1,
+      "weeks": 3,
+      "hits": 3,
+      "hit_rate": 1.0,
+      "mean_score": 0.5616315237629524
+    },
+    {
+      "name": "2020-21 post-Fed liquidity (phase 2)",
+      "expected_sign": -1,
+      "weeks": 79,
+      "hits": 63,
+      "hit_rate": 0.7974683544303798,
+      "mean_score": -0.28069836584723185
+    },
+    {
+      "name": "2022 tightening cycle",
+      "expected_sign": 1,
+      "weeks": 56,
+      "hits": 41,
+      "hit_rate": 0.7321428571428571,
+      "mean_score": 0.18680978407221543
+    }
+  ]
+}
