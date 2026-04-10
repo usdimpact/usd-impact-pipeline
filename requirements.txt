@@ -1,0 +1,10 @@
+# USD Impact Score v2 pipeline dependencies
+# Install with: pip install -r requirements.txt
+# Python 3.10+ required
+
+pandas>=2.0
+numpy>=1.24
+yfinance>=0.2.40
+pandas-datareader>=0.10
+matplotlib>=3.7
+pyarrow>=14.0
