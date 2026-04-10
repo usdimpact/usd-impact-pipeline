@@ -460,6 +460,64 @@ def build_chart_png(score: pd.Series, title: str) -> bytes:
     return buf.getvalue()
 
 
+def load_commentary(lang: str = "en") -> str:
+    """Load the latest weekly commentary from the commentary/ directory.
+
+    Looks for (in order):
+      1. commentary/latest_{lang}.md  (language-specific latest)
+      2. commentary/latest.md         (fallback, typically English)
+      3. Empty string + graceful message if neither exists
+
+    Returns an HTML-ready string. Markdown is converted to basic HTML
+    (paragraphs, headings, horizontal rules, bold, italic) without
+    requiring an external markdown library.
+    """
+    candidates = [
+        Path(f"commentary/latest_{lang}.md"),
+        Path("commentary/latest.md"),
+    ]
+    source = None
+    for p in candidates:
+        if p.exists():
+            source = p.read_text(encoding="utf-8")
+            break
+
+    if not source:
+        return ""
+
+    # Minimal markdown → HTML conversion
+    # Split into blocks by double newlines, classify each
+    html_blocks = []
+    blocks = source.split("\n\n")
+    for block in blocks:
+        block = block.strip()
+        if not block:
+            continue
+        # Horizontal rule
+        if block == "---":
+            html_blocks.append("<hr/>")
+            continue
+        # Heading
+        if block.startswith("# "):
+            html_blocks.append(f"<h2 class='commentary-title'>{block[2:].strip()}</h2>")
+            continue
+        if block.startswith("## "):
+            html_blocks.append(f"<h3 class='commentary-h3'>{block[3:].strip()}</h3>")
+            continue
+        # Italicized footer (entire block wrapped in *)
+        if block.startswith("*") and block.endswith("*") and block.count("*") == 2:
+            inner = block[1:-1].strip()
+            html_blocks.append(f"<p class='commentary-footer'><em>{inner}</em></p>")
+            continue
+        # Default: paragraph. Convert inline **bold** and *italic*
+        import re as _re
+        text = _re.sub(r'\*\*([^*]+)\*\*', r'<strong>\1</strong>', block)
+        text = _re.sub(r'(?<!\*)\*([^*\n]+)\*(?!\*)', r'<em>\1</em>', text)
+        html_blocks.append(f"<p>{text}</p>")
+
+    return "\n".join(html_blocks)
+
+
 def build_graphic_payload(df: pd.DataFrame, score: pd.Series, lang: str = "en") -> str:
     """Build a self-contained HTML dashboard string in English or Spanish."""
     latest_date = df.index[-1].date()
@@ -508,6 +566,21 @@ def build_graphic_payload(df: pd.DataFrame, score: pd.Series, lang: str = "en") 
     change_sign = "+" if wk_change >= 0 else ""
     score_color = "#1B3A5F" if latest_score >= 0 else "#B8860B"
 
+    # Load commentary. If no commentary exists, render an empty div that
+    # does not appear on screen (so the layout degrades gracefully).
+    commentary_html = load_commentary(lang)
+    if commentary_html:
+        commentary_section = f'<div class="commentary">{commentary_html}</div>'
+    elif lang == "es":
+        commentary_section = (
+            '<div class="commentary commentary-fallback">'
+            '<p><em>Comentario semanal disponible solo en inglés esta semana. '
+            'Desplácese hacia arriba para ver el registro del régimen.</em></p>'
+            '</div>'
+        )
+    else:
+        commentary_section = ""
+
     html = f"""<!DOCTYPE html>
 <html lang="{lang}">
 <head>
@@ -547,6 +620,47 @@ def build_graphic_payload(df: pd.DataFrame, score: pd.Series, lang: str = "en") 
   .score-value {{ color: {score_color} !important; }}
   .chart {{ margin: 1.5rem 0; }}
   .chart img {{ width: 100%; height: auto; }}
+  .commentary {{
+    margin: 2rem 0;
+    padding: 1.5rem 1.75rem;
+    background: #FDFCF9;
+    border: 1px solid #D0C2A2;
+    border-left: 4px solid #1B3A5F;
+    border-radius: 2px;
+  }}
+  .commentary .commentary-title {{
+    color: #1B3A5F;
+    font-size: 1.35rem;
+    font-weight: bold;
+    margin: 0 0 0.75rem 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #D0C2A2;
+  }}
+  .commentary .commentary-h3 {{
+    color: #1B3A5F;
+    font-size: 1.05rem;
+    font-weight: bold;
+    margin: 1.25rem 0 0.5rem 0;
+  }}
+  .commentary p {{
+    margin: 0.6rem 0;
+    line-height: 1.65;
+    color: #333;
+  }}
+  .commentary hr {{
+    border: 0;
+    border-top: 1px solid #D0C2A2;
+    margin: 1.25rem 0 0.75rem 0;
+  }}
+  .commentary .commentary-footer {{
+    font-size: 0.85rem;
+    color: #6B7280;
+    font-style: italic;
+  }}
+  .commentary-fallback {{
+    text-align: center;
+    color: #6B7280;
+  }}
   .footer {{
     margin-top: 2rem;
     padding-top: 1rem;
@@ -583,6 +697,8 @@ def build_graphic_payload(df: pd.DataFrame, score: pd.Series, lang: str = "en") 
   <div class="chart">
     <img src="{chart_data_uri}" alt="{chart_title}"/>
   </div>
+
+  {commentary_section}
 
   <div class="footer">{footer}</div>
 </body>
