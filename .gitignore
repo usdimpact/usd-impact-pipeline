@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+.venv/
+# Pipeline local cache and logs (never commit)
+**/_daily_cache.parquet
+output/_daily_cache.parquet
+.pipeline_cache/
+logs/
+# Logs
+*.log
+# OS
+.DS_Store
+Thumbs.db
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
