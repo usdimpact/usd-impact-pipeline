@@ -1,6 +1,6 @@
 {
-  "generated_at_utc": "2026-04-24T23:58:47.574526+00:00",
-  "aggregate_hit_rate": 0.845,
+  "generated_at_utc": "2026-05-02T05:58:30.386776+00:00",
+  "aggregate_hit_rate": 0.85,
   "regimes": [
     {
       "name": "2015-16 oil/EM stress",
@@ -8,7 +8,7 @@
       "weeks": 31,
       "hits": 31,
       "hit_rate": 1.0,
-      "mean_score": 0.33443972888738277
+      "mean_score": 0.3332223974172361
     },
     {
       "name": "2018 Fed tightening",
@@ -16,7 +16,7 @@
       "weeks": 31,
       "hits": 31,
       "hit_rate": 1.0,
-      "mean_score": 0.2173792538040295
+      "mean_score": 0.2177488335039949
     },
     {
       "name": "2020 COVID funding stress (phase 1)",
@@ -24,7 +24,7 @@
       "weeks": 3,
       "hits": 3,
       "hit_rate": 1.0,
-      "mean_score": 0.5627636200652084
+      "mean_score": 0.5632383169403158
     },
     {
       "name": "2020-21 post-Fed liquidity (phase 2)",
@@ -32,15 +32,15 @@
       "weeks": 79,
       "hits": 63,
       "hit_rate": 0.7974683544303798,
-      "mean_score": -0.27790053892908495
+      "mean_score": -0.2752163071713739
     },
     {
       "name": "2022 tightening cycle",
       "expected_sign": 1,
       "weeks": 56,
-      "hits": 41,
-      "hit_rate": 0.7321428571428571,
-      "mean_score": 0.19055919616932804
+      "hits": 42,
+      "hit_rate": 0.75,
+      "mean_score": 0.19545416144661296
     }
   ]
 }
