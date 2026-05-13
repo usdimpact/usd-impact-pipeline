@@ -1,0 +1,148 @@
+{
+  "week_ending": "2026-05-16",
+  "educational_summary": "This week\u2019s market discussion is centered on the interaction between USD direction, real-rate expectations, liquidity conditions, and cross-asset risk sentiment.",
+  "dominant_macro_driver": "USD direction, real-rate expectations, and liquidity conditions",
+  "dominant_driver_why_it_matters": "These drivers can influence commodities, precious metals, FX pairs, equity valuation sensitivity, and liquidity-sensitive assets.",
+  "assets": [
+    {
+      "asset_name": "WTI Crude Oil",
+      "what_changed": "WTI Crude Oil remained sensitive to the week\u2019s dominant macro drivers.",
+      "why_it_matters": "WTI Crude Oil can be affected by USD direction, rates, liquidity, risk sentiment, and asset-specific fundamentals.",
+      "analyst_comment": "The educational point is to understand which driver mattered most for WTI Crude Oil this week.",
+      "portfolio_discussion_context": "WTI Crude Oil can be discussed from a risk, volatility, diversification, and time-horizon perspective.",
+      "watchpoints": [
+        "USD direction",
+        "real-rate expectations",
+        "liquidity conditions",
+        "risk sentiment",
+        "asset-specific news"
+      ],
+      "risk_to_interpretation": "The interpretation could change if macro conditions or asset-specific fundamentals shift.",
+      "sources": [
+        "https://www.eia.gov/",
+        "https://www.investing.com/",
+        "https://www.tradingview.com/"
+      ]
+    },
+    {
+      "asset_name": "LNG / Natural Gas",
+      "what_changed": "LNG / Natural Gas remained sensitive to the week\u2019s dominant macro drivers.",
+      "why_it_matters": "LNG / Natural Gas can be affected by USD direction, rates, liquidity, risk sentiment, and asset-specific fundamentals.",
+      "analyst_comment": "The educational point is to understand which driver mattered most for LNG / Natural Gas this week.",
+      "portfolio_discussion_context": "LNG / Natural Gas can be discussed from a risk, volatility, diversification, and time-horizon perspective.",
+      "watchpoints": [
+        "USD direction",
+        "real-rate expectations",
+        "liquidity conditions",
+        "risk sentiment",
+        "asset-specific news"
+      ],
+      "risk_to_interpretation": "The interpretation could change if macro conditions or asset-specific fundamentals shift.",
+      "sources": [
+        "https://www.eia.gov/",
+        "https://www.investing.com/",
+        "https://www.tradingview.com/"
+      ]
+    },
+    {
+      "asset_name": "Gold / XAUUSD",
+      "what_changed": "Gold / XAUUSD remained sensitive to the week\u2019s dominant macro drivers.",
+      "why_it_matters": "Gold / XAUUSD can be affected by USD direction, rates, liquidity, risk sentiment, and asset-specific fundamentals.",
+      "analyst_comment": "The educational point is to understand which driver mattered most for Gold / XAUUSD this week.",
+      "portfolio_discussion_context": "Gold / XAUUSD can be discussed from a risk, volatility, diversification, and time-horizon perspective.",
+      "watchpoints": [
+        "USD direction",
+        "real-rate expectations",
+        "liquidity conditions",
+        "risk sentiment",
+        "asset-specific news"
+      ],
+      "risk_to_interpretation": "The interpretation could change if macro conditions or asset-specific fundamentals shift.",
+      "sources": [
+        "https://www.eia.gov/",
+        "https://www.investing.com/",
+        "https://www.tradingview.com/"
+      ]
+    },
+    {
+      "asset_name": "Bitcoin / BTCUSD",
+      "what_changed": "Bitcoin / BTCUSD remained sensitive to the week\u2019s dominant macro drivers.",
+      "why_it_matters": "Bitcoin / BTCUSD can be affected by USD direction, rates, liquidity, risk sentiment, and asset-specific fundamentals.",
+      "analyst_comment": "The educational point is to understand which driver mattered most for Bitcoin / BTCUSD this week.",
+      "portfolio_discussion_context": "Bitcoin / BTCUSD can be discussed from a risk, volatility, diversification, and time-horizon perspective.",
+      "watchpoints": [
+        "USD direction",
+        "real-rate expectations",
+        "liquidity conditions",
+        "risk sentiment",
+        "asset-specific news"
+      ],
+      "risk_to_interpretation": "The interpretation could change if macro conditions or asset-specific fundamentals shift.",
+      "sources": [
+        "https://www.eia.gov/",
+        "https://www.investing.com/",
+        "https://www.tradingview.com/"
+      ]
+    },
+    {
+      "asset_name": "DXY",
+      "what_changed": "DXY remained sensitive to the week\u2019s dominant macro drivers.",
+      "why_it_matters": "DXY can be affected by USD direction, rates, liquidity, risk sentiment, and asset-specific fundamentals.",
+      "analyst_comment": "The educational point is to understand which driver mattered most for DXY this week.",
+      "portfolio_discussion_context": "DXY can be discussed from a risk, volatility, diversification, and time-horizon perspective.",
+      "watchpoints": [
+        "USD direction",
+        "real-rate expectations",
+        "liquidity conditions",
+        "risk sentiment",
+        "asset-specific news"
+      ],
+      "risk_to_interpretation": "The interpretation could change if macro conditions or asset-specific fundamentals shift.",
+      "sources": [
+        "https://www.eia.gov/",
+        "https://www.investing.com/",
+        "https://www.tradingview.com/"
+      ]
+    },
+    {
+      "asset_name": "EURUSD",
+      "what_changed": "EURUSD remained sensitive to the week\u2019s dominant macro drivers.",
+      "why_it_matters": "EURUSD can be affected by USD direction, rates, liquidity, risk sentiment, and asset-specific fundamentals.",
+      "analyst_comment": "The educational point is to understand which driver mattered most for EURUSD this week.",
+      "portfolio_discussion_context": "EURUSD can be discussed from a risk, volatility, diversification, and time-horizon perspective.",
+      "watchpoints": [
+        "USD direction",
+        "real-rate expectations",
+        "liquidity conditions",
+        "risk sentiment",
+        "asset-specific news"
+      ],
+      "risk_to_interpretation": "The interpretation could change if macro conditions or asset-specific fundamentals shift.",
+      "sources": [
+        "https://www.eia.gov/",
+        "https://www.investing.com/",
+        "https://www.tradingview.com/"
+      ]
+    },
+    {
+      "asset_name": "Mag 7 Equities",
+      "what_changed": "Mag 7 Equities remained sensitive to the week\u2019s dominant macro drivers.",
+      "why_it_matters": "Mag 7 Equities can be affected by USD direction, rates, liquidity, risk sentiment, and asset-specific fundamentals.",
+      "analyst_comment": "The educational point is to understand which driver mattered most for Mag 7 Equities this week.",
+      "portfolio_discussion_context": "Mag 7 Equities can be discussed from a risk, volatility, diversification, and time-horizon perspective.",
+      "watchpoints": [
+        "USD direction",
+        "real-rate expectations",
+        "liquidity conditions",
+        "risk sentiment",
+        "asset-specific news"
+      ],
+      "risk_to_interpretation": "The interpretation could change if macro conditions or asset-specific fundamentals shift.",
+      "sources": [
+        "https://www.eia.gov/",
+        "https://www.investing.com/",
+        "https://www.tradingview.com/"
+      ]
+    }
+  ]
+}
