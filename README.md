@@ -8,3 +8,10 @@ Final educational commentary and compliance-safe weekly markdown generation shou
 
 ```text
 https://github.com/usdimpact/usd-impact
+```
+
+Expected bridge output:
+
+```text
+data/weekly_input_YYYY-MM-DD.json
+```
