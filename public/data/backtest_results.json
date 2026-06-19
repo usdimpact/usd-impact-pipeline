@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-05-29T23:11:14.225032+00:00",
+  "generated_at_utc": "2026-06-19T22:56:00.652788+00:00",
   "aggregate_hit_rate": 0.85,
   "regimes": [
     {
@@ -8,7 +8,7 @@
       "weeks": 31,
       "hits": 31,
       "hit_rate": 1.0,
-      "mean_score": 0.3315441178423458
+      "mean_score": 0.33053026405470703
     },
     {
       "name": "2018 Fed tightening",
@@ -16,7 +16,7 @@
       "weeks": 31,
       "hits": 31,
       "hit_rate": 1.0,
-      "mean_score": 0.21771617559507528
+      "mean_score": 0.21733692005036967
     },
     {
       "name": "2020 COVID funding stress (phase 1)",
@@ -24,7 +24,7 @@
       "weeks": 3,
       "hits": 3,
       "hit_rate": 1.0,
-      "mean_score": 0.5644607450358242
+      "mean_score": 0.5660928083099839
     },
     {
       "name": "2020-21 post-Fed liquidity (phase 2)",
@@ -32,7 +32,7 @@
       "weeks": 79,
       "hits": 63,
       "hit_rate": 0.7974683544303798,
-      "mean_score": -0.27115748680430324
+      "mean_score": -0.2680539061708139
     },
     {
       "name": "2022 tightening cycle",
@@ -40,7 +40,7 @@
       "weeks": 56,
       "hits": 42,
       "hit_rate": 0.75,
-      "mean_score": 0.20126412310957434
+      "mean_score": 0.2046560735949183
     }
   ]
 }
