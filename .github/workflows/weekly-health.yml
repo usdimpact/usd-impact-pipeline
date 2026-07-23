@@ -49,9 +49,8 @@ jobs:
             --repo "$GITHUB_REPOSITORY" \
             --state open \
             --search "in:title $ISSUE_TITLE" \
-            --json number,title \
-            --jq ".[] | select(.title == env.ISSUE_TITLE) | .number" \
-            | head -n 1)
+            --json number \
+            --jq '.[0].number // empty')
 
           if [ -n "$ISSUE_NUMBER" ]; then
             gh issue comment "$ISSUE_NUMBER" \
@@ -75,9 +74,8 @@ jobs:
             --repo "$GITHUB_REPOSITORY" \
             --state open \
             --search "in:title $ISSUE_TITLE" \
-            --json number,title \
-            --jq ".[] | select(.title == env.ISSUE_TITLE) | .number" \
-            | head -n 1)
+            --json number \
+            --jq '.[0].number // empty')
 
           if [ -n "$ISSUE_NUMBER" ]; then
             {
