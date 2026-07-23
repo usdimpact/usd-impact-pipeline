@@ -1,0 +1,63 @@
+{
+  "week_ending": "2026-07-24",
+  "score": -0.4809610882310335,
+  "regime": "Soft dollar regime",
+  "week_over_week_change": -0.03607783020868888,
+  "four_week_change": -0.12621775280995878,
+  "nearest_regime_boundary": -0.3,
+  "drivers": [
+    {
+      "name": "SPX",
+      "z": 2.42302277600543,
+      "weight": -0.125,
+      "contribution": -0.30287784700067877
+    },
+    {
+      "name": "GOLD",
+      "z": 2.3984937451250548,
+      "weight": -0.125,
+      "contribution": -0.29981171814063184
+    },
+    {
+      "name": "UST_10Y",
+      "z": 1.6326642405532863,
+      "weight": 0.125,
+      "contribution": 0.2040830300691608
+    },
+    {
+      "name": "WTI",
+      "z": 1.597305444992564,
+      "weight": -0.125,
+      "contribution": -0.1996631806240705
+    },
+    {
+      "name": "UST_2Y",
+      "z": 1.263223497403922,
+      "weight": 0.125,
+      "contribution": 0.15790293717549025
+    },
+    {
+      "name": "BTC",
+      "z": 1.086240517035327,
+      "weight": -0.125,
+      "contribution": -0.1357800646294159
+    },
+    {
+      "name": "DXY",
+      "z": 0.6564406762459771,
+      "weight": 0.125,
+      "contribution": 0.08205508453074714
+    },
+    {
+      "name": "VIX",
+      "z": 0.10504536310692146,
+      "weight": 0.125,
+      "contribution": 0.013130670388365183
+    }
+  ],
+  "generation": {
+    "mode": "deterministic",
+    "external_model_used": false,
+    "external_event_claims_added": false
+  }
+}

@@ -1,0 +1,33 @@
+# Comentario Automático de Régimen — Semana del 24 de julio de 2026
+
+**USD Impact Score: −0.48  |  Régimen de dólar suave**
+
+Este comentario se genera automáticamente con los mismos datos semanales que utiliza el panel. No añade afirmaciones sobre eventos externos ni realiza previsiones.
+
+## Qué indica el resultado
+
+El índice se sitúa en −0.48, con un cambio semanal de −0.04 y un cambio de cuatro semanas de −0.13. El régimen permanece en Régimen de dólar suave. Entre las ocho variables, 4 contribuyen hacia una lectura de dólar más firme y 4 hacia una lectura de dólar más suave.
+
+## Qué impulsa la lectura
+
+- **S&P 500:** puntuación z +2.42; contribución al índice −0.303, coherente con un dólar más suave.
+- **oro:** puntuación z +2.40; contribución al índice −0.300, coherente con un dólar más suave.
+- **rendimiento del Tesoro de EE. UU. a 10 años:** puntuación z +1.63; contribución al índice +0.204, coherente con un dólar más firme.
+
+Estas son las tres mayores contribuciones absolutas del cálculo actual. Cada variable se estandariza y recibe el mismo peso fijo de transmisión cada semana.
+
+## Qué no indica el resultado
+
+El marco no pronostica el rendimiento de la próxima semana para el dólar ni para los activos componentes. Una lectura positiva describe una configuración asociada con un dólar más firme y una lectura negativa describe una configuración asociada con un dólar más suave. No establece momento exacto, causalidad ni una operación.
+
+## Qué observar durante la próxima semana
+
+Observe si las variables dominantes mantienen sus posiciones estandarizadas y si la lectura se amplía entre más componentes o se concentra en un solo valor extremo. El límite de régimen más cercano es −0.30. La etiqueta del panel cambia únicamente después de una observación semanal completa que atraviese un límite.
+
+## Recordatorio metodológico
+
+El USD Impact Score combina DXY, WTI, S&P 500, VIX, Bitcoin, oro y los rendimientos del Tesoro de EE. UU. a 2 y 10 años. Las variables se estandarizan frente a la muestra completa, se limitan a ±3,5 desviaciones estándar y se combinan con pesos fijos de transmisión. Cada semana se utiliza el mismo cálculo.
+
+---
+
+*El Comentario Automático de Régimen es educativo e informativo. No constituye asesoramiento de inversión, señal de negociación ni recomendación de compra o venta. Los resultados históricos no indican resultados futuros.*
