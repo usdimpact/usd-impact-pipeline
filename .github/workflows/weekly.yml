@@ -1,23 +1,22 @@
 name: Weekly USD Impact Score
 
-# Runs the pipeline every Friday at 22:00 UTC (after US market close),
-# commits the updated dashboard back to the repo. Cloudflare Pages
-# auto-deploys on push.
+# Runs the score, commentary, archive, and dashboard pipeline every Friday at
+# 22:00 UTC. Cloudflare Pages auto-deploys after the generated files are pushed.
 #
 # Manual runs: Actions tab → Weekly USD Impact Score → Run workflow.
 
 on:
   schedule:
     - cron: '0 22 * * 5'  # Friday 22:00 UTC
-  workflow_dispatch:       # allow manual trigger from Actions tab
+  workflow_dispatch:
 
 permissions:
-  contents: write          # needed to commit updated dashboard
+  contents: write
 
 jobs:
   run-pipeline:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
 
     steps:
       - name: Checkout repo
@@ -34,11 +33,50 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run pipeline (web mode, with backtest)
+      - name: Run score pipeline
         env:
           PYTHONUNBUFFERED: 1
         run: |
           python usd_impact_score_v2.py --web --output-dir public --backtest
+
+      - name: Generate weekly commentary and bridge data
+        run: |
+          python scripts/generate_weekly_commentary.py \
+            --score-json public/data/usd_impact_score_v2.json \
+            --commentary-dir commentary \
+            --bridge-dir data \
+            --public-data-dir public/data
+
+      - name: Rebuild dashboards with current commentary
+        run: |
+          python scripts/rerender_dashboard.py \
+            --csv public/data/usd_impact_score_v2.csv \
+            --output-dir public
+
+      - name: Validate generated commentary
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          required = [
+              Path('commentary/latest_en.md'),
+              Path('commentary/latest_es.md'),
+              Path('public/en/index.html'),
+              Path('public/es/index.html'),
+              Path('public/data/weekly_input_latest.json'),
+          ]
+          missing = [str(path) for path in required if not path.exists() or path.stat().st_size == 0]
+          if missing:
+              raise SystemExit(f'Missing generated outputs: {missing}')
+
+          en = Path('public/en/index.html').read_text(encoding='utf-8')
+          es = Path('public/es/index.html').read_text(encoding='utf-8')
+          if 'Automated Regime Commentary' not in en:
+              raise SystemExit('English commentary was not rendered into the dashboard.')
+          if 'Comentario Automático de Régimen' not in es:
+              raise SystemExit('Spanish commentary was not rendered into the dashboard.')
+          print('Commentary outputs and dashboard rendering validated.')
+          PY
 
       - name: Show latest score
         run: |
@@ -54,23 +92,24 @@ jobs:
 
       - name: Archive weekly snapshot
         run: |
-          WEEK=$(date -u +'%Y-%m-%d')
+          WEEK=$(python -c "import json; print(json.load(open('public/data/usd_impact_score_v2.json'))['metadata']['latest_date'])")
           mkdir -p public/archive/$WEEK
-          cp public/en/index.html public/archive/$WEEK/en.html || true
-          cp public/es/index.html public/archive/$WEEK/es.html || true
-          cp public/data/usd_impact_score_v2.json public/archive/$WEEK/score.json || true
-          echo "Archived snapshot to public/archive/$WEEK/"
+          cp public/en/index.html public/archive/$WEEK/en.html
+          cp public/es/index.html public/archive/$WEEK/es.html
+          cp public/data/usd_impact_score_v2.json public/archive/$WEEK/score.json
+          cp public/data/weekly_input_latest.json public/archive/$WEEK/weekly_input.json
+          echo "Archived score, commentary dashboard, and bridge data to public/archive/$WEEK/"
 
-      - name: Commit and push updated dashboard
+      - name: Commit and push weekly update
         run: |
           git config user.name "USD Impact Pipeline"
           git config user.email "pipeline@lbx-fx.com"
-          git add public/
+          git add public/ commentary/ data/
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
-            WEEK=$(date -u +'%Y-%m-%d')
-            git commit -m "Weekly score update — $WEEK"
+            WEEK=$(python -c "import json; print(json.load(open('public/data/usd_impact_score_v2.json'))['metadata']['latest_date'])")
+            git commit -m "Weekly score and commentary update — $WEEK"
             git push
-            echo "Pushed weekly update for $WEEK"
+            echo "Pushed weekly score and commentary update for $WEEK"
           fi
