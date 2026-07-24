@@ -1,18 +1,18 @@
 # Automated Regime Commentary — Week of July 24, 2026
 
-**USD Impact Score: −0.48  |  Soft dollar regime**
+**USD Impact Score: −0.46  |  Soft dollar regime**
 
 This commentary is generated automatically from the same weekly score data used by the dashboard. It adds no external market-event claims and makes no forecast.
 
 ## What the score is saying
 
-The score is −0.48, with a week-over-week change of −0.04 and a four-week change of −0.13. The regime remains Soft dollar regime. Across the eight inputs, 4 contribute toward a firmer-dollar reading and 4 toward a softer-dollar reading.
+The score is −0.46, with a week-over-week change of −0.01 and a four-week change of −0.10. The regime remains Soft dollar regime. Across the eight inputs, 4 contribute toward a firmer-dollar reading and 4 toward a softer-dollar reading.
 
 ## What is driving the reading
 
-- **S&P 500:** z-score +2.42; score contribution −0.303, a softer-dollar contribution.
+- **S&P 500:** z-score +2.42; score contribution −0.302, a softer-dollar contribution.
 - **gold:** z-score +2.40; score contribution −0.300, a softer-dollar contribution.
-- **U.S. 10-year Treasury yield:** z-score +1.63; score contribution +0.204, a firmer-dollar contribution.
+- **U.S. 10-year Treasury yield:** z-score +1.70; score contribution +0.213, a firmer-dollar contribution.
 
 These are the three largest absolute contributions in the current calculation. Each component is standardized and receives the same fixed transmission weight every week.
 

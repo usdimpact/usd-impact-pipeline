@@ -1,18 +1,18 @@
 # Comentario Automático de Régimen — Semana del 24 de julio de 2026
 
-**USD Impact Score: −0.48  |  Régimen de dólar suave**
+**USD Impact Score: −0.46  |  Régimen de dólar suave**
 
 Este comentario se genera automáticamente con los mismos datos semanales que utiliza el panel. No añade afirmaciones sobre eventos externos ni realiza previsiones.
 
 ## Qué indica el resultado
 
-El índice se sitúa en −0.48, con un cambio semanal de −0.04 y un cambio de cuatro semanas de −0.13. El régimen permanece en Régimen de dólar suave. Entre las ocho variables, 4 contribuyen hacia una lectura de dólar más firme y 4 hacia una lectura de dólar más suave.
+El índice se sitúa en −0.46, con un cambio semanal de −0.01 y un cambio de cuatro semanas de −0.10. El régimen permanece en Régimen de dólar suave. Entre las ocho variables, 4 contribuyen hacia una lectura de dólar más firme y 4 hacia una lectura de dólar más suave.
 
 ## Qué impulsa la lectura
 
-- **S&P 500:** puntuación z +2.42; contribución al índice −0.303, coherente con un dólar más suave.
+- **S&P 500:** puntuación z +2.42; contribución al índice −0.302, coherente con un dólar más suave.
 - **oro:** puntuación z +2.40; contribución al índice −0.300, coherente con un dólar más suave.
-- **rendimiento del Tesoro de EE. UU. a 10 años:** puntuación z +1.63; contribución al índice +0.204, coherente con un dólar más firme.
+- **rendimiento del Tesoro de EE. UU. a 10 años:** puntuación z +1.70; contribución al índice +0.213, coherente con un dólar más firme.
 
 Estas son las tres mayores contribuciones absolutas del cálculo actual. Cada variable se estandariza y recibe el mismo peso fijo de transmisión cada semana.
 
