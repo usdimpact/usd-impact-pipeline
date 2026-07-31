@@ -48,6 +48,7 @@ import io
 import json
 import logging
 import sys
+import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -63,6 +64,8 @@ import pandas as pd
 START_DATE = "2015-01-01"
 ZSCORE_CLIP = 3.5
 RESAMPLE_RULE = "W-FRI"
+YAHOO_FETCH_ATTEMPTS = 3
+YAHOO_RETRY_BASE_SECONDS = 2
 
 # Ticker map: canonical name -> (source, ticker)
 TICKERS = {
@@ -141,37 +144,76 @@ def setup_logging(output_dir: Path, verbose: bool = True) -> logging.Logger:
 # DATA FETCH
 # ============================================================
 
-def fetch_yahoo(tickers: list[str], start: str, logger: logging.Logger) -> pd.DataFrame:
+def fetch_yahoo(
+    tickers: list[str],
+    start: str,
+    logger: logging.Logger,
+    *,
+    download_fn=None,
+    attempts: int = YAHOO_FETCH_ATTEMPTS,
+    retry_base_seconds: float = YAHOO_RETRY_BASE_SECONDS,
+) -> pd.DataFrame:
     """Fetch daily close prices from Yahoo Finance for a list of tickers."""
-    import yfinance as yf
+    if attempts < 1:
+        raise ValueError("Yahoo fetch attempts must be at least 1")
+
+    if download_fn is None:
+        import yfinance as yf
+        download_fn = yf.download
 
     logger.info(f"Fetching Yahoo: {tickers}")
-    raw = yf.download(
-        tickers,
-        start=start,
-        progress=False,
-        auto_adjust=True,
-        group_by="ticker" if len(tickers) > 1 else None,
-    )
+    last_error: Exception | None = None
 
-    if raw.empty:
-        raise RuntimeError(f"Yahoo returned no data for {tickers}")
+    for attempt in range(1, attempts + 1):
+        try:
+            # yfinance defaults to threaded downloads. Its shared SQLite cache
+            # can lock when ticker workers initialize concurrently, leaving one
+            # asset entirely empty. Serializing the batch avoids that race.
+            raw = download_fn(
+                tickers,
+                start=start,
+                progress=False,
+                auto_adjust=True,
+                group_by="ticker" if len(tickers) > 1 else None,
+                threads=False,
+            )
 
-    if len(tickers) == 1:
-        df = pd.DataFrame({tickers[0]: raw["Close"]})
-    else:
-        df = pd.DataFrame({
-            t: raw[t]["Close"]
-            for t in tickers
-            if t in raw.columns.get_level_values(0)
-        })
+            if raw.empty:
+                raise RuntimeError(f"Yahoo returned no data for {tickers}")
 
-    missing = [t for t in tickers if t not in df.columns]
-    if missing:
-        raise RuntimeError(f"Yahoo missing tickers: {missing}")
+            if len(tickers) == 1:
+                close = raw["Close"]
+                if isinstance(close, pd.DataFrame):
+                    close = close.iloc[:, 0]
+                df = pd.DataFrame({tickers[0]: close})
+            else:
+                df = pd.DataFrame({
+                    ticker: raw[ticker]["Close"]
+                    for ticker in tickers
+                    if ticker in raw.columns.get_level_values(0)
+                })
 
-    logger.info(f"Yahoo: {len(df)} daily rows")
-    return df
+            missing = [ticker for ticker in tickers if ticker not in df.columns]
+            if missing:
+                raise RuntimeError(f"Yahoo missing tickers: {missing}")
+
+            logger.info(f"Yahoo: {len(df)} daily rows")
+            return df
+        except Exception as error:
+            last_error = error
+            if attempt == attempts:
+                break
+            delay = retry_base_seconds * attempt
+            logger.warning(
+                f"Yahoo fetch attempt {attempt}/{attempts} failed: {error}. "
+                f"Retrying in {delay:g} seconds."
+            )
+            if delay > 0:
+                time.sleep(delay)
+
+    raise RuntimeError(
+        f"Yahoo fetch failed after {attempts} attempts: {last_error}"
+    ) from last_error
 
 
 def fetch_fred(series: list[str], start: str, logger: logging.Logger) -> pd.DataFrame:
@@ -272,6 +314,9 @@ def compute_zscores(weekly_df: pd.DataFrame, clip: float,
 
 def compute_score(z_df: pd.DataFrame, weights: dict[str, float],
                   logger: logging.Logger) -> pd.Series:
+    if z_df.empty:
+        raise RuntimeError("Score computation received no complete observations")
+
     missing = [k for k in weights if k not in z_df.columns]
     if missing:
         raise RuntimeError(f"Score computation missing columns: {missing}")
@@ -857,6 +902,11 @@ def main() -> int:
             f"Clean weekly frame: {len(weekly_clean)} weeks "
             f"(dropped {len(weekly) - len(weekly_clean)} weeks with missing data)"
         )
+        if weekly_clean.empty:
+            logger.error(
+                "No complete weekly observations remain after required-input filtering"
+            )
+            return 2
 
         z = compute_zscores(weekly_clean, ZSCORE_CLIP, logger)
         score = compute_score(z, WEIGHTS, logger)
