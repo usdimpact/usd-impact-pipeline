@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import math
+from datetime import datetime
 from pathlib import Path
 
 EXPECTED_DRIVERS = {
@@ -18,6 +19,10 @@ EXPECTED_REGIMES = {
     "Soft dollar regime",
     "Weak dollar regime",
 }
+SPANISH_MONTHS = [
+    "enero", "febrero", "marzo", "abril", "mayo", "junio",
+    "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
+]
 
 
 def load_json(path: Path) -> dict:
@@ -39,6 +44,13 @@ def finite_number(value: object, label: str) -> float:
     return number
 
 
+def localized_dates(week: str) -> tuple[str, str]:
+    date = datetime.strptime(week, "%Y-%m-%d")
+    english = date.strftime("%B %d, %Y").replace(" 0", " ")
+    spanish = f"{date.day} de {SPANISH_MONTHS[date.month - 1]} de {date.year}"
+    return english, spanish
+
+
 def validate(root: Path) -> str:
     score_path = root / "public/data/usd_impact_score_v2.json"
     bridge_path = root / "public/data/weekly_input_latest.json"
@@ -57,6 +69,7 @@ def validate(root: Path) -> str:
     if bridge.get("week_ending") != week:
         raise ValueError("Bridge week_ending does not match score metadata latest_date")
 
+    english_date, spanish_date = localized_dates(week)
     score = finite_number(metadata.get("latest_score"), "metadata.latest_score")
     latest_score = finite_number(latest.get("score"), "weeks[-1].score")
     bridge_score = finite_number(bridge.get("score"), "bridge.score")
@@ -92,14 +105,14 @@ def validate(root: Path) -> str:
         raise ValueError("Weekly commentary must not add external event claims")
 
     required_text = {
-        root / "commentary/latest_en.md": [week, "Automated Regime Commentary"],
-        root / "commentary/latest_es.md": [week, "Comentario Automático de Régimen"],
-        root / "public/en/index.html": [week, "Automated Regime Commentary"],
-        root / "public/es/index.html": [week, "Comentario Automático de Régimen"],
-        root / f"commentary/archive/{week}_en.md": ["Automated Regime Commentary"],
-        root / f"commentary/archive/{week}_es.md": ["Comentario Automático de Régimen"],
-        root / f"public/archive/{week}/en.html": [week, "Automated Regime Commentary"],
-        root / f"public/archive/{week}/es.html": [week, "Comentario Automático de Régimen"],
+        root / "commentary/latest_en.md": [english_date, "Automated Regime Commentary"],
+        root / "commentary/latest_es.md": [spanish_date, "Comentario Automático de Régimen"],
+        root / "public/en/index.html": [english_date, "Automated Regime Commentary"],
+        root / "public/es/index.html": [spanish_date, "Comentario Automático de Régimen"],
+        root / f"commentary/archive/{week}_en.md": [english_date, "Automated Regime Commentary"],
+        root / f"commentary/archive/{week}_es.md": [spanish_date, "Comentario Automático de Régimen"],
+        root / f"public/archive/{week}/en.html": [english_date, "Automated Regime Commentary"],
+        root / f"public/archive/{week}/es.html": [spanish_date, "Comentario Automático de Régimen"],
     }
     for path, needles in required_text.items():
         text = require_file(path)
