@@ -4,7 +4,7 @@ name: Weekly USD Impact Health
 # Manual runs are available from the Actions tab for verification.
 on:
   schedule:
-    - cron: '0 1 * * 6'  # Saturday 01:00 UTC
+    - cron: '0 2 * * 6'  # Saturday 02:00 UTC
   workflow_dispatch:
 
 permissions:
