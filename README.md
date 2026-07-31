@@ -7,7 +7,7 @@ The score, deterministic English and Spanish commentary, dashboards, bridge data
 
 Generated releases are committed to an automation branch and merged into `main` only after the exact publication commit passes the `Weekly score quality` workflow. Cloudflare Pages deploys the validated `main` branch. Failed generation or validation leaves the current production release unchanged.
 
-The Saturday health workflow verifies the completed GitHub Actions release, deployed bridge JSON, and both public dashboards.
+At 00:15 UTC on Saturday, the recovery workflow dispatches one guarded catch-up run only when Friday's release failed or never arrived. It skips a recent successful or still-running release. The 01:00 UTC Saturday health workflow then verifies the completed GitHub Actions release, deployed bridge JSON, and both public dashboards.
 
 ## Connection to usd-impact
 

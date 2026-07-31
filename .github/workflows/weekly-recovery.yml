@@ -1,0 +1,52 @@
+name: Weekly USD Impact Recovery
+
+# Runs once after the normal Friday release window. It dispatches exactly one
+# catch-up run only when the expected weekly workflow failed or never arrived.
+# The normal publication PR, exact-commit quality gate, and merge flow remain
+# responsible for every production update.
+
+on:
+  schedule:
+    - cron: '15 0 * * 6'  # Saturday 00:15 UTC
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: weekly-usd-impact-recovery
+  cancel-in-progress: false
+
+jobs:
+  recover-weekly-release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Inspect and recover the weekly release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MAX_AGE_HOURS: '6'
+        run: |
+          set -euo pipefail
+
+          gh run list \
+            --repo "$GITHUB_REPOSITORY" \
+            --workflow weekly.yml \
+            --branch main \
+            --limit 1 \
+            --json databaseId,status,conclusion,createdAt,url,event \
+            > "$RUNNER_TEMP/latest-weekly-runs.json"
+
+          if python scripts/weekly_recovery_decision.py \
+            --runs-file "$RUNNER_TEMP/latest-weekly-runs.json" \
+            --max-age-hours "$MAX_AGE_HOURS"; then
+            gh workflow run weekly.yml --repo "$GITHUB_REPOSITORY" --ref main
+            echo "Dispatched one guarded Weekly USD Impact Score recovery run."
+          else
+            echo "No Weekly USD Impact Score recovery run is needed."
+          fi
