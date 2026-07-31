@@ -1,7 +1,9 @@
 name: Weekly USD Impact Score
 
 # Runs the score, commentary, archive, and dashboard pipeline every Friday at
-# 22:00 UTC. Cloudflare Pages auto-deploys after the generated files are pushed.
+# 22:00 UTC. A generated release is merged only after the exact publication
+# commit passes the Weekly score quality workflow. Cloudflare Pages then
+# auto-deploys the validated main-branch commit.
 #
 # Manual runs: Actions tab → Weekly USD Impact Score → Run workflow.
 
@@ -11,12 +13,18 @@ on:
   workflow_dispatch:
 
 permissions:
+  actions: write
   contents: write
+  pull-requests: write
+
+concurrency:
+  group: weekly-usd-impact
+  cancel-in-progress: false
 
 jobs:
   run-pipeline:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
 
     steps:
       - name: Checkout repo
@@ -53,31 +61,6 @@ jobs:
             --csv public/data/usd_impact_score_v2.csv \
             --output-dir public
 
-      - name: Validate generated commentary
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-
-          required = [
-              Path('commentary/latest_en.md'),
-              Path('commentary/latest_es.md'),
-              Path('public/en/index.html'),
-              Path('public/es/index.html'),
-              Path('public/data/weekly_input_latest.json'),
-          ]
-          missing = [str(path) for path in required if not path.exists() or path.stat().st_size == 0]
-          if missing:
-              raise SystemExit(f'Missing generated outputs: {missing}')
-
-          en = Path('public/en/index.html').read_text(encoding='utf-8')
-          es = Path('public/es/index.html').read_text(encoding='utf-8')
-          if 'Automated Regime Commentary' not in en:
-              raise SystemExit('English commentary was not rendered into the dashboard.')
-          if 'Comentario Automático de Régimen' not in es:
-              raise SystemExit('Spanish commentary was not rendered into the dashboard.')
-          print('Commentary outputs and dashboard rendering validated.')
-          PY
-
       - name: Show latest score
         run: |
           python -c "
@@ -100,16 +83,65 @@ jobs:
           cp public/data/weekly_input_latest.json public/archive/$WEEK/weekly_input.json
           echo "Archived score, commentary dashboard, and bridge data to public/archive/$WEEK/"
 
-      - name: Commit and push weekly update
+      - name: Validate generated weekly release
+        run: python scripts/validate_weekly_release.py
+
+      - name: Open, validate, and merge weekly publication pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
+          if [ -z "$(git status --porcelain public commentary data)" ]; then
+            echo "No weekly score changes to publish."
+            exit 0
+          fi
+
+          WEEK=$(python -c "import json; print(json.load(open('public/data/usd_impact_score_v2.json'))['metadata']['latest_date'])")
+          branch="automation/weekly-usd-impact-${WEEK}-${GITHUB_RUN_ID}"
+
           git config user.name "USD Impact Pipeline"
           git config user.email "pipeline@lbx-fx.com"
-          git add public/ commentary/ data/
-          if git diff --cached --quiet; then
-            echo "No changes to commit"
-          else
-            WEEK=$(python -c "import json; print(json.load(open('public/data/usd_impact_score_v2.json'))['metadata']['latest_date'])")
-            git commit -m "Weekly score and commentary update — $WEEK"
-            git push
-            echo "Pushed weekly score and commentary update for $WEEK"
+          git checkout -b "$branch"
+          git add public commentary data
+          git commit -m "Publish Weekly USD Impact Score for ${WEEK}"
+          git push --set-upstream origin "$branch"
+          head_sha="$(git rev-parse HEAD)"
+
+          cat > "$RUNNER_TEMP/weekly-score-pr.md" <<EOF
+          ## Automated Weekly USD Impact Score publication
+
+          This pull request contains the generated score, deterministic English and Spanish commentary, bridge data, dashboards, and dated archive for **${WEEK}**.
+
+          Publication is automatic only after the Weekly score quality workflow passes on this exact commit. A failed consistency check leaves this pull request open and does not change the Cloudflare Pages production deployment.
+          EOF
+
+          pr_url="$(gh pr create \
+            --base main \
+            --head "$branch" \
+            --title "Publish Weekly USD Impact Score — ${WEEK}" \
+            --body-file "$RUNNER_TEMP/weekly-score-pr.md")"
+
+          gh workflow run quality.yml --ref "$branch"
+
+          run_id=""
+          for attempt in $(seq 1 30); do
+            run_id="$(gh run list \
+              --workflow quality.yml \
+              --branch "$branch" \
+              --event workflow_dispatch \
+              --limit 10 \
+              --json databaseId,headSha \
+              --jq ".[] | select(.headSha == \"$head_sha\") | .databaseId" | head -n 1)"
+            if [ -n "$run_id" ]; then
+              break
+            fi
+            sleep 5
+          done
+
+          if [ -z "$run_id" ]; then
+            echo "Could not locate the dispatched Weekly score quality run for $head_sha."
+            exit 1
           fi
+
+          gh run watch "$run_id" --exit-status
+          gh pr merge "$pr_url" --squash --delete-branch
+          echo "Merged Weekly USD Impact Score for ${WEEK}. Cloudflare Pages production deployment will follow from main."
