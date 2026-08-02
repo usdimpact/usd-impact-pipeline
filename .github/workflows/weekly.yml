@@ -83,6 +83,9 @@ jobs:
           cp public/data/weekly_input_latest.json public/archive/$WEEK/weekly_input.json
           echo "Archived score, commentary dashboard, and bridge data to public/archive/$WEEK/"
 
+      - name: Rebuild weekly archive indexes
+        run: python scripts/generate_weekly_archive_index.py
+
       - name: Validate generated weekly release
         run: python scripts/validate_weekly_release.py
 
