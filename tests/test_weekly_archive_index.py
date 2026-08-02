@@ -34,6 +34,7 @@ class WeeklyArchiveIndexTests(unittest.TestCase):
 
     def test_indexes_include_only_complete_matching_previous_archives(self):
         self.add_archive("2026-07-31")
+        self.add_archive("2026-08-07")
         self.add_archive("2026-07-24")
         self.add_archive("2026-07-17")
         self.add_archive("2026-07-10", metadata_week="2026-07-17")
@@ -48,6 +49,7 @@ class WeeklyArchiveIndexTests(unittest.TestCase):
         self.assertIn("/archive/2026-07-24/en.html", english)
         self.assertLess(english.index("2026-07-24"), english.index("2026-07-17"))
         self.assertNotIn("/archive/2026-07-31/en.html", english)
+        self.assertNotIn("/archive/2026-08-07/en.html", english)
         self.assertNotIn("/archive/2026-07-10/en.html", english)
         self.assertNotIn("/archive/2026-07-03/en.html", english)
         self.assertIn("Semanas anteriores", spanish)
