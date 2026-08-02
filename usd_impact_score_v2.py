@@ -287,6 +287,11 @@ def fetch_all_inputs(start: str, logger: logging.Logger) -> pd.DataFrame:
 
 def resample_weekly(daily_df: pd.DataFrame, logger: logging.Logger) -> pd.DataFrame:
     weekly = daily_df.resample(RESAMPLE_RULE).last().dropna(how="all")
+    latest_observation = daily_df.index.max().normalize()
+    latest_completed_friday = latest_observation - pd.Timedelta(
+        days=(latest_observation.weekday() - 4) % 7
+    )
+    weekly = weekly.loc[weekly.index <= latest_completed_friday]
     logger.info(
         f"Weekly resampled: {len(weekly)} weeks, "
         f"{weekly.index.min().date()} → {weekly.index.max().date()}"

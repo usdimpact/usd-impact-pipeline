@@ -1,9 +1,11 @@
 import logging
 import unittest
+from datetime import date, datetime, timezone
 
 import pandas as pd
 
-from usd_impact_score_v2 import compute_score, fetch_yahoo
+from scripts.validate_weekly_release import latest_completed_friday
+from usd_impact_score_v2 import compute_score, fetch_yahoo, resample_weekly
 
 
 def yahoo_frame(tickers):
@@ -69,6 +71,26 @@ class YahooFetchResilienceTests(unittest.TestCase):
             "Score computation received no complete observations",
         ):
             compute_score(empty, {"DXY": 1.0}, self.logger)
+
+    def test_weekend_observation_does_not_create_a_future_week(self):
+        daily = pd.DataFrame(
+            {"DXY": [100.0, 100.0], "BTC": [110.0, 111.0]},
+            index=pd.to_datetime(["2026-07-31", "2026-08-01"]),
+        )
+
+        weekly = resample_weekly(daily, self.logger)
+
+        self.assertEqual(list(weekly.index), [pd.Timestamp("2026-07-31")])
+
+    def test_latest_completed_friday_never_moves_into_the_future(self):
+        expectations = {
+            datetime(2026, 7, 31, 22, tzinfo=timezone.utc): date(2026, 7, 31),
+            datetime(2026, 8, 1, 3, tzinfo=timezone.utc): date(2026, 7, 31),
+            datetime(2026, 8, 3, 9, tzinfo=timezone.utc): date(2026, 7, 31),
+        }
+        for generated_at, expected in expectations.items():
+            with self.subTest(generated_at=generated_at):
+                self.assertEqual(latest_completed_friday(generated_at), expected)
 
 
 if __name__ == "__main__":
