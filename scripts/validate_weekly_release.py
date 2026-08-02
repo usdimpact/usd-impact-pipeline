@@ -6,7 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import math
-from datetime import datetime
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 EXPECTED_DRIVERS = {
@@ -51,6 +51,13 @@ def localized_dates(week: str) -> tuple[str, str]:
     return english, spanish
 
 
+def latest_completed_friday(value: datetime) -> date:
+    if value.tzinfo is None:
+        value = value.replace(tzinfo=timezone.utc)
+    utc_date = value.astimezone(timezone.utc).date()
+    return utc_date - timedelta(days=(utc_date.weekday() - 4) % 7)
+
+
 def validate(root: Path) -> str:
     score_path = root / "public/data/usd_impact_score_v2.json"
     bridge_path = root / "public/data/weekly_input_latest.json"
@@ -68,6 +75,18 @@ def validate(root: Path) -> str:
         raise ValueError("Score metadata latest_date does not match the last weekly observation")
     if bridge.get("week_ending") != week:
         raise ValueError("Bridge week_ending does not match score metadata latest_date")
+
+    generated_at_raw = str(metadata.get("generated_at_utc", ""))
+    try:
+        generated_at = datetime.fromisoformat(generated_at_raw.replace("Z", "+00:00"))
+    except ValueError as error:
+        raise ValueError("Score metadata generated_at_utc is not valid ISO-8601") from error
+    latest_allowed_week = latest_completed_friday(generated_at)
+    if datetime.strptime(week, "%Y-%m-%d").date() > latest_allowed_week:
+        raise ValueError(
+            f"Score metadata latest_date {week} is after the latest completed "
+            f"Friday {latest_allowed_week}"
+        )
 
     english_date, spanish_date = localized_dates(week)
     score = finite_number(metadata.get("latest_score"), "metadata.latest_score")
