@@ -40,6 +40,7 @@ def load_json(path: Path) -> dict:
 def discover_editions(root: Path) -> list[ArchiveEdition]:
     latest_payload = load_json(root / "public/data/usd_impact_score_v2.json")
     current_week = str((latest_payload.get("metadata") or {}).get("latest_date", ""))
+    current_week_date = datetime.strptime(current_week, "%Y-%m-%d").date()
     archive_root = root / "public/archive"
     editions: list[ArchiveEdition] = []
 
@@ -59,7 +60,7 @@ def discover_editions(root: Path) -> list[ArchiveEdition]:
         except (FileNotFoundError, json.JSONDecodeError, TypeError, ValueError):
             continue
 
-        if metadata.get("latest_date") != directory.name:
+        if week >= current_week_date or metadata.get("latest_date") != directory.name:
             continue
         if not math.isfinite(score) or not regime:
             continue
