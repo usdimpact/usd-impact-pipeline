@@ -9,14 +9,15 @@ The weekly score, English commentary, Spanish commentary, bridge data, dashboard
 The authoritative workflow is `.github/workflows/weekly.yml`:
 
 1. Friday at 22:00 UTC, the workflow runs the score pipeline with the locked Python environment.
-2. Commentary is generated deterministically from the score JSON. No external model or current-event narrative is introduced.
-3. The English and Spanish dashboards are rebuilt with the matching commentary.
-4. The complete release is archived under its score date.
-5. Local consistency validation must pass before the workflow creates a publication branch.
-6. A pull request is opened from that isolated branch.
-7. `Weekly score quality` is dispatched against the exact publication commit.
-8. The PR is squash-merged only when that exact run passes.
-9. Cloudflare Pages deploys the resulting `main` commit.
+2. The pipeline records and validates the raw observation date and canonical source identity for each of the eight drivers.
+3. Commentary is generated deterministically from the score JSON. No external model or current-event narrative is introduced.
+4. The English and Spanish dashboards are rebuilt with the matching commentary.
+5. The complete release is archived under its score date.
+6. Local consistency validation must pass before the workflow creates a publication branch.
+7. A pull request is opened from that isolated branch.
+8. `Weekly score quality` is dispatched against the exact publication commit.
+9. The PR is squash-merged only when that exact run passes.
+10. Cloudflare Pages deploys the resulting `main` commit.
 
 The previous production release remains live if any step fails.
 
@@ -30,6 +31,7 @@ After the Friday run, confirm:
 - The automated publication PR was merged rather than left open.
 - The PR head SHA has a successful `Weekly score quality` run.
 - `public/data/weekly_input_latest.json` reports the intended Friday date.
+- The score and bridge JSON contain identical provenance for all eight drivers, each with `status: fresh` and `retrieval_mode: live`.
 - The English dashboard contains `Automated Regime Commentary` and the same date.
 - The Spanish dashboard contains `Comentario Automático de Régimen` and the same date.
 - The dated archive contains `en.html`, `es.html`, `score.json`, and `weekly_input.json`.
@@ -62,6 +64,20 @@ When that issue appears:
 5. Rerun the affected workflow only after the cause is understood.
 6. Rerun the health workflow after deployment. A successful check comments on and closes the health issue.
 
+### Source freshness failure
+
+The pipeline fails before publication when a canonical input has no usable observation, reports an observation after the intended score week, exceeds its age limit, or would produce a score for an older Friday. This behavior protects against silent partial-source publication.
+
+When the failure names a driver:
+
+1. Open the failed workflow log and record the driver, observation date, calculated age, and configured limit.
+2. Check the canonical provider page recorded in the source contract; do not substitute an unofficial value directly into generated output.
+3. Determine whether the provider is delayed, the ticker/series failed, or the fetch library returned incomplete data.
+4. Preserve the previous live release while the source is investigated.
+5. Fix fetch handling on a dedicated branch when the provider has current data but the pipeline cannot retrieve it.
+6. Change a freshness limit only through a separately reviewed operational-policy PR supported by evidence of normal provider timing.
+7. Rerun the weekly workflow after the source or code issue is resolved. Do not edit `observation_date`, `age_days`, `status`, or `retrieval_mode` in generated JSON.
+
 ### Manual dispatch
 
 Manual execution is appropriate for a verified recovery or a controlled release test. It is not a substitute for diagnosing repeated source-data, dependency, or validation failures.
@@ -93,6 +109,24 @@ English and Spanish are both required for every release. `commentary/latest.md` 
 | `commentary/archive/` | Immutable release history | Never delete or rewrite a published edition. |
 | `public/archive/` | Immutable dashboard/data history | Preserve complete dated snapshots. |
 | `requirements.lock` | Production environment | Update only through a dedicated dependency PR. |
+| Source provenance in score/bridge JSON | Score pipeline and commentary generator | Must describe the raw provider observations and match exactly across both files. |
+
+## Source freshness contract
+
+The source guard is operational and does not modify the v2 methodology. It runs before scoring and records provenance before the existing holiday-calendar forward fill.
+
+| Driver | Provider series | Maximum age at score week |
+| --- | --- | ---: |
+| DXY | Yahoo Finance `DX-Y.NYB` | 3 calendar days |
+| WTI | Yahoo Finance `CL=F` | 3 calendar days |
+| S&P 500 | Yahoo Finance `^GSPC` | 3 calendar days |
+| VIX | Yahoo Finance `^VIX` | 3 calendar days |
+| Bitcoin | Yahoo Finance `BTC-USD` | 2 calendar days |
+| Gold | Yahoo Finance `GC=F` | 3 calendar days |
+| U.S. 2-year Treasury yield | FRED `DGS2` | 4 calendar days |
+| U.S. 10-year Treasury yield | FRED `DGS10` | 4 calendar days |
+
+The limits allow ordinary holidays and routine FRED publication lag but reject a driver that is effectively one weekly cycle behind. A publishable release must also use live retrieval. Cached input mode remains available for development but cannot satisfy the post-2026-08-14 publication contract.
 
 ## Methodology interpretation
 

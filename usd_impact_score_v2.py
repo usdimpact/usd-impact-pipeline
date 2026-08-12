@@ -50,7 +50,7 @@ import logging
 import sys
 import time
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 import numpy as np
@@ -78,6 +78,41 @@ TICKERS = {
     "UST_2Y":  ("fred",  "DGS2"),
     "UST_10Y": ("fred",  "DGS10"),
 }
+
+# Operational source contract. These fields describe where each input was
+# retrieved and how old its last raw observation may be at publication time.
+# They do not affect the score calculation, weights, or data transformations.
+SOURCE_URLS = {
+    "DXY": "https://finance.yahoo.com/quote/DX-Y.NYB/history",
+    "WTI": "https://finance.yahoo.com/quote/CL%3DF/history",
+    "SPX": "https://finance.yahoo.com/quote/%5EGSPC/history",
+    "VIX": "https://finance.yahoo.com/quote/%5EVIX/history",
+    "BTC": "https://finance.yahoo.com/quote/BTC-USD/history",
+    "GOLD": "https://finance.yahoo.com/quote/GC%3DF/history",
+    "UST_2Y": "https://fred.stlouisfed.org/series/DGS2",
+    "UST_10Y": "https://fred.stlouisfed.org/series/DGS10",
+}
+
+SOURCE_PROVIDER_LABELS = {
+    "yahoo": "Yahoo Finance via yfinance",
+    "fred": "Federal Reserve Bank of St. Louis (FRED)",
+}
+
+# Calendar-day limits intentionally allow normal market holidays and the
+# publication lag sometimes seen in the daily Treasury constant-maturity
+# series, while rejecting a driver that has stopped updating for a full week.
+SOURCE_MAX_AGE_DAYS = {
+    "DXY": 3,
+    "WTI": 3,
+    "SPX": 3,
+    "VIX": 3,
+    "BTC": 2,
+    "GOLD": 3,
+    "UST_2Y": 4,
+    "UST_10Y": 4,
+}
+
+SOURCE_PROVENANCE_VERSION = 1
 
 # Sign = expected direction of move under a stronger dollar regime.
 # Magnitude 0.125 means equal-weight across eight inputs (sum of |w| = 1.0).
@@ -247,7 +282,146 @@ def fetch_fred(series: list[str], start: str, logger: logging.Logger) -> pd.Data
     return df
 
 
-def fetch_all_inputs(start: str, logger: logging.Logger) -> pd.DataFrame:
+def latest_completed_friday(value: datetime | date | pd.Timestamp) -> date:
+    """Return the most recent Friday that has completed in UTC."""
+    if isinstance(value, pd.Timestamp):
+        value = value.to_pydatetime()
+    if isinstance(value, datetime):
+        if value.tzinfo is None:
+            value = value.replace(tzinfo=timezone.utc)
+        current_date = value.astimezone(timezone.utc).date()
+    else:
+        current_date = value
+    return current_date - timedelta(days=(current_date.weekday() - 4) % 7)
+
+
+def build_source_provenance(
+    raw_df: pd.DataFrame,
+    score_week: date | pd.Timestamp,
+    *,
+    retrieval_mode: str = "live",
+) -> dict[str, dict[str, object]]:
+    """Describe the last raw observation available for every score driver.
+
+    The input must be the joined frame before holiday forward filling. This
+    ensures the reported observation date identifies the original provider
+    row rather than a value copied forward for calendar alignment.
+    """
+    canonical = set(TICKERS)
+    for label, mapping in (
+        ("source URLs", SOURCE_URLS),
+        ("source age limits", SOURCE_MAX_AGE_DAYS),
+    ):
+        if set(mapping) != canonical:
+            raise RuntimeError(f"Configured {label} do not match canonical drivers")
+
+    score_date = pd.Timestamp(score_week).date()
+    provenance: dict[str, dict[str, object]] = {}
+    for driver, (provider_code, series) in TICKERS.items():
+        observation_date: date | None = None
+        if driver in raw_df.columns:
+            valid = raw_df[driver].dropna()
+            eligible_dates = [
+                pd.Timestamp(index).date()
+                for index in valid.index
+                if pd.Timestamp(index).date() <= score_date
+            ]
+            if eligible_dates:
+                observation_date = max(eligible_dates)
+
+        max_age_days = SOURCE_MAX_AGE_DAYS[driver]
+        if observation_date is None:
+            age_days: int | None = None
+            status = "missing"
+        else:
+            age_days = (score_date - observation_date).days
+            status = "fresh" if age_days <= max_age_days else "stale"
+
+        provenance[driver] = {
+            "driver": driver,
+            "provider": SOURCE_PROVIDER_LABELS[provider_code],
+            "provider_code": provider_code,
+            "series": series,
+            "source_url": SOURCE_URLS[driver],
+            "observation_date": (
+                observation_date.isoformat() if observation_date else None
+            ),
+            "score_week": score_date.isoformat(),
+            "age_days": age_days,
+            "max_age_days": max_age_days,
+            "status": status,
+            "retrieval_mode": retrieval_mode,
+        }
+    return provenance
+
+
+def validate_source_freshness(
+    provenance: dict[str, dict[str, object]],
+    score_week: date | pd.Timestamp,
+    logger: logging.Logger,
+) -> None:
+    """Fail closed when any canonical driver is missing, future, or stale."""
+    expected = set(TICKERS)
+    if set(provenance) != expected:
+        missing = sorted(expected - set(provenance))
+        unexpected = sorted(set(provenance) - expected)
+        raise RuntimeError(
+            "Source provenance driver mismatch: "
+            f"missing={missing}, unexpected={unexpected}"
+        )
+
+    score_date = pd.Timestamp(score_week).date()
+    failures = []
+    for driver in TICKERS:
+        item = provenance[driver]
+        observation_raw = item.get("observation_date")
+        if not observation_raw:
+            failures.append(f"{driver} has no observation on or before {score_date}")
+            continue
+
+        observation_date = date.fromisoformat(str(observation_raw))
+        age_days = (score_date - observation_date).days
+        max_age_days = SOURCE_MAX_AGE_DAYS[driver]
+        if age_days < 0:
+            failures.append(
+                f"{driver} observation {observation_date} is after score week {score_date}"
+            )
+            continue
+        if age_days > max_age_days:
+            failures.append(
+                f"{driver} observation {observation_date} is stale by {age_days} days "
+                f"(limit {max_age_days})"
+            )
+            continue
+
+        if item.get("score_week") != score_date.isoformat():
+            failures.append(f"{driver} provenance score_week does not match {score_date}")
+            continue
+        if item.get("age_days") != age_days:
+            failures.append(f"{driver} provenance age_days is inconsistent")
+            continue
+        if item.get("max_age_days") != max_age_days:
+            failures.append(f"{driver} provenance max_age_days is inconsistent")
+            continue
+        if item.get("status") != "fresh":
+            failures.append(f"{driver} provenance status is not fresh")
+            continue
+
+        logger.info(
+            f"Source freshness {driver}: {observation_date} "
+            f"({age_days} calendar days old; limit {max_age_days})"
+        )
+
+    if failures:
+        raise RuntimeError("Source freshness validation failed: " + "; ".join(failures))
+
+
+def fetch_all_inputs(
+    start: str,
+    logger: logging.Logger,
+    *,
+    as_of: datetime | None = None,
+) -> pd.DataFrame:
     """Fetch every configured input, returning a daily DataFrame aligned on date."""
     yahoo_names = [k for k, (src, _) in TICKERS.items() if src == "yahoo"]
     fred_names  = [k for k, (src, _) in TICKERS.items() if src == "fred"]
@@ -271,8 +445,17 @@ def fetch_all_inputs(start: str, logger: logging.Logger) -> pd.DataFrame:
         else:
             logger.debug(f"{col}: {pct:.1f}% missing")
 
-    # Forward fill up to 3 days for holiday misalignment
+    reference_time = as_of or datetime.now(timezone.utc)
+    score_week = latest_completed_friday(reference_time)
+    provenance = build_source_provenance(df, score_week)
+
+    # Forward fill up to 3 observations for holiday-calendar alignment. Source
+    # provenance above is captured first so copied values retain their true
+    # provider observation date in the release metadata.
     df = df.ffill(limit=3)
+    df.attrs["source_provenance_version"] = SOURCE_PROVENANCE_VERSION
+    df.attrs["source_provenance"] = provenance
+    df.attrs["expected_score_week"] = score_week.isoformat()
 
     logger.info(
         f"Combined daily frame: {len(df)} rows, "
@@ -285,13 +468,21 @@ def fetch_all_inputs(start: str, logger: logging.Logger) -> pd.DataFrame:
 # PROCESSING
 # ============================================================
 
-def resample_weekly(daily_df: pd.DataFrame, logger: logging.Logger) -> pd.DataFrame:
+def resample_weekly(
+    daily_df: pd.DataFrame,
+    logger: logging.Logger,
+    *,
+    completed_friday: date | pd.Timestamp | None = None,
+) -> pd.DataFrame:
     weekly = daily_df.resample(RESAMPLE_RULE).last().dropna(how="all")
-    latest_observation = daily_df.index.max().normalize()
-    latest_completed_friday = latest_observation - pd.Timedelta(
-        days=(latest_observation.weekday() - 4) % 7
-    )
-    weekly = weekly.loc[weekly.index <= latest_completed_friday]
+    if completed_friday is None:
+        latest_observation = daily_df.index.max().normalize()
+        cutoff = latest_observation - pd.Timedelta(
+            days=(latest_observation.weekday() - 4) % 7
+        )
+    else:
+        cutoff = pd.Timestamp(completed_friday).normalize()
+    weekly = weekly.loc[weekly.index <= cutoff]
     logger.info(
         f"Weekly resampled: {len(weekly)} weeks, "
         f"{weekly.index.min().date()} → {weekly.index.max().date()}"
@@ -426,20 +617,33 @@ def export_csv(df: pd.DataFrame, path: Path, logger: logging.Logger) -> None:
     logger.info(f"Wrote {path.name} ({path.stat().st_size:,} bytes)")
 
 
-def export_json(df: pd.DataFrame, path: Path, logger: logging.Logger) -> None:
+def export_json(
+    df: pd.DataFrame,
+    path: Path,
+    logger: logging.Logger,
+    *,
+    generated_at: datetime | None = None,
+    source_provenance: dict[str, dict[str, object]] | None = None,
+) -> None:
+    generated_at = generated_at or datetime.now(timezone.utc)
+    metadata = {
+        "pipeline": "usd_impact_score_v2",
+        "generated_at_utc": generated_at.isoformat(),
+        "start_date": START_DATE,
+        "resample": RESAMPLE_RULE,
+        "zscore_clip": ZSCORE_CLIP,
+        "weights": WEIGHTS,
+        "n_weeks": len(df),
+        "latest_date": str(df.index[-1].date()),
+        "latest_score": float(df["score"].iloc[-1]),
+        "latest_regime": df["regime"].iloc[-1],
+    }
+    if source_provenance is not None:
+        metadata["source_provenance_version"] = SOURCE_PROVENANCE_VERSION
+        metadata["source_provenance"] = source_provenance
+
     payload = {
-        "metadata": {
-            "pipeline": "usd_impact_score_v2",
-            "generated_at_utc": datetime.now(timezone.utc).isoformat(),
-            "start_date": START_DATE,
-            "resample": RESAMPLE_RULE,
-            "zscore_clip": ZSCORE_CLIP,
-            "weights": WEIGHTS,
-            "n_weeks": len(df),
-            "latest_date": str(df.index[-1].date()),
-            "latest_score": float(df["score"].iloc[-1]),
-            "latest_regime": df["regime"].iloc[-1],
-        },
+        "metadata": metadata,
         "weeks": [
             {
                 "date": str(idx.date()),
@@ -869,10 +1073,13 @@ def main() -> int:
         cache_path = output_dir / "_daily_cache.parquet"
 
     logger = setup_logging(log_dir)
+    run_started_at = datetime.now(timezone.utc)
+    expected_score_week = latest_completed_friday(run_started_at)
 
     logger.info("=" * 60)
     logger.info("USD Impact Score v2 — pipeline run")
-    logger.info(f"Started at {datetime.now(timezone.utc).isoformat()}")
+    logger.info(f"Started at {run_started_at.isoformat()}")
+    logger.info(f"Expected score week: {expected_score_week}")
     logger.info(f"Start date: {args.start_date}")
     logger.info(f"Output dir: {output_dir.resolve()}")
     logger.info(f"Log dir:    {log_dir.resolve()}")
@@ -884,7 +1091,11 @@ def main() -> int:
             logger.info(f"Using cached daily data from {cache_path}")
             daily = pd.read_parquet(cache_path)
         else:
-            daily = fetch_all_inputs(args.start_date, logger)
+            daily = fetch_all_inputs(
+                args.start_date,
+                logger,
+                as_of=run_started_at,
+            )
             # Skip cache write in --web mode: CI runs want fresh data and
             # we don't want the cache file sitting inside the public dir.
             if not args.web:
@@ -894,7 +1105,25 @@ def main() -> int:
                 except Exception as e:
                     logger.debug(f"Cache write skipped: {e}")
 
-        weekly = resample_weekly(daily, logger)
+        source_provenance = daily.attrs.get("source_provenance")
+        if not isinstance(source_provenance, dict):
+            retrieval_mode = "cache" if args.test else "live"
+            source_provenance = build_source_provenance(
+                daily,
+                expected_score_week,
+                retrieval_mode=retrieval_mode,
+            )
+        validate_source_freshness(
+            source_provenance,
+            expected_score_week,
+            logger,
+        )
+
+        weekly = resample_weekly(
+            daily,
+            logger,
+            completed_friday=expected_score_week,
+        )
 
         required = list(WEIGHTS.keys())
         missing = [c for c in required if c not in weekly.columns]
@@ -912,6 +1141,11 @@ def main() -> int:
                 "No complete weekly observations remain after required-input filtering"
             )
             return 2
+        if weekly_clean.index[-1].date() != expected_score_week:
+            raise RuntimeError(
+                f"Latest complete score week {weekly_clean.index[-1].date()} does not "
+                f"match expected completed Friday {expected_score_week}"
+            )
 
         z = compute_zscores(weekly_clean, ZSCORE_CLIP, logger)
         score = compute_score(z, WEIGHTS, logger)
@@ -945,7 +1179,13 @@ def main() -> int:
             backtest_path = output_dir / "backtest_results.json"
 
         export_csv(out_df, csv_path, logger)
-        export_json(out_df, json_path, logger)
+        export_json(
+            out_df,
+            json_path,
+            logger,
+            generated_at=run_started_at,
+            source_provenance=source_provenance,
+        )
 
         en_payload = build_graphic_payload(out_df, score, lang="en")
         es_payload = build_graphic_payload(out_df, score, lang="es")

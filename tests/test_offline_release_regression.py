@@ -6,6 +6,7 @@ import shutil
 import sys
 import tempfile
 import unittest
+from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import patch
 
@@ -19,11 +20,13 @@ from usd_impact_score_v2 import (
     ZSCORE_CLIP,
     build_graphic_payload,
     build_output_frame,
+    build_source_provenance,
     compute_score,
     compute_zscores,
     export_csv,
     export_html,
     export_json,
+    validate_source_freshness,
 )
 
 
@@ -66,13 +69,27 @@ class OfflineReleaseRegressionTests(unittest.TestCase):
 
             csv_path = public_data / "usd_impact_score_v2.csv"
             score_path = public_data / "usd_impact_score_v2.json"
+            generated_at = datetime(2024, 4, 19, 22, tzinfo=timezone.utc)
+            source_provenance = build_source_provenance(
+                levels,
+                output.index[-1],
+            )
+            validate_source_freshness(
+                source_provenance,
+                output.index[-1],
+                self.logger,
+            )
             export_csv(output, csv_path, self.logger)
-            export_json(output, score_path, self.logger)
+            export_json(
+                output,
+                score_path,
+                self.logger,
+                generated_at=generated_at,
+                source_provenance=source_provenance,
+            )
 
             score_payload = json.loads(score_path.read_text(encoding="utf-8"))
-            score_payload["metadata"]["generated_at_utc"] = "2024-04-19T22:00:00+00:00"
-            score_text = json.dumps(score_payload, indent=2, ensure_ascii=False)
-            score_path.write_text(score_text, encoding="utf-8")
+            score_text = score_path.read_text(encoding="utf-8")
             digest = hashlib.sha256(score_text.encode("utf-8")).hexdigest()
             self.assertEqual(digest, expected["score_payload_sha256"])
 
@@ -126,6 +143,14 @@ class OfflineReleaseRegressionTests(unittest.TestCase):
             editions = generate_archive_indexes(release_root)
             self.assertEqual(editions, [])
             self.assertEqual(validate(release_root), week)
+
+            bridge = json.loads(
+                (public_data / "weekly_input_latest.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(
+                bridge["source_provenance"],
+                score_payload["metadata"]["source_provenance"],
+            )
 
             self.assertEqual(
                 (commentary_dir / "latest.md").read_text(encoding="utf-8"),
