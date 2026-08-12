@@ -25,12 +25,12 @@ Outputs (written to ./output/):
     usd_impact_score_v2.json   — same data as JSON for programmatic use
     _graphic.html              — English dashboard (latest + 11-year chart)
     _graphic_es.html           — Spanish dashboard
-    backtest_results.json      — (with --backtest) honest hit rate per regime
+    backtest_results.json      — (with --backtest) descriptive hit rate per regime
     usd_impact_score_v2.log    — run log with data quality notes
 
 Run modes:
     python usd_impact_score_v2.py             # default weekly run
-    python usd_impact_score_v2.py --backtest  # compute honest hit rate
+    python usd_impact_score_v2.py --backtest  # descriptive regime-window analysis
     python usd_impact_score_v2.py --test      # use cached data if present
 
 Dependencies (pip install):
@@ -101,7 +101,7 @@ REGIME_BANDS = [
     (-float("inf"), -1.0, "Weak dollar regime"),
 ]
 
-# Historical regime windows used by --backtest to produce an honest hit rate.
+# Historical regime windows used by --backtest for descriptive analysis.
 # Each entry: (start, end, expected_sign, name).
 # expected_sign: +1 for "framework should read this as positive regime", −1 for negative.
 BACKTEST_REGIMES = [
@@ -849,7 +849,7 @@ def main() -> int:
     parser.add_argument("--start-date", type=str, default=START_DATE,
                         help=f"Start date (default: {START_DATE})")
     parser.add_argument("--backtest", action="store_true",
-                        help="Run backtest and report honest hit rate")
+                        help="Run descriptive historical regime hit-rate analysis")
     parser.add_argument("--test", action="store_true",
                         help="Use cached data if present (for development)")
     parser.add_argument("--web", action="store_true",

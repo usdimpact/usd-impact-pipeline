@@ -1,166 +1,141 @@
-# Weekly Regime Commentary — Operator Guide
+# Weekly USD Impact Score — Operator Guide
 
-Your 30-minute Friday routine for writing the weekly Regime Commentary that accompanies each USD Impact Score release.
+This guide describes the current automated production system. It replaces the original manual-commentary routine while preserving the same principles: deterministic output, a complete dated archive, explicit methodology limits, and no trade recommendations.
 
-This is the scarce layer of the project. The pipeline produces a number automatically; the commentary produces the *read* of what that number means against the specific shape of the current week. Readers subscribe to the commentary, not the number.
+## Operating model
 
----
+The weekly score, English commentary, Spanish commentary, bridge data, dashboards, and archive are generated as one release. Operators do not edit `commentary/latest*.md` during a normal weekly cycle.
 
-## The routine (Friday evening or Saturday morning UTC)
+The authoritative workflow is `.github/workflows/weekly.yml`:
 
-**Time budget:** 30 minutes, no more. If you find yourself spending longer, you are overthinking it. The commentary is disciplined, not exhaustive.
+1. Friday at 22:00 UTC, the workflow runs the score pipeline with the locked Python environment.
+2. Commentary is generated deterministically from the score JSON. No external model or current-event narrative is introduced.
+3. The English and Spanish dashboards are rebuilt with the matching commentary.
+4. The complete release is archived under its score date.
+5. Local consistency validation must pass before the workflow creates a publication branch.
+6. A pull request is opened from that isolated branch.
+7. `Weekly score quality` is dispatched against the exact publication commit.
+8. The PR is squash-merged only when that exact run passes.
+9. Cloudflare Pages deploys the resulting `main` commit.
 
-**Step 1 (5 min).** Visit your live dashboard at the canonical URL. Read the current score, regime label, and the week-over-week change. Look at the eleven-year chart and ask one question: *is this week a continuation of the previous regime, a transitional week, or the beginning of a shift?* Write that one-sentence answer at the top of a scratch document. This is your anchor.
+The previous production release remains live if any step fails.
 
-**Step 2 (5 min).** Open the CSV at `public/data/usd_impact_score_v2.csv` in your repo (just click it on GitHub — it renders as a table). Look at the z-scored components for the most recent week. Which of the eight inputs are pulling the score in the direction it currently sits? Identify the two or three dominant drivers and write them down. This is your *why*.
+## Normal weekly verification
 
-**Step 3 (15 min).** Open the template below and fill in each section. The template has five short sections and a methodology footer. Do not add sections. Do not remove sections. Consistency of format every week is the product.
+The normal operator task is verification, not writing.
 
-**Step 4 (5 min).** Save the file as `commentary/latest.md` in your local clone of the repo (or create it directly via GitHub's web editor). Commit with the message `Regime Commentary — YYYY-MM-DD`. Push. The next scheduled pipeline run — or a manual re-run via Actions — will render it into the dashboard. Done.
+After the Friday run, confirm:
 
----
+- `Weekly USD Impact Score` completed successfully.
+- The automated publication PR was merged rather than left open.
+- The PR head SHA has a successful `Weekly score quality` run.
+- `public/data/weekly_input_latest.json` reports the intended Friday date.
+- The English dashboard contains `Automated Regime Commentary` and the same date.
+- The Spanish dashboard contains `Comentario Automático de Régimen` and the same date.
+- The dated archive contains `en.html`, `es.html`, `score.json`, and `weekly_input.json`.
+- `commentary/latest.md` exactly matches `commentary/latest_en.md`.
 
-## The template
+The Saturday health workflow automates the production-facing portion of this checklist.
 
-Copy this entire block. Replace the bracketed placeholders. Keep the section headings exactly as shown so the dashboard renders them consistently.
+## Recovery and incident handling
 
-```markdown
-# Regime Commentary — Week of [Month Day, Year]
+### Automatic recovery
 
-**USD Impact Score: [signed score, 2 decimals]  |  [Regime label]**
+At 00:15 UTC Saturday, `weekly-recovery.yml` inspects the latest `weekly.yml` run on `main`.
 
-[Optional one-sentence introduction if the week is unusual. Skip this
-paragraph entirely on routine continuation weeks — a commentary that is
-short and steady is more valuable than one that is long and performative.]
+- It skips recovery when a recent run succeeded.
+- It skips recovery while the latest run is queued or still running.
+- It dispatches one catch-up run when the latest run failed, is stale, or is absent.
 
-## What the score is saying
+The recovery workflow does not bypass the publication PR or exact-commit quality gate.
 
-[2-3 sentences. State where the score sits in historical context. Is this
-week continuous with the previous weeks, transitional, or a clear shift?
-Reference the eleven-year chart if a direct historical analog exists
-(mid-2019 pivot, 2020 two-phase, 2022 tightening, etc.). Do not predict.
-Describe the regime's position and character.]
+### Health failure
 
-## What is driving the reading
+At 02:00 UTC Saturday, `weekly-health.yml` verifies GitHub Actions and the deployed Cloudflare Pages outputs. If a check fails, it opens or updates one issue titled `Weekly USD Impact pipeline requires attention`.
 
-[3-4 sentences. Name the 2 or 3 dominant inputs pulling the score. Use
-the transmission-channel language from the book: real-yield channel,
-liquidity channel, stress channel, opportunity-cost channel, supply
-channel. If one input is unusually large in magnitude, call it out.
-Readers who have read the book will recognize the channel names.]
+When that issue appears:
 
-## What the score is not saying
+1. Open the linked weekly workflow run and identify the first failed step.
+2. Confirm that `main` and the live dashboard still contain the last validated release.
+3. Inspect any open `automation/weekly-usd-impact-*` PR before dispatching another run.
+4. Fix code or data handling on a dedicated branch; do not edit generated production files to bypass validation.
+5. Rerun the affected workflow only after the cause is understood.
+6. Rerun the health workflow after deployment. A successful check comments on and closes the health issue.
 
-[2-3 sentences. The framework does not forecast. State plainly what this
-week's reading does and does not imply. This is the via-negativa section
-and it is the most important section because it establishes the
-commentary's discipline. The absence of a prediction is the product.]
+### Manual dispatch
 
-## What to watch over the coming week
+Manual execution is appropriate for a verified recovery or a controlled release test. It is not a substitute for diagnosing repeated source-data, dependency, or validation failures.
 
-[3-4 sentences. Name 2 or 3 specific things to watch: a specific data
-release, a specific policy meeting, a specific asset's behavior, a
-specific threshold where the score would flip. Tie each watch item to a
-transmission channel if possible. Readers should finish this section
-knowing what to pay attention to next Friday.]
+Before manual dispatch, confirm that no weekly or recovery run is queued or in progress. The weekly concurrency group does not cancel in-progress work, so duplicate runs can queue and waste time even though the publication guard protects production.
 
-## Methodology reminder
+## Generated commentary contract
 
-The USD Impact Score is computed from eight cross-asset inputs — DXY,
-WTI, S&P 500, VIX, Bitcoin, gold, 2-year Treasury yield, 10-year
-Treasury yield — z-scored against full-sample history, clipped at ±3.5
-standard deviations, and combined with fixed transmission-logic weights.
-The score runs on the same data and the same weights every week. No
-fitting, no parameter tuning, no look-ahead. The eleven-year backtest
-published in Chapter 10 of the book produced an aggregate hit rate of
-84.5 percent across five anchor regimes, with three of those five
-regimes identified at 100 percent accuracy. The backtest is reproducible
-by anyone willing to run the open pipeline against the same data
-sources.
+The generator derives commentary only from the completed score payload:
 
----
+- latest score and regime;
+- week-over-week and four-week changes;
+- positive and negative contribution breadth;
+- three largest absolute component contributions; and
+- nearest regime boundary.
 
-*Regime Commentary is educational and informational. It is not
-investment advice, not a trading signal, and not a recommendation to buy
-or sell any security, commodity, currency, or digital asset. Historical
-results do not indicate future results.*
-```
+The output must continue to state what the score does and does not mean. It must not add forecasts, event claims, causal certainty, performance promises, or buy/sell language.
 
-The methodology paragraph and the compliance disclaimer are identical every week. Do not rewrite them. They establish the commentary's regulatory posture and the consistency signals to readers that the framework is not changing underneath them.
+English and Spanish are both required for every release. `commentary/latest.md` is an exact English compatibility alias and must never remain on an older date.
 
----
+## File ownership
 
-## Voice rules
+| Path | Owner | Rule |
+| --- | --- | --- |
+| `usd_impact_score_v2.py` | Score pipeline | Methodology changes require a separately versioned review. |
+| `scripts/generate_weekly_commentary.py` | Commentary generator | Must remain deterministic and bilingual. |
+| `scripts/validate_weekly_release.py` | Publication guard | Must fail closed; never weaken it to publish. |
+| `commentary/latest*.md` | Generator | Do not hand-edit during normal operation. |
+| `commentary/archive/` | Immutable release history | Never delete or rewrite a published edition. |
+| `public/archive/` | Immutable dashboard/data history | Preserve complete dated snapshots. |
+| `requirements.lock` | Production environment | Update only through a dedicated dependency PR. |
 
-- **No hype.** The word "bombshell" and its cousins never appear. The framework is steady; the voice matches.
-- **No predictions.** Use "consistent with", "the reading sits in", "the structure suggests" — never "will", "should", or "is likely to".
-- **No trade calls.** Never name an asset alongside a buy or sell. Name the channel, not the trade.
-- **No emojis, no exclamation points, no all-caps.** This is an investor education product, not a newsletter personality.
-- **Present tense for the current reading. Past tense for historical context. Conditional for forward-watching.** "The score sits at −0.80. In 2019 the same level accompanied a Fed pivot. If real yields compress further next week, the reading would deepen."
-- **Use the book's vocabulary.** Transmission channels, regime, dollar as infrastructure, hurdle rate, opportunity cost, via negativa when relevant. Readers who have read the book will recognize the through-line.
+## Methodology interpretation
 
----
+The v2 score uses full-sample standardization. At each run, the current sample mean and standard deviation are applied across the complete history. This has two consequences:
 
-## Length discipline
+1. The current dashboard can revise earlier historical score values when new observations are added.
+2. A historical backtest computed from the current full sample is descriptive and contains information from the later sample in its normalization.
 
-- **Minimum:** 350 words
-- **Target:** 500 words
-- **Maximum:** 750 words
+Therefore, do not describe the v2 backtest as out-of-sample, free of look-ahead, predictive, or a trading strategy. Do not hard-code a hit rate in commentary or documentation. The generated `public/data/backtest_results.json` is the current descriptive result.
 
-If you hit 750 and have more to say, that material is a candidate for a longer monthly essay — not this week's commentary. Weekly commentary is a disciplined format and its value comes from being the same size every week. Readers develop a Friday routine around a predictable thing; the predictability is the product.
+Dated archives are the authoritative record of what readers actually saw at publication time. When comparing one week with another, specify whether the comparison uses:
 
----
+- the latest recalculated historical series; or
+- the as-published values from dated archives.
 
-## Spanish translation policy
+The automated commentary currently uses the internally consistent recalculated series from the current run.
 
-**Canonical:** English. You write the commentary in English every week without exception.
+## Safe change procedure
 
-**Spanish:** Optional per week. If you have time and want to translate, save the Spanish version as `commentary/latest_es.md`. The dashboard's Spanish page will use it automatically.
+Before changing pipeline behavior:
 
-**If no Spanish translation exists for a given week**, the dashboard's Spanish page falls back to showing the English commentary rather than leaving a dead zone. This is intentional: Spanish visitors get content rather than emptiness. You can decide each week whether to add Spanish based on time available.
+1. Record the current `main` commit and confirm the latest weekly, quality, recovery, and health runs are green.
+2. Create a dedicated branch from that exact commit.
+3. Keep the PR limited to one change class: dependencies, operations, rendering, or methodology.
+4. Run compile checks, the complete offline unit suite, and release consistency validation.
+5. Compare `public/data`, `commentary`, and `public/archive` against the base commit.
+6. For a non-methodology PR, require zero unexplained score, regime, weight, threshold, or historical-series changes.
+7. Open the PR as a draft and inspect the remote diff before requesting merge.
+8. Keep the PR unmerged if any generated output changes unexpectedly.
 
-Do not skip English to do Spanish instead. English is the canonical layer.
+Methodology experiments should use a separate v3/shadow path. They must not replace v2 production outputs until the comparison period, acceptance criteria, documentation, and migration plan are approved.
 
----
+## Monthly governance review
 
-## File location and archive
+On the first Saturday of each month:
 
-The current week's commentary lives at `commentary/latest.md` in your repo. The dashboard's render function looks for this exact path.
+- review weekly and health run reliability;
+- review dependency and action updates without merging them automatically;
+- confirm archives are continuous or document missing editions caused by incidents;
+- compare current recalculated history with dated as-published values;
+- review the descriptive backtest language and compliance wording; and
+- confirm no stale manual commentary or unused workflow definition can be mistaken for production.
 
-**Archive policy:** when you write next week's commentary, rename the current `latest.md` to `commentary/YYYY-MM-DD.md` with the Friday date of the week it covered, then create a fresh `latest.md` for the new week. This builds a dated archive over time without special tooling. After 52 weeks you will have 52 dated files, and any reader can browse them directly on GitHub.
+## Compliance
 
-**Do not delete** old commentaries. The archive is part of the product's credibility — a skeptic can walk the full record of what the framework read and how you read the framework, week by week. Missing weeks break the chain and damage the audit trail.
-
----
-
-## Emergency protocol
-
-If the pipeline fails on a Friday and no new score is produced, write the commentary anyway against the *previous* week's score and note the pipeline failure at the top:
-
-> *Note: the USD Impact Score pipeline failed to run on [date] due to [brief cause]. The reading below reflects the previous week ending [previous date]. A rerun is scheduled and this commentary will be updated when fresh data is available.*
-
-Then write the rest of the commentary normally. Silence is the worst possible response to a pipeline failure — readers come to the dashboard expecting content and should find a commentary and an explanation, not an empty page.
-
-If the commentary itself slips (you are traveling, ill, or simply cannot write it that Friday), post a short honest message as `commentary/latest.md` acknowledging the skip and promising the next week's regular commentary. Do not let the dashboard sit with a stale commentary that predates the current score — the inconsistency will confuse readers.
-
----
-
-## Monthly review (first Saturday of each month)
-
-Once per month, on the first Saturday, walk back through the previous four commentaries and ask yourself one question: **did my reads of the framework match what the score and the market actually did?**
-
-Where your read matched, the framework is serving you well and the commentary voice is calibrated.
-
-Where your read diverged from what subsequently happened, the divergence is the learning signal. It almost always clusters — you will find that you consistently over-read certain channels and under-read others. That clustering is the most valuable thing you can discover about your own use of the framework, because once you see it you can correct it.
-
-Keep a short private note (not published) tracking these divergences. Over a year the note becomes the raw material for Chapter 14 of a future book edition: "What I Learned Reading the Framework in Public."
-
----
-
-## Why this format exists
-
-Weekly commentary is the scarce layer of the USD Impact project. The pipeline is reproducible by anyone with Python. The book can be read in a weekend. The framework is documented. What cannot be copied is a disciplined weekly practice applied against real data by someone who has done it for dozens or hundreds of weeks.
-
-The commentary is how the project becomes antifragile: it turns the infrastructure from a closed system (pipeline computes a number, displays a number) into an open system (pipeline computes a number, human reads that number against the week's specific events, human publishes the read, history accumulates). Over time the accumulated reads become the product's most defensible asset.
-
-Keep it short. Keep it steady. Keep it every week.
+The score and commentary are educational and informational. They are not investment, financial, or trading advice and are not recommendations to buy or sell any asset. Relationships can change by regime. Historical results do not indicate future results. Operators must preserve source transparency, methodology limitations, and the dated audit trail.

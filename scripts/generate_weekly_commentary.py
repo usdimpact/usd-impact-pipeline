@@ -207,6 +207,9 @@ def main() -> int:
 
     english = render_en(context)
     spanish = render_es(context)
+    # Keep the original language-neutral path as a synchronized English alias.
+    # Older integrations may still read commentary/latest.md directly.
+    (args.commentary_dir / "latest.md").write_text(english, encoding="utf-8")
     (args.commentary_dir / "latest_en.md").write_text(english, encoding="utf-8")
     (args.commentary_dir / "latest_es.md").write_text(spanish, encoding="utf-8")
     (archive / f"{context['date']}_en.md").write_text(english, encoding="utf-8")
