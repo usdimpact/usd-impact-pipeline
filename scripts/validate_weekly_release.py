@@ -124,6 +124,7 @@ def validate(root: Path) -> str:
         raise ValueError("Weekly commentary must not add external event claims")
 
     required_text = {
+        root / "commentary/latest.md": [english_date, "Automated Regime Commentary"],
         root / "commentary/latest_en.md": [english_date, "Automated Regime Commentary"],
         root / "commentary/latest_es.md": [spanish_date, "Comentario Automático de Régimen"],
         root / "public/en/index.html": [english_date, "Automated Regime Commentary"],
@@ -138,6 +139,11 @@ def validate(root: Path) -> str:
         for needle in needles:
             if needle not in text:
                 raise ValueError(f"{path} does not contain required release marker: {needle}")
+
+    if require_file(root / "commentary/latest.md") != require_file(
+        root / "commentary/latest_en.md"
+    ):
+        raise ValueError("commentary/latest.md must match the canonical English commentary")
 
     archived_score = load_json(root / f"public/archive/{week}/score.json")
     archived_bridge = load_json(root / f"public/archive/{week}/weekly_input.json")

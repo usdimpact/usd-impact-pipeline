@@ -1,0 +1,8 @@
+{
+  "fixture": "weekly_levels.csv",
+  "methodology": "USD Impact Score v2 full-sample z-score",
+  "latest_date": "2024-04-19",
+  "latest_score": 0.664009270045089,
+  "latest_regime": "Firm dollar regime",
+  "score_payload_sha256": "23f6349ba64cbab0e1e697fd1047166335bc215846d376db47a738f11db106e0"
+}
