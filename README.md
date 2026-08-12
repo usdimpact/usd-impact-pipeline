@@ -18,14 +18,16 @@ The root-level `weekly.yml` is a non-executable compatibility pointer. The canon
 ## Publication sequence
 
 1. Fetch DXY, WTI, S&P 500, VIX, Bitcoin, gold, and the U.S. 2-year and 10-year Treasury yields.
-2. Build the weekly v2 score and deterministic English and Spanish commentary.
-3. Rebuild the bilingual dashboards, bridge JSON, and dated archive.
-4. Run `scripts/validate_weekly_release.py` before any remote write.
-5. Commit generated files to an isolated `automation/weekly-usd-impact-*` branch.
-6. Open a publication PR and dispatch `Weekly score quality` against the exact head SHA.
-7. Squash-merge only after that exact quality run succeeds.
-8. Allow Cloudflare Pages to deploy the validated `main` commit.
-9. Verify production through the Saturday health workflow.
+2. Record the provider, series, source URL, and latest raw observation date for every driver before holiday forward filling.
+3. Reject the run if the score week is not the latest completed Friday or any source is missing, future-dated, or beyond its driver-specific freshness limit.
+4. Build the weekly v2 score and deterministic English and Spanish commentary.
+5. Rebuild the bilingual dashboards, bridge JSON, and dated archive.
+6. Run `scripts/validate_weekly_release.py` before any remote write.
+7. Commit generated files to an isolated `automation/weekly-usd-impact-*` branch.
+8. Open a publication PR and dispatch `Weekly score quality` against the exact head SHA.
+9. Squash-merge only after that exact quality run succeeds.
+10. Allow Cloudflare Pages to deploy the validated `main` commit.
+11. Verify production through the Saturday health workflow.
 
 A generation, test, validation, PR, or merge failure leaves the previous production release unchanged.
 
@@ -85,6 +87,24 @@ Other production outputs include:
 - `commentary/latest_es.md`
 - `commentary/latest.md`, maintained as an exact English compatibility alias
 
+### Source provenance and freshness
+
+Beginning with the 2026-08-14 release, both score JSON and bridge JSON must contain the same `source_provenance` object for all eight drivers. Each entry records:
+
+- canonical driver name;
+- provider and provider code;
+- provider series or ticker;
+- direct source URL;
+- raw observation date used for the score week;
+- score week, calendar age, configured maximum age, and `fresh` status; and
+- retrieval mode, which must be `live` for a publishable release.
+
+Freshness limits are operational publication safeguards, not score inputs. Bitcoin may be at most two calendar days old; DXY, WTI, S&P 500, VIX, and gold may be at most three days old; and the FRED 2-year and 10-year Treasury series may be at most four days old. These limits accommodate ordinary market holidays and known provider publication timing while rejecting a driver that has stopped updating for a full weekly cycle.
+
+The pipeline captures provenance before its existing limited forward fill. A value copied forward for calendar alignment therefore retains its true provider observation date instead of being mislabeled as a Friday observation.
+
+Releases dated through 2026-08-07 remain valid legacy artifacts and are not rewritten. All newly generated releases include provenance version 1 and fail validation if the provenance is missing or inconsistent.
+
 ## Methodology and historical vintages
 
 USD Impact Score v2 standardizes each component against the full available sample, clips z-scores at ±3.5, and applies fixed equal-magnitude transmission weights.
@@ -100,6 +120,7 @@ The generated backtest is descriptive across selected historical regime windows.
 - Keep dependency, infrastructure, and methodology changes in separate PRs.
 - Do not change weights, regime thresholds, data transformations, or source tickers without a separately versioned methodology review.
 - Preserve dated archives and previously published commentary.
+- Never bypass a freshness failure by editing observation dates, age limits, status fields, or retrieval mode in generated JSON.
 - For a failed weekly run, investigate the open publication branch or health issue before manually dispatching another run.
 
 ## Compliance

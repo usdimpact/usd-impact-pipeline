@@ -87,6 +87,8 @@ def build_context(payload: dict) -> dict:
         "top": components[:3],
         "positive": sum(item["contribution"] > 0 for item in components),
         "negative": sum(item["contribution"] < 0 for item in components),
+        "source_provenance_version": metadata.get("source_provenance_version"),
+        "source_provenance": metadata.get("source_provenance"),
     }
 
 
@@ -229,6 +231,9 @@ def main() -> int:
             "external_event_claims_added": False,
         },
     }
+    if context["source_provenance"] is not None:
+        bridge["source_provenance_version"] = context["source_provenance_version"]
+        bridge["source_provenance"] = context["source_provenance"]
     args.bridge_dir.mkdir(parents=True, exist_ok=True)
     bridge_text = json.dumps(bridge, indent=2, ensure_ascii=False)
     (args.bridge_dir / f"weekly_input_{context['date']}.json").write_text(bridge_text, encoding="utf-8")

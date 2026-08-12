@@ -23,6 +23,66 @@ SPANISH_MONTHS = [
     "enero", "febrero", "marzo", "abril", "mayo", "junio",
     "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
 ]
+PROVENANCE_REQUIRED_FROM = date(2026, 8, 14)
+SOURCE_PROVENANCE_VERSION = 1
+SOURCE_CONTRACT = {
+    "DXY": {
+        "provider": "Yahoo Finance via yfinance",
+        "provider_code": "yahoo",
+        "series": "DX-Y.NYB",
+        "source_url": "https://finance.yahoo.com/quote/DX-Y.NYB/history",
+        "max_age_days": 3,
+    },
+    "WTI": {
+        "provider": "Yahoo Finance via yfinance",
+        "provider_code": "yahoo",
+        "series": "CL=F",
+        "source_url": "https://finance.yahoo.com/quote/CL%3DF/history",
+        "max_age_days": 3,
+    },
+    "SPX": {
+        "provider": "Yahoo Finance via yfinance",
+        "provider_code": "yahoo",
+        "series": "^GSPC",
+        "source_url": "https://finance.yahoo.com/quote/%5EGSPC/history",
+        "max_age_days": 3,
+    },
+    "VIX": {
+        "provider": "Yahoo Finance via yfinance",
+        "provider_code": "yahoo",
+        "series": "^VIX",
+        "source_url": "https://finance.yahoo.com/quote/%5EVIX/history",
+        "max_age_days": 3,
+    },
+    "BTC": {
+        "provider": "Yahoo Finance via yfinance",
+        "provider_code": "yahoo",
+        "series": "BTC-USD",
+        "source_url": "https://finance.yahoo.com/quote/BTC-USD/history",
+        "max_age_days": 2,
+    },
+    "GOLD": {
+        "provider": "Yahoo Finance via yfinance",
+        "provider_code": "yahoo",
+        "series": "GC=F",
+        "source_url": "https://finance.yahoo.com/quote/GC%3DF/history",
+        "max_age_days": 3,
+    },
+    "UST_2Y": {
+        "provider": "Federal Reserve Bank of St. Louis (FRED)",
+        "provider_code": "fred",
+        "series": "DGS2",
+        "source_url": "https://fred.stlouisfed.org/series/DGS2",
+        "max_age_days": 4,
+    },
+    "UST_10Y": {
+        "provider": "Federal Reserve Bank of St. Louis (FRED)",
+        "provider_code": "fred",
+        "series": "DGS10",
+        "source_url": "https://fred.stlouisfed.org/series/DGS10",
+        "max_age_days": 4,
+    },
+}
 
 
 def load_json(path: Path) -> dict:
@@ -58,6 +118,81 @@ def latest_completed_friday(value: datetime) -> date:
     return utc_date - timedelta(days=(utc_date.weekday() - 4) % 7)
 
 
+def validate_source_provenance(metadata: dict, bridge: dict, week: str) -> None:
+    """Validate the provider identity and raw observation date for each driver."""
+    week_date = datetime.strptime(week, "%Y-%m-%d").date()
+    score_provenance = metadata.get("source_provenance")
+    bridge_provenance = bridge.get("source_provenance")
+    required = week_date >= PROVENANCE_REQUIRED_FROM
+
+    if score_provenance is None and bridge_provenance is None:
+        if required:
+            raise ValueError(
+                f"Source provenance is required for releases from "
+                f"{PROVENANCE_REQUIRED_FROM.isoformat()}"
+            )
+        return
+    if not isinstance(score_provenance, dict) or not isinstance(
+        bridge_provenance, dict
+    ):
+        raise ValueError("Source provenance must exist in both score and bridge JSON")
+    if score_provenance != bridge_provenance:
+        raise ValueError("Bridge source provenance differs from score metadata")
+    if metadata.get("source_provenance_version") != SOURCE_PROVENANCE_VERSION:
+        raise ValueError("Unexpected score source provenance version")
+    if bridge.get("source_provenance_version") != SOURCE_PROVENANCE_VERSION:
+        raise ValueError("Unexpected bridge source provenance version")
+
+    if set(score_provenance) != EXPECTED_DRIVERS:
+        raise ValueError("Source provenance must contain exactly the eight drivers")
+
+    for driver, contract in SOURCE_CONTRACT.items():
+        item = score_provenance[driver]
+        if not isinstance(item, dict):
+            raise ValueError(f"Source provenance for {driver} must be an object")
+        expected_fields = {
+            "driver": driver,
+            "provider": contract["provider"],
+            "provider_code": contract["provider_code"],
+            "series": contract["series"],
+            "source_url": contract["source_url"],
+            "score_week": week,
+            "max_age_days": contract["max_age_days"],
+            "status": "fresh",
+        }
+        for field, expected in expected_fields.items():
+            if item.get(field) != expected:
+                raise ValueError(
+                    f"Source provenance {driver}.{field} does not match "
+                    f"the canonical source contract"
+                )
+        if required and item.get("retrieval_mode") != "live":
+            raise ValueError(
+                f"Source provenance {driver}.retrieval_mode must be live"
+            )
+
+        observation_raw = item.get("observation_date")
+        try:
+            observation_date = datetime.strptime(
+                str(observation_raw), "%Y-%m-%d"
+            ).date()
+        except ValueError as error:
+            raise ValueError(
+                f"Source provenance {driver}.observation_date is invalid"
+            ) from error
+        age_days = (week_date - observation_date).days
+        if age_days < 0:
+            raise ValueError(
+                f"Source provenance {driver} is dated after the score week"
+            )
+        if item.get("age_days") != age_days:
+            raise ValueError(f"Source provenance {driver}.age_days is inconsistent")
+        if age_days > contract["max_age_days"]:
+            raise ValueError(
+                f"Source provenance {driver} is stale by {age_days} days"
+            )
+
+
 def validate(root: Path) -> str:
     score_path = root / "public/data/usd_impact_score_v2.json"
     bridge_path = root / "public/data/weekly_input_latest.json"
@@ -82,10 +217,10 @@ def validate(root: Path) -> str:
     except ValueError as error:
         raise ValueError("Score metadata generated_at_utc is not valid ISO-8601") from error
     latest_allowed_week = latest_completed_friday(generated_at)
-    if datetime.strptime(week, "%Y-%m-%d").date() > latest_allowed_week:
+    if datetime.strptime(week, "%Y-%m-%d").date() != latest_allowed_week:
         raise ValueError(
-            f"Score metadata latest_date {week} is after the latest completed "
-            f"Friday {latest_allowed_week}"
+            f"Score metadata latest_date {week} does not match the latest "
+            f"completed Friday {latest_allowed_week}"
         )
 
     english_date, spanish_date = localized_dates(week)
@@ -100,6 +235,8 @@ def validate(root: Path) -> str:
         raise ValueError(f"Unexpected latest regime: {regime}")
     if latest.get("regime") != regime or bridge.get("regime") != regime:
         raise ValueError("Latest regime differs across score history and bridge data")
+
+    validate_source_provenance(metadata, bridge, week)
 
     drivers = bridge.get("drivers") or []
     names = {item.get("name") for item in drivers}

@@ -73,6 +73,12 @@ jobs:
           print(f\"Latest regime: {meta['latest_regime']}\")
           print(f\"As of: {meta['latest_date']}\")
           print(f\"Total weeks: {meta['n_weeks']}\")
+          for driver, source in meta['source_provenance'].items():
+              print(
+                  f\"{driver}: {source['provider']} {source['series']} | \"
+                  f\"observation {source['observation_date']} | \"
+                  f\"age {source['age_days']}/{source['max_age_days']} days\"
+              )
           "
 
       - name: Archive weekly snapshot

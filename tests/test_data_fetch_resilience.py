@@ -1,11 +1,27 @@
 import logging
 import unittest
+from copy import deepcopy
 from datetime import date, datetime, timezone
 
 import pandas as pd
 
-from scripts.validate_weekly_release import latest_completed_friday
-from usd_impact_score_v2 import compute_score, fetch_yahoo, resample_weekly
+from scripts.validate_weekly_release import (
+    SOURCE_CONTRACT,
+    latest_completed_friday,
+    validate_source_provenance as validate_release_source_provenance,
+)
+from usd_impact_score_v2 import (
+    SOURCE_MAX_AGE_DAYS,
+    SOURCE_PROVENANCE_VERSION,
+    SOURCE_PROVIDER_LABELS,
+    SOURCE_URLS,
+    TICKERS,
+    build_source_provenance,
+    compute_score,
+    fetch_yahoo,
+    resample_weekly,
+    validate_source_freshness,
+)
 
 
 def yahoo_frame(tickers):
@@ -91,6 +107,94 @@ class YahooFetchResilienceTests(unittest.TestCase):
         for generated_at, expected in expectations.items():
             with self.subTest(generated_at=generated_at):
                 self.assertEqual(latest_completed_friday(generated_at), expected)
+
+    def test_source_provenance_records_raw_dates_before_forward_fill(self):
+        index = pd.to_datetime(["2026-08-06", "2026-08-07"])
+        raw = pd.DataFrame(100.0, index=index, columns=list(TICKERS))
+        raw.loc[pd.Timestamp("2026-08-07"), ["UST_2Y", "UST_10Y"]] = float("nan")
+
+        provenance = build_source_provenance(raw, date(2026, 8, 7))
+
+        self.assertEqual(provenance["DXY"]["observation_date"], "2026-08-07")
+        self.assertEqual(provenance["DXY"]["age_days"], 0)
+        self.assertEqual(provenance["UST_2Y"]["observation_date"], "2026-08-06")
+        self.assertEqual(provenance["UST_2Y"]["age_days"], 1)
+        self.assertEqual(provenance["UST_2Y"]["status"], "fresh")
+
+        # The operational check accepts the normal one-day FRED lag.
+        validate_source_freshness(provenance, date(2026, 8, 7), self.logger)
+
+    def test_source_freshness_rejects_a_stale_driver(self):
+        index = pd.to_datetime(["2026-08-03", "2026-08-07"])
+        raw = pd.DataFrame(100.0, index=index, columns=list(TICKERS))
+        raw.loc[pd.Timestamp("2026-08-07"), "DXY"] = float("nan")
+
+        provenance = build_source_provenance(raw, date(2026, 8, 7))
+
+        self.assertEqual(provenance["DXY"]["status"], "stale")
+        with self.assertRaisesRegex(
+            RuntimeError,
+            r"DXY observation 2026-08-03 is stale by 4 days \(limit 3\)",
+        ):
+            validate_source_freshness(provenance, date(2026, 8, 7), self.logger)
+
+    def test_source_freshness_rejects_future_dated_provenance(self):
+        raw = pd.DataFrame(
+            100.0,
+            index=pd.to_datetime(["2026-08-07"]),
+            columns=list(TICKERS),
+        )
+        provenance = build_source_provenance(raw, date(2026, 8, 7))
+        provenance["BTC"].update({
+            "observation_date": "2026-08-08",
+            "age_days": -1,
+        })
+
+        with self.assertRaisesRegex(RuntimeError, "BTC observation 2026-08-08 is after"):
+            validate_source_freshness(provenance, date(2026, 8, 7), self.logger)
+
+    def test_release_requires_provenance_from_august_14(self):
+        with self.assertRaisesRegex(
+            ValueError,
+            "Source provenance is required for releases from 2026-08-14",
+        ):
+            validate_release_source_provenance({}, {}, "2026-08-14")
+
+    def test_release_requires_live_retrieval_from_august_14(self):
+        raw = pd.DataFrame(
+            100.0,
+            index=pd.to_datetime(["2026-08-14"]),
+            columns=list(TICKERS),
+        )
+        provenance = build_source_provenance(raw, date(2026, 8, 14))
+        metadata = {
+            "source_provenance_version": SOURCE_PROVENANCE_VERSION,
+            "source_provenance": provenance,
+        }
+        bridge = deepcopy(metadata)
+
+        validate_release_source_provenance(metadata, bridge, "2026-08-14")
+
+        metadata["source_provenance"]["DXY"]["retrieval_mode"] = "cache"
+        bridge = deepcopy(metadata)
+        with self.assertRaisesRegex(
+            ValueError,
+            "Source provenance DXY.retrieval_mode must be live",
+        ):
+            validate_release_source_provenance(metadata, bridge, "2026-08-14")
+
+    def test_generator_and_independent_validator_source_contracts_match(self):
+        generated_contract = {
+            driver: {
+                "provider": SOURCE_PROVIDER_LABELS[provider_code],
+                "provider_code": provider_code,
+                "series": series,
+                "source_url": SOURCE_URLS[driver],
+                "max_age_days": SOURCE_MAX_AGE_DAYS[driver],
+            }
+            for driver, (provider_code, series) in TICKERS.items()
+        }
+        self.assertEqual(generated_contract, SOURCE_CONTRACT)
 
 
 if __name__ == "__main__":
