@@ -1,18 +1,18 @@
-# Automated Regime Commentary — Week of August 7, 2026
+# Automated Regime Commentary — Week of August 14, 2026
 
-**USD Impact Score: −0.56  |  Soft dollar regime**
+**USD Impact Score: −0.62  |  Soft dollar regime**
 
 This commentary is generated automatically from the same weekly score data used by the dashboard. It adds no external market-event claims and makes no forecast.
 
 ## What the score is saying
 
-The score is −0.56, with a week-over-week change of −0.06 and a four-week change of −0.12. The regime remains Soft dollar regime. Across the eight inputs, 3 contribute toward a firmer-dollar reading and 5 toward a softer-dollar reading.
+The score is −0.62, with a week-over-week change of −0.05 and a four-week change of −0.19. The regime remains Soft dollar regime. Across the eight inputs, 3 contribute toward a firmer-dollar reading and 5 toward a softer-dollar reading.
 
 ## What is driving the reading
 
-- **gold:** z-score +2.75; score contribution −0.344, a softer-dollar contribution.
-- **S&P 500:** z-score +2.61; score contribution −0.327, a softer-dollar contribution.
-- **U.S. 10-year Treasury yield:** z-score +1.67; score contribution +0.209, a firmer-dollar contribution.
+- **gold:** z-score +2.77; score contribution −0.346, a softer-dollar contribution.
+- **S&P 500:** z-score +2.62; score contribution −0.327, a softer-dollar contribution.
+- **U.S. 10-year Treasury yield:** z-score +1.62; score contribution +0.202, a firmer-dollar contribution.
 
 These are the three largest absolute contributions in the current calculation. Each component is standardized and receives the same fixed transmission weight every week.
 
