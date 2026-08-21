@@ -1,18 +1,18 @@
-# Automated Regime Commentary — Week of August 14, 2026
+# Automated Regime Commentary — Week of August 21, 2026
 
-**USD Impact Score: −0.62  |  Soft dollar regime**
+**USD Impact Score: −0.72  |  Soft dollar regime**
 
 This commentary is generated automatically from the same weekly score data used by the dashboard. It adds no external market-event claims and makes no forecast.
 
 ## What the score is saying
 
-The score is −0.62, with a week-over-week change of −0.05 and a four-week change of −0.19. The regime remains Soft dollar regime. Across the eight inputs, 3 contribute toward a firmer-dollar reading and 5 toward a softer-dollar reading.
+The score is −0.72, with a week-over-week change of −0.12 and a four-week change of −0.28. The regime remains Soft dollar regime. Across the eight inputs, 3 contribute toward a firmer-dollar reading and 5 toward a softer-dollar reading.
 
 ## What is driving the reading
 
-- **gold:** z-score +2.77; score contribution −0.346, a softer-dollar contribution.
-- **S&P 500:** z-score +2.62; score contribution −0.327, a softer-dollar contribution.
-- **U.S. 10-year Treasury yield:** z-score +1.62; score contribution +0.202, a firmer-dollar contribution.
+- **gold:** z-score +2.99; score contribution −0.374, a softer-dollar contribution.
+- **S&P 500:** z-score +2.53; score contribution −0.316, a softer-dollar contribution.
+- **U.S. 10-year Treasury yield:** z-score +1.66; score contribution +0.208, a firmer-dollar contribution.
 
 These are the three largest absolute contributions in the current calculation. Each component is standardized and receives the same fixed transmission weight every week.
 
@@ -22,7 +22,7 @@ The framework does not predict next week’s return for the dollar or any compon
 
 ## What to watch over the coming week
 
-Watch whether the dominant components retain their current standardized positions and whether the reading broadens across more inputs or narrows around one outlier. The nearest regime boundary is −0.30. The dashboard label changes only after a completed weekly observation moves through a boundary.
+Watch whether the dominant components retain their current standardized positions and whether the reading broadens across more inputs or narrows around one outlier. The nearest regime boundary is −1.00. The dashboard label changes only after a completed weekly observation moves through a boundary.
 
 ## Methodology reminder
 
