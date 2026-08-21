@@ -32,11 +32,9 @@ def parse_utc(value: str) -> datetime:
     return datetime.fromisoformat(value.replace("Z", "+00:00")).astimezone(timezone.utc)
 
 
-def score_friday(run_date: date) -> date:
-    """Return the Friday label used by W-FRI for the run's calendar week."""
-    if run_date.weekday() <= 4:
-        return run_date + timedelta(days=4 - run_date.weekday())
-    return run_date - timedelta(days=run_date.weekday() - 4)
+def latest_completed_friday(run_date: date) -> date:
+    """Return the most recent Friday that is complete on ``run_date``."""
+    return run_date - timedelta(days=(run_date.weekday() - 4) % 7)
 
 
 def request_bytes(url: str, headers: dict[str, str] | None = None, attempts: int = 3) -> bytes:
@@ -162,7 +160,7 @@ def main() -> int:
             )
 
             started_at = parse_utc(str(run.get("run_started_at") or run.get("created_at")))
-            expected_date = score_friday(started_at.date()).isoformat()
+            expected_date = latest_completed_friday(started_at.date()).isoformat()
             metadata["expected_date"] = expected_date
         except Exception as error:
             checks.append(Check("GitHub weekly workflow lookup", False, str(error)))
