@@ -81,6 +81,21 @@ class ReproductionSafetyWorkflowTests(unittest.TestCase):
         )
         self.assertIn('"acceptance_candidate": context == "main_post_merge"', script)
 
+    def test_weekly_publication_waits_for_exact_branch_attestation_before_merge(self):
+        workflow = (WORKFLOWS / "weekly.yml").read_text(encoding="utf-8")
+        dispatch = 'gh workflow run repro-attestation.yml --ref "$branch"'
+        locate = '--workflow repro-attestation.yml'
+        watch = 'gh run watch "$attestation_run_id" --exit-status'
+        merge = 'gh pr merge "$pr_url" --squash --delete-branch'
+
+        self.assertIn(dispatch, workflow)
+        self.assertIn(locate, workflow)
+        self.assertIn('select(.headSha == \\"$head_sha\\")', workflow)
+        self.assertIn(watch, workflow)
+        self.assertIn(merge, workflow)
+        self.assertLess(workflow.index(dispatch), workflow.index(watch))
+        self.assertLess(workflow.index(watch), workflow.index(merge))
+
     def test_new_python_workflows_use_locked_environment(self):
         for workflow_name in ("repro-rehearsal.yml", "repro-attestation.yml"):
             workflow = (WORKFLOWS / workflow_name).read_text(encoding="utf-8")
