@@ -45,6 +45,7 @@ jobs:
           fi
 
           latest="$(gh run list \
+            --repo "$GITHUB_REPOSITORY" \
             --workflow repro-attestation.yml \
             --branch main \
             --event push \
