@@ -1,7 +1,0 @@
-{
-  "purpose": "one-time branch-only initialization freeze",
-  "cutoff_week": "2026-08-21",
-  "prospective_holdout_start": "2026-08-28",
-  "locked_preregistration_commit_sha": "bf49152fa6005edd20b770db287924d56cfa7499",
-  "must_not_merge": true
-}
