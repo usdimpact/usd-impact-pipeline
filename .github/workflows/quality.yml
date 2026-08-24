@@ -38,6 +38,9 @@ jobs:
       - name: Validate machine-readable methodology contract
         run: python -m scripts.validate_methodology_contract --json
 
+      - name: Validate Score v3 metric implementation readiness
+        run: python -m scripts.score_v3_metrics --mode readiness
+
       - name: Test market-data fetch resilience
         run: python -m unittest discover -s tests -v
 
