@@ -1,0 +1,142 @@
+{
+  "$schema": "./score_v3_metric_implementation_contract.schema.json",
+  "contract_id": "usd_impact_score_v3_metric_implementation_2026-08-24",
+  "contract_version": 1,
+  "registered_date": "2026-08-24",
+  "research_only": true,
+  "production_change": false,
+  "predictive_claim": false,
+  "trading_strategy_claim": false,
+  "locked_preregistration_commit_sha": "bf49152fa6005edd20b770db287924d56cfa7499",
+  "prospective_holdout_start": "2026-08-28",
+  "initialization": {
+    "matrix_file": "research/score_v3_initialization_2026-08-21.csv",
+    "manifest_file": "research/score_v3_initialization_2026-08-21.manifest.json",
+    "matrix_sha256": "6e17100c061cebc3116fdac9c83708b94a72165957ffbcf688d9a08e9d280580",
+    "historical_data_status": "retrospective_current_vintage_not_as_published",
+    "replacement_allowed": false
+  },
+  "models": {
+    "benchmark_id": "V2_BASELINE",
+    "candidate_ids": [
+      "V3_E52",
+      "V3_R260",
+      "V3_MAD260",
+      "V3_GRP_MAD260"
+    ],
+    "driver_order": [
+      "DXY",
+      "WTI",
+      "SPX",
+      "VIX",
+      "BTC",
+      "GOLD",
+      "UST_2Y",
+      "UST_10Y"
+    ]
+  },
+  "prospective_sources": {
+    "candidate_week_source": "research/prospective/score_v3_shadow_YYYY-MM-DD.json",
+    "candidate_week_integrity": "candidate result SHA-256 must match the append-only prospective manifest entry",
+    "v2_benchmark_week_source": "public/archive/YYYY-MM-DD/repro_bundle.json",
+    "v2_benchmark_integrity": "archive bundle SHA-256 must equal source_v2_bundle_sha256 recorded in the prospective manifest entry",
+    "live_provider_refetch_allowed": false,
+    "later_revised_provider_history_allowed": false
+  },
+  "leave_one_driver_out": {
+    "variants": 8,
+    "omission_rule": "omit_exactly_one_driver",
+    "zscore_rule": "keep_remaining_week_t_clipped_zscores_unchanged",
+    "weight_rule": "rescale_remaining_signed_weights_proportionally",
+    "remaining_absolute_weight_sum": 1.0,
+    "threshold_rule": "locked_v2_regime_thresholds",
+    "agreement_unit": "same_prospective_week",
+    "per_driver_agreement_formula": "matching_regime_labels / completed_prospective_weeks",
+    "endpoint_aggregation": "minimum_regime_label_agreement_across_eight_omissions"
+  },
+  "correlation_concentration": {
+    "window_weeks": 52,
+    "week_t_excluded": true,
+    "future_weeks_excluded": true,
+    "correlation": "pearson_on_clipped_component_zscores",
+    "nonfinite_off_diagonal_replacement": 0.0,
+    "diagonal_forced_to": 1.0,
+    "absolute_correlation_matrix": true,
+    "share_formula": "p_i=abs(contribution_i)/sum_j(abs(contribution_j))",
+    "ordinary_hhi_formula": "p_transpose_p",
+    "correlated_concentration_formula": "p_transpose_absR_p",
+    "effective_correlated_component_count_formula": "1/correlated_concentration",
+    "dominant_absolute_contribution_share_formula": "max_i(p_i)",
+    "endpoint_aggregation": "median_over_identical_prospective_weeks",
+    "interpretation": "transparency_heuristic_not_covariance_risk_or_diversification_measure"
+  },
+  "regime_turnover": {
+    "formula": "changed_adjacent_regime_pairs / (completed_prospective_weeks - 1)",
+    "minimum_weeks_for_finite_rate": 2
+  },
+  "bootstrap": {
+    "candidate_models": {
+      "source": "frozen_initialization_matrix",
+      "component_history": "recompute_locked_candidate_clipped_zscores_deterministically",
+      "prospective_append": "stored_candidate_clipped_zscores_only",
+      "window_selection": "immediately_preceding_52_available_component_rows"
+    },
+    "v2_benchmark": {
+      "retrospective_source": "frozen_initialization_matrix",
+      "retrospective_normalization": "single_full_sample_mean_std_ddof_1_as_of_frozen_2026-08-21_matrix",
+      "retrospective_clip": 3.5,
+      "retrospective_status": "retrospective_current_vintage_not_as_published",
+      "prospective_append": "as_published_v2_clipped_zscores_from_immutable_reproduction_bundle_only",
+      "window_selection": "immediately_preceding_52_available_component_rows"
+    }
+  },
+  "prospective_endpoints": [
+    "future_revision_immunity",
+    "median_effective_correlated_component_count",
+    "minimum_leave_one_driver_out_regime_agreement",
+    "regime_turnover_rate",
+    "dominant_absolute_contribution_share"
+  ],
+  "reporting_policy": {
+    "interim_checkpoint_weeks": [
+      13,
+      26,
+      39
+    ],
+    "formal_selection_week": 52,
+    "noncheckpoint_endpoint_reporting_before_52_allowed": false,
+    "implementation_or_data_integrity_failure_reporting_allowed": true,
+    "interim_ranking_allowed": false,
+    "interim_candidate_selection_allowed": false,
+    "selection_before_52_allowed": false,
+    "formal_selection_window": "first_52_completed_prospective_weeks"
+  },
+  "selection_implementation": {
+    "turnover_gate": "candidate_turnover_rate <= 1.25 * v2_turnover_rate",
+    "leave_one_out_gate": "candidate_min_loo_agreement >= v2_min_loo_agreement - 0.05",
+    "primary_improvement_gate": "candidate_median_effective_correlated_component_count >= 1.10 * v2_benchmark",
+    "primary_tie_pool_rule": "all_eligible_improved_candidates_within_5_percent_of_maximum_primary_endpoint",
+    "primary_within_5_percent_rule": "abs(a-b) <= 0.05 * max(a,b)",
+    "loo_tie_rule": "within_primary_tie_pool_choose_higher_minimum_leave_one_out_agreement",
+    "loo_tie_pool_rule": "all_primary_tie_pool_candidates_within_0.02_of_maximum_minimum_leave_one_out_agreement",
+    "loo_within_2_percentage_points_rule": "abs(a-b) <= 0.02",
+    "turnover_tie_rule": "within_loo_tie_pool_choose_lower_regime_turnover_rate",
+    "turnover_tie_pool_rule": "all_loo_tie_pool_candidates_with_turnover_within_numeric_equality_tolerance_of_minimum",
+    "numeric_equality_tolerance": 1e-12,
+    "simplicity_order": [
+      "V3_E52",
+      "V3_R260",
+      "V3_MAD260",
+      "V3_GRP_MAD260"
+    ],
+    "optimized_composite_allowed": false,
+    "no_eligible_candidate_result": "keep_v2"
+  },
+  "anti_peeking": {
+    "candidate_formulas_may_change_after_holdout_start": false,
+    "metric_formulas_may_change_after_holdout_start_without_versioned_amendment": false,
+    "selection_rules_may_change_after_holdout_start_without_versioned_amendment": false,
+    "retrospective_hit_rate_may_select_candidate": false,
+    "trading_or_pnl_metric_may_select_candidate": false
+  }
+}
