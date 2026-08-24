@@ -133,6 +133,28 @@ class WeeklyReleaseReproductionBundleTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "requirements lock hash does not match"):
             validate_reproduction_bundle(root, self.metadata, self.week)
 
+    def test_validator_rejects_false_raw_provider_archive_claim(self):
+        temp, root, bundle, latest_path, archive_path = self._make_root_and_bundle()
+        self.addCleanup(temp.cleanup)
+        tampered = copy.deepcopy(bundle)
+        tampered["input_history_fingerprint"]["raw_provider_payloads_archived"] = True
+        payload = json.dumps(tampered, indent=2)
+        latest_path.write_text(payload, encoding="utf-8")
+        archive_path.write_text(payload, encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "must not claim"):
+            validate_reproduction_bundle(root, self.metadata, self.week)
+
+    def test_validator_rejects_malformed_input_history_hash(self):
+        temp, root, bundle, latest_path, archive_path = self._make_root_and_bundle()
+        self.addCleanup(temp.cleanup)
+        tampered = copy.deepcopy(bundle)
+        tampered["input_history_fingerprint"]["drivers"]["DXY"]["sha256"] = "bad"
+        payload = json.dumps(tampered, indent=2)
+        latest_path.write_text(payload, encoding="utf-8")
+        archive_path.write_text(payload, encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "DXY SHA-256 is invalid"):
+            validate_reproduction_bundle(root, self.metadata, self.week)
+
 
 if __name__ == "__main__":
     unittest.main()

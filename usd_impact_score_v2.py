@@ -617,6 +617,56 @@ def export_csv(df: pd.DataFrame, path: Path, logger: logging.Logger) -> None:
     logger.info(f"Wrote {path.name} ({path.stat().st_size:,} bytes)")
 
 
+def write_weekly_levels_snapshot(
+    weekly_clean: pd.DataFrame,
+    path: Path,
+    logger: logging.Logger,
+    *,
+    public_root: Path | None = None,
+) -> None:
+    """Write the exact weekly input matrix for a same-run evidence handoff.
+
+    The snapshot is deliberately operational and non-public. The reproduction
+    bundle consumes it in the same runner, publishes only cryptographic
+    fingerprints and calculation evidence, and does not redistribute the full
+    provider-derived history.
+    """
+    resolved_path = path.resolve()
+    if public_root is not None:
+        resolved_public_root = public_root.resolve()
+        if resolved_path == resolved_public_root or resolved_path.is_relative_to(
+            resolved_public_root
+        ):
+            raise RuntimeError(
+                "Weekly input snapshot must remain outside the public output tree"
+            )
+
+    drivers = list(WEIGHTS)
+    missing = [driver for driver in drivers if driver not in weekly_clean.columns]
+    if missing:
+        raise RuntimeError(f"Weekly input snapshot is missing drivers: {missing}")
+    snapshot = weekly_clean[drivers].dropna().sort_index()
+    if snapshot.empty or snapshot.index.has_duplicates:
+        raise RuntimeError("Weekly input snapshot must be non-empty with unique weeks")
+    if not snapshot.index.is_monotonic_increasing:
+        raise RuntimeError("Weekly input snapshot must be ordered by week")
+    if not np.isfinite(snapshot.to_numpy(dtype=float)).all():
+        raise RuntimeError("Weekly input snapshot contains a non-finite value")
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    snapshot.to_csv(
+        path,
+        index_label="date",
+        date_format="%Y-%m-%d",
+        float_format="%.17g",
+        lineterminator="\n",
+    )
+    logger.info(
+        f"Wrote non-public same-run weekly input snapshot: {path} "
+        f"({len(snapshot)} weeks)"
+    )
+
+
 def export_json(
     df: pd.DataFrame,
     path: Path,
@@ -1168,6 +1218,14 @@ def main() -> int:
     parser.add_argument("--web", action="store_true",
                         help="Write output in Cloudflare Pages layout "
                              "(public/en/, public/es/, public/data/)")
+    parser.add_argument(
+        "--weekly-levels-output",
+        type=Path,
+        help=(
+            "Optional non-public same-run weekly input snapshot for the "
+            "reproduction-bundle step"
+        ),
+    )
     args = parser.parse_args()
 
     output_dir: Path = args.output_dir
@@ -1254,6 +1312,14 @@ def main() -> int:
             raise RuntimeError(
                 f"Latest complete score week {weekly_clean.index[-1].date()} does not "
                 f"match expected completed Friday {expected_score_week}"
+            )
+
+        if args.weekly_levels_output is not None:
+            write_weekly_levels_snapshot(
+                weekly_clean,
+                args.weekly_levels_output,
+                logger,
+                public_root=output_dir if args.web else None,
             )
 
         z = compute_zscores(weekly_clean, ZSCORE_CLIP, logger)

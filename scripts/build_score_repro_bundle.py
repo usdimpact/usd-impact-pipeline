@@ -26,6 +26,15 @@ import usd_impact_score_v2 as score_v2
 TOLERANCE = 1e-9
 BUNDLE_VERSION = 1
 METHOD_VERSION = "usd_impact_score_v2"
+INPUT_HISTORY_FINGERPRINT_VERSION = 1
+INPUT_HISTORY_SCOPE = (
+    "complete production weekly input matrix after limited daily alignment, "
+    "Friday-ended resampling and complete-case filtering"
+)
+INPUT_HISTORY_CANONICALIZATION = (
+    "UTF-8 CSV; date plus production driver order; YYYY-MM-DD dates; "
+    "finite floats formatted with 17 significant digits; LF line endings"
+)
 
 
 def _sha256(path: Path) -> str | None:
@@ -56,6 +65,65 @@ def _moment(value: float) -> float:
     return float(value)
 
 
+def _canonical_history_bytes(
+    weekly_clean: pd.DataFrame,
+    drivers: list[str],
+) -> bytes:
+    lines = [",".join(("date", *drivers))]
+    for index, row in weekly_clean[drivers].iterrows():
+        date_text = pd.Timestamp(index).date().isoformat()
+        values = []
+        for driver in drivers:
+            value = float(row[driver])
+            if not np.isfinite(value):
+                raise RuntimeError(
+                    f"Non-finite weekly input in fingerprint for {driver} {date_text}"
+                )
+            values.append(format(value, ".17g"))
+        lines.append(",".join((date_text, *values)))
+    return ("\n".join(lines) + "\n").encode("utf-8")
+
+
+def build_input_history_fingerprint(
+    weekly_clean: pd.DataFrame,
+) -> dict[str, Any]:
+    """Fingerprint the exact input history without publishing its full values."""
+    drivers = list(score_v2.WEIGHTS)
+    frame = weekly_clean[drivers].dropna().sort_index()
+    if frame.empty or frame.index.has_duplicates:
+        raise RuntimeError("Input history must contain unique complete weekly rows")
+    if not frame.index.is_monotonic_increasing:
+        raise RuntimeError("Input history must be ordered by week")
+
+    first_week = frame.index[0].date().isoformat()
+    latest_week = frame.index[-1].date().isoformat()
+    driver_fingerprints = {}
+    for driver in drivers:
+        raw = _canonical_history_bytes(frame, [driver])
+        driver_fingerprints[driver] = {
+            "sha256": hashlib.sha256(raw).hexdigest(),
+            "sample_start": first_week,
+            "sample_end": latest_week,
+            "sample_count": len(frame),
+        }
+
+    return {
+        "version": INPUT_HISTORY_FINGERPRINT_VERSION,
+        "scope": INPUT_HISTORY_SCOPE,
+        "canonicalization": INPUT_HISTORY_CANONICALIZATION,
+        "matrix_sha256": hashlib.sha256(
+            _canonical_history_bytes(frame, drivers)
+        ).hexdigest(),
+        "drivers": driver_fingerprints,
+        "raw_provider_payloads_archived": False,
+        "public_full_source_history_included": False,
+        "purpose": (
+            "Bind the release to the exact same-run weekly input history while "
+            "avoiding redistribution of complete provider-derived histories."
+        ),
+    }
+
+
 def build_bundle(
     weekly_clean: pd.DataFrame,
     source_provenance: dict[str, dict[str, object]],
@@ -71,9 +139,11 @@ def build_bundle(
     if missing:
         raise RuntimeError(f"Weekly levels missing required drivers: {missing}")
 
-    weekly_clean = weekly_clean[drivers].dropna()
-    if weekly_clean.empty:
-        raise RuntimeError("No complete weekly observations available")
+    weekly_clean = weekly_clean[drivers].dropna().sort_index()
+    if weekly_clean.empty or weekly_clean.index.has_duplicates:
+        raise RuntimeError(
+            "Weekly levels must contain unique complete observations"
+        )
 
     mu = weekly_clean.mean()
     sd = weekly_clean.std()
@@ -183,6 +253,7 @@ def build_bundle(
         "source_provenance_version": score_json["metadata"].get(
             "source_provenance_version"
         ),
+        "input_history_fingerprint": build_input_history_fingerprint(weekly_clean),
         "components": components,
         "published": {
             "score": published_score,
@@ -262,16 +333,32 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--score-json", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
-    parser.add_argument(
+    source_group = parser.add_mutually_exclusive_group(required=True)
+    source_group.add_argument(
         "--weekly-levels",
         type=Path,
-        help="Optional deterministic weekly-level CSV for offline verification/tests",
+        help=(
+            "Exact same-run weekly-level CSV from the score step, or a "
+            "deterministic fixture for offline verification"
+        ),
+    )
+    source_group.add_argument(
+        "--live-refetch",
+        action="store_true",
+        help=(
+            "Explicitly refetch provider history instead of using a same-run "
+            "snapshot; prohibited in the production weekly workflow"
+        ),
     )
     args = parser.parse_args()
 
     score_json = _load_score_json(args.score_json)
-    if args.weekly_levels:
-        weekly = pd.read_csv(args.weekly_levels, parse_dates=["date"]).set_index("date")
+    if args.weekly_levels is not None:
+        weekly = pd.read_csv(
+            args.weekly_levels,
+            parse_dates=["date"],
+            float_precision="round_trip",
+        ).set_index("date")
         provenance = score_json["metadata"].get("source_provenance", {})
     else:
         weekly, provenance = _live_weekly(score_json)
