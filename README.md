@@ -12,7 +12,7 @@ Only workflow files inside `.github/workflows/` are executable GitHub Actions wo
 | `quality.yml` | PR, push, or manual dispatch | Compile Python, verify the machine-readable methodology contract, run the offline regression suite, and validate the committed weekly release. |
 | `weekly-recovery.yml` | Saturday 00:15 UTC | Dispatch one catch-up run only when the expected weekly run failed, is stale, or never arrived. |
 | `weekly-health.yml` | Saturday 02:00 UTC | Verify the completed workflow, deployed bridge JSON, and English and Spanish dashboards. |
-| `research-validation.yml` | Saturday 04:30 UTC / guarded path pushes | Publish current-vintage, research-only point-in-time and robustness diagnostics without blocking the core weekly score. |
+| `research-validation.yml` | Saturday 04:30 UTC / guarded path pushes | Publish research-only point-in-time and robustness diagnostics plus an as-published-versus-current revision audit, without blocking the core weekly score. |
 | `repro-rehearsal.yml` | Relevant PRs or manual dispatch | Run a live, non-publishing rehearsal of the complete score → bundle → archive → strict offline-reproduction path. A pass is explicitly not production acceptance evidence. |
 | `repro-attestation.yml` | Relevant PRs, pushes to `main`, or manual dispatch | Read-only reproduction verification before merge and after merge. Only a successful push-to-`main` attestation can mark a strict release as a production acceptance candidate. |
 
@@ -125,6 +125,8 @@ Other production/review outputs include:
 - `public/data/score_v2_data_semantics.schema.json`
 - `public/data/research/score_v2_robustness_latest.json`
 - `public/data/research/score_v2_point_in_time_latest.json`
+- `public/data/research/score_v2_vintage_comparison_latest.json`
+- `public/data/research/score_v2_vintage_comparison_latest.csv`
 - `public/en/index.html`
 - `public/es/index.html`
 - `public/archive/YYYY-MM-DD/`
@@ -193,6 +195,8 @@ The strict validator performs this proof from the frozen artifact; it does not d
 USD Impact Score v2 standardizes each component against the full available sample, clips z-scores at ±3.5, and applies fixed equal-magnitude transmission weights.
 
 Because the mean and standard deviation use the full sample available at each run, adding a new observation can revise previously calculated historical values and, occasionally, historical regime labels. Dated archive folders preserve what was actually published at each release. The current dashboard history and current-vintage robustness research are recalculations using the latest source history; they are not immutable series of as-published historical values.
+
+The JSON and CSV vintage-comparison artifacts measure this difference directly. They compare only the declared latest observation in each valid dated archive with the same score week in the current recalculation, publish file hashes, and explicitly list invalid legacy archives instead of repairing or silently accepting them. The audit is descriptive and first-party. It cannot separate expanding-sample normalization effects from upstream provider revisions, and it is not independent audit evidence or an out-of-sample predictive test.
 
 The generated legacy backtest is descriptive across selected historical regime windows. The point-in-time and robustness research explicitly tests normalization/specification sensitivity, including leave-one-out and adversarial sign flips. It also publishes score-distribution and consecutive regime-duration diagnostics, which the generated dashboards visualize. Neither is a predictive forecast test, a trading strategy, or evidence of guaranteed future performance. Current research results must be read from the published JSON artifacts rather than hard-coded into operational documentation.
 

@@ -2,7 +2,8 @@ name: Score v2 research validation
 
 # Research-only robustness publication. This workflow is intentionally separate
 # from the core Friday score release so research failures cannot block the
-# production score. It publishes current-vintage descriptive validation only.
+# production score. It publishes descriptive current-vintage validation and an
+# explicit as-published-versus-current revision audit.
 # A path-scoped push to this established main-branch workflow provides an
 # explicit initial dispatch in addition to the scheduled Saturday run.
 
@@ -16,6 +17,7 @@ on:
       - '.github/workflows/research-validation.yml'
       - 'scripts/score_robustness_battery.py'
       - 'scripts/point_in_time_validation.py'
+      - 'scripts/build_vintage_comparison.py'
       - 'usd_impact_score_v2.py'
 
 permissions:
@@ -60,20 +62,30 @@ jobs:
             --robustness-output public/data/research/score_v2_robustness_latest.json \
             --pit-output public/data/research/score_v2_point_in_time_latest.json \
             2>&1 | tee "$RUNNER_TEMP/score-v2-research.log"
+          python -m scripts.build_vintage_comparison \
+            --current public/data/usd_impact_score_v2.json \
+            --archive-root public/archive \
+            --json-output public/data/research/score_v2_vintage_comparison_latest.json \
+            --csv-output public/data/research/score_v2_vintage_comparison_latest.csv \
+            2>&1 | tee -a "$RUNNER_TEMP/score-v2-research.log"
 
       - name: Validate research publication contract
         run: |
           set -o pipefail
           python - <<'PY' 2>&1 | tee -a "$RUNNER_TEMP/score-v2-research.log"
+          import csv
           import json
-          from datetime import datetime, timezone
+          from datetime import date, datetime, timezone
           from pathlib import Path
           import usd_impact_score_v2 as score_v2
 
           robust_path = Path('public/data/research/score_v2_robustness_latest.json')
           pit_path = Path('public/data/research/score_v2_point_in_time_latest.json')
+          vintage_path = Path('public/data/research/score_v2_vintage_comparison_latest.json')
+          vintage_csv_path = Path('public/data/research/score_v2_vintage_comparison_latest.csv')
           robust = json.loads(robust_path.read_text(encoding='utf-8'))
           pit = json.loads(pit_path.read_text(encoding='utf-8'))
+          vintage = json.loads(vintage_path.read_text(encoding='utf-8'))
 
           expected_week = score_v2.latest_completed_friday(datetime.now(timezone.utc)).isoformat()
           assert robust['production_methodology_changed'] is False
@@ -86,6 +98,28 @@ jobs:
           assert pit['as_published_vintage'] is False
           assert pit['last_evaluated_week'] == expected_week
           assert pit['evaluated_weeks'] > 0
+          assert vintage['production_methodology_changed'] is False
+          assert vintage['predictive_claim'] is False
+          assert vintage['as_published_vintage'] is True
+          assert vintage['difference_definition'] == (
+              'current_recalculated_value - as_published_value'
+          )
+          assert vintage['current_reference']['latest_week'] == expected_week
+
+          vintage_summary = vintage['summary']
+          assert vintage_summary['archive_files_scanned'] == (
+              vintage_summary['valid_vintages'] + vintage_summary['excluded_archives']
+          )
+          assert vintage_summary['valid_vintages'] > 0
+          assert len(vintage['vintages']) == vintage_summary['valid_vintages']
+          assert len(vintage['excluded_archives']) == vintage_summary['excluded_archives']
+          assert all(
+              date.fromisoformat(row['score_week'])
+              <= datetime.fromisoformat(row['published_at_utc']).date()
+              for row in vintage['vintages']
+          )
+          with vintage_csv_path.open(encoding='utf-8', newline='') as handle:
+              assert len(list(csv.DictReader(handle))) == vintage_summary['valid_vintages']
 
           provenance = robust['data']['source_provenance']
           assert isinstance(provenance, dict)
@@ -181,10 +215,11 @@ jobs:
           - transmission-sign sensitivity;
           - prior rolling-window normalization sensitivity;
           - input and component-correlation/contribution concentration diagnostics;
-          - regime-threshold sensitivity; and
-          - score-distribution, regime-duration, and subperiod stability summaries.
+          - regime-threshold sensitivity;
+          - score-distribution, regime-duration, and subperiod stability summaries; and
+          - as-published-versus-current score and component revisions, with invalid legacy archives explicitly reported and excluded.
 
-          These outputs are descriptive, not predictive, are not as-published historical vintages, and do **not** modify the production Score v2 methodology.
+          These outputs are descriptive, not predictive, and do **not** modify the production Score v2 methodology. The robustness studies use the current recalculated history. The revision audit separately compares each valid archive's declared latest observation with the same week in the current history; it does not identify whether a difference came from expanding-sample normalization or an upstream provider revision.
 
           Publication is automatic only after the Weekly score quality workflow passes on this exact commit.
           EOF
