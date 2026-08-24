@@ -1,0 +1,88 @@
+{
+  "$schema": "./score_v2_predictive_implementation_contract.schema.json",
+  "contract_id": "usd_impact_score_v2_predictive_implementation_2026-08-25",
+  "contract_version": 1,
+  "registered_date": "2026-08-25",
+  "research_only": true,
+  "production_change": false,
+  "trading_strategy_claim": false,
+  "locked_preregistration_commit_sha": "89bf56bafd594987176f31efaa926ecf02228289",
+  "locked_preregistration_file_sha256": "36accc42e4915bb48caa1c4d2fd0fac8ba27c51c0eb988916990c415830e3ca0",
+  "study_grid": {
+    "first_origin": "2026-08-28",
+    "frequency": "W-FRI",
+    "predictive_origins": 52,
+    "weekly_observations": 53,
+    "terminal_outcome_week": "2027-08-27",
+    "backfill_allowed": false,
+    "week_skip_allowed": false
+  },
+  "weekly_source": {
+    "source": "immutable as-published strict Score v2 reproduction bundle",
+    "latest_path": "public/data/score_repro_bundle_latest.json",
+    "archive_path_template": "public/archive/YYYY-MM-DD/repro_bundle.json",
+    "latest_archive_byte_identity_required": true,
+    "successful_push_to_main_reproduction_attestation_required": true,
+    "live_provider_refetch_allowed": false,
+    "later_provider_recalculation_allowed": false
+  },
+  "weekly_record": {
+    "path_template": "research/predictive/score_v2_predictive_week_YYYY-MM-DD.json",
+    "first_52_record_role": "predictive_origin",
+    "record_53_role": "terminal_outcome",
+    "origin_score_field": "bundle.published.score",
+    "dxy_level_field": "bundle.components.DXY.weekly_level",
+    "model_direction_rule": "up if score >= 0 else down",
+    "always_up_rule": "up",
+    "momentum_rule": "up if ln(origin_DXY_level / prior_DXY_level) >= 0 else down",
+    "momentum_first_prior_source": "frozen score_v3_initialization_2026-08-21.csv DXY level",
+    "momentum_later_prior_source": "immediately preceding immutable predictive weekly record",
+    "terminal_record_has_prediction": false
+  },
+  "target": {
+    "pairing": "prediction from record i with DXY level from record i+1",
+    "return_formula": "ln(outcome_DXY_level / origin_DXY_level)",
+    "actual_direction_rule": "up if return >= 0 else down",
+    "zero_return_direction": "up",
+    "outcome_substitution_allowed": false
+  },
+  "primary_endpoint": {
+    "directional_accuracy_formula": "model_correct_count / 52",
+    "minimum_accuracy": 0.6,
+    "circular_shift_count": 51,
+    "shifted_prediction_index": "prediction[(outcome_index + shift) mod 52]",
+    "shift_comparison": "shifted_correct_count >= observed_correct_count",
+    "p_value_formula": "(1 + qualifying_nonzero_shift_count) / 52",
+    "maximum_p_value": 0.05,
+    "benchmark_lift_formula": "model_accuracy - max(always_up_accuracy, momentum_accuracy)",
+    "minimum_benchmark_lift": 0.05,
+    "wilson_interval": {
+      "confidence": 0.95,
+      "z": 1.959963984540054,
+      "formula": "standard two-sided Wilson score interval for a binomial proportion"
+    },
+    "numeric_comparison_tolerance": 1e-12,
+    "all_gates_required": true
+  },
+  "secondary_endpoints": {
+    "spearman": "Pearson correlation of average ranks of the 52 origin scores and 52 next-week log returns; null if either rank vector has zero variance",
+    "always_up_lift": "model_accuracy - always_up_accuracy",
+    "momentum_lift": "model_accuracy - momentum_accuracy",
+    "confirmatory": false
+  },
+  "reporting": {
+    "integrity_only_resolved_prediction_checkpoints": [13, 26, 39],
+    "formal_performance_resolved_prediction_checkpoint": 52,
+    "interim_performance_calculation_allowed": false,
+    "interim_endpoint_values_emitted": false,
+    "interim_stop_or_rule_change_allowed": false,
+    "automatic_site_claim_allowed": false,
+    "automatic_production_promotion_allowed": false
+  },
+  "failure_policy": {
+    "missing_origin": "fail closed and report; do not backfill after its outcome exists",
+    "changed_bundle": "fail closed on byte-hash mismatch",
+    "changed_protocol_or_contract": "fail closed on locked SHA mismatch",
+    "implementation_defect_after_outcome": "report defect; do not reconstruct the affected origin under this protocol"
+  }
+}

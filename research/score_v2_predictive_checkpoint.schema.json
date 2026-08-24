@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/usdimpact/usd-impact-pipeline/blob/main/research/score_v2_predictive_checkpoint.schema.json",
+  "title": "USD Impact Score v2 predictive checkpoint",
+  "type": "object",
+  "required": [
+    "$schema",
+    "report_type",
+    "reporting_version",
+    "study",
+    "research_only",
+    "production_change",
+    "resolved_predictions",
+    "weekly_observations",
+    "latest_week",
+    "locked_preregistration_commit_sha",
+    "implementation_contract_sha256",
+    "evidence_prefix_sha256",
+    "endpoint_values_emitted",
+    "performance_calculated",
+    "automatic_site_claim_performed",
+    "production_promotion_performed"
+  ],
+  "properties": {
+    "$schema": {"const": "../../score_v2_predictive_checkpoint.schema.json"},
+    "report_type": {"enum": ["predictive_integrity_checkpoint", "predictive_formal_52_result"]},
+    "reporting_version": {"const": 1},
+    "study": {"const": "usd_impact_score_v2_one_week_dxy_direction_2026-08-25"},
+    "research_only": {"const": true},
+    "production_change": {"const": false},
+    "resolved_predictions": {"enum": [13, 26, 39, 52]},
+    "weekly_observations": {"type": "integer", "minimum": 14, "maximum": 53},
+    "latest_week": {"type": "string", "format": "date"},
+    "locked_preregistration_commit_sha": {"const": "89bf56bafd594987176f31efaa926ecf02228289"},
+    "implementation_contract_sha256": {"const": "13c2b546abda5c7ba44bdf178371346062d6717c1ed7f10f6a16aac319a9f789"},
+    "evidence_prefix_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "endpoint_values_emitted": {"type": "boolean"},
+    "performance_calculated": {"type": "boolean"},
+    "automatic_site_claim_performed": {"const": false},
+    "production_promotion_performed": {"const": false}
+  }
+}

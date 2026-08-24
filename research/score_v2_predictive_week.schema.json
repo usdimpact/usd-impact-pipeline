@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/usdimpact/usd-impact-pipeline/blob/main/research/score_v2_predictive_week.schema.json",
+  "title": "USD Impact Score v2 prospective predictive weekly record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "record_schema_version",
+    "study",
+    "research_only",
+    "production_change",
+    "predictive_power_status",
+    "record_role",
+    "week",
+    "recorded_at_utc",
+    "locked_preregistration_commit_sha",
+    "locked_preregistration_file_sha256",
+    "implementation_contract_sha256",
+    "source_v2_bundle",
+    "as_published_observation",
+    "frozen_predictions"
+  ],
+  "properties": {
+    "$schema": {"const": "../score_v2_predictive_week.schema.json"},
+    "record_schema_version": {"const": 1},
+    "study": {"const": "usd_impact_score_v2_one_week_dxy_direction_2026-08-25"},
+    "research_only": {"const": true},
+    "production_change": {"const": false},
+    "predictive_power_status": {"const": "not_established_pending_52_resolved_predictions"},
+    "record_role": {"enum": ["predictive_origin", "terminal_outcome"]},
+    "week": {"type": "string", "format": "date"},
+    "recorded_at_utc": {"type": "string", "minLength": 20},
+    "locked_preregistration_commit_sha": {"const": "89bf56bafd594987176f31efaa926ecf02228289"},
+    "locked_preregistration_file_sha256": {"const": "36accc42e4915bb48caa1c4d2fd0fac8ba27c51c0eb988916990c415830e3ca0"},
+    "implementation_contract_sha256": {"const": "13c2b546abda5c7ba44bdf178371346062d6717c1ed7f10f6a16aac319a9f789"},
+    "source_v2_bundle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sha256", "pipeline_commit_sha", "attestation_status", "attestation_run_id", "attestation_url"],
+      "properties": {
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "pipeline_commit_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "attestation_status": {"const": "passed"},
+        "attestation_run_id": {"type": "integer", "minimum": 1},
+        "attestation_url": {"type": "string", "pattern": "^https://github.com/"}
+      }
+    },
+    "as_published_observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["score", "dxy_weekly_level"],
+      "properties": {
+        "score": {"type": "number"},
+        "dxy_weekly_level": {"type": "number", "exclusiveMinimum": 0}
+      }
+    },
+    "frozen_predictions": {
+      "oneOf": [
+        {"type": "null"},
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "model_direction",
+            "always_up_direction",
+            "momentum_direction",
+            "momentum_prior_week",
+            "momentum_prior_dxy_level",
+            "momentum_prior_source"
+          ],
+          "properties": {
+            "model_direction": {"enum": ["up", "down"]},
+            "always_up_direction": {"const": "up"},
+            "momentum_direction": {"enum": ["up", "down"]},
+            "momentum_prior_week": {"type": "string", "format": "date"},
+            "momentum_prior_dxy_level": {"type": "number", "exclusiveMinimum": 0},
+            "momentum_prior_source": {"enum": ["frozen_2026-08-21_initialization", "previous_predictive_week_record"]}
+          }
+        }
+      ]
+    }
+  }
+}

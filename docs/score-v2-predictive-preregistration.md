@@ -34,6 +34,12 @@ Meaningful evidence requires every condition below:
 
 The 13-, 26- and 39-outcome checkpoints may report integrity only. They may not publish performance values, alter the rule or stop the study because results look favorable or unfavorable.
 
+## Collection controls
+
+The machine-readable [implementation contract](../research/score_v2_predictive_implementation_contract.json) fixes the operational details. A downstream workflow runs only after a successful push-to-main Score v2 reproduction attestation. Each accepted Friday is byte-bound to the latest and dated strict reproduction bundles, and the two copies must be identical. The first 52 weekly records freeze predictions; the 53rd record supplies only the last outcome and cannot create another prediction.
+
+A missed origin, changed archive, protocol mismatch or implementation-contract mismatch fails closed. The workflow never fetches live providers and cannot use later recalculated history to repair an observation. The append-only [evidence manifest](../research/score_v2_predictive_manifest.json) remains explicit that predictive power is not established while the formal gate is pending.
+
 ## Interpretation boundary
 
 A failure means meaningful one-week DXY directional evidence was not established under this protocol. A pass would support only a bounded association in this sample. It would not establish causal power, trading profitability, performance for another asset, probability calibration or durable future accuracy. The evidence remains first-party until independently reproduced or audited.

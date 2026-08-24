@@ -15,6 +15,8 @@ Only workflow files inside `.github/workflows/` are executable GitHub Actions wo
 | `research-validation.yml` | Saturday 04:30 UTC / guarded path pushes | Publish research-only point-in-time and robustness diagnostics plus an as-published-versus-current revision audit, without blocking the core weekly score. |
 | `repro-rehearsal.yml` | Relevant PRs or manual dispatch | Run a live, non-publishing rehearsal of the complete score → bundle → archive → strict offline-reproduction path. A pass is explicitly not production acceptance evidence. |
 | `repro-attestation.yml` | Relevant PRs, pushes to `main`, or manual dispatch | Read-only reproduction verification before merge and after merge. Only a successful push-to-`main` attestation can mark a strict release as a production acceptance candidate. |
+| `score-v3-shadow.yml` | Successful push-to-`main` reproduction attestation or manual dispatch | Append research-only Score v3 robustness evidence from immutable production bundles; never forecast, block, or modify production. |
+| `score-v2-predictive.yml` | Successful push-to-`main` reproduction attestation or manual dispatch | Prepare a PR containing the separately preregistered one-week DXY prediction evidence; reject gaps/backfill, suppress interim performance, and never merge, change production, or change site claims automatically. |
 
 The root-level `weekly.yml` is a non-executable compatibility pointer. The canonical workflow is `.github/workflows/weekly.yml`.
 
@@ -205,6 +207,8 @@ The JSON and CSV vintage-comparison artifacts measure this difference directly. 
 The generated legacy backtest is descriptive across selected historical regime windows. The point-in-time and robustness research explicitly tests normalization/specification sensitivity, including leave-one-out and adversarial sign flips. It also publishes score-distribution and consecutive regime-duration diagnostics, which the generated dashboards visualize. Neither is a predictive forecast test, a trading strategy, or evidence of guaranteed future performance. Current research results must be read from the published JSON artifacts rather than hard-coded into operational documentation.
 
 A separate [Score v2 one-week DXY predictive protocol](docs/score-v2-predictive-preregistration.md) was preregistered on August 25, 2026, before its first eligible origin on August 28. It requires 52 consecutive, non-backfilled future predictions and does not authorize any current predictive or trading claim. Earlier information was available when Score v2 and the prediction rule were selected and is explicitly treated as retrospective design information, not untouched test evidence.
+
+The locked implementation consumes only successful post-merge reproduction attestations. It records 52 prediction origins plus one terminal outcome observation, byte-binds every record to its dated strict bundle, and fails if a weekly origin is missing or altered. Checkpoints 13/26/39 contain integrity facts only; the implementation does not calculate accuracy, comparator lift, rank association, or the circular-shift result until all 52 outcomes exist. Even a formal pass cannot automatically change the production model or site claim.
 
 ## Change-safety rules
 
