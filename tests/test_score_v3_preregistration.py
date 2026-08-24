@@ -80,8 +80,8 @@ class ScoreV3PreregistrationTests(unittest.TestCase):
 
     def test_markdown_contains_non_negotiable_boundaries(self):
         required_phrases = (
-            "Production change authorized by this document: **No**",
-            "First prospective untouched week: August 28, 2026",
+            "**Production change authorized by this document:** **No**",
+            "**First prospective untouched week:** August 28, 2026",
             "52 completed prospective weeks",
             "keep v2 in production",
             "not be described as an untouched out-of-sample test",
