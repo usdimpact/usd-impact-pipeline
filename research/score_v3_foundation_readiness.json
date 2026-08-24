@@ -1,0 +1,42 @@
+{
+  "report_type": "score_v3_structural_readiness",
+  "research_only": true,
+  "predictive_claim": false,
+  "candidate_selection_performed": false,
+  "locked_preregistration_commit_sha": "bf49152fa6005edd20b770db287924d56cfa7499",
+  "retrospective_data_status": "current_vintage_not_untouched",
+  "candidates": [
+    {
+      "candidate_id": "V3_E52",
+      "rows": 556,
+      "first_week": "2016-01-01",
+      "last_week": "2026-08-21",
+      "all_scores_finite": true,
+      "absolute_weight_budget": 1.0
+    },
+    {
+      "candidate_id": "V3_R260",
+      "rows": 348,
+      "first_week": "2019-12-27",
+      "last_week": "2026-08-21",
+      "all_scores_finite": true,
+      "absolute_weight_budget": 1.0
+    },
+    {
+      "candidate_id": "V3_MAD260",
+      "rows": 348,
+      "first_week": "2019-12-27",
+      "last_week": "2026-08-21",
+      "all_scores_finite": true,
+      "absolute_weight_budget": 1.0
+    },
+    {
+      "candidate_id": "V3_GRP_MAD260",
+      "rows": 348,
+      "first_week": "2019-12-27",
+      "last_week": "2026-08-21",
+      "all_scores_finite": true,
+      "absolute_weight_budget": 1.0
+    }
+  ]
+}
