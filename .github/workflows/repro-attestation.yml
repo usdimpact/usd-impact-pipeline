@@ -1,0 +1,89 @@
+name: Score v2 post-merge reproduction attestation
+
+# Read-only verification after a release or methodology contract lands on main.
+# This workflow never regenerates, commits, pushes, merges, or deploys content.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'public/data/usd_impact_score_v2.json'
+      - 'public/data/score_repro_bundle_latest.json'
+      - 'public/archive/**/repro_bundle.json'
+      - 'public/data/score_v2_methodology.json'
+      - 'public/data/score_v2_methodology.schema.json'
+      - 'requirements.lock'
+      - 'scripts/validate_weekly_release.py'
+      - 'scripts/validate_methodology_contract.py'
+      - 'scripts/post_merge_repro_attestation.py'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: score-v2-post-merge-repro-attestation
+  cancel-in-progress: false
+
+jobs:
+  attest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout full main history
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: requirements.lock
+
+      - name: Install locked dependencies
+        run: |
+          python -m pip install --upgrade pip==26.2.1
+          python -m pip install -r requirements.lock
+          python -m pip check
+
+      - name: Verify methodology contract against production code
+        run: python -m scripts.validate_methodology_contract --json
+
+      - name: Attest published main-branch reproduction evidence
+        run: |
+          python -m scripts.post_merge_repro_attestation \
+            --root . \
+            --report "$RUNNER_TEMP/score-v2-post-merge-attestation.json"
+
+      - name: Record attestation in job summary
+        if: always()
+        run: |
+          if [ -f "$RUNNER_TEMP/score-v2-post-merge-attestation.json" ]; then
+            python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json, os
+          from pathlib import Path
+          report = json.loads(Path(os.environ['RUNNER_TEMP'], 'score-v2-post-merge-attestation.json').read_text())
+          print('## Score v2 post-merge reproduction attestation')
+          print('')
+          print(f"- Status: **{report['status']}**")
+          print(f"- Published score week: `{report['score_week']}`")
+          print(f"- Attested main SHA: `{report['attested_main_sha']}`")
+          print(f"- Methodology contract SHA-256: `{report['methodology_contract_sha256']}`")
+          print(f"- Strict bundle required: **{report['strict_bundle_required']}**")
+          print(f"- Acceptance candidate: **{report['acceptance_candidate']}**")
+          if report.get('strict_bundle_required'):
+              print(f"- Offline reproduction gate: **{report['offline_reproduction_gate']}**")
+              print(f"- Bundle/archive match: **{report['bundle_archive_match']}**")
+              print(f"- Bundle pipeline SHA is main ancestor: **{report['bundle_pipeline_sha_is_main_ancestor']}**")
+              print(f"- Bundle SHA-256: `{report['bundle_sha256']}`")
+          else:
+              print(f"- Note: {report['note']}")
+          PY
+          else
+            echo '## Score v2 post-merge reproduction attestation' >> "$GITHUB_STEP_SUMMARY"
+            echo '' >> "$GITHUB_STEP_SUMMARY"
+            echo '**FAILED before an attestation report was produced.**' >> "$GITHUB_STEP_SUMMARY"
+          fi
