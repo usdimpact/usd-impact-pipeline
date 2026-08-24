@@ -2,8 +2,8 @@ name: Weekly USD Impact Score
 
 # Runs the score, commentary, archive, and dashboard pipeline every Friday at
 # 22:00 UTC. A generated release is merged only after the exact publication
-# commit passes the Weekly score quality workflow. Cloudflare Pages then
-# auto-deploys the validated main-branch commit.
+# commit passes both Weekly score quality and the read-only reproduction
+# attestation. Cloudflare Pages then auto-deploys the validated main commit.
 #
 # Manual runs: Actions tab → Weekly USD Impact Score → Run workflow.
 
@@ -104,7 +104,7 @@ jobs:
       - name: Validate generated weekly release
         run: python scripts/validate_weekly_release.py
 
-      - name: Open, validate, and merge weekly publication pull request
+      - name: Open, validate, attest, and merge weekly publication pull request
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -129,7 +129,7 @@ jobs:
 
           This pull request contains the generated score, deterministic English and Spanish commentary, bridge data, dashboards, dated archive, and immutable score-reproduction evidence for **${WEEK}**.
 
-          Publication is automatic only after the Weekly score quality workflow passes on this exact commit. A failed consistency check leaves this pull request open and does not change the Cloudflare Pages production deployment.
+          Publication is automatic only after both the Weekly score quality workflow and the read-only Score v2 reproduction attestation pass on this exact commit. A failed gate leaves this pull request open and does not change the Cloudflare Pages production deployment.
           EOF
 
           pr_url="$(gh pr create \
@@ -140,26 +140,53 @@ jobs:
 
           gh workflow run quality.yml --ref "$branch"
 
-          run_id=""
+          quality_run_id=""
           for attempt in $(seq 1 30); do
-            run_id="$(gh run list \
+            quality_run_id="$(gh run list \
               --workflow quality.yml \
               --branch "$branch" \
               --event workflow_dispatch \
               --limit 10 \
               --json databaseId,headSha \
               --jq ".[] | select(.headSha == \"$head_sha\") | .databaseId" | head -n 1)"
-            if [ -n "$run_id" ]; then
+            if [ -n "$quality_run_id" ]; then
               break
             fi
             sleep 5
           done
 
-          if [ -z "$run_id" ]; then
+          if [ -z "$quality_run_id" ]; then
             echo "Could not locate the dispatched Weekly score quality run for $head_sha."
             exit 1
           fi
 
-          gh run watch "$run_id" --exit-status
+          gh run watch "$quality_run_id" --exit-status
+
+          # Run the same frozen-bundle attestation on the exact publication
+          # branch before merge. workflow_dispatch is intentionally a read-only
+          # context and can never claim production acceptance.
+          gh workflow run repro-attestation.yml --ref "$branch"
+
+          attestation_run_id=""
+          for attempt in $(seq 1 30); do
+            attestation_run_id="$(gh run list \
+              --workflow repro-attestation.yml \
+              --branch "$branch" \
+              --event workflow_dispatch \
+              --limit 10 \
+              --json databaseId,headSha \
+              --jq ".[] | select(.headSha == \"$head_sha\") | .databaseId" | head -n 1)"
+            if [ -n "$attestation_run_id" ]; then
+              break
+            fi
+            sleep 5
+          done
+
+          if [ -z "$attestation_run_id" ]; then
+            echo "Could not locate the dispatched Score v2 reproduction attestation for $head_sha."
+            exit 1
+          fi
+
+          gh run watch "$attestation_run_id" --exit-status
           gh pr merge "$pr_url" --squash --delete-branch
-          echo "Merged Weekly USD Impact Score for ${WEEK}. Cloudflare Pages production deployment will follow from main."
+          echo "Merged Weekly USD Impact Score for ${WEEK}. Cloudflare Pages and the push-to-main reproduction attestation will follow from main."

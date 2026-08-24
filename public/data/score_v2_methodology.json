@@ -1,0 +1,141 @@
+{
+  "$schema": "./score_v2_methodology.schema.json",
+  "contract_version": 1,
+  "methodology_version": "usd_impact_score_v2",
+  "status": "production",
+  "purpose": "descriptive weekly U.S. dollar regime indicator",
+  "predictive_claim": false,
+  "production_start_date": "2015-01-01",
+  "frequency": {
+    "resample_rule": "W-FRI",
+    "weekly_observation": "last available observation in the Friday-ended week"
+  },
+  "normalization": {
+    "input_type": "weekly levels",
+    "sample": "full available complete weekly sample",
+    "mean": "arithmetic mean",
+    "standard_deviation": "sample standard deviation",
+    "ddof": 1,
+    "zscore_clip": 3.5
+  },
+  "missing_data": {
+    "daily_alignment": "outer join across providers",
+    "forward_fill_limit_observations": 3,
+    "weekly_complete_case_required": true,
+    "latest_week_complete_required": true
+  },
+  "correlation_adjustment": "none",
+  "weights_rebalanced": false,
+  "drivers": [
+    {
+      "name": "DXY",
+      "provider_code": "yahoo",
+      "provider": "Yahoo Finance via yfinance",
+      "series": "DX-Y.NYB",
+      "source_url": "https://finance.yahoo.com/quote/DX-Y.NYB/history",
+      "max_age_days": 3,
+      "weight": 0.125
+    },
+    {
+      "name": "WTI",
+      "provider_code": "yahoo",
+      "provider": "Yahoo Finance via yfinance",
+      "series": "CL=F",
+      "source_url": "https://finance.yahoo.com/quote/CL%3DF/history",
+      "max_age_days": 3,
+      "weight": -0.125
+    },
+    {
+      "name": "SPX",
+      "provider_code": "yahoo",
+      "provider": "Yahoo Finance via yfinance",
+      "series": "^GSPC",
+      "source_url": "https://finance.yahoo.com/quote/%5EGSPC/history",
+      "max_age_days": 3,
+      "weight": -0.125
+    },
+    {
+      "name": "VIX",
+      "provider_code": "yahoo",
+      "provider": "Yahoo Finance via yfinance",
+      "series": "^VIX",
+      "source_url": "https://finance.yahoo.com/quote/%5EVIX/history",
+      "max_age_days": 3,
+      "weight": 0.125
+    },
+    {
+      "name": "BTC",
+      "provider_code": "yahoo",
+      "provider": "Yahoo Finance via yfinance",
+      "series": "BTC-USD",
+      "source_url": "https://finance.yahoo.com/quote/BTC-USD/history",
+      "max_age_days": 2,
+      "weight": -0.125
+    },
+    {
+      "name": "GOLD",
+      "provider_code": "yahoo",
+      "provider": "Yahoo Finance via yfinance",
+      "series": "GC=F",
+      "source_url": "https://finance.yahoo.com/quote/GC%3DF/history",
+      "max_age_days": 3,
+      "weight": -0.125
+    },
+    {
+      "name": "UST_2Y",
+      "provider_code": "fred",
+      "provider": "Federal Reserve Bank of St. Louis (FRED)",
+      "series": "DGS2",
+      "source_url": "https://fred.stlouisfed.org/series/DGS2",
+      "max_age_days": 4,
+      "weight": 0.125
+    },
+    {
+      "name": "UST_10Y",
+      "provider_code": "fred",
+      "provider": "Federal Reserve Bank of St. Louis (FRED)",
+      "series": "DGS10",
+      "source_url": "https://fred.stlouisfed.org/series/DGS10",
+      "max_age_days": 4,
+      "weight": 0.125
+    }
+  ],
+  "regime_bands": [
+    {
+      "low": 1.0,
+      "high": null,
+      "label": "Strong dollar regime"
+    },
+    {
+      "low": 0.3,
+      "high": 1.0,
+      "label": "Firm dollar regime"
+    },
+    {
+      "low": -0.3,
+      "high": 0.3,
+      "label": "Neutral / transitional"
+    },
+    {
+      "low": -1.0,
+      "high": -0.3,
+      "label": "Soft dollar regime"
+    },
+    {
+      "low": null,
+      "high": -1.0,
+      "label": "Weak dollar regime"
+    }
+  ],
+  "source_provenance_version": 1,
+  "reproduction_bundle": {
+    "bundle_version": 1,
+    "required_from_release": "2026-08-28",
+    "absolute_tolerance": 1e-9
+  },
+  "scope_boundaries": {
+    "predictive_backtest": false,
+    "canonical_2008_result": false,
+    "historical_full_sample_series_is_point_in_time": false
+  }
+}

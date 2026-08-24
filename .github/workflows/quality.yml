@@ -35,6 +35,9 @@ jobs:
       - name: Check Python syntax
         run: python -m compileall -q usd_impact_score_v2.py scripts tests
 
+      - name: Validate machine-readable methodology contract
+        run: python -m scripts.validate_methodology_contract --json
+
       - name: Test market-data fetch resilience
         run: python -m unittest discover -s tests -v
 
