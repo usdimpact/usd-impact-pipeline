@@ -1,0 +1,32 @@
+{
+  "lock_id": "usd_impact_score_v3_research_engine_2026-08-25",
+  "lock_version": 1,
+  "locked_date": "2026-08-25",
+  "prospective_holdout_start": "2026-08-28",
+  "research_only": true,
+  "production_change": false,
+  "predictive_claim": false,
+  "implementation_commit_sha": "4f1a14bcf656197fbfcc904f3f013852cb68cc01",
+  "preregistration_commit_sha": "bf49152fa6005edd20b770db287924d56cfa7499",
+  "preregistration_file_sha256": "54cfd363bb72e21e99285014c5ece3c3ce08a98dbdfc316dfadaf82de98b2cf4",
+  "metric_contract_sha256": "d366b0f7e0f41b0702f867a38ce3f80277f41b49ae788e5846324fffb83b2dc7",
+  "immutable_files": {
+    "requirements.lock": "a4c6fb90909a04eb267057d3e31049c7fc38b12e8a7d556e79c0141aa0d52db6",
+    "usd_impact_score_v2.py": "4fc151cf29f70237ea793c2cded32698aacafe457391ddae379a1e61dfefa781",
+    "research/score_v3_preregistration.json": "54cfd363bb72e21e99285014c5ece3c3ce08a98dbdfc316dfadaf82de98b2cf4",
+    "research/score_v3_metric_implementation_contract.json": "d366b0f7e0f41b0702f867a38ce3f80277f41b49ae788e5846324fffb83b2dc7",
+    "research/score_v3_metric_implementation_contract.schema.json": "91269b37bd19547fd71c4dc9fa0a66e8c4f717d279d74acdd0b09d353ba8c2cb",
+    "research/score_v3_initialization_2026-08-21.csv": "6e17100c061cebc3116fdac9c83708b94a72165957ffbcf688d9a08e9d280580",
+    "research/score_v3_initialization_2026-08-21.manifest.json": "82f1beaa4c368a80d499e39391fee3dcc6f108522d4f936e6e7e9e7b50e05e69",
+    "research/score_v3_prospective_manifest.schema.json": "03ebd10326cabbc5d4122c3f0d66df5d5605804b7cf3812d78b46531a40c14e3",
+    "scripts/build_score_repro_bundle.py": "6807d8afd29c587900de14feae6fb9da4f13964238953f8975cea42fc283ab31",
+    "scripts/freeze_score_v3_initialization.py": "45d524e88d8e1065c9d950ce19f0ef240605f0a5c6b215b190770ceaf0d1da6d",
+    "scripts/score_v3_candidates.py": "e8711f0306e4efd97cd8ae50e5f56da0a9bbd49c29667a1f88496731f29d2400",
+    "scripts/score_v3_manifest.py": "0ca8a2d215dd4ea5f7521e14259eb0764f752d8a6f35c437957d9c3e9252dde4",
+    "scripts/score_v3_shadow_ingestion.py": "c32045b8da33bf39ac8563a3cb328f2ddbeebf6b93786b260809cffd3208802a",
+    "scripts/score_v3_metrics.py": "7110f90fb98e512c23961a0f3f4235c92fbd69f775e211de8ca04694644ff804",
+    "scripts/score_v3_metric_reporting.py": "349ac44ed92a0c3fd8c5ead4a9fee00b8994112e153a3ca768667ab2675a59b1"
+  },
+  "change_policy": "Any immutable-file change after the first prospective origin requires a new research protocol ID and a reset untouched holdout. Do not continue this study identity with a changed engine.",
+  "automatic_override_allowed": false
+}
