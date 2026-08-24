@@ -9,6 +9,9 @@ from scripts.build_score_repro_bundle import build_bundle, reproduce_bundle, ver
 
 
 class NullLogger:
+    def debug(self, *_args, **_kwargs):
+        pass
+
     def info(self, *_args, **_kwargs):
         pass
 
