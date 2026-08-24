@@ -153,6 +153,32 @@ def rolling_window_sensitivity(
     return results
 
 
+def _correlation_pairs(corr: pd.DataFrame) -> list[dict[str, Any]]:
+    pairs: list[dict[str, Any]] = []
+    names = list(corr.columns)
+    for i, left in enumerate(names):
+        for right in names[i + 1:]:
+            value = float(corr.loc[left, right])
+            if not np.isfinite(value):
+                continue
+            pairs.append({"left": left, "right": right, "correlation": value})
+    pairs.sort(key=lambda item: abs(item["correlation"]), reverse=True)
+    return pairs
+
+
+def _correlation_summary(corr: pd.DataFrame) -> dict[str, Any]:
+    pairs = _correlation_pairs(corr)
+    absolute = [abs(item["correlation"]) for item in pairs]
+    top = pairs[0] if pairs else None
+    return {
+        "mean_absolute_pair_correlation": float(np.mean(absolute)) if absolute else None,
+        "max_absolute_pair_correlation": float(max(absolute)) if absolute else None,
+        "pairs_at_or_above_abs_0_70": int(sum(value >= 0.70 for value in absolute)),
+        "top_pair": top,
+        "top_pairs": pairs[:10],
+    }
+
+
 def correlation_concentration(
     weekly: pd.DataFrame,
     *,
@@ -168,27 +194,155 @@ def correlation_concentration(
     if window < 3:
         raise ValueError("Correlation window must be at least 3 weeks")
     sample = data.tail(min(window, len(data)))
-    corr = sample.corr()
-    pairs: list[dict[str, Any]] = []
-    names = list(corr.columns)
-    for i, left in enumerate(names):
-        for right in names[i + 1:]:
-            value = float(corr.loc[left, right])
-            if not np.isfinite(value):
-                continue
-            pairs.append({"left": left, "right": right, "correlation": value})
-    pairs.sort(key=lambda item: abs(item["correlation"]), reverse=True)
-    absolute = [abs(item["correlation"]) for item in pairs]
+    summary = _correlation_summary(sample.corr())
     return {
         "diagnostic": "Pearson correlation of production weekly level inputs",
         "caution": "Level correlations may reflect common trends and are not return correlations.",
         "window_weeks": int(len(sample)),
         "window_start": sample.index[0].date().isoformat(),
         "window_end": sample.index[-1].date().isoformat(),
-        "mean_absolute_pair_correlation": float(np.mean(absolute)) if absolute else None,
-        "max_absolute_pair_correlation": float(max(absolute)) if absolute else None,
-        "pairs_at_or_above_abs_0_70": int(sum(value >= 0.70 for value in absolute)),
-        "top_pairs": pairs[:10],
+        **summary,
+    }
+
+
+def rolling_component_correlations(
+    weekly: pd.DataFrame,
+    *,
+    window: int = DEFAULT_CORRELATION_WINDOW,
+) -> dict[str, Any]:
+    """Publish a current-vintage rolling history of component correlations.
+
+    Correlations are calculated on the clipped production component z-scores
+    from the current full-sample recalculation. Because those z-scores are
+    current-vintage, this is a robustness diagnostic rather than an immutable
+    as-published correlation history.
+    """
+    if window < 3:
+        raise ValueError("Correlation window must be at least 3 weeks")
+    z, _ = _full_sample_components(weekly)
+    if len(z) < window:
+        raise RuntimeError(
+            f"Need at least {window} complete weeks for rolling component correlations"
+        )
+
+    history: list[dict[str, Any]] = []
+    for idx in range(window - 1, len(z)):
+        sample = z.iloc[idx - window + 1:idx + 1]
+        summary = _correlation_summary(sample.corr())
+        history.append({
+            "date": z.index[idx].date().isoformat(),
+            "window_start": sample.index[0].date().isoformat(),
+            "window_end": sample.index[-1].date().isoformat(),
+            "mean_absolute_pair_correlation": summary["mean_absolute_pair_correlation"],
+            "max_absolute_pair_correlation": summary["max_absolute_pair_correlation"],
+            "pairs_at_or_above_abs_0_70": summary["pairs_at_or_above_abs_0_70"],
+            "top_pair": summary["top_pair"],
+        })
+
+    return {
+        "diagnostic": "Rolling Pearson correlation of clipped production component z-scores",
+        "caution": (
+            "Current-vintage component correlations are descriptive and can change "
+            "when the full-sample normalization history is recalculated."
+        ),
+        "window_weeks": int(window),
+        "observations": int(len(history)),
+        "first_date": history[0]["date"],
+        "latest_date": history[-1]["date"],
+        "latest": history[-1],
+        "history": history,
+    }
+
+
+def contribution_concentration(
+    weekly: pd.DataFrame,
+    *,
+    window: int = DEFAULT_CORRELATION_WINDOW,
+) -> dict[str, Any]:
+    """Quantify concentration of score contributions with correlation overlap.
+
+    For each week, absolute contribution shares p_i are calculated from
+    |weight_i * clipped_z_i|. Ordinary concentration is HHI = sum(p_i^2), with
+    effective component count 1/HHI. A deliberately transparent heuristic then
+    replaces the identity matrix with the element-wise absolute rolling
+    component-correlation matrix: C_abs = p' |R| p. Its reciprocal is the
+    effective correlated component count. Because |R| adds non-negative overlap,
+    the correlated count cannot exceed the ordinary effective count.
+
+    This is an audit diagnostic, not a covariance risk model or portfolio metric.
+    """
+    if window < 3:
+        raise ValueError("Correlation window must be at least 3 weeks")
+    z, score = _full_sample_components(weekly)
+    if len(z) < window:
+        raise RuntimeError(
+            f"Need at least {window} complete weeks for contribution concentration"
+        )
+
+    drivers = list(score_v2.WEIGHTS)
+    contributions = pd.DataFrame(
+        {driver: z[driver] * float(score_v2.WEIGHTS[driver]) for driver in drivers},
+        index=z.index,
+    )
+    history: list[dict[str, Any]] = []
+
+    for idx in range(window - 1, len(z)):
+        sample = z.iloc[idx - window + 1:idx + 1]
+        corr_abs = np.abs(sample.corr().to_numpy(dtype=float))
+        corr_abs = np.nan_to_num(corr_abs, nan=0.0, posinf=1.0, neginf=1.0)
+        np.fill_diagonal(corr_abs, 1.0)
+
+        current = contributions.iloc[idx].to_numpy(dtype=float)
+        gross = float(np.abs(current).sum())
+        if gross <= 0:
+            continue
+        shares = np.abs(current) / gross
+        hhi = float(shares @ shares)
+        corr_index = float(shares @ corr_abs @ shares)
+        if hhi <= 0 or corr_index <= 0:
+            continue
+
+        effective_uncorrelated = float(1.0 / hhi)
+        effective_correlated = float(1.0 / corr_index)
+        # Floating-point noise can put the correlated count a few ulps above.
+        effective_correlated = min(effective_correlated, effective_uncorrelated)
+        dominant_idx = int(np.argmax(shares))
+        net_score = float(score.iloc[idx])
+        history.append({
+            "date": z.index[idx].date().isoformat(),
+            "window_start": sample.index[0].date().isoformat(),
+            "window_end": sample.index[-1].date().isoformat(),
+            "gross_absolute_contribution": gross,
+            "net_score": net_score,
+            "net_to_gross_ratio": float(abs(net_score) / gross),
+            "dominant_driver": drivers[dominant_idx],
+            "dominant_absolute_contribution_share": float(shares[dominant_idx]),
+            "ordinary_contribution_hhi": hhi,
+            "effective_uncorrelated_component_count": effective_uncorrelated,
+            "absolute_correlation_adjusted_concentration_index": corr_index,
+            "effective_correlated_component_count": effective_correlated,
+            "correlation_overlap_multiplier": float(corr_index / hhi),
+        })
+
+    if not history:
+        raise RuntimeError("No valid contribution-concentration observations")
+
+    return {
+        "diagnostic": "Absolute contribution concentration adjusted by absolute component correlations",
+        "method": (
+            "p_i = |weight_i * clipped_z_i| / sum_j |weight_j * clipped_z_j|; "
+            "HHI = p'p; correlated concentration = p'|R|p; effective counts are reciprocals."
+        ),
+        "caution": (
+            "Heuristic transparency diagnostic only. It is not a covariance risk model, "
+            "portfolio diversification measure, forecast, or alternative score methodology."
+        ),
+        "window_weeks": int(window),
+        "observations": int(len(history)),
+        "first_date": history[0]["date"],
+        "latest_date": history[-1]["date"],
+        "latest": history[-1],
+        "history": history,
     }
 
 
@@ -296,13 +450,20 @@ def build_robustness_report(
         "leave_one_driver_out": leave_one_driver_out(data),
         "rolling_normalization": rolling_window_sensitivity(data, windows=rolling_windows),
         "correlation_concentration": correlation_concentration(data, window=correlation_window),
+        "rolling_component_correlations": rolling_component_correlations(
+            data, window=correlation_window
+        ),
+        "contribution_concentration": contribution_concentration(
+            data, window=correlation_window
+        ),
         "regime_threshold_sensitivity": threshold_sensitivity(data),
         "subperiod_stability": subperiod_stability(data),
         "limitations": [
             "The production score is descriptive, not predictive.",
             "Current-vintage source histories can differ from historical as-published vintages.",
             "Leave-one-out and rolling-window variants are diagnostics, not alternative production models.",
-            "Correlation diagnostics use the weekly input levels consumed by v2 and may reflect common trends.",
+            "Correlation diagnostics use current-vintage weekly levels or component z-scores and may reflect common trends.",
+            "The correlation-adjusted contribution concentration is a transparent heuristic, not a covariance risk model.",
             "2008 is outside canonical v2 because the production specification begins in 2015 and includes Bitcoin.",
         ],
     }
