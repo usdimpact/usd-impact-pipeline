@@ -1,0 +1,327 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "score_v3_metric_implementation_contract.schema.json",
+  "title": "USD Impact Score v3 prospective metric implementation contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "contract_id",
+    "contract_version",
+    "registered_date",
+    "research_only",
+    "production_change",
+    "predictive_claim",
+    "trading_strategy_claim",
+    "locked_preregistration_commit_sha",
+    "prospective_holdout_start",
+    "initialization",
+    "models",
+    "prospective_sources",
+    "leave_one_driver_out",
+    "correlation_concentration",
+    "regime_turnover",
+    "bootstrap",
+    "prospective_endpoints",
+    "reporting_policy",
+    "selection_implementation",
+    "anti_peeking"
+  ],
+  "properties": {
+    "$schema": {"const": "./score_v3_metric_implementation_contract.schema.json"},
+    "contract_id": {"const": "usd_impact_score_v3_metric_implementation_2026-08-24"},
+    "contract_version": {"const": 1},
+    "registered_date": {"const": "2026-08-24"},
+    "research_only": {"const": true},
+    "production_change": {"const": false},
+    "predictive_claim": {"const": false},
+    "trading_strategy_claim": {"const": false},
+    "locked_preregistration_commit_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "prospective_holdout_start": {"const": "2026-08-28"},
+    "initialization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["matrix_file", "manifest_file", "matrix_sha256", "historical_data_status", "replacement_allowed"],
+      "properties": {
+        "matrix_file": {"type": "string"},
+        "manifest_file": {"type": "string"},
+        "matrix_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "historical_data_status": {"const": "retrospective_current_vintage_not_as_published"},
+        "replacement_allowed": {"const": false}
+      }
+    },
+    "models": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["benchmark_id", "candidate_ids", "driver_order"],
+      "properties": {
+        "benchmark_id": {"const": "V2_BASELINE"},
+        "candidate_ids": {
+          "type": "array",
+          "prefixItems": [
+            {"const": "V3_E52"},
+            {"const": "V3_R260"},
+            {"const": "V3_MAD260"},
+            {"const": "V3_GRP_MAD260"}
+          ],
+          "items": false,
+          "minItems": 4,
+          "maxItems": 4
+        },
+        "driver_order": {
+          "type": "array",
+          "prefixItems": [
+            {"const": "DXY"},
+            {"const": "WTI"},
+            {"const": "SPX"},
+            {"const": "VIX"},
+            {"const": "BTC"},
+            {"const": "GOLD"},
+            {"const": "UST_2Y"},
+            {"const": "UST_10Y"}
+          ],
+          "items": false,
+          "minItems": 8,
+          "maxItems": 8
+        }
+      }
+    },
+    "prospective_sources": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidate_week_source",
+        "candidate_week_integrity",
+        "v2_benchmark_week_source",
+        "v2_benchmark_integrity",
+        "live_provider_refetch_allowed",
+        "later_revised_provider_history_allowed"
+      ],
+      "properties": {
+        "candidate_week_source": {"type": "string"},
+        "candidate_week_integrity": {"type": "string"},
+        "v2_benchmark_week_source": {"type": "string"},
+        "v2_benchmark_integrity": {"type": "string"},
+        "live_provider_refetch_allowed": {"const": false},
+        "later_revised_provider_history_allowed": {"const": false}
+      }
+    },
+    "leave_one_driver_out": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "variants",
+        "omission_rule",
+        "zscore_rule",
+        "weight_rule",
+        "remaining_absolute_weight_sum",
+        "threshold_rule",
+        "agreement_unit",
+        "per_driver_agreement_formula",
+        "endpoint_aggregation"
+      ],
+      "properties": {
+        "variants": {"const": 8},
+        "omission_rule": {"const": "omit_exactly_one_driver"},
+        "zscore_rule": {"const": "keep_remaining_week_t_clipped_zscores_unchanged"},
+        "weight_rule": {"const": "rescale_remaining_signed_weights_proportionally"},
+        "remaining_absolute_weight_sum": {"const": 1.0},
+        "threshold_rule": {"const": "locked_v2_regime_thresholds"},
+        "agreement_unit": {"const": "same_prospective_week"},
+        "per_driver_agreement_formula": {"const": "matching_regime_labels / completed_prospective_weeks"},
+        "endpoint_aggregation": {"const": "minimum_regime_label_agreement_across_eight_omissions"}
+      }
+    },
+    "correlation_concentration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "window_weeks",
+        "week_t_excluded",
+        "future_weeks_excluded",
+        "correlation",
+        "nonfinite_off_diagonal_replacement",
+        "diagonal_forced_to",
+        "absolute_correlation_matrix",
+        "share_formula",
+        "ordinary_hhi_formula",
+        "correlated_concentration_formula",
+        "effective_correlated_component_count_formula",
+        "dominant_absolute_contribution_share_formula",
+        "endpoint_aggregation",
+        "interpretation"
+      ],
+      "properties": {
+        "window_weeks": {"const": 52},
+        "week_t_excluded": {"const": true},
+        "future_weeks_excluded": {"const": true},
+        "correlation": {"const": "pearson_on_clipped_component_zscores"},
+        "nonfinite_off_diagonal_replacement": {"const": 0.0},
+        "diagonal_forced_to": {"const": 1.0},
+        "absolute_correlation_matrix": {"const": true},
+        "share_formula": {"type": "string"},
+        "ordinary_hhi_formula": {"type": "string"},
+        "correlated_concentration_formula": {"type": "string"},
+        "effective_correlated_component_count_formula": {"type": "string"},
+        "dominant_absolute_contribution_share_formula": {"type": "string"},
+        "endpoint_aggregation": {"const": "median_over_identical_prospective_weeks"},
+        "interpretation": {"const": "transparency_heuristic_not_covariance_risk_or_diversification_measure"}
+      }
+    },
+    "regime_turnover": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["formula", "minimum_weeks_for_finite_rate"],
+      "properties": {
+        "formula": {"const": "changed_adjacent_regime_pairs / (completed_prospective_weeks - 1)"},
+        "minimum_weeks_for_finite_rate": {"const": 2}
+      }
+    },
+    "bootstrap": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["candidate_models", "v2_benchmark"],
+      "properties": {
+        "candidate_models": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["source", "component_history", "prospective_append", "window_selection"],
+          "properties": {
+            "source": {"const": "frozen_initialization_matrix"},
+            "component_history": {"const": "recompute_locked_candidate_clipped_zscores_deterministically"},
+            "prospective_append": {"const": "stored_candidate_clipped_zscores_only"},
+            "window_selection": {"const": "immediately_preceding_52_available_component_rows"}
+          }
+        },
+        "v2_benchmark": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "retrospective_source",
+            "retrospective_normalization",
+            "retrospective_clip",
+            "retrospective_status",
+            "prospective_append",
+            "window_selection"
+          ],
+          "properties": {
+            "retrospective_source": {"const": "frozen_initialization_matrix"},
+            "retrospective_normalization": {"const": "single_full_sample_mean_std_ddof_1_as_of_frozen_2026-08-21_matrix"},
+            "retrospective_clip": {"const": 3.5},
+            "retrospective_status": {"const": "retrospective_current_vintage_not_as_published"},
+            "prospective_append": {"const": "as_published_v2_clipped_zscores_from_immutable_reproduction_bundle_only"},
+            "window_selection": {"const": "immediately_preceding_52_available_component_rows"}
+          }
+        }
+      }
+    },
+    "prospective_endpoints": {
+      "type": "array",
+      "prefixItems": [
+        {"const": "future_revision_immunity"},
+        {"const": "median_effective_correlated_component_count"},
+        {"const": "minimum_leave_one_driver_out_regime_agreement"},
+        {"const": "regime_turnover_rate"},
+        {"const": "dominant_absolute_contribution_share"}
+      ],
+      "items": false,
+      "minItems": 5,
+      "maxItems": 5
+    },
+    "reporting_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "interim_checkpoint_weeks",
+        "formal_selection_week",
+        "noncheckpoint_endpoint_reporting_before_52_allowed",
+        "implementation_or_data_integrity_failure_reporting_allowed",
+        "interim_ranking_allowed",
+        "interim_candidate_selection_allowed",
+        "selection_before_52_allowed",
+        "formal_selection_window"
+      ],
+      "properties": {
+        "interim_checkpoint_weeks": {
+          "type": "array",
+          "prefixItems": [{"const": 13}, {"const": 26}, {"const": 39}],
+          "items": false,
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "formal_selection_week": {"const": 52},
+        "noncheckpoint_endpoint_reporting_before_52_allowed": {"const": false},
+        "implementation_or_data_integrity_failure_reporting_allowed": {"const": true},
+        "interim_ranking_allowed": {"const": false},
+        "interim_candidate_selection_allowed": {"const": false},
+        "selection_before_52_allowed": {"const": false},
+        "formal_selection_window": {"const": "first_52_completed_prospective_weeks"}
+      }
+    },
+    "selection_implementation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "turnover_gate",
+        "leave_one_out_gate",
+        "primary_improvement_gate",
+        "primary_tie_pool_rule",
+        "primary_within_5_percent_rule",
+        "loo_tie_rule",
+        "loo_tie_pool_rule",
+        "loo_within_2_percentage_points_rule",
+        "turnover_tie_rule",
+        "turnover_tie_pool_rule",
+        "numeric_equality_tolerance",
+        "simplicity_order",
+        "optimized_composite_allowed",
+        "no_eligible_candidate_result"
+      ],
+      "properties": {
+        "turnover_gate": {"type": "string"},
+        "leave_one_out_gate": {"type": "string"},
+        "primary_improvement_gate": {"type": "string"},
+        "primary_tie_pool_rule": {"const": "all_eligible_improved_candidates_within_5_percent_of_maximum_primary_endpoint"},
+        "primary_within_5_percent_rule": {"const": "abs(a-b) <= 0.05 * max(a,b)"},
+        "loo_tie_rule": {"const": "within_primary_tie_pool_choose_higher_minimum_leave_one_out_agreement"},
+        "loo_tie_pool_rule": {"const": "all_primary_tie_pool_candidates_within_0.02_of_maximum_minimum_leave_one_out_agreement"},
+        "loo_within_2_percentage_points_rule": {"const": "abs(a-b) <= 0.02"},
+        "turnover_tie_rule": {"const": "within_loo_tie_pool_choose_lower_regime_turnover_rate"},
+        "turnover_tie_pool_rule": {"const": "all_loo_tie_pool_candidates_with_turnover_within_numeric_equality_tolerance_of_minimum"},
+        "numeric_equality_tolerance": {"const": 1e-12},
+        "simplicity_order": {
+          "type": "array",
+          "prefixItems": [
+            {"const": "V3_E52"},
+            {"const": "V3_R260"},
+            {"const": "V3_MAD260"},
+            {"const": "V3_GRP_MAD260"}
+          ],
+          "items": false,
+          "minItems": 4,
+          "maxItems": 4
+        },
+        "optimized_composite_allowed": {"const": false},
+        "no_eligible_candidate_result": {"const": "keep_v2"}
+      }
+    },
+    "anti_peeking": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidate_formulas_may_change_after_holdout_start",
+        "metric_formulas_may_change_after_holdout_start_without_versioned_amendment",
+        "selection_rules_may_change_after_holdout_start_without_versioned_amendment",
+        "retrospective_hit_rate_may_select_candidate",
+        "trading_or_pnl_metric_may_select_candidate"
+      ],
+      "properties": {
+        "candidate_formulas_may_change_after_holdout_start": {"const": false},
+        "metric_formulas_may_change_after_holdout_start_without_versioned_amendment": {"const": false},
+        "selection_rules_may_change_after_holdout_start_without_versioned_amendment": {"const": false},
+        "retrospective_hit_rate_may_select_candidate": {"const": false},
+        "trading_or_pnl_metric_may_select_candidate": {"const": false}
+      }
+    }
+  }
+}
