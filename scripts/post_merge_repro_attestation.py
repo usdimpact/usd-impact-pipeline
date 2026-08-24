@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
-"""Read-only post-merge attestation for a published Score v2 release.
+"""Read-only attestation for a candidate or published Score v2 release.
 
 For legacy releases the script records that strict bundle acceptance is not yet
 applicable. For 2026-08-28 and later it independently validates the frozen
-bundle from the checked-out main branch and proves the bundle's pipeline commit
-is an ancestor of the attested main commit.
+bundle from the checked-out Git state and proves the bundle's pipeline commit
+is an ancestor of the attested commit.
+
+A pull-request run is pre-merge evidence only. Only a successful push-to-main
+attestation may identify a strict release as a production acceptance candidate.
 """
 
 from __future__ import annotations
@@ -12,6 +15,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
@@ -38,6 +42,16 @@ def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def _attestation_context() -> str:
+    event = os.environ.get("GITHUB_EVENT_NAME", "local")
+    ref = os.environ.get("GITHUB_REF", "")
+    if event == "push" and ref == "refs/heads/main":
+        return "main_post_merge"
+    if event == "pull_request":
+        return "pull_request_premerge"
+    return "manual_or_local_read_only"
+
+
 def attest(root: Path) -> dict[str, Any]:
     root = root.resolve()
     contract = validate_contract(
@@ -50,12 +64,14 @@ def attest(root: Path) -> dict[str, Any]:
     if not week:
         raise ValueError("Published score metadata has no latest_date")
 
-    head_sha = _git(root, "rev-parse", "HEAD")
+    attested_sha = _git(root, "rev-parse", "HEAD")
+    context = _attestation_context()
     report: dict[str, Any] = {
-        "study": "usd_impact_score_v2_post_merge_reproduction_attestation",
+        "study": "usd_impact_score_v2_reproduction_attestation",
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "score_week": week,
-        "attested_main_sha": head_sha,
+        "attested_git_sha": attested_sha,
+        "attestation_context": context,
         "methodology_contract_sha256": contract["contract_sha256"],
         "production_methodology_changed": False,
         "read_only": True,
@@ -80,30 +96,30 @@ def attest(root: Path) -> dict[str, Any]:
 
     try:
         subprocess.check_call(
-            ["git", "merge-base", "--is-ancestor", pipeline_sha, head_sha],
+            ["git", "merge-base", "--is-ancestor", pipeline_sha, attested_sha],
             cwd=root,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
     except subprocess.CalledProcessError as error:
         raise ValueError(
-            f"Bundle pipeline commit {pipeline_sha} is not an ancestor of attested main {head_sha}"
+            f"Bundle pipeline commit {pipeline_sha} is not an ancestor of attested commit {attested_sha}"
         ) from error
 
     latest_hash = _sha256(latest_bundle_path)
     archive_hash = _sha256(archive_bundle_path)
     if latest_hash != archive_hash:
-        raise ValueError("Post-merge latest/archive bundle SHA-256 mismatch")
+        raise ValueError("Attested latest/archive bundle SHA-256 mismatch")
 
     report.update(
         {
             "status": "verified",
             "strict_bundle_required": True,
-            "acceptance_candidate": True,
+            "acceptance_candidate": context == "main_post_merge",
             "score": float(metadata["latest_score"]),
             "regime": metadata["latest_regime"],
             "bundle_pipeline_git_sha": pipeline_sha,
-            "bundle_pipeline_sha_is_main_ancestor": True,
+            "bundle_pipeline_sha_is_attested_ancestor": True,
             "bundle_sha256": latest_hash,
             "archived_bundle_sha256": archive_hash,
             "bundle_archive_match": True,
