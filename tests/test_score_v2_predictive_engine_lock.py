@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import shutil
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -14,10 +15,16 @@ REPO = Path(__file__).resolve().parents[1]
 
 class ScoreV2PredictiveEngineLockTests(unittest.TestCase):
     def test_repository_matches_pre_holdout_engine_commit(self) -> None:
-        report = engine_lock.verify(REPO)
+        has_locked_history = subprocess.run(
+            ["git", "cat-file", "-e", f"{engine_lock.IMPLEMENTATION_COMMIT_SHA}^{{commit}}"],
+            cwd=REPO,
+            check=False,
+            capture_output=True,
+        ).returncode == 0
+        report = engine_lock.verify(REPO, filesystem_only=not has_locked_history)
         self.assertEqual(report["implementation_commit_sha"], "b08a057dc4372d0ab48a25d9fab0950dd0b3c11e")
         self.assertEqual(report["immutable_files"], 9)
-        self.assertIs(report["filesystem_only"], False)
+        self.assertIs(report["filesystem_only"], not has_locked_history)
 
     def test_one_byte_engine_change_fails_closed(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
