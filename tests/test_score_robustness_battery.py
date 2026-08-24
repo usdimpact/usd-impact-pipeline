@@ -6,8 +6,10 @@ import pandas as pd
 import usd_impact_score_v2 as score_v2
 from scripts.score_robustness_battery import (
     build_robustness_report,
+    contribution_concentration,
     correlation_concentration,
     leave_one_driver_out,
+    rolling_component_correlations,
     rolling_window_sensitivity,
     threshold_sensitivity,
 )
@@ -38,6 +40,8 @@ class ScoreRobustnessBatteryTests(unittest.TestCase):
         self.assertIn("leave_one_driver_out", report)
         self.assertIn("rolling_normalization", report)
         self.assertIn("correlation_concentration", report)
+        self.assertIn("rolling_component_correlations", report)
+        self.assertIn("contribution_concentration", report)
         self.assertIn("regime_threshold_sensitivity", report)
         self.assertIn("subperiod_stability", report)
 
@@ -76,6 +80,37 @@ class ScoreRobustnessBatteryTests(unittest.TestCase):
             seen.add(key)
             self.assertGreaterEqual(pair["correlation"], -1.0)
             self.assertLessEqual(pair["correlation"], 1.0)
+
+    def test_rolling_component_correlation_history_is_complete_and_bounded(self):
+        result = rolling_component_correlations(self.weekly, window=5)
+        self.assertEqual(result["window_weeks"], 5)
+        self.assertEqual(result["observations"], len(self.weekly) - 5 + 1)
+        self.assertEqual(result["latest_date"], self.weekly.index[-1].date().isoformat())
+        self.assertEqual(result["latest"], result["history"][-1])
+        for row in result["history"]:
+            self.assertGreaterEqual(row["mean_absolute_pair_correlation"], 0.0)
+            self.assertLessEqual(row["mean_absolute_pair_correlation"], 1.0)
+            self.assertGreaterEqual(row["max_absolute_pair_correlation"], 0.0)
+            self.assertLessEqual(row["max_absolute_pair_correlation"], 1.0)
+            self.assertGreaterEqual(row["pairs_at_or_above_abs_0_70"], 0)
+
+    def test_contribution_concentration_effective_count_decreases_with_overlap(self):
+        result = contribution_concentration(self.weekly, window=5)
+        self.assertEqual(result["window_weeks"], 5)
+        self.assertEqual(result["latest_date"], self.weekly.index[-1].date().isoformat())
+        self.assertEqual(result["latest"], result["history"][-1])
+        for row in result["history"]:
+            ordinary = row["effective_uncorrelated_component_count"]
+            correlated = row["effective_correlated_component_count"]
+            self.assertGreaterEqual(ordinary, 1.0)
+            self.assertLessEqual(ordinary, len(score_v2.WEIGHTS) + 1e-12)
+            self.assertGreaterEqual(correlated, 1.0 - 1e-12)
+            self.assertLessEqual(correlated, ordinary + 1e-12)
+            self.assertGreaterEqual(row["correlation_overlap_multiplier"], 1.0 - 1e-12)
+            self.assertGreaterEqual(row["dominant_absolute_contribution_share"], 0.0)
+            self.assertLessEqual(row["dominant_absolute_contribution_share"], 1.0)
+            self.assertGreaterEqual(row["net_to_gross_ratio"], 0.0)
+            self.assertLessEqual(row["net_to_gross_ratio"], 1.0 + 1e-12)
 
 
 if __name__ == "__main__":
