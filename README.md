@@ -6,30 +6,36 @@ This repository calculates and publishes the bilingual Weekly USD Impact Score. 
 
 Only workflow files inside `.github/workflows/` are executable GitHub Actions workflows.
 
-| Workflow | Schedule | Responsibility |
+| Workflow | Schedule / trigger | Responsibility |
 | --- | --- | --- |
-| `weekly.yml` | Friday 22:00 UTC | Generate the score, commentary, bridge data, dashboards, and dated archive; open and merge a guarded publication PR. |
-| `quality.yml` | PR, push, or manual dispatch | Compile Python, run the offline regression suite, and validate the committed weekly release. |
+| `weekly.yml` | Friday 22:00 UTC | Generate the score, immutable reproduction bundle, commentary, bridge data, dashboards, and dated archive; open and merge a guarded publication PR. |
+| `quality.yml` | PR, push, or manual dispatch | Compile Python, verify the machine-readable methodology contract, run the offline regression suite, and validate the committed weekly release. |
 | `weekly-recovery.yml` | Saturday 00:15 UTC | Dispatch one catch-up run only when the expected weekly run failed, is stale, or never arrived. |
 | `weekly-health.yml` | Saturday 02:00 UTC | Verify the completed workflow, deployed bridge JSON, and English and Spanish dashboards. |
+| `research-validation.yml` | Saturday 04:30 UTC / guarded path pushes | Publish current-vintage, research-only point-in-time and robustness diagnostics without blocking the core weekly score. |
+| `repro-rehearsal.yml` | Relevant PRs or manual dispatch | Run a live, non-publishing rehearsal of the complete score → bundle → archive → strict offline-reproduction path. A pass is explicitly not production acceptance evidence. |
+| `repro-attestation.yml` | Relevant pushes to `main` or manual dispatch | Read-only post-merge verification of the methodology contract and, from 2026-08-28 onward, the archived as-published reproduction bundle. |
 
 The root-level `weekly.yml` is a non-executable compatibility pointer. The canonical workflow is `.github/workflows/weekly.yml`.
 
 ## Publication sequence
 
-1. Fetch DXY, WTI, S&P 500, VIX, Bitcoin, gold, and the U.S. 2-year and 10-year Treasury yields.
-2. Record the provider, series, source URL, and latest raw observation date for every driver before holiday forward filling.
-3. Reject the run if the score week is not the latest completed Friday or any source is missing, future-dated, or beyond its driver-specific freshness limit.
-4. Build the weekly v2 score and deterministic English and Spanish commentary.
-5. Rebuild the bilingual dashboards, bridge JSON, and dated archive.
-6. Run `scripts/validate_weekly_release.py` before any remote write.
-7. Commit generated files to an isolated `automation/weekly-usd-impact-*` branch.
-8. Open a publication PR and dispatch `Weekly score quality` against the exact head SHA.
-9. Squash-merge only after that exact quality run succeeds.
-10. Allow Cloudflare Pages to deploy the validated `main` commit.
-11. Verify production through the Saturday health workflow.
+1. Verify that the machine-readable v2 methodology contract still matches production constants.
+2. Fetch DXY, WTI, S&P 500, VIX, Bitcoin, gold, and the U.S. 2-year and 10-year Treasury yields.
+3. Record the provider, series, source URL, and latest raw observation date for every driver before holiday forward filling.
+4. Reject the run if the score week is not the latest completed Friday or any source is missing, future-dated, or beyond its driver-specific freshness limit.
+5. Build the weekly v2 score.
+6. Freeze and independently verify `public/data/score_repro_bundle_latest.json` from the exact weekly levels, normalization moments, z-scores, weights, contributions, source provenance, pipeline SHA, and dependency-lock hash.
+7. Generate deterministic English and Spanish commentary, bridge data, and dashboards.
+8. Archive the score, bridge, dashboards, and reproduction bundle under `public/archive/YYYY-MM-DD/`.
+9. Run `scripts/validate_weekly_release.py` before any remote write. Beginning with 2026-08-28, this independently recomputes the release from the frozen archived bundle and requires the latest/archive bundles to match.
+10. Commit generated files to an isolated `automation/weekly-usd-impact-*` branch.
+11. Open a publication PR and dispatch `Weekly score quality` against the exact head SHA.
+12. Squash-merge only after that exact quality run succeeds.
+13. Allow Cloudflare Pages to deploy the validated `main` commit.
+14. Run the read-only post-merge reproduction attestation and the Saturday health checks.
 
-A generation, test, validation, PR, or merge failure leaves the previous production release unchanged.
+A generation, data-quality, test, validation, PR, merge, deployment, or attestation failure never authorizes weakening the methodology or publication contract.
 
 ## Reproducible environment
 
@@ -38,6 +44,7 @@ Python 3.11 is the production runtime.
 - `requirements.txt` contains the human-maintained direct dependency ranges.
 - `requirements.lock` contains the exact direct and transitive versions used by production and CI.
 - GitHub Actions are pinned to immutable revisions, with the reviewed major version retained in a comment.
+- Every strict reproduction bundle records the SHA-256 of `requirements.lock`.
 
 Create a clean local environment with:
 
@@ -56,11 +63,34 @@ Run the same deterministic checks used by quality CI:
 
 ```bash
 python -m compileall -q usd_impact_score_v2.py scripts tests
+python -m scripts.validate_methodology_contract --json
 python -m unittest discover -s tests -v
 python scripts/validate_weekly_release.py
 ```
 
-The offline regression test builds a complete release from `tests/fixtures/weekly_levels.csv`. It exercises score calculation, CSV and JSON export, bilingual commentary, bridge generation, dashboard rendering, archiving, archive indexing, and final release validation without contacting Yahoo or FRED.
+The offline regression suite exercises score calculation, CSV/JSON export, bilingual commentary, bridge generation, dashboard rendering, archiving, archive indexing, frozen-bundle reproduction, methodology-contract parity, and final release validation without relying on later Yahoo/FRED revisions.
+
+### Non-publishing live acceptance rehearsal
+
+`repro-rehearsal.yml` exists to remove execution risk before the first strict production bundle. It:
+
+- uses live Yahoo/FRED source retrieval and the locked production environment;
+- copies the repository into an ephemeral runner directory;
+- executes the same score, bundle, commentary, dashboard, and archive sequence used by the Friday workflow;
+- invokes the strict archived-bundle validator directly even when the currently completed week is still a legacy release;
+- writes only a CI job summary/report inside the ephemeral runner; and
+- contains no Git push, PR creation/merge, deployment, or production-write path.
+
+A rehearsal result is always labelled `rehearsal_only: true` and `acceptance_evidence: false`. It cannot substitute for the first genuine 2026-08-28-or-later as-published release.
+
+### Post-merge attestation
+
+`repro-attestation.yml` is read-only. After relevant files land on `main`, it checks the public methodology contract and then:
+
+- records legacy status for releases before 2026-08-28; or
+- for 2026-08-28 and later, independently reproduces the archived bundle without downloading market history, verifies latest/archive bundle identity, checks the dependency-lock hash, and confirms the bundle's pipeline Git SHA is an ancestor of the attested `main` commit.
+
+The workflow records the result in the immutable GitHub Actions run/job summary. It does not regenerate or mutate the release.
 
 ## Output contract
 
@@ -76,16 +106,40 @@ The public latest copy is:
 public/data/weekly_input_latest.json
 ```
 
-Other production outputs include:
+Other production/review outputs include:
 
 - `public/data/usd_impact_score_v2.csv`
 - `public/data/usd_impact_score_v2.json`
+- `public/data/score_repro_bundle_latest.json` for newly generated strict releases
+- `public/data/score_v2_methodology.json`
+- `public/data/score_v2_methodology.schema.json`
+- `public/data/research/score_v2_robustness_latest.json`
+- `public/data/research/score_v2_point_in_time_latest.json`
 - `public/en/index.html`
 - `public/es/index.html`
 - `public/archive/YYYY-MM-DD/`
 - `commentary/latest_en.md`
 - `commentary/latest_es.md`
 - `commentary/latest.md`, maintained as an exact English compatibility alias
+
+### Machine-readable methodology contract
+
+`public/data/score_v2_methodology.json` is the public, machine-readable production specification. It freezes the public contract for:
+
+- the eight providers/series and freshness limits;
+- fixed signed weights;
+- 2015-01-01 production start date;
+- Friday-ended weekly resampling;
+- full-sample weekly-level normalization;
+- sample standard deviation with `ddof=1`;
+- ±3.5 z-score clipping;
+- limited three-observation daily forward fill and complete-case weekly requirement;
+- fixed regime thresholds;
+- no explicit correlation adjustment or weight rebalancing;
+- reproduction-bundle version/boundary; and
+- explicit descriptive/non-predictive scope boundaries.
+
+`scripts/validate_methodology_contract.py` reconstructs the expected public contract directly from `usd_impact_score_v2.py` constants and fails CI on any mismatch. `score_v2_methodology.schema.json` is supplied for third-party JSON tooling. Methodology changes therefore require a deliberate code + public-contract update rather than silently drifting in one layer.
 
 ### Source provenance and freshness
 
@@ -103,22 +157,37 @@ Freshness limits are operational publication safeguards, not score inputs. Bitco
 
 The pipeline captures provenance before its existing limited forward fill. A value copied forward for calendar alignment therefore retains its true provider observation date instead of being mislabeled as a Friday observation.
 
-Releases dated through 2026-08-07 remain valid legacy artifacts and are not rewritten. All newly generated releases include provenance version 1 and fail validation if the provenance is missing or inconsistent.
+Releases dated through 2026-08-07 remain valid provenance-legacy artifacts and are not rewritten. Releases from 2026-08-14 onward require provenance version 1.
+
+### Immutable score reproduction boundary
+
+Releases through 2026-08-21 predate the immutable reproduction-bundle publication contract and remain explicit legacy artifacts. Beginning with 2026-08-28, a release cannot pass validation unless:
+
+- the latest and dated archived reproduction bundles both exist and match;
+- each component's frozen weekly level, mean, sample standard deviation, unclipped/clipped z-score, fixed weight, and contribution independently recompute;
+- the re-summed score and regime equal the published values within the fixed tolerance;
+- source identity/provenance agree with the release metadata;
+- the dependency-lock SHA-256 matches the checked-in lockfile; and
+- the bundle carries a valid pipeline Git SHA and canonical methodology metadata.
+
+The strict validator performs this proof from the frozen artifact; it does not download revised Yahoo/FRED history.
 
 ## Methodology and historical vintages
 
 USD Impact Score v2 standardizes each component against the full available sample, clips z-scores at ±3.5, and applies fixed equal-magnitude transmission weights.
 
-Because the mean and standard deviation use the full sample available at each run, adding a new observation can revise previously calculated historical values and, occasionally, historical regime labels. Dated archive folders preserve what was actually published at each release. The current dashboard history is a recalculation using the latest full sample; it is not an immutable series of as-published vintages.
+Because the mean and standard deviation use the full sample available at each run, adding a new observation can revise previously calculated historical values and, occasionally, historical regime labels. Dated archive folders preserve what was actually published at each release. The current dashboard history and current-vintage robustness research are recalculations using the latest source history; they are not immutable series of as-published historical values.
 
-The generated backtest is descriptive across selected historical regime windows. It is not an out-of-sample forecast, a trading strategy, or evidence of guaranteed future performance. Current results must be read from `public/data/backtest_results.json`; documentation must not hard-code a hit rate.
+The generated legacy backtest is descriptive across selected historical regime windows. The point-in-time and robustness research explicitly tests normalization/specification sensitivity. Neither is a predictive forecast test, a trading strategy, or evidence of guaranteed future performance. Current research results must be read from the published JSON artifacts rather than hard-coded into operational documentation.
 
 ## Change-safety rules
 
 - Never push generated releases directly to `main`.
 - Never weaken `scripts/validate_weekly_release.py` to make a failing release pass.
-- Keep dependency, infrastructure, and methodology changes in separate PRs.
+- Never treat a rehearsal as production acceptance evidence.
+- Keep dependency, infrastructure, research, and production-methodology changes separable and reviewable.
 - Do not change weights, regime thresholds, data transformations, or source tickers without a separately versioned methodology review.
+- Update the machine-readable methodology contract in the same explicitly versioned methodology review whenever production constants intentionally change.
 - Preserve dated archives and previously published commentary.
 - Never bypass a freshness failure by editing observation dates, age limits, status fields, or retrieval mode in generated JSON.
 - For a failed weekly run, investigate the open publication branch or health issue before manually dispatching another run.
