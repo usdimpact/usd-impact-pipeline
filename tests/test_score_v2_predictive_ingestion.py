@@ -92,6 +92,7 @@ class ScoreV2PredictiveIngestionTests(unittest.TestCase):
         self.assertIn('workflows: ["Score v2 reproduction attestation"]', workflow)
         self.assertIn("github.event.workflow_run.event == 'push'", workflow)
         self.assertIn("github.event.workflow_run.head_branch == 'main'", workflow)
+        self.assertIn('--repo "$GITHUB_REPOSITORY"', workflow)
         self.assertIn("gh pr create", workflow)
         self.assertNotIn("gh pr merge", workflow)
         self.assertNotIn("gh workflow run", workflow)
