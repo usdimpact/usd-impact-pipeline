@@ -1,0 +1,328 @@
+{
+  "protocol_id": "usd_impact_score_v3_descriptive_research_2026-08-24",
+  "protocol_version": 1,
+  "registered_date": "2026-08-24",
+  "production_change": false,
+  "production_methodology_affected": false,
+  "baseline_methodology": "usd_impact_score_v2",
+  "research_status": "preregistered_not_started",
+  "purpose": "Evaluate whether a future descriptive USD Impact Score specification can reduce normalization revision dependence and correlated-driver concentration while preserving interpretability and robustness. This protocol does not authorize a production change.",
+  "predictive_claim": false,
+  "trading_strategy_claim": false,
+  "knowledge_boundary": {
+    "latest_observation_already_seen_at_registration": "2026-08-21",
+    "all_data_through_registration_cutoff_are_retrospective_design_information": true,
+    "prospective_untouched_holdout_start": "2026-08-28",
+    "minimum_prospective_completed_weeks_before_selection": 52,
+    "interim_reporting_allowed": true,
+    "interim_reporting_may_change_candidate_formulas": false,
+    "interim_reporting_may_select_a_winner": false
+  },
+  "construct": {
+    "primary": "contemporaneous descriptive U.S. dollar regime state",
+    "not_a_construct": [
+      "future return forecast",
+      "trade entry or exit signal",
+      "portfolio optimizer",
+      "probability of dollar appreciation",
+      "profit-and-loss strategy"
+    ]
+  },
+  "data_contract": {
+    "drivers": [
+      "DXY",
+      "WTI",
+      "SPX",
+      "VIX",
+      "BTC",
+      "GOLD",
+      "UST_2Y",
+      "UST_10Y"
+    ],
+    "production_source_contract_remains_reference": true,
+    "weekly_frequency": "W-FRI",
+    "missing_data_policy": "Use the same source freshness, provenance, limited calendar-alignment forward fill, Friday resampling and complete-case requirements as v2 unless a separately versioned protocol amendment is registered before inspecting affected prospective outcomes.",
+    "prospective_holdout_source": "Use immutable as-published weekly input/reproduction artifacts from the production pipeline beginning 2026-08-28, rather than later revised provider history, wherever the required raw weekly level is present.",
+    "historical_research_data_status": "Current-vintage provider history available at protocol implementation; not an as-published historical vintage.",
+    "historical_snapshot_requirement": "Before the first v3 candidate time series is calculated, freeze and hash the retrospective weekly-level research matrix used to initialize candidate state. Do not replace that snapshot to improve results."
+  },
+  "fixed_regime_thresholds_for_primary_comparison": [
+    {
+      "low": 1.0,
+      "high": null,
+      "label": "Strong dollar regime"
+    },
+    {
+      "low": 0.3,
+      "high": 1.0,
+      "label": "Firm dollar regime"
+    },
+    {
+      "low": -0.3,
+      "high": 0.3,
+      "label": "Neutral / transitional"
+    },
+    {
+      "low": -1.0,
+      "high": -0.3,
+      "label": "Soft dollar regime"
+    },
+    {
+      "low": null,
+      "high": -1.0,
+      "label": "Weak dollar regime"
+    }
+  ],
+  "common_rules": {
+    "zscore_clip": 3.5,
+    "minimum_prior_complete_weeks": 52,
+    "normalization_moments_for_week_t_must_exclude_week_t": true,
+    "normalization_moments_for_week_t_must_exclude_future_weeks": true,
+    "regime_thresholds_may_be_optimized": false,
+    "candidate_formulas_may_be_changed_after_holdout_begins": false,
+    "candidate_set_may_be_expanded_after_holdout_begins": false,
+    "production_v2_remains_unchanged_during_research": true
+  },
+  "benchmark": {
+    "candidate_id": "V2_BASELINE",
+    "eligible_for_v3_selection": false,
+    "description": "Current production v2 full-sample weekly-level z-score with fixed equal-magnitude signed weights. Used only as the incumbent comparison benchmark.",
+    "weights": {
+      "DXY": 0.125,
+      "WTI": -0.125,
+      "SPX": -0.125,
+      "VIX": 0.125,
+      "BTC": -0.125,
+      "GOLD": -0.125,
+      "UST_2Y": 0.125,
+      "UST_10Y": 0.125
+    }
+  },
+  "candidates": [
+    {
+      "candidate_id": "V3_E52",
+      "description": "Expanding point-in-time weekly-level normalization with the existing v2 signed weights.",
+      "normalization": {
+        "type": "expanding_prior_only_mean_std",
+        "history": "all complete weeks strictly before t",
+        "minimum_weeks": 52,
+        "center": "arithmetic mean",
+        "scale": "sample standard deviation ddof=1"
+      },
+      "weights": {
+        "type": "v2_fixed_weights",
+        "DXY": 0.125,
+        "WTI": -0.125,
+        "SPX": -0.125,
+        "VIX": 0.125,
+        "BTC": -0.125,
+        "GOLD": -0.125,
+        "UST_2Y": 0.125,
+        "UST_10Y": 0.125
+      },
+      "uses_future_data": false,
+      "estimated_parameters_from_target": false
+    },
+    {
+      "candidate_id": "V3_R260",
+      "description": "Five-year-equivalent rolling point-in-time weekly-level normalization with existing v2 signed weights.",
+      "normalization": {
+        "type": "rolling_prior_only_mean_std",
+        "history_weeks": 260,
+        "history": "the 260 complete weeks strictly before t",
+        "center": "arithmetic mean",
+        "scale": "sample standard deviation ddof=1"
+      },
+      "weights": {
+        "type": "v2_fixed_weights",
+        "DXY": 0.125,
+        "WTI": -0.125,
+        "SPX": -0.125,
+        "VIX": 0.125,
+        "BTC": -0.125,
+        "GOLD": -0.125,
+        "UST_2Y": 0.125,
+        "UST_10Y": 0.125
+      },
+      "uses_future_data": false,
+      "estimated_parameters_from_target": false
+    },
+    {
+      "candidate_id": "V3_MAD260",
+      "description": "Five-year-equivalent rolling point-in-time robust weekly-level normalization using median and scaled median absolute deviation, with existing v2 signed weights.",
+      "normalization": {
+        "type": "rolling_prior_only_median_mad",
+        "history_weeks": 260,
+        "history": "the 260 complete weeks strictly before t",
+        "center": "median",
+        "scale": "1.4826 times median absolute deviation",
+        "zero_scale_policy": "candidate week is invalid and must fail closed; do not substitute another scale after observing the result"
+      },
+      "weights": {
+        "type": "v2_fixed_weights",
+        "DXY": 0.125,
+        "WTI": -0.125,
+        "SPX": -0.125,
+        "VIX": 0.125,
+        "BTC": -0.125,
+        "GOLD": -0.125,
+        "UST_2Y": 0.125,
+        "UST_10Y": 0.125
+      },
+      "uses_future_data": false,
+      "estimated_parameters_from_target": false
+    },
+    {
+      "candidate_id": "V3_GRP_MAD260",
+      "description": "Same prior-only robust 260-week normalization as V3_MAD260, with fixed ex-ante equal absolute weight by four interpretation groups rather than equal weight by eight drivers.",
+      "normalization": {
+        "type": "rolling_prior_only_median_mad",
+        "history_weeks": 260,
+        "history": "the 260 complete weeks strictly before t",
+        "center": "median",
+        "scale": "1.4826 times median absolute deviation",
+        "zero_scale_policy": "candidate week is invalid and must fail closed; do not substitute another scale after observing the result"
+      },
+      "weight_groups": {
+        "direct_dollar": {
+          "absolute_group_weight": 0.25,
+          "drivers": ["DXY"]
+        },
+        "commodity_store_of_value": {
+          "absolute_group_weight": 0.25,
+          "drivers": ["WTI", "GOLD"]
+        },
+        "risk_liquidity": {
+          "absolute_group_weight": 0.25,
+          "drivers": ["SPX", "VIX", "BTC"]
+        },
+        "rates": {
+          "absolute_group_weight": 0.25,
+          "drivers": ["UST_2Y", "UST_10Y"]
+        }
+      },
+      "weights": {
+        "type": "fixed_group_balanced_not_optimized",
+        "DXY": 0.25,
+        "WTI": -0.125,
+        "SPX": -0.08333333333333333,
+        "VIX": 0.08333333333333333,
+        "BTC": -0.08333333333333333,
+        "GOLD": -0.125,
+        "UST_2Y": 0.125,
+        "UST_10Y": 0.125
+      },
+      "uses_future_data": false,
+      "estimated_parameters_from_target": false
+    }
+  ],
+  "retrospective_checks": {
+    "status": "diagnostic_not_untouched",
+    "may_be_used_to_reject_an_obviously_broken_candidate": true,
+    "may_be_described_as_out_of_sample": false,
+    "anchor_windows": [
+      "2015-16 oil/EM stress",
+      "2018 Fed tightening/risk-off",
+      "March 2020 funding stress",
+      "2020-21 post-Fed liquidity/reopening",
+      "2022 tightening cycle",
+      "2022-2026 later available regimes"
+    ],
+    "required_diagnostics": [
+      "score and regime coverage",
+      "week-to-week regime turnover",
+      "leave-one-driver-out regime agreement",
+      "fixed-threshold sensitivity",
+      "normalization-window sensitivity",
+      "rolling component correlations",
+      "ordinary contribution HHI and effective component count",
+      "absolute-correlation-adjusted concentration heuristic",
+      "dominant contribution share",
+      "net-to-gross contribution ratio",
+      "subperiod score distribution",
+      "comparison with v2 current-vintage recalculation"
+    ]
+  },
+  "prospective_primary_endpoints": [
+    {
+      "endpoint": "future_revision_immunity",
+      "definition": "For every candidate week, appending later prospective weeks must not change that week's stored candidate score when recomputed from the same frozen as-of inputs and prior history.",
+      "direction": "must_pass"
+    },
+    {
+      "endpoint": "median_effective_correlated_component_count",
+      "definition": "Median of the predeclared absolute-correlation-adjusted contribution effective count over the prospective holdout, calculated with a 52-week prior component-correlation window when available.",
+      "direction": "higher_is_better"
+    },
+    {
+      "endpoint": "minimum_leave_one_driver_out_regime_agreement",
+      "definition": "Minimum regime-label agreement over the eight predeclared leave-one-driver-out variants during the prospective holdout.",
+      "direction": "higher_is_better"
+    },
+    {
+      "endpoint": "regime_turnover_rate",
+      "definition": "Share of consecutive prospective weeks whose regime label differs from the previous prospective week.",
+      "direction": "lower_is_better_subject_to_not_freezing_the_indicator"
+    },
+    {
+      "endpoint": "dominant_absolute_contribution_share",
+      "definition": "Median prospective share of gross absolute score contribution attributable to the largest single driver each week.",
+      "direction": "lower_is_better"
+    }
+  ],
+  "eligibility_gates": [
+    "Candidate has no future observations in week-t normalization.",
+    "Candidate score for an already-recorded prospective week is invariant when later weeks are appended.",
+    "Candidate produces finite scores for every prospective week with sufficient declared history, except an explicitly fail-closed zero-scale event.",
+    "Candidate uses exactly the preregistered formula, weights, clipping and thresholds; no post-hoc tuning is permitted.",
+    "Candidate's prospective regime-turnover rate is no more than 1.25 times the v2 benchmark turnover rate over the same prospective weeks.",
+    "Candidate's minimum leave-one-driver-out regime agreement is no more than 5 percentage points below the v2 benchmark over the same prospective weeks.",
+    "No candidate may be promoted on the basis of retrospective anchor-window hit rates or a trading/PnL metric."
+  ],
+  "selection_rule_after_52_weeks": {
+    "no_composite_optimized_score": true,
+    "step_1": "Exclude every candidate that fails any eligibility gate.",
+    "step_2": "Among eligible candidates, prefer the highest median prospective effective correlated component count only if it is at least 10% higher than the v2 benchmark over the same prospective weeks.",
+    "step_3": "If the top candidates are within 5% of one another on that endpoint, prefer the higher minimum leave-one-driver-out regime agreement.",
+    "step_4": "If still tied within 2 percentage points, prefer the lower prospective regime-turnover rate.",
+    "step_5": "If still tied, prefer the simpler specification in this fixed order: V3_E52, V3_R260, V3_MAD260, V3_GRP_MAD260.",
+    "no_eligible_candidate_result": "Keep v2 in production and report that the preregistered v3 study did not justify promotion."
+  },
+  "threshold_sensitivity_only": {
+    "production_like": {"neutral_boundary": 0.3, "strong_boundary": 1.0},
+    "narrower": {"neutral_boundary": 0.2, "strong_boundary": 0.8},
+    "wider": {"neutral_boundary": 0.4, "strong_boundary": 1.2},
+    "may_select_new_thresholds": false
+  },
+  "reporting_schedule": {
+    "prospective_weekly_storage": "Store candidate values from each completed Friday after 2026-08-28 in a research-only immutable artifact once implementation is approved.",
+    "interim_reviews": [13, 26, 39],
+    "formal_selection_review_weeks": 52,
+    "interim_review_rule": "Interim reports may identify data-quality or implementation defects but may not alter formulas, select a winner or recommend production promotion. A genuine implementation defect requires a protocol amendment with a new version and a reset prospective holdout for affected candidates."
+  },
+  "promotion_requirements": [
+    "At least 52 completed prospective weeks under the locked protocol.",
+    "All eligibility gates pass for the selected candidate.",
+    "Selection follows the preregistered rule without a post-hoc metric change.",
+    "A separate production Score v3 methodology document and machine-readable contract are reviewed publicly.",
+    "A separate production PR changes the model version; v2 is not silently overwritten.",
+    "A parallel shadow period is completed before replacing the public v2 score.",
+    "Compliance language continues to describe the score as descriptive unless a separate predictive protocol is completed."
+  ],
+  "protocol_amendment_policy": {
+    "allowed": true,
+    "must_be_versioned": true,
+    "must_state_reason_before_affected_results_are_used": true,
+    "formula_or_selection_change_resets_prospective_holdout_for_affected_candidates": true,
+    "cosmetic_documentation_change_resets_holdout": false
+  },
+  "excluded_work": [
+    "No production v2 code change.",
+    "No 2008 canonical v2 or v3 result under this protocol.",
+    "No predictive target, forecast horizon, loss function, strategy return or PnL optimization.",
+    "No regression-fitted driver weights.",
+    "No threshold optimization.",
+    "No candidate added because it looks better after 2026-08-28 data are observed."
+  ],
+  "separate_predictive_study_requirement": "Any future predictive claim requires a different preregistered protocol defining the target, forecast horizon, loss/score metric, training data, validation data and untouched test period before results are inspected."
+}
