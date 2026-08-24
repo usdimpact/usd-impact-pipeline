@@ -94,6 +94,7 @@ class ScoreResearchEvidenceHealthTests(unittest.TestCase):
         self.assertEqual(report["published_week"], "2026-08-21")
         self.assertIs(report["performance_calculated"], False)
         self.assertIs(report["evidence_modified"], False)
+        self.assertEqual(report["score_v3_engine_lock_status"], "verified")
         self.assertTrue(all(item["status"] == "not_due" for item in report["studies"]))
 
     def test_workflow_is_strictly_read_only(self) -> None:

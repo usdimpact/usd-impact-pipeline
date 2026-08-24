@@ -42,7 +42,9 @@ jobs:
         run: python -m scripts.validate_data_semantics_contract --json
 
       - name: Validate Score v3 metric implementation readiness
-        run: python -m scripts.score_v3_metrics --mode readiness
+        run: |
+          python -m scripts.verify_score_v3_engine_lock --filesystem-only --json
+          python -m scripts.score_v3_metrics --mode readiness
 
       - name: Validate Score v2 predictive implementation readiness
         run: |

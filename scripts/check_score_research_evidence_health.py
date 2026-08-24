@@ -12,6 +12,7 @@ from typing import Any
 
 from scripts import score_v2_predictive_manifest as manifest_v2
 from scripts import score_v3_manifest as manifest_v3
+from scripts import verify_score_v3_engine_lock as engine_lock_v3
 
 SCORE_PATH = Path("public/data/usd_impact_score_v2.json")
 V2_MANIFEST_PATH = Path("research/score_v2_predictive_manifest.json")
@@ -160,6 +161,7 @@ def build_health(root: Path, open_prs_payload: Any) -> dict[str, Any]:
     root = root.resolve()
     open_prs = _validate_open_prs(open_prs_payload)
     week = _published_week(root)
+    engine_report = engine_lock_v3.verify(root, filesystem_only=True)
 
     v2 = manifest_v2.load_manifest(root / V2_MANIFEST_PATH)
     v2_report = manifest_v2.validate_manifest(v2, root=root)
@@ -196,6 +198,8 @@ def build_health(root: Path, open_prs_payload: Any) -> dict[str, Any]:
         "evidence_modified": False,
         "production_modified": False,
         "performance_calculated": False,
+        "score_v3_engine_lock_status": engine_report["status"],
+        "score_v3_engine_lock_file_sha256": engine_report["lock_file_sha256"],
         "studies": [asdict(state) for state in states],
     }
 
