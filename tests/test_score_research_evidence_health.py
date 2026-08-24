@@ -103,6 +103,8 @@ class ScoreResearchEvidenceHealthTests(unittest.TestCase):
         self.assertIn("contents: read", workflow)
         self.assertIn("pull-requests: read", workflow)
         self.assertIn('--repo "$GITHUB_REPOSITORY"', workflow)
+        self.assertIn("actions/setup-python@", workflow)
+        self.assertIn("python -m pip install -r requirements.lock", workflow)
         for forbidden in (
             "contents: write",
             "pull-requests: write",
