@@ -10,6 +10,9 @@ from scripts import score_v3_metric_reporting as reporting
 from scripts import score_v3_metrics as metrics
 
 
+REPO = Path(__file__).resolve().parents[1]
+
+
 class ScoreV3MetricReportingTests(unittest.TestCase):
     def setUp(self) -> None:
         self.temp = tempfile.TemporaryDirectory()
@@ -24,7 +27,7 @@ class ScoreV3MetricReportingTests(unittest.TestCase):
     def _state(self, completed: int) -> dict:
         rows = [
             {
-                "week": f"2026-08-{28 + 7 * i:02d}",
+                "week": f"prospective-week-{i + 1:03d}",
                 "effective_correlated_component_count": 2.0,
                 "dominant_absolute_contribution_share": 0.25,
                 "leave_one_out_regime_match": {},
@@ -163,6 +166,18 @@ class ScoreV3MetricReportingTests(unittest.TestCase):
 
     def test_checkpoint_schedule_is_exactly_preregistered(self) -> None:
         self.assertEqual(reporting.CHECKPOINTS, (13, 26, 39, 52))
+
+    def test_shadow_workflow_wires_silent_validation_and_checkpoint_only_writes(self) -> None:
+        workflow = (REPO / ".github/workflows/score-v3-shadow.yml").read_text(encoding="utf-8")
+        self.assertIn("python -m scripts.score_v3_metric_reporting", workflow)
+        self.assertIn("steps.ingest.outputs.status != 'pre_holdout_noop'", workflow)
+        self.assertIn("steps.metrics.outputs.checkpoint_written == 'true'", workflow)
+        self.assertIn("prospective/checkpoints/score_v3_checkpoint_(013|026|039|052)", workflow)
+        self.assertIn("research/score_v3_metric_implementation_contract.json", workflow)
+        self.assertIn("scripts/score_v3_metrics.py", workflow)
+        self.assertIn("scripts/score_v3_metric_reporting.py", workflow)
+        self.assertIn("never promotes a research candidate to production automatically", workflow)
+        self.assertNotIn("git add public/", workflow)
 
 
 if __name__ == "__main__":
