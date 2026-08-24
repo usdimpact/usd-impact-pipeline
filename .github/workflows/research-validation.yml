@@ -21,6 +21,7 @@ on:
 permissions:
   actions: write
   contents: write
+  issues: write
   pull-requests: write
 
 concurrency:
@@ -53,14 +54,17 @@ jobs:
         env:
           PYTHONUNBUFFERED: 1
         run: |
+          set -o pipefail
           python scripts/score_robustness_battery.py \
             --live \
             --robustness-output public/data/research/score_v2_robustness_latest.json \
-            --pit-output public/data/research/score_v2_point_in_time_latest.json
+            --pit-output public/data/research/score_v2_point_in_time_latest.json \
+            2>&1 | tee "$RUNNER_TEMP/score-v2-research.log"
 
       - name: Validate research publication contract
         run: |
-          python - <<'PY'
+          set -o pipefail
+          python - <<'PY' 2>&1 | tee -a "$RUNNER_TEMP/score-v2-research.log"
           import json
           from datetime import datetime, timezone
           from pathlib import Path
@@ -99,6 +103,48 @@ jobs:
           assert all(section in robust for section in sections)
           print(f'Research validation contract passed for {expected_week}.')
           PY
+
+      - name: Report research validation failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          issue_title="Score v2 research validation requires attention"
+          body_path="$RUNNER_TEMP/score-v2-research-failure.md"
+          log_path="$RUNNER_TEMP/score-v2-research.log"
+          {
+            echo "## Score v2 research validation failure"
+            echo
+            echo "The research-only validation workflow failed before a guarded research publication could be merged. The production Weekly USD Impact Score is unaffected."
+            echo
+            echo "- Run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            echo "- Commit: ${GITHUB_SHA}"
+            echo "- Trigger: ${GITHUB_EVENT_NAME}"
+            echo
+            echo "### Captured research log tail"
+            echo '```text'
+            if [ -f "$log_path" ]; then
+              tail -n 100 "$log_path"
+            else
+              echo "No captured research log was produced. Failure occurred before the research generator started."
+            fi
+            echo '```'
+          } > "$body_path"
+
+          issue_number="$(gh issue list \
+            --state open \
+            --limit 100 \
+            --json number,title \
+            --jq '.[] | select(.title == "Score v2 research validation requires attention") | .number' \
+            | head -n 1)"
+
+          if [ -n "$issue_number" ]; then
+            gh issue comment "$issue_number" --body-file "$body_path"
+            echo "Updated existing research validation issue #${issue_number}."
+          else
+            gh issue create --title "$issue_title" --body-file "$body_path"
+            echo "Opened research validation failure issue."
+          fi
 
       - name: Open, validate, and merge research publication pull request
         env:
