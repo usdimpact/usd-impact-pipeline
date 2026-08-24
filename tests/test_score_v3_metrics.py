@@ -139,7 +139,7 @@ class ScoreV3MetricContractTests(unittest.TestCase):
         common = dict(
             load_metric_contract=patch.object(metrics, "load_metric_contract", return_value=(contract, "a" * 64)),
             v2_bootstrap=patch.object(metrics, "v2_bootstrap", return_value=_history()),
-            candidate_bootstrap=patch.object(metrics, "candidate_bootstrap", return_value=_history()),
+            candidate_bootstrap=patch.object(metrics, "candidate_bootstrap", side_effect=lambda _root, _candidate_id: _history()),
             revision=patch.object(
                 metrics,
                 "_revision_immunity",
