@@ -1,5 +1,9 @@
+import os
 import unittest
 from pathlib import Path
+from unittest.mock import patch
+
+from scripts.post_merge_repro_attestation import _attestation_context
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -29,9 +33,11 @@ class ReproductionSafetyWorkflowTests(unittest.TestCase):
             with self.subTest(forbidden=forbidden):
                 self.assertNotIn(forbidden, workflow.lower())
 
-    def test_post_merge_attestation_is_read_only(self):
+    def test_attestation_is_read_only_and_runs_before_and_after_merge(self):
         workflow = (WORKFLOWS / "repro-attestation.yml").read_text(encoding="utf-8")
         self.assertIn("contents: read", workflow)
+        self.assertIn("pull_request:", workflow)
+        self.assertIn("push:", workflow)
         self.assertIn("fetch-depth: 0", workflow)
         self.assertIn("python -m scripts.post_merge_repro_attestation", workflow)
         self.assertIn("python -m scripts.validate_methodology_contract", workflow)
@@ -47,6 +53,33 @@ class ReproductionSafetyWorkflowTests(unittest.TestCase):
         ):
             with self.subTest(forbidden=forbidden):
                 self.assertNotIn(forbidden, workflow.lower())
+
+    def test_attestation_context_only_marks_push_to_main_as_post_merge(self):
+        with patch.dict(
+            os.environ,
+            {"GITHUB_EVENT_NAME": "pull_request", "GITHUB_REF": "refs/pull/31/merge"},
+            clear=True,
+        ):
+            self.assertEqual(_attestation_context(), "pull_request_premerge")
+
+        with patch.dict(
+            os.environ,
+            {"GITHUB_EVENT_NAME": "push", "GITHUB_REF": "refs/heads/main"},
+            clear=True,
+        ):
+            self.assertEqual(_attestation_context(), "main_post_merge")
+
+        with patch.dict(
+            os.environ,
+            {"GITHUB_EVENT_NAME": "workflow_dispatch", "GITHUB_REF": "refs/heads/main"},
+            clear=True,
+        ):
+            self.assertEqual(_attestation_context(), "manual_or_local_read_only")
+
+        script = (ROOT / "scripts/post_merge_repro_attestation.py").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn('"acceptance_candidate": context == "main_post_merge"', script)
 
     def test_new_python_workflows_use_locked_environment(self):
         for workflow_name in ("repro-rehearsal.yml", "repro-attestation.yml"):
