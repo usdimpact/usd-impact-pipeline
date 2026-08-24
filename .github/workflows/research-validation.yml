@@ -3,6 +3,8 @@ name: Score v2 research validation
 # Research-only robustness publication. This workflow is intentionally separate
 # from the core Friday score release so research failures cannot block the
 # production score. It publishes current-vintage descriptive validation only.
+# A path-scoped push to this established main-branch workflow provides an
+# explicit initial dispatch in addition to the scheduled Saturday run.
 
 on:
   schedule:
