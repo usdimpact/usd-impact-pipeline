@@ -49,6 +49,12 @@ jobs:
         run: |
           python usd_impact_score_v2.py --web --output-dir public --backtest
 
+      - name: Freeze and verify score reproduction bundle
+        run: |
+          python -m scripts.build_score_repro_bundle \
+            --score-json public/data/usd_impact_score_v2.json \
+            --output public/data/score_repro_bundle_latest.json
+
       - name: Generate weekly commentary and bridge data
         run: |
           python scripts/generate_weekly_commentary.py \
@@ -89,7 +95,8 @@ jobs:
           cp public/es/index.html public/archive/$WEEK/es.html
           cp public/data/usd_impact_score_v2.json public/archive/$WEEK/score.json
           cp public/data/weekly_input_latest.json public/archive/$WEEK/weekly_input.json
-          echo "Archived score, commentary dashboard, and bridge data to public/archive/$WEEK/"
+          cp public/data/score_repro_bundle_latest.json public/archive/$WEEK/repro_bundle.json
+          echo "Archived score, commentary dashboard, bridge data, and reproduction bundle to public/archive/$WEEK/"
 
       - name: Rebuild weekly archive indexes
         run: python scripts/generate_weekly_archive_index.py
@@ -120,7 +127,7 @@ jobs:
           cat > "$RUNNER_TEMP/weekly-score-pr.md" <<EOF
           ## Automated Weekly USD Impact Score publication
 
-          This pull request contains the generated score, deterministic English and Spanish commentary, bridge data, dashboards, and dated archive for **${WEEK}**.
+          This pull request contains the generated score, deterministic English and Spanish commentary, bridge data, dashboards, dated archive, and immutable score-reproduction evidence for **${WEEK}**.
 
           Publication is automatic only after the Weekly score quality workflow passes on this exact commit. A failed consistency check leaves this pull request open and does not change the Cloudflare Pages production deployment.
           EOF
