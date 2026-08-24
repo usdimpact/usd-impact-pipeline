@@ -1,0 +1,263 @@
+name: Score v2 prospective predictive evidence
+
+# Research-only downstream consumer of a successful push-to-main Score v2
+# reproduction attestation. It never fetches providers, modifies production,
+# backfills a missed origin, reports interim performance, or changes site claims.
+on:
+  workflow_run:
+    workflows: ["Score v2 reproduction attestation"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: score-v2-prospective-predictive-evidence
+  cancel-in-progress: false
+
+jobs:
+  record:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.head_branch == 'main')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Resolve successful post-merge attestation
+        id: source
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+          WORKFLOW_RUN_ID: ${{ github.event.workflow_run.id }}
+          WORKFLOW_RUN_URL: ${{ github.event.workflow_run.html_url }}
+          WORKFLOW_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          if [ "$EVENT_NAME" = "workflow_run" ]; then
+            echo "attested_sha=$WORKFLOW_HEAD_SHA" >> "$GITHUB_OUTPUT"
+            echo "attestation_run_id=$WORKFLOW_RUN_ID" >> "$GITHUB_OUTPUT"
+            echo "attestation_url=$WORKFLOW_RUN_URL" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          latest="$(gh run list \
+            --workflow repro-attestation.yml \
+            --branch main \
+            --event push \
+            --status success \
+            --limit 20 \
+            --json databaseId,headSha,url \
+            --jq '.[0]')"
+          if [ -z "$latest" ] || [ "$latest" = "null" ]; then
+            echo "No successful push-to-main Score v2 attestation is available for manual recovery."
+            exit 1
+          fi
+          echo "attested_sha=$(echo "$latest" | jq -r '.headSha')" >> "$GITHUB_OUTPUT"
+          echo "attestation_run_id=$(echo "$latest" | jq -r '.databaseId')" >> "$GITHUB_OUTPUT"
+          echo "attestation_url=$(echo "$latest" | jq -r '.url')" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout current main with full history
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Prove locked preregistration and unchanged attested source
+        env:
+          ATTESTED_SHA: ${{ steps.source.outputs.attested_sha }}
+        run: |
+          locked_sha="89bf56bafd594987176f31efaa926ecf02228289"
+          protocol_hash="36accc42e4915bb48caa1c4d2fd0fac8ba27c51c0eb988916990c415830e3ca0"
+          git merge-base --is-ancestor "$locked_sha" HEAD || {
+            echo "Locked predictive preregistration is not an ancestor of current main."
+            exit 1
+          }
+          test "$(git show "$locked_sha:research/score_v2_predictive_preregistration.json" | sha256sum | cut -d' ' -f1)" = "$protocol_hash" || {
+            echo "Locked preregistration commit does not contain the expected protocol bytes."
+            exit 1
+          }
+          test "$(sha256sum research/score_v2_predictive_preregistration.json | cut -d' ' -f1)" = "$protocol_hash" || {
+            echo "Current predictive preregistration differs from the locked protocol."
+            exit 1
+          }
+
+          current_week="$(python -c "import json; print(json.load(open('public/data/usd_impact_score_v2.json'))['metadata']['latest_date'])")"
+          if [[ "$current_week" < "2026-08-28" ]]; then
+            echo "Pre-holdout week ${current_week}; protocol lock verified and no observation will be written."
+            exit 0
+          fi
+
+          git merge-base --is-ancestor "$ATTESTED_SHA" HEAD || {
+            echo "Source attestation commit is not an ancestor of current main."
+            exit 1
+          }
+          critical_paths=(
+            usd_impact_score_v2.py
+            requirements.lock
+            public/data/usd_impact_score_v2.json
+            public/data/score_repro_bundle_latest.json
+            public/data/score_v2_methodology.json
+            public/data/score_v2_methodology.schema.json
+            public/archive
+            scripts/build_score_repro_bundle.py
+            scripts/validate_weekly_release.py
+            scripts/validate_methodology_contract.py
+            research/score_v2_predictive_preregistration.json
+            research/score_v2_predictive_implementation_contract.json
+            research/score_v2_predictive_manifest.json
+            research/score_v3_initialization_2026-08-21.csv
+            scripts/score_v2_predictive_manifest.py
+            scripts/score_v2_predictive_ingestion.py
+            scripts/score_v2_predictive_metrics.py
+            scripts/score_v2_predictive_reporting.py
+          )
+          if ! git diff --quiet "$ATTESTED_SHA" HEAD -- "${critical_paths[@]}"; then
+            echo "Critical v2 evidence or predictive engine changed after the successful source attestation."
+            git diff --name-only "$ATTESTED_SHA" HEAD -- "${critical_paths[@]}"
+            echo "Refusing to record. Obtain a fresh push-to-main v2 attestation first."
+            exit 1
+          fi
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: requirements.lock
+
+      - name: Install locked dependencies
+        run: |
+          python -m pip install --upgrade pip==26.2.1
+          python -m pip install -r requirements.lock
+          python -m pip check
+
+      - name: Revalidate checked-out Score v2 release
+        run: |
+          python -m scripts.validate_methodology_contract --json
+          python scripts/validate_weekly_release.py
+
+      - name: Record one immutable predictive-study week
+        id: ingest
+        run: |
+          python -m scripts.score_v2_predictive_ingestion \
+            --attestation-run-id "${{ steps.source.outputs.attestation_run_id }}" \
+            --attestation-url "${{ steps.source.outputs.attestation_url }}" \
+            --report "$RUNNER_TEMP/score-v2-predictive-ingestion.json"
+          status="$(python -c "import json; print(json.load(open('$RUNNER_TEMP/score-v2-predictive-ingestion.json'))['status'])")"
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+
+      - name: Validate anti-peeking state and write a due checkpoint
+        id: reporting
+        if: steps.ingest.outputs.status != 'pre_holdout_noop'
+        run: |
+          python -m scripts.score_v2_predictive_reporting \
+            --mode run \
+            --report "$RUNNER_TEMP/score-v2-predictive-reporting.json"
+          status="$(python -c "import json; print(json.load(open('$RUNNER_TEMP/score-v2-predictive-reporting.json'))['status'])")"
+          checkpoint_written="$(python -c "import json; print(str(json.load(open('$RUNNER_TEMP/score-v2-predictive-reporting.json'))['checkpoint_written']).lower())")"
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          echo "checkpoint_written=$checkpoint_written" >> "$GITHUB_OUTPUT"
+
+      - name: Record claim-safe workflow summary
+        if: always()
+        run: |
+          if [ ! -f "$RUNNER_TEMP/score-v2-predictive-ingestion.json" ]; then
+            echo '## Score v2 prospective predictive evidence' >> "$GITHUB_STEP_SUMMARY"
+            echo '' >> "$GITHUB_STEP_SUMMARY"
+            echo '**FAILED before an ingestion report was produced.**' >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json, os
+          from pathlib import Path
+          ingest = json.loads(Path(os.environ['RUNNER_TEMP'], 'score-v2-predictive-ingestion.json').read_text())
+          print('## Score v2 prospective predictive evidence')
+          print('')
+          print(f"- Ingestion status: **{ingest['status']}**")
+          print(f"- Published week: `{ingest['published_week']}`")
+          print(f"- Research-only: **{ingest['research_only']}**")
+          print(f"- Writes performed: **{ingest['writes_performed']}**")
+          if 'weekly_observations' in ingest:
+              print(f"- Weekly observations: **{ingest['weekly_observations']}**")
+              print(f"- Resolved predictions: **{ingest['resolved_predictions']} / 52**")
+          report_path = Path(os.environ['RUNNER_TEMP'], 'score-v2-predictive-reporting.json')
+          if report_path.exists():
+              report = json.loads(report_path.read_text())
+              print(f"- Reporting status: **{report['status']}**")
+              print(f"- Endpoint values emitted by weekly validation: **{report['endpoint_values_emitted']}**")
+              print(f"- Performance calculated by weekly validation: **{report['performance_calculated']}**")
+              print(f"- Checkpoint written: **{report['checkpoint_written']}**")
+              print(f"- Automatic site claim performed: **{report['automatic_site_claim_performed']}**")
+          PY
+
+      - name: Open research-only evidence PR for review
+        if: steps.ingest.outputs.status == 'ingested' || steps.reporting.outputs.checkpoint_written == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          allowed='^( M|M |A |\?\?) research/(score_v2_predictive_manifest\.json|predictive/score_v2_predictive_week_[0-9]{4}-[0-9]{2}-[0-9]{2}\.json|predictive/checkpoints/score_v2_predictive_checkpoint_(013|026|039|052)\.json)$'
+          unexpected="$(git status --porcelain | grep -Ev "$allowed" || true)"
+          if [ -n "$unexpected" ]; then
+            echo "Unexpected working-tree changes; refusing predictive evidence publication:"
+            echo "$unexpected"
+            exit 1
+          fi
+
+          WEEK="$(python -c "import json; print(json.load(open('$RUNNER_TEMP/score-v2-predictive-ingestion.json'))['published_week'])")"
+          REPORTING_STATUS="$(python -c "import json; print(json.load(open('$RUNNER_TEMP/score-v2-predictive-reporting.json'))['status'])")"
+          CHECKPOINT_FILE="$(python -c "import json; print(json.load(open('$RUNNER_TEMP/score-v2-predictive-reporting.json')).get('checkpoint_file') or 'none')")"
+          branch="automation/score-v2-predictive-${WEEK}-${GITHUB_RUN_ID}"
+          git config user.name "USD Impact Research Pipeline"
+          git config user.email "pipeline@lbx-fx.com"
+          git checkout -b "$branch"
+          git add research/score_v2_predictive_manifest.json research/predictive/
+          git commit -m "Record Score v2 predictive evidence ${WEEK}"
+          git push --set-upstream origin "$branch"
+
+          cat > "$RUNNER_TEMP/score-v2-predictive-pr.md" <<EOF
+          ## Automated Score v2 prospective predictive evidence
+
+          Research-only state for **${WEEK}**, downstream of a successful push-to-main Score v2 reproduction attestation.
+
+          - binds the weekly score, DXY level, and frozen directions to the immutable as-published bundle;
+          - follows the preregistration locked in commit `89bf56bafd594987176f31efaa926ecf02228289`;
+          - rejects gaps and never backfills a missed prediction after its outcome exists;
+          - calculates no interim performance and exposes no interim endpoint values;
+          - reporting status: **${REPORTING_STATUS}**;
+          - checkpoint file: `${CHECKPOINT_FILE}`;
+          - changes neither production Score v2 nor the public site's predictive claim.
+
+          This workflow cannot merge the PR. Normal review, branch protection, and the automatically triggered Weekly score quality check remain the final gate.
+          EOF
+
+          gh pr create \
+            --base main \
+            --head "$branch" \
+            --title "Record Score v2 predictive evidence — ${WEEK}" \
+            --body-file "$RUNNER_TEMP/score-v2-predictive-pr.md"
+
+      - name: Surface prospective predictive evidence failure
+        if: failure()
+        run: |
+          week="unknown"
+          if [ -f public/data/usd_impact_score_v2.json ]; then
+            week="$(python -c "import json; print(json.load(open('public/data/usd_impact_score_v2.json'))['metadata']['latest_date'])" 2>/dev/null || echo unknown)"
+          fi
+          if [[ "$week" < "2026-08-28" ]]; then
+            echo "Failure occurred before the predictive holdout; no production impact."
+            exit 0
+          fi
+
+          echo '## Predictive evidence workflow failure' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo 'The research-only downstream collector failed. **Production Score v2 is unaffected.**' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo "- v2 week: ${week}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- source attestation: ${{ steps.source.outputs.attestation_url }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- attested SHA: ${{ steps.source.outputs.attested_sha }}" >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo 'The ledger is fail-closed. Do not reconstruct, skip, or backfill the affected prediction after its outcome is visible.' >> "$GITHUB_STEP_SUMMARY"
