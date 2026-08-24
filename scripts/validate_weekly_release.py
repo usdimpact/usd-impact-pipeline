@@ -52,6 +52,15 @@ SOURCE_PROVENANCE_VERSION = 1
 REPRO_BUNDLE_VERSION = 1
 REPRO_METHODOLOGY_VERSION = "usd_impact_score_v2"
 REPRO_TOLERANCE = 1e-9
+INPUT_HISTORY_FINGERPRINT_VERSION = 1
+INPUT_HISTORY_SCOPE = (
+    "complete production weekly input matrix after limited daily alignment, "
+    "Friday-ended resampling and complete-case filtering"
+)
+INPUT_HISTORY_CANONICALIZATION = (
+    "UTF-8 CSV; date plus production driver order; YYYY-MM-DD dates; "
+    "finite floats formatted with 17 significant digits; LF line endings"
+)
 SHA40_RE = re.compile(r"^[0-9a-f]{40}$")
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 SOURCE_CONTRACT = {
@@ -306,6 +315,23 @@ def validate_reproduction_bundle(root: Path, metadata: dict, week: str) -> None:
     if set(provenance) != EXPECTED_DRIVERS:
         raise ValueError("Release metadata provenance is incomplete for reproduction")
 
+    input_fingerprint = bundle.get("input_history_fingerprint") or {}
+    if input_fingerprint.get("version") != INPUT_HISTORY_FINGERPRINT_VERSION:
+        raise ValueError("Unexpected input-history fingerprint version")
+    if input_fingerprint.get("scope") != INPUT_HISTORY_SCOPE:
+        raise ValueError("Unexpected input-history fingerprint scope")
+    if input_fingerprint.get("canonicalization") != INPUT_HISTORY_CANONICALIZATION:
+        raise ValueError("Unexpected input-history fingerprint canonicalization")
+    if not SHA256_RE.fullmatch(str(input_fingerprint.get("matrix_sha256", ""))):
+        raise ValueError("Input-history matrix fingerprint is invalid")
+    if input_fingerprint.get("raw_provider_payloads_archived") is not False:
+        raise ValueError("Bundle must not claim that raw provider payloads are archived")
+    if input_fingerprint.get("public_full_source_history_included") is not False:
+        raise ValueError("Bundle must not claim a public full provider-derived history")
+    fingerprint_drivers = input_fingerprint.get("drivers") or {}
+    if set(fingerprint_drivers) != EXPECTED_DRIVERS:
+        raise ValueError("Input-history fingerprint must contain exactly eight drivers")
+
     components = bundle.get("components") or {}
     if set(components) != EXPECTED_DRIVERS:
         raise ValueError("Reproduction bundle must contain exactly eight components")
@@ -332,6 +358,22 @@ def validate_reproduction_bundle(root: Path, metadata: dict, week: str) -> None:
         if sample_start > sample_end or sample_end.isoformat() != week:
             raise ValueError(
                 f"Reproduction bundle {driver} normalization sample endpoint is invalid"
+            )
+
+        driver_fingerprint = fingerprint_drivers[driver]
+        if not SHA256_RE.fullmatch(str(driver_fingerprint.get("sha256", ""))):
+            raise ValueError(f"Input-history fingerprint {driver} SHA-256 is invalid")
+        if driver_fingerprint.get("sample_start") != sample_start_raw:
+            raise ValueError(
+                f"Input-history fingerprint {driver} sample_start is inconsistent"
+            )
+        if driver_fingerprint.get("sample_end") != sample_end_raw:
+            raise ValueError(
+                f"Input-history fingerprint {driver} sample_end is inconsistent"
+            )
+        if driver_fingerprint.get("sample_count") != sample_count:
+            raise ValueError(
+                f"Input-history fingerprint {driver} sample_count is inconsistent"
             )
 
         mean = finite_number(normalization.get("mean"), f"bundle {driver} mean")

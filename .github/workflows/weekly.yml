@@ -47,12 +47,17 @@ jobs:
         env:
           PYTHONUNBUFFERED: 1
         run: |
-          python usd_impact_score_v2.py --web --output-dir public --backtest
+          python usd_impact_score_v2.py \
+            --web \
+            --output-dir public \
+            --backtest \
+            --weekly-levels-output "$RUNNER_TEMP/score-v2-weekly-levels.csv"
 
       - name: Freeze and verify score reproduction bundle
         run: |
           python -m scripts.build_score_repro_bundle \
             --score-json public/data/usd_impact_score_v2.json \
+            --weekly-levels "$RUNNER_TEMP/score-v2-weekly-levels.csv" \
             --output public/data/score_repro_bundle_latest.json
 
       - name: Generate weekly commentary and bridge data

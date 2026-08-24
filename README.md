@@ -21,11 +21,11 @@ The root-level `weekly.yml` is a non-executable compatibility pointer. The canon
 ## Publication sequence
 
 1. Verify that the machine-readable v2 methodology contract still matches production constants.
-2. Fetch DXY, WTI, S&P 500, VIX, Bitcoin, gold, and the U.S. 2-year and 10-year Treasury yields.
+2. Fetch DXY, WTI, S&P 500, VIX, Bitcoin, gold, and the U.S. 2-year and 10-year Treasury yields once for the release run.
 3. Record the provider, series, source URL, and latest raw observation date for every driver before holiday forward filling.
 4. Reject the run if the score week is not the latest completed Friday or any source is missing, future-dated, or beyond its driver-specific freshness limit.
 5. Build the weekly v2 score.
-6. Freeze and independently verify `public/data/score_repro_bundle_latest.json` from the exact weekly levels, normalization moments, z-scores, weights, contributions, source provenance, pipeline SHA, and dependency-lock hash.
+6. Hand the exact same-run complete weekly input matrix to the bundle step through a non-public ephemeral file; freeze and independently verify `public/data/score_repro_bundle_latest.json` from the latest weekly levels, normalization moments, z-scores, weights, contributions, source provenance, complete-matrix/per-driver SHA-256 fingerprints, pipeline SHA, and dependency-lock hash.
 7. Generate deterministic English and Spanish commentary, bridge data, and dashboards.
 8. Archive the score, bridge, dashboards, and reproduction bundle under `public/archive/YYYY-MM-DD/`.
 9. Run `scripts/validate_weekly_release.py` before any remote write. Beginning with 2026-08-28, this independently recomputes the release from the frozen archived bundle and requires the latest/archive bundles to match.
@@ -189,6 +189,10 @@ Releases through 2026-08-21 predate the immutable reproduction-bundle publicatio
 - the bundle carries a valid pipeline Git SHA and canonical methodology metadata.
 
 The strict validator performs this proof from the frozen artifact; it does not download revised Yahoo/FRED history.
+
+The production score and bundle steps use one provider fetch. The exact complete weekly input matrix is passed between those steps only inside the runner and is blocked from the public output tree. The public bundle records a canonical SHA-256 for the complete matrix and for each driver, allowing later source-history changes to be detected without redistributing the full provider-derived history. It also freezes the latest weekly levels and all calculation moments needed to reproduce the published score.
+
+This fingerprint is not a substitute for a complete raw-data archive: raw Yahoo/FRED response payloads and the full provider-derived history are not published or claimed as archived. The boundary is deliberate pending a separate licensing, retention and access-control review.
 
 ## Methodology and historical vintages
 

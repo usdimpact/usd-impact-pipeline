@@ -55,8 +55,10 @@
     "latest_history": "Current-vintage recalculation that may change when providers revise history or the full-sample normalization window expands.",
     "as_published_archive": "Dated release folders preserve published score outputs and commentary.",
     "strict_reproduction_bundle_required_from": "2026-08-28",
+    "same_run_input_handoff_required_from": "2026-08-28",
+    "complete_weekly_input_history_fingerprint": "SHA-256 for the canonical complete matrix and each driver is frozen in every strict reproduction bundle.",
     "raw_provider_payload_archive": "not_implemented",
-    "limitation": "The strict bundle preserves calculation inputs and outputs, but not the complete raw provider response."
+    "limitation": "The strict bundle preserves the latest calculation inputs, normalization moments, outputs and cryptographic fingerprints of the complete same-run weekly input history, but it does not publish the complete provider-derived history or archive raw provider responses."
   },
   "vendor_resilience": {
     "alternative_vendor_in_production": false,

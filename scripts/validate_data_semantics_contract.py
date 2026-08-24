@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 import usd_impact_score_v2 as score_v2
+from scripts import build_score_repro_bundle as repro
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -73,12 +74,24 @@ def validate_contract(
         if contract["futures"][driver]["symbol"] != symbol:
             raise ValueError(f"{driver} futures symbol differs from production")
 
+    revision = contract["revision_policy"]
+    if revision["strict_reproduction_bundle_required_from"] != "2026-08-28":
+        raise ValueError("Unexpected strict reproduction boundary")
+    if revision["same_run_input_handoff_required_from"] != "2026-08-28":
+        raise ValueError("Unexpected same-run input handoff boundary")
+    if revision["raw_provider_payload_archive"] != "not_implemented":
+        raise ValueError("Raw-provider archive status is misstated")
+    if "SHA-256" not in revision["complete_weekly_input_history_fingerprint"]:
+        raise ValueError("Input-history fingerprint disclosure is incomplete")
+
     # These source checks turn prose drift into a CI failure if the underlying
     # implementation later changes without a corresponding contract review.
     yahoo_source = inspect.getsource(score_v2.fetch_yahoo)
     fred_source = inspect.getsource(score_v2.fetch_fred)
     inputs_source = inspect.getsource(score_v2.fetch_all_inputs)
     weekly_source = inspect.getsource(score_v2.resample_weekly)
+    snapshot_source = inspect.getsource(score_v2.write_weekly_levels_snapshot)
+    fingerprint_source = inspect.getsource(repro.build_input_history_fingerprint)
     invariants = {
         "Yahoo Close field": 'raw["Close"]' in yahoo_source and '["Close"]' in yahoo_source,
         "Yahoo auto_adjust": "auto_adjust=True" in yahoo_source,
@@ -88,6 +101,8 @@ def validate_contract(
         "outer join": 'join(fred_df, how="outer")' in inputs_source,
         "three-observation fill": "ffill(limit=3)" in inputs_source,
         "Friday-ended last value": ".resample(RESAMPLE_RULE).last()" in weekly_source,
+        "non-public same-run snapshot guard": "outside the public output tree" in snapshot_source,
+        "complete input-history SHA-256": "matrix_sha256" in fingerprint_source,
     }
     failed = [name for name, passed in invariants.items() if not passed]
     if failed:

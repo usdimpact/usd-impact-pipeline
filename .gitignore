@@ -11,6 +11,7 @@ env/
 **/_daily_cache.parquet
 output/_daily_cache.parquet
 .pipeline_cache/
+.pipeline_work/
 logs/
 # Logs
 *.log
