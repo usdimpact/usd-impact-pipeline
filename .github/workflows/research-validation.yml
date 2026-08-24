@@ -1,0 +1,168 @@
+name: Score v2 research validation
+
+# Research-only robustness publication. This workflow is intentionally separate
+# from the core Friday score release so research failures cannot block the
+# production score. It publishes current-vintage descriptive validation only.
+
+on:
+  schedule:
+    - cron: '30 4 * * 6'  # Saturday 04:30 UTC, after weekly score health checks
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/research-validation.yml'
+      - 'scripts/score_robustness_battery.py'
+      - 'scripts/point_in_time_validation.py'
+      - 'usd_impact_score_v2.py'
+
+permissions:
+  actions: write
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: score-v2-research-validation
+  cancel-in-progress: false
+
+jobs:
+  publish-research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: requirements.lock
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip==26.2.1
+          python -m pip install -r requirements.lock
+          python -m pip check
+
+      - name: Generate live point-in-time and robustness research
+        env:
+          PYTHONUNBUFFERED: 1
+        run: |
+          python scripts/score_robustness_battery.py \
+            --live \
+            --robustness-output public/data/research/score_v2_robustness_latest.json \
+            --pit-output public/data/research/score_v2_point_in_time_latest.json
+
+      - name: Validate research publication contract
+        run: |
+          python - <<'PY'
+          import json
+          from datetime import datetime, timezone
+          from pathlib import Path
+          import usd_impact_score_v2 as score_v2
+
+          robust_path = Path('public/data/research/score_v2_robustness_latest.json')
+          pit_path = Path('public/data/research/score_v2_point_in_time_latest.json')
+          robust = json.loads(robust_path.read_text(encoding='utf-8'))
+          pit = json.loads(pit_path.read_text(encoding='utf-8'))
+
+          expected_week = score_v2.latest_completed_friday(datetime.now(timezone.utc)).isoformat()
+          assert robust['production_methodology_changed'] is False
+          assert robust['predictive_claim'] is False
+          assert robust['as_published_vintage'] is False
+          assert robust['data']['latest_complete_week'] == expected_week
+          assert robust['data']['complete_weeks'] >= 52
+          assert pit['production_methodology_changed'] is False
+          assert pit['predictive_claim'] is False
+          assert pit['as_published_vintage'] is False
+          assert pit['last_evaluated_week'] == expected_week
+          assert pit['evaluated_weeks'] > 0
+
+          provenance = robust['data']['source_provenance']
+          assert isinstance(provenance, dict)
+          assert set(provenance) == set(score_v2.WEIGHTS)
+          assert all(item['status'] == 'fresh' for item in provenance.values())
+
+          sections = (
+              'point_in_time_normalization',
+              'leave_one_driver_out',
+              'rolling_normalization',
+              'correlation_concentration',
+              'regime_threshold_sensitivity',
+              'subperiod_stability',
+          )
+          assert all(section in robust for section in sections)
+          print(f'Research validation contract passed for {expected_week}.')
+          PY
+
+      - name: Open, validate, and merge research publication pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ -z "$(git status --porcelain public/data/research)" ]; then
+            echo "No Score v2 research changes to publish."
+            exit 0
+          fi
+
+          WEEK=$(python -c "import json; print(json.load(open('public/data/research/score_v2_robustness_latest.json'))['data']['latest_complete_week'])")
+          branch="automation/score-v2-research-${WEEK}-${GITHUB_RUN_ID}"
+
+          git config user.name "USD Impact Pipeline"
+          git config user.email "pipeline@lbx-fx.com"
+          git checkout -b "$branch"
+          git add public/data/research
+          git commit -m "Publish Score v2 robustness research for ${WEEK}"
+          git push --set-upstream origin "$branch"
+          head_sha="$(git rev-parse HEAD)"
+
+          cat > "$RUNNER_TEMP/score-v2-research-pr.md" <<EOF
+          ## Automated Score v2 research publication
+
+          This pull request contains current-vintage, research-only validation for **${WEEK}**:
+
+          - expanding-window point-in-time normalization using only prior observations;
+          - leave-one-driver-out sensitivity;
+          - prior rolling-window normalization sensitivity;
+          - weekly input-level correlation concentration diagnostics;
+          - regime-threshold sensitivity; and
+          - subperiod stability summaries.
+
+          These outputs are descriptive, not predictive, are not as-published historical vintages, and do **not** modify the production Score v2 methodology.
+
+          Publication is automatic only after the Weekly score quality workflow passes on this exact commit.
+          EOF
+
+          pr_url="$(gh pr create \
+            --base main \
+            --head "$branch" \
+            --title "Publish Score v2 robustness research — ${WEEK}" \
+            --body-file "$RUNNER_TEMP/score-v2-research-pr.md")"
+
+          gh workflow run quality.yml --ref "$branch"
+
+          run_id=""
+          for attempt in $(seq 1 30); do
+            run_id="$(gh run list \
+              --workflow quality.yml \
+              --branch "$branch" \
+              --event workflow_dispatch \
+              --limit 10 \
+              --json databaseId,headSha \
+              --jq ".[] | select(.headSha == \"$head_sha\") | .databaseId" | head -n 1)"
+            if [ -n "$run_id" ]; then
+              break
+            fi
+            sleep 5
+          done
+
+          if [ -z "$run_id" ]; then
+            echo "Could not locate the dispatched Weekly score quality run for $head_sha."
+            exit 1
+          fi
+
+          gh run watch "$run_id" --exit-status
+          gh pr merge "$pr_url" --squash --delete-branch
+          echo "Merged Score v2 research publication for ${WEEK}."
