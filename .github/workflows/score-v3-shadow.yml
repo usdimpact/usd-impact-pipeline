@@ -10,9 +10,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  actions: write
   contents: write
-  issues: write
   pull-requests: write
 
 concurrency:
@@ -47,6 +45,7 @@ jobs:
           fi
 
           latest="$(gh run list \
+            --repo "$GITHUB_REPOSITORY" \
             --workflow repro-attestation.yml \
             --branch main \
             --event push \
@@ -199,7 +198,7 @@ jobs:
               print(f"- Checkpoint SHA-256: `{report['checkpoint_sha256']}`")
           PY
 
-      - name: Open, exact-head validate, and merge research-only weekly PR
+      - name: Open research-only weekly PR for review
         if: steps.ingest.outputs.status == 'ingested' || steps.metrics.outputs.checkpoint_written == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
@@ -222,7 +221,6 @@ jobs:
           git add research/score_v3_prospective_manifest.json research/prospective/
           git commit -m "Record Score v3 prospective research state ${WEEK}"
           git push --set-upstream origin "$branch"
-          head_sha="$(git rev-parse HEAD)"
 
           cat > "$RUNNER_TEMP/score-v3-shadow-pr.md" <<EOF
           ## Automated Score v3 prospective shadow record
@@ -240,41 +238,17 @@ jobs:
           - makes no predictive, trading, or PnL claim;
           - never promotes a research candidate to production automatically, including at week 52.
 
-          This PR is merged only after Weekly score quality passes on this exact head SHA.
+          This workflow cannot merge the PR. Normal review, branch protection, and the automatically triggered Weekly score quality check remain the final gate.
           EOF
 
-          pr_url="$(gh pr create \
+          gh pr create \
             --base main \
             --head "$branch" \
             --title "Record Score v3 shadow research — ${WEEK}" \
-            --body-file "$RUNNER_TEMP/score-v3-shadow-pr.md")"
-
-          gh workflow run quality.yml --ref "$branch"
-          run_id=""
-          for attempt in $(seq 1 30); do
-            run_id="$(gh run list \
-              --workflow quality.yml \
-              --branch "$branch" \
-              --event workflow_dispatch \
-              --limit 10 \
-              --json databaseId,headSha \
-              --jq ".[] | select(.headSha == \"$head_sha\") | .databaseId" | head -n 1)"
-            if [ -n "$run_id" ]; then
-              break
-            fi
-            sleep 5
-          done
-          if [ -z "$run_id" ]; then
-            echo "Could not locate exact-head quality run for $head_sha."
-            exit 1
-          fi
-          gh run watch "$run_id" --exit-status
-          gh pr merge "$pr_url" --squash --delete-branch
+            --body-file "$RUNNER_TEMP/score-v3-shadow-pr.md"
 
       - name: Surface post-holdout shadow research failure
         if: failure()
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
           week="unknown"
           if [ -f public/data/usd_impact_score_v2.json ]; then
@@ -285,24 +259,12 @@ jobs:
             exit 0
           fi
 
-          title="Score v3 prospective shadow research requires attention"
-          body="$RUNNER_TEMP/score-v3-shadow-failure.md"
-          cat > "$body" <<EOF
-          ## Score v3 prospective shadow research failure
-
-          The research-only downstream ingestion or governed metric validation failed after a successful v2 post-merge attestation. **Production Score v2 is unaffected.**
-
-          - v2 week: ${week}
-          - downstream run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
-          - source attestation: ${{ steps.source.outputs.attestation_url }}
-          - attested SHA: ${{ steps.source.outputs.attested_sha }}
-
-          The prospective ledger and checkpoint sequence are fail-closed. Do not reconstruct, skip, or backfill this week/checkpoint from later provider history or later prospective outcomes.
-          EOF
-
-          issue="$(gh issue list --state open --limit 100 --json number,title --jq ".[] | select(.title == \"$title\") | .number" | head -n 1)"
-          if [ -n "$issue" ]; then
-            gh issue comment "$issue" --body-file "$body"
-          else
-            gh issue create --title "$title" --body-file "$body"
-          fi
+          echo '## Score v3 prospective shadow research failure' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo 'The research-only downstream ingestion or governed metric validation failed. **Production Score v2 is unaffected.**' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo "- v2 week: ${week}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- source attestation: ${{ steps.source.outputs.attestation_url }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- attested SHA: ${{ steps.source.outputs.attested_sha }}" >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo 'The prospective ledger and checkpoint sequence are fail-closed. Do not reconstruct, skip, or backfill this week/checkpoint from later provider history or later prospective outcomes.' >> "$GITHUB_STEP_SUMMARY"
