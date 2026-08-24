@@ -55,7 +55,7 @@ jobs:
           PYTHONUNBUFFERED: 1
         run: |
           set -o pipefail
-          python scripts/score_robustness_battery.py \
+          python -m scripts.score_robustness_battery \
             --live \
             --robustness-output public/data/research/score_v2_robustness_latest.json \
             --pit-output public/data/research/score_v2_point_in_time_latest.json \
