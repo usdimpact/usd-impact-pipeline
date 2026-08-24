@@ -1,0 +1,29 @@
+{
+  "$schema": "./score_v3_prospective_manifest.schema.json",
+  "manifest_version": 1,
+  "study": "usd_impact_score_v3_descriptive_research_2026-08-24",
+  "research_only": true,
+  "production_change": false,
+  "predictive_claim": false,
+  "append_only": true,
+  "locked_preregistration_commit_sha": "bf49152fa6005edd20b770db287924d56cfa7499",
+  "prospective_holdout_start": "2026-08-28",
+  "minimum_completed_weeks_before_selection": 52,
+  "interim_review_weeks": [13, 26, 39],
+  "candidate_ids": [
+    "V3_E52",
+    "V3_R260",
+    "V3_MAD260",
+    "V3_GRP_MAD260"
+  ],
+  "initialization": {
+    "matrix_file": "score_v3_initialization_2026-08-21.csv",
+    "manifest_file": "score_v3_initialization_2026-08-21.manifest.json",
+    "matrix_sha256": "6e17100c061cebc3116fdac9c83708b94a72165957ffbcf688d9a08e9d280580",
+    "cutoff_week": "2026-08-21",
+    "historical_data_status": "retrospective_current_vintage_not_as_published",
+    "generated_at_utc": "2026-08-24T17:35:21+00:00",
+    "generator_commit_sha": "5dfb55650590228fefb54f50eb8093cd620bba78"
+  },
+  "entries": []
+}
