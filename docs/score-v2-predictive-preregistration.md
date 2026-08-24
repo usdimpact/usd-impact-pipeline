@@ -40,6 +40,8 @@ The machine-readable [implementation contract](../research/score_v2_predictive_i
 
 A missed origin, changed archive, protocol mismatch or implementation-contract mismatch fails closed. The workflow never fetches live providers and cannot use later recalculated history to repair an observation. The append-only [evidence manifest](../research/score_v2_predictive_manifest.json) remains explicit that predictive power is not established while the formal gate is pending.
 
+The [engine lock](../research/score_v2_predictive_engine_lock.json) separately freezes the collector and evaluator file hashes at implementation commit `b08a057dc4372d0ab48a25d9fab0950dd0b3c11e`, before the first origin. The weekly workflow verifies both those historical Git bytes and the current working copies. A changed engine must not continue under the same study identity.
+
 ## Interpretation boundary
 
 A failure means meaningful one-week DXY directional evidence was not established under this protocol. A pass would support only a bounded association in this sample. It would not establish causal power, trading profitability, performance for another asset, probability calibration or durable future accuracy. The evidence remains first-party until independently reproduced or audited.
