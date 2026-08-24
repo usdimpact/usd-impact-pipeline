@@ -14,7 +14,7 @@ Only workflow files inside `.github/workflows/` are executable GitHub Actions wo
 | `weekly-health.yml` | Saturday 02:00 UTC | Verify the completed workflow, deployed bridge JSON, and English and Spanish dashboards. |
 | `research-validation.yml` | Saturday 04:30 UTC / guarded path pushes | Publish current-vintage, research-only point-in-time and robustness diagnostics without blocking the core weekly score. |
 | `repro-rehearsal.yml` | Relevant PRs or manual dispatch | Run a live, non-publishing rehearsal of the complete score → bundle → archive → strict offline-reproduction path. A pass is explicitly not production acceptance evidence. |
-| `repro-attestation.yml` | Relevant pushes to `main` or manual dispatch | Read-only post-merge verification of the methodology contract and, from 2026-08-28 onward, the archived as-published reproduction bundle. |
+| `repro-attestation.yml` | Relevant PRs, pushes to `main`, or manual dispatch | Read-only reproduction verification before merge and after merge. Only a successful push-to-`main` attestation can mark a strict release as a production acceptance candidate. |
 
 The root-level `weekly.yml` is a non-executable compatibility pointer. The canonical workflow is `.github/workflows/weekly.yml`.
 
@@ -31,9 +31,10 @@ The root-level `weekly.yml` is a non-executable compatibility pointer. The canon
 9. Run `scripts/validate_weekly_release.py` before any remote write. Beginning with 2026-08-28, this independently recomputes the release from the frozen archived bundle and requires the latest/archive bundles to match.
 10. Commit generated files to an isolated `automation/weekly-usd-impact-*` branch.
 11. Open a publication PR and dispatch `Weekly score quality` against the exact head SHA.
-12. Squash-merge only after that exact quality run succeeds.
-13. Allow Cloudflare Pages to deploy the validated `main` commit.
-14. Run the read-only post-merge reproduction attestation and the Saturday health checks.
+12. Run the read-only reproduction attestation on the PR. For strict releases it can prove the bundle and archive are internally reproducible, but a PR run is always pre-merge evidence and cannot mark production acceptance.
+13. Squash-merge only after the required quality/reproduction gates succeed.
+14. Allow Cloudflare Pages to deploy the validated `main` commit.
+15. Run the read-only push-to-`main` reproduction attestation and the Saturday health checks. Only the successful push-to-`main` attestation can identify a 2026-08-28-or-later strict release as a production acceptance candidate.
 
 A generation, data-quality, test, validation, PR, merge, deployment, or attestation failure never authorizes weakening the methodology or publication contract.
 
@@ -83,14 +84,21 @@ The offline regression suite exercises score calculation, CSV/JSON export, bilin
 
 A rehearsal result is always labelled `rehearsal_only: true` and `acceptance_evidence: false`. It cannot substitute for the first genuine 2026-08-28-or-later as-published release.
 
-### Post-merge attestation
+### Pre-merge and post-merge attestation
 
-`repro-attestation.yml` is read-only. After relevant files land on `main`, it checks the public methodology contract and then:
+`repro-attestation.yml` is read-only and runs on relevant release/methodology pull requests as well as relevant pushes to `main`.
 
+For a pull request it:
+
+- validates the public methodology contract against production constants;
 - records legacy status for releases before 2026-08-28; or
-- for 2026-08-28 and later, independently reproduces the archived bundle without downloading market history, verifies latest/archive bundle identity, checks the dependency-lock hash, and confirms the bundle's pipeline Git SHA is an ancestor of the attested `main` commit.
+- for 2026-08-28 and later, independently reproduces the frozen bundle without downloading market history, verifies latest/archive bundle identity, checks the dependency-lock hash, and confirms the bundle's pipeline Git SHA is an ancestor of the checked-out PR commit.
 
-The workflow records the result in the immutable GitHub Actions run/job summary. It does not regenerate or mutate the release.
+A pull-request run is always labelled `pull_request_premerge` and cannot set `acceptance_candidate: true`.
+
+After the release lands on `main`, the same workflow runs again in `main_post_merge` context. Only that push-to-`main` context can set `acceptance_candidate: true` for a strict 2026-08-28-or-later release after every frozen-bundle check passes.
+
+Manual/local read-only runs are also never production acceptance candidates. The workflow records its result in the immutable GitHub Actions run/job summary and does not regenerate or mutate the release.
 
 ## Output contract
 
@@ -185,6 +193,7 @@ The generated legacy backtest is descriptive across selected historical regime w
 - Never push generated releases directly to `main`.
 - Never weaken `scripts/validate_weekly_release.py` to make a failing release pass.
 - Never treat a rehearsal as production acceptance evidence.
+- Never treat a pre-merge or manual attestation as production acceptance evidence.
 - Keep dependency, infrastructure, research, and production-methodology changes separable and reviewable.
 - Do not change weights, regime thresholds, data transformations, or source tickers without a separately versioned methodology review.
 - Update the machine-readable methodology contract in the same explicitly versioned methodology review whenever production constants intentionally change.
