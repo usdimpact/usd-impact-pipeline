@@ -11,6 +11,9 @@ from scripts.score_robustness_battery import (
     leave_one_driver_out,
     rolling_component_correlations,
     rolling_window_sensitivity,
+    regime_duration,
+    score_distribution,
+    sign_sensitivity,
     threshold_sensitivity,
 )
 
@@ -38,11 +41,14 @@ class ScoreRobustnessBatteryTests(unittest.TestCase):
         )
         self.assertIn("point_in_time_normalization", report)
         self.assertIn("leave_one_driver_out", report)
+        self.assertIn("sign_sensitivity", report)
         self.assertIn("rolling_normalization", report)
         self.assertIn("correlation_concentration", report)
         self.assertIn("rolling_component_correlations", report)
         self.assertIn("contribution_concentration", report)
         self.assertIn("regime_threshold_sensitivity", report)
+        self.assertIn("score_distribution", report)
+        self.assertIn("regime_duration", report)
         self.assertIn("subperiod_stability", report)
 
     def test_leave_one_out_covers_every_driver_and_normalizes_weights(self):
@@ -61,6 +67,31 @@ class ScoreRobustnessBatteryTests(unittest.TestCase):
         self.assertAlmostEqual(
             production["label_agreement_rate_vs_production"], 1.0, places=12
         )
+
+    def test_sign_sensitivity_flips_each_driver_once(self):
+        results = sign_sensitivity(self.weekly)
+        self.assertEqual(
+            {row["flipped_driver"] for row in results}, set(score_v2.WEIGHTS)
+        )
+        for row in results:
+            self.assertEqual(row["diagnostic_weight"], -row["production_weight"])
+            self.assertGreaterEqual(row["regime_label_agreement_rate"], 0.0)
+            self.assertLessEqual(row["regime_label_agreement_rate"], 1.0)
+
+    def test_score_distribution_accounts_for_every_week(self):
+        result = score_distribution(self.weekly)
+        self.assertEqual(result["observations"], len(self.weekly))
+        self.assertEqual(sum(row["weeks"] for row in result["regimes"]), len(self.weekly))
+        self.assertAlmostEqual(sum(row["share"] for row in result["regimes"]), 1.0)
+        self.assertLessEqual(result["minimum"], result["quantiles"]["p50"])
+        self.assertGreaterEqual(result["maximum"], result["quantiles"]["p50"])
+
+    def test_regime_duration_runs_are_contiguous_and_exhaustive(self):
+        result = regime_duration(self.weekly)
+        self.assertEqual(result["observations"], len(self.weekly))
+        self.assertEqual(sum(run["weeks"] for run in result["runs"]), len(self.weekly))
+        self.assertEqual(result["current_run"], result["runs"][-1])
+        self.assertEqual(result["current_run"]["end"], self.weekly.index[-1].date().isoformat())
 
     def test_rolling_windows_only_use_available_prior_history(self):
         results = rolling_window_sensitivity(self.weekly, windows=(5, 7))

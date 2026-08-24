@@ -714,6 +714,87 @@ def build_chart_png(score: pd.Series, title: str) -> bytes:
     return buf.getvalue()
 
 
+def build_behavior_diagnostics_png(score: pd.Series, *, lang: str = "en") -> bytes:
+    """Render score-distribution and regime-duration transparency charts."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    navy = "#1B3A5F"
+    gold = "#B8860B"
+    mute = "#6B7280"
+    labels = score.apply(label_regime)
+    runs: dict[str, list[int]] = {
+        regime: [] for _low, _high, regime in REGIME_BANDS
+    }
+    current = labels.iloc[0]
+    length = 1
+    for label in labels.iloc[1:]:
+        if label == current:
+            length += 1
+            continue
+        runs[current].append(length)
+        current = label
+        length = 1
+    runs[current].append(length)
+
+    regime_order = [regime for _low, _high, regime in REGIME_BANDS]
+    median_duration = [
+        float(np.median(runs[regime])) if runs[regime] else 0.0
+        for regime in regime_order
+    ]
+    maximum_duration = [
+        float(max(runs[regime])) if runs[regime] else 0.0
+        for regime in regime_order
+    ]
+
+    if lang == "es":
+        distribution_title = "Distribución del score"
+        duration_title = "Duración consecutiva por régimen"
+        score_label = "Score recalculado"
+        weeks_label = "Semanas"
+        median_label = "Mediana"
+        maximum_label = "Máximo"
+        short_labels = ["Muy fuerte", "Firme", "Neutral", "Débil", "Muy débil"]
+    else:
+        distribution_title = "Score distribution"
+        duration_title = "Consecutive regime duration"
+        score_label = "Recalculated score"
+        weeks_label = "Weeks"
+        median_label = "Median"
+        maximum_label = "Maximum"
+        short_labels = ["Strong", "Firm", "Neutral", "Soft", "Weak"]
+
+    fig, axes = plt.subplots(1, 2, figsize=(8, 3.2))
+    axes[0].hist(score.values, bins=24, color=navy, alpha=0.78, edgecolor="white")
+    for threshold in (-1.0, -0.3, 0.3, 1.0):
+        axes[0].axvline(threshold, color=gold, linewidth=0.8, alpha=0.75)
+    axes[0].axvline(float(score.iloc[-1]), color="#9B1C31", linewidth=1.3)
+    axes[0].set_title(distribution_title, color=navy, loc="left", fontsize=10, fontweight="bold")
+    axes[0].set_xlabel(score_label, fontsize=8)
+    axes[0].set_ylabel(weeks_label, fontsize=8)
+
+    positions = np.arange(len(regime_order))
+    width = 0.38
+    axes[1].bar(positions - width / 2, median_duration, width, label=median_label, color=navy)
+    axes[1].bar(positions + width / 2, maximum_duration, width, label=maximum_label, color=gold)
+    axes[1].set_title(duration_title, color=navy, loc="left", fontsize=10, fontweight="bold")
+    axes[1].set_ylabel(weeks_label, fontsize=8)
+    axes[1].set_xticks(positions, short_labels, rotation=25, ha="right", fontsize=7)
+    axes[1].legend(frameon=False, fontsize=7)
+
+    for axis in axes:
+        axis.spines["top"].set_visible(False)
+        axis.spines["right"].set_visible(False)
+        axis.tick_params(colors=mute, labelsize=7)
+        axis.yaxis.grid(True, color=mute, alpha=0.12)
+    plt.tight_layout()
+    buf = io.BytesIO()
+    plt.savefig(buf, format="png", dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    return buf.getvalue()
+
+
 def load_commentary(lang: str = "en") -> str:
     """Load the latest weekly commentary from the commentary/ directory.
 
@@ -787,6 +868,11 @@ def build_graphic_payload(df: pd.DataFrame, score: pd.Series, lang: str = "en") 
         lbl_change = "Cambio semanal"
         lbl_as_of = "Datos al"
         chart_title = "USD Impact Score — Registro de once años"
+        diagnostics_title = "Diagnósticos de comportamiento de la serie recalculada"
+        diagnostics_note = (
+            "Distribución y duración de regímenes usando la historia recalculada actual; "
+            "son descriptivas y pueden cambiar con revisiones o nuevas observaciones."
+        )
         footer = (
             "Esta es una herramienta educativa. No constituye asesoramiento "
             "financiero ni recomendación de compra o venta. Ver USD Impact — "
@@ -808,6 +894,11 @@ def build_graphic_payload(df: pd.DataFrame, score: pd.Series, lang: str = "en") 
         lbl_change = "Week-over-week change"
         lbl_as_of = "Data as of"
         chart_title = "USD Impact Score — Eleven-Year Record"
+        diagnostics_title = "Current-vintage behavior diagnostics"
+        diagnostics_note = (
+            "Score distribution and regime duration use today's recalculated history; "
+            "they are descriptive and can change after revisions or new observations."
+        )
         footer = (
             "This is an educational tool. It is not investment advice nor a "
             "recommendation to buy or sell. See USD Impact — Read the Dollar First."
@@ -816,6 +907,9 @@ def build_graphic_payload(df: pd.DataFrame, score: pd.Series, lang: str = "en") 
     chart_png = build_chart_png(score, chart_title)
     chart_b64 = base64.b64encode(chart_png).decode("ascii")
     chart_data_uri = f"data:image/png;base64,{chart_b64}"
+    diagnostics_png = build_behavior_diagnostics_png(score, lang=lang)
+    diagnostics_b64 = base64.b64encode(diagnostics_png).decode("ascii")
+    diagnostics_data_uri = f"data:image/png;base64,{diagnostics_b64}"
 
     change_sign = "+" if wk_change >= 0 else ""
     score_color = "#1B3A5F" if latest_score >= 0 else "#B8860B"
@@ -874,6 +968,15 @@ def build_graphic_payload(df: pd.DataFrame, score: pd.Series, lang: str = "en") 
   .score-value {{ color: {score_color} !important; }}
   .chart {{ margin: 1.5rem 0; }}
   .chart img {{ width: 100%; height: auto; }}
+  .diagnostics {{
+    margin: 1.5rem 0 2rem;
+    padding: 1rem;
+    border: 1px solid #D0C2A2;
+    background: #FDFCF9;
+  }}
+  .diagnostics h2 {{ color: #1B3A5F; font-size: 1.05rem; margin: 0 0 0.4rem; }}
+  .diagnostics p {{ color: #6B7280; font-size: 0.82rem; margin: 0 0 0.75rem; }}
+  .diagnostics img {{ width: 100%; height: auto; }}
   .commentary {{
     margin: 2rem 0;
     padding: 1.5rem 1.75rem;
@@ -951,6 +1054,12 @@ def build_graphic_payload(df: pd.DataFrame, score: pd.Series, lang: str = "en") 
   <div class="chart">
     <img src="{chart_data_uri}" alt="{chart_title}"/>
   </div>
+
+  <section class="diagnostics">
+    <h2>{diagnostics_title}</h2>
+    <p>{diagnostics_note}</p>
+    <img src="{diagnostics_data_uri}" alt="{diagnostics_title}"/>
+  </section>
 
   {commentary_section}
 

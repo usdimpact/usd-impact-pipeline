@@ -132,6 +132,12 @@ class OfflineReleaseRegressionTests(unittest.TestCase):
             finally:
                 os.chdir(previous_working_directory)
 
+            english_dashboard = (public / "en/index.html").read_text(encoding="utf-8")
+            spanish_dashboard = (public / "es/index.html").read_text(encoding="utf-8")
+            self.assertIn("Current-vintage behavior diagnostics", english_dashboard)
+            self.assertIn("Diagnósticos de comportamiento", spanish_dashboard)
+            self.assertEqual(english_dashboard.count("data:image/png;base64,"), 2)
+
             week = expected["latest_date"]
             archive = public / "archive" / week
             archive.mkdir(parents=True)

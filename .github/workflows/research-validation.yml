@@ -95,9 +95,14 @@ jobs:
           sections = (
               'point_in_time_normalization',
               'leave_one_driver_out',
+              'sign_sensitivity',
               'rolling_normalization',
               'correlation_concentration',
+              'rolling_component_correlations',
+              'contribution_concentration',
               'regime_threshold_sensitivity',
+              'score_distribution',
+              'regime_duration',
               'subperiod_stability',
           )
           assert all(section in robust for section in sections)
@@ -173,10 +178,11 @@ jobs:
 
           - expanding-window point-in-time normalization using only prior observations;
           - leave-one-driver-out sensitivity;
+          - transmission-sign sensitivity;
           - prior rolling-window normalization sensitivity;
-          - weekly input-level correlation concentration diagnostics;
+          - input and component-correlation/contribution concentration diagnostics;
           - regime-threshold sensitivity; and
-          - subperiod stability summaries.
+          - score-distribution, regime-duration, and subperiod stability summaries.
 
           These outputs are descriptive, not predictive, are not as-published historical vintages, and do **not** modify the production Score v2 methodology.
 

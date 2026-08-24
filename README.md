@@ -121,6 +121,8 @@ Other production/review outputs include:
 - `public/data/score_repro_bundle_latest.json` for newly generated strict releases
 - `public/data/score_v2_methodology.json`
 - `public/data/score_v2_methodology.schema.json`
+- `public/data/score_v2_data_semantics.json`
+- `public/data/score_v2_data_semantics.schema.json`
 - `public/data/research/score_v2_robustness_latest.json`
 - `public/data/research/score_v2_point_in_time_latest.json`
 - `public/en/index.html`
@@ -148,6 +150,12 @@ Other production/review outputs include:
 - explicit descriptive/non-predictive scope boundaries.
 
 `scripts/validate_methodology_contract.py` reconstructs the expected public contract directly from `usd_impact_score_v2.py` constants and fails CI on any mismatch. `score_v2_methodology.schema.json` is supplied for third-party JSON tooling. Methodology changes therefore require a deliberate code + public-contract update rather than silently drifting in one layer.
+
+### Machine-readable data semantics
+
+`public/data/score_v2_data_semantics.json` supplements—without changing—the frozen production methodology contract. It discloses the exact Yahoo `Close` field and `auto_adjust=True` retrieval choice, FRED observation-date field, outer-join and three-observation holiday fill, Friday-ended last-observation rule, and the absence of retained intraday settlement/publication timestamps.
+
+For WTI (`CL=F`) and gold (`GC=F`), it also makes the replication boundary explicit: the pipeline consumes Yahoo's provider-defined continuous front-month histories and does not independently control contract selection, roll calendars, or back adjustment. A cross-vendor live reconstruction must not assume identical history. From the strict-release boundary, the reproduction bundle freezes the actual weekly levels used. `scripts/validate_data_semantics_contract.py` fails CI if these disclosures drift from the implementation.
 
 ### Source provenance and freshness
 
@@ -186,7 +194,7 @@ USD Impact Score v2 standardizes each component against the full available sampl
 
 Because the mean and standard deviation use the full sample available at each run, adding a new observation can revise previously calculated historical values and, occasionally, historical regime labels. Dated archive folders preserve what was actually published at each release. The current dashboard history and current-vintage robustness research are recalculations using the latest source history; they are not immutable series of as-published historical values.
 
-The generated legacy backtest is descriptive across selected historical regime windows. The point-in-time and robustness research explicitly tests normalization/specification sensitivity. Neither is a predictive forecast test, a trading strategy, or evidence of guaranteed future performance. Current research results must be read from the published JSON artifacts rather than hard-coded into operational documentation.
+The generated legacy backtest is descriptive across selected historical regime windows. The point-in-time and robustness research explicitly tests normalization/specification sensitivity, including leave-one-out and adversarial sign flips. It also publishes score-distribution and consecutive regime-duration diagnostics, which the generated dashboards visualize. Neither is a predictive forecast test, a trading strategy, or evidence of guaranteed future performance. Current research results must be read from the published JSON artifacts rather than hard-coded into operational documentation.
 
 ## Change-safety rules
 
