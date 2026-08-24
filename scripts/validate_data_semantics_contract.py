@@ -83,6 +83,12 @@ def validate_contract(
         raise ValueError("Raw-provider archive status is misstated")
     if "SHA-256" not in revision["complete_weekly_input_history_fingerprint"]:
         raise ValueError("Input-history fingerprint disclosure is incomplete")
+    if "SHA-256" not in revision["complete_provider_derived_daily_history_fingerprint"]:
+        raise ValueError("Provider daily fingerprint disclosure is incomplete")
+    if revision["original_transport_bytes_hashed"] is not False:
+        raise ValueError("Transport-byte hashing status is misstated")
+    if revision["rights_and_retention_reviewed_on"] != "2026-08-24":
+        raise ValueError("Rights and retention review date is missing")
 
     # These source checks turn prose drift into a CI failure if the underlying
     # implementation later changes without a corresponding contract review.
@@ -91,6 +97,12 @@ def validate_contract(
     inputs_source = inspect.getsource(score_v2.fetch_all_inputs)
     weekly_source = inspect.getsource(score_v2.resample_weekly)
     snapshot_source = inspect.getsource(score_v2.write_weekly_levels_snapshot)
+    daily_fingerprint_source = inspect.getsource(
+        score_v2.build_provider_derived_daily_fingerprint
+    )
+    evidence_receipt_source = inspect.getsource(
+        score_v2.write_provider_evidence_receipt
+    )
     fingerprint_source = inspect.getsource(repro.build_input_history_fingerprint)
     invariants = {
         "Yahoo Close field": 'raw["Close"]' in yahoo_source and '["Close"]' in yahoo_source,
@@ -103,6 +115,8 @@ def validate_contract(
         "Friday-ended last value": ".resample(RESAMPLE_RULE).last()" in weekly_source,
         "non-public same-run snapshot guard": "outside the public output tree" in snapshot_source,
         "complete input-history SHA-256": "matrix_sha256" in fingerprint_source,
+        "provider-derived daily SHA-256": "matrix_sha256" in daily_fingerprint_source,
+        "non-public provider receipt guard": "outside the public output tree" in evidence_receipt_source,
     }
     failed = [name for name, passed in invariants.items() if not passed]
     if failed:

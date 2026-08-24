@@ -13,7 +13,9 @@
       "auto_adjust": true,
       "threads": false,
       "intraday_timestamp_retained": false,
-      "date_semantics": "Provider-returned daily date index; the pipeline does not retain an exchange settlement timestamp."
+      "date_semantics": "Provider-returned daily date index; the pipeline does not retain an exchange settlement timestamp.",
+      "rights_reference": "https://ranaroussi.github.io/yfinance/",
+      "retention_policy": "No raw Yahoo response payload or complete Yahoo-derived value history is retained or publicly redistributed by the weekly workflow."
     },
     "fred": {
       "endpoint": "https://fred.stlouisfed.org/graph/fredgraph.csv?id={series}",
@@ -21,7 +23,9 @@
       "date_field": "observation_date",
       "value_field": "the named FRED series column",
       "intraday_timestamp_retained": false,
-      "date_semantics": "FRED observation date; the pipeline does not retain the provider publication timestamp."
+      "date_semantics": "FRED observation date; the pipeline does not retain the provider publication timestamp.",
+      "rights_reference": "https://fred.stlouisfed.org/docs/api/terms_of_use.html",
+      "series_rights_status": "DGS2 and DGS10 are tagged Public Domain: Citation Requested on their FRED series pages; the mixed-source weekly workflow still does not archive raw provider responses."
     }
   },
   "alignment": {
@@ -57,8 +61,12 @@
     "strict_reproduction_bundle_required_from": "2026-08-28",
     "same_run_input_handoff_required_from": "2026-08-28",
     "complete_weekly_input_history_fingerprint": "SHA-256 for the canonical complete matrix and each driver is frozen in every strict reproduction bundle.",
+    "complete_provider_derived_daily_history_fingerprint": "SHA-256 for the canonical pre-forward-fill daily matrix and each driver, limited to observations on or before the score week, is frozen in every strict reproduction bundle.",
+    "original_transport_bytes_hashed": false,
     "raw_provider_payload_archive": "not_implemented",
-    "limitation": "The strict bundle preserves the latest calculation inputs, normalization moments, outputs and cryptographic fingerprints of the complete same-run weekly input history, but it does not publish the complete provider-derived history or archive raw provider responses."
+    "rights_and_retention_reviewed_on": "2026-08-24",
+    "retention_policy_document": "https://github.com/usdimpact/usd-impact-pipeline/blob/main/docs/source-retention-policy.md",
+    "limitation": "The strict bundle preserves the latest calculation inputs, normalization moments, outputs and cryptographic fingerprints of both the same-run provider-derived daily history and complete weekly input history. The hashes begin after field selection and numeric parsing; original transport bytes are not hashed, complete provider-derived values are not published, and raw provider responses are not archived."
   },
   "vendor_resilience": {
     "alternative_vendor_in_production": false,

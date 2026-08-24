@@ -35,6 +35,11 @@ INPUT_HISTORY_CANONICALIZATION = (
     "UTF-8 CSV; date plus production driver order; YYYY-MM-DD dates; "
     "finite floats formatted with 17 significant digits; LF line endings"
 )
+PROVIDER_DAILY_FINGERPRINT_VERSION = score_v2.PROVIDER_DAILY_FINGERPRINT_VERSION
+PROVIDER_DAILY_FINGERPRINT_SCOPE = score_v2.PROVIDER_DAILY_FINGERPRINT_SCOPE
+PROVIDER_DAILY_FINGERPRINT_CANONICALIZATION = (
+    score_v2.PROVIDER_DAILY_FINGERPRINT_CANONICALIZATION
+)
 
 
 def _sha256(path: Path) -> str | None:
@@ -124,10 +129,103 @@ def build_input_history_fingerprint(
     }
 
 
+def validate_provider_daily_evidence(
+    evidence: dict[str, Any],
+    source_provenance: dict[str, dict[str, object]],
+    expected_score_week: str,
+) -> dict[str, Any]:
+    """Validate a hashes-only receipt created by the same provider fetch."""
+    expected_fields = {
+        "version", "scope", "canonicalization", "score_week",
+        "retrieval_run_started_at_utc", "retrieval_mode", "matrix_sha256",
+        "drivers", "original_transport_bytes_hashed",
+        "raw_provider_payloads_archived", "provider_derived_values_published",
+        "purpose",
+    }
+    if set(evidence) != expected_fields:
+        raise RuntimeError("Provider daily evidence fields do not match the contract")
+    if evidence.get("version") != PROVIDER_DAILY_FINGERPRINT_VERSION:
+        raise RuntimeError("Unexpected provider daily fingerprint version")
+    if evidence.get("scope") != PROVIDER_DAILY_FINGERPRINT_SCOPE:
+        raise RuntimeError("Unexpected provider daily fingerprint scope")
+    if evidence.get("canonicalization") != PROVIDER_DAILY_FINGERPRINT_CANONICALIZATION:
+        raise RuntimeError("Unexpected provider daily fingerprint canonicalization")
+    if evidence.get("score_week") != expected_score_week:
+        raise RuntimeError("Provider daily evidence score week is inconsistent")
+    if evidence.get("retrieval_mode") not in {"live", "fixture"}:
+        raise RuntimeError("Provider daily evidence must come from live or fixture retrieval")
+
+    timestamp_raw = str(evidence.get("retrieval_run_started_at_utc", ""))
+    try:
+        timestamp = datetime.fromisoformat(timestamp_raw.replace("Z", "+00:00"))
+    except ValueError as error:
+        raise RuntimeError("Provider daily evidence timestamp is invalid") from error
+    if timestamp.tzinfo is None or timestamp.utcoffset() is None:
+        raise RuntimeError("Provider daily evidence timestamp must include a timezone")
+
+    def require_sha256(value: object, label: str) -> None:
+        text = str(value)
+        if len(text) != 64 or any(character not in "0123456789abcdef" for character in text):
+            raise RuntimeError(f"{label} is not a lowercase SHA-256")
+
+    require_sha256(evidence.get("matrix_sha256"), "Provider daily matrix fingerprint")
+    if evidence.get("original_transport_bytes_hashed") is not False:
+        raise RuntimeError("Provider daily evidence must not claim transport-byte hashing")
+    if evidence.get("raw_provider_payloads_archived") is not False:
+        raise RuntimeError("Provider daily evidence must not claim raw payload archival")
+    if evidence.get("provider_derived_values_published") is not False:
+        raise RuntimeError("Provider daily evidence must not publish provider-derived values")
+
+    drivers = evidence.get("drivers") or {}
+    expected_drivers = set(score_v2.WEIGHTS)
+    if set(drivers) != expected_drivers or set(source_provenance) != expected_drivers:
+        raise RuntimeError("Provider daily evidence must contain exactly eight drivers")
+    score_date = datetime.strptime(expected_score_week, "%Y-%m-%d").date()
+    expected_driver_fields = {
+        "sha256", "provider_code", "series", "observation_start",
+        "observation_end", "observation_count",
+    }
+    for driver, (provider_code, series) in score_v2.TICKERS.items():
+        item = drivers[driver]
+        if set(item) != expected_driver_fields:
+            raise RuntimeError(f"Provider daily evidence {driver} fields are invalid")
+        require_sha256(item.get("sha256"), f"Provider daily evidence {driver} fingerprint")
+        if item.get("provider_code") != provider_code or item.get("series") != series:
+            raise RuntimeError(f"Provider daily evidence {driver} source is inconsistent")
+        try:
+            observation_start = datetime.strptime(
+                str(item.get("observation_start", "")), "%Y-%m-%d"
+            ).date()
+            observation_end = datetime.strptime(
+                str(item.get("observation_end", "")), "%Y-%m-%d"
+            ).date()
+        except ValueError as error:
+            raise RuntimeError(
+                f"Provider daily evidence {driver} dates are invalid"
+            ) from error
+        if observation_start > observation_end or observation_end > score_date:
+            raise RuntimeError(
+                f"Provider daily evidence {driver} observation range is invalid"
+            )
+        count = item.get("observation_count")
+        if not isinstance(count, int) or isinstance(count, bool) or count < 1:
+            raise RuntimeError(
+                f"Provider daily evidence {driver} observation count is invalid"
+            )
+        if item.get("observation_end") != source_provenance[driver].get(
+            "observation_date"
+        ):
+            raise RuntimeError(
+                f"Provider daily evidence {driver} endpoint differs from provenance"
+            )
+    return evidence
+
+
 def build_bundle(
     weekly_clean: pd.DataFrame,
     source_provenance: dict[str, dict[str, object]],
     score_json: dict[str, Any],
+    provider_daily_evidence: dict[str, Any],
     *,
     generated_at: datetime | None = None,
     git_sha: str | None = None,
@@ -158,6 +256,11 @@ def build_bundle(
             f"Score JSON latest date {metadata.get('latest_date')} does not match "
             f"recomputed week {latest_date}"
         )
+    provider_daily_evidence = validate_provider_daily_evidence(
+        provider_daily_evidence,
+        source_provenance,
+        latest_date,
+    )
 
     published_week = next(
         (row for row in reversed(score_json["weeks"]) if row.get("date") == latest_date),
@@ -253,6 +356,7 @@ def build_bundle(
         "source_provenance_version": score_json["metadata"].get(
             "source_provenance_version"
         ),
+        "provider_derived_daily_history_fingerprint": provider_daily_evidence,
         "input_history_fingerprint": build_input_history_fingerprint(weekly_clean),
         "components": components,
         "published": {
@@ -311,13 +415,18 @@ class _NullLogger:
         pass
 
 
-def _live_weekly(score_json: dict[str, Any]) -> tuple[pd.DataFrame, dict[str, Any]]:
+def _live_weekly(
+    score_json: dict[str, Any],
+) -> tuple[pd.DataFrame, dict[str, Any], dict[str, Any]]:
     generated = datetime.now(timezone.utc)
     logger = _NullLogger()
     daily = score_v2.fetch_all_inputs(score_v2.START_DATE, logger, as_of=generated)
     provenance = daily.attrs.get("source_provenance")
     if not isinstance(provenance, dict):
         raise RuntimeError("Live fetch did not return source provenance")
+    evidence = daily.attrs.get("provider_derived_daily_history_fingerprint")
+    if not isinstance(evidence, dict):
+        raise RuntimeError("Live fetch did not return provider daily evidence")
     score_v2.validate_source_freshness(
         provenance, score_v2.latest_completed_friday(generated), logger
     )
@@ -326,7 +435,7 @@ def _live_weekly(score_json: dict[str, Any]) -> tuple[pd.DataFrame, dict[str, An
         logger,
         completed_friday=score_v2.latest_completed_friday(generated),
     )
-    return weekly[list(score_v2.WEIGHTS)].dropna(), provenance
+    return weekly[list(score_v2.WEIGHTS)].dropna(), provenance, evidence
 
 
 def main() -> int:
@@ -350,23 +459,39 @@ def main() -> int:
             "snapshot; prohibited in the production weekly workflow"
         ),
     )
+    parser.add_argument(
+        "--provider-evidence",
+        type=Path,
+        help=(
+            "Exact same-run hashes-only provider evidence receipt; required "
+            "with --weekly-levels"
+        ),
+    )
     args = parser.parse_args()
 
     score_json = _load_score_json(args.score_json)
     if args.weekly_levels is not None:
+        if args.provider_evidence is None:
+            parser.error("--provider-evidence is required with --weekly-levels")
         weekly = pd.read_csv(
             args.weekly_levels,
             parse_dates=["date"],
             float_precision="round_trip",
         ).set_index("date")
         provenance = score_json["metadata"].get("source_provenance", {})
+        provider_daily_evidence = json.loads(
+            args.provider_evidence.read_text(encoding="utf-8")
+        )
     else:
-        weekly, provenance = _live_weekly(score_json)
+        if args.provider_evidence is not None:
+            parser.error("--provider-evidence cannot be used with --live-refetch")
+        weekly, provenance, provider_daily_evidence = _live_weekly(score_json)
 
     bundle = build_bundle(
         weekly,
         provenance,
         score_json,
+        provider_daily_evidence,
         git_sha=_git_sha(),
         lock_sha256=_sha256(Path("requirements.lock")),
     )

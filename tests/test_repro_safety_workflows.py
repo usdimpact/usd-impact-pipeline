@@ -17,7 +17,15 @@ class ReproductionSafetyWorkflowTests(unittest.TestCase):
         self.assertIn("python usd_impact_score_v2.py", workflow)
         self.assertIn("--weekly-levels-output", workflow)
         self.assertIn("--weekly-levels", workflow)
+        self.assertIn("--provider-evidence-output", workflow)
+        self.assertIn("--provider-evidence", workflow)
         self.assertIn("$RUNNER_TEMP/score-v2-rehearsal-weekly-levels.csv", workflow)
+        self.assertEqual(
+            workflow.count(
+                "$RUNNER_TEMP/score-v2-rehearsal-provider-evidence.json"
+            ),
+            2,
+        )
         self.assertNotIn("--live-refetch", workflow)
         self.assertIn("python -m scripts.build_score_repro_bundle", workflow)
         self.assertIn("python -m scripts.rehearse_score_repro_acceptance", workflow)
@@ -103,9 +111,13 @@ class ReproductionSafetyWorkflowTests(unittest.TestCase):
     def test_weekly_score_and_bundle_share_one_provider_fetch(self):
         workflow = (WORKFLOWS / "weekly.yml").read_text(encoding="utf-8")
         snapshot = "$RUNNER_TEMP/score-v2-weekly-levels.csv"
+        evidence = "$RUNNER_TEMP/score-v2-provider-evidence.json"
         self.assertEqual(workflow.count(snapshot), 2)
+        self.assertEqual(workflow.count(evidence), 2)
         self.assertIn("--weekly-levels-output", workflow)
         self.assertIn("--weekly-levels", workflow)
+        self.assertIn("--provider-evidence-output", workflow)
+        self.assertIn("--provider-evidence", workflow)
         self.assertNotIn("--live-refetch", workflow)
 
     def test_new_python_workflows_use_locked_environment(self):

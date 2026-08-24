@@ -67,12 +67,23 @@ class ScoreReproBundleTests(unittest.TestCase):
                 for idx, row in out.iterrows()
             ],
         }
+        self.provider_daily_evidence = (
+            score_v2.build_provider_derived_daily_fingerprint(
+                self.weekly,
+                latest_date,
+                retrieval_run_started_at=datetime(
+                    2026, 8, 24, tzinfo=timezone.utc
+                ),
+                retrieval_mode="fixture",
+            )
+        )
 
     def test_bundle_reproduces_published_score_offline(self):
         bundle = build_bundle(
             self.weekly,
             self.score_json["metadata"]["source_provenance"],
             self.score_json,
+            self.provider_daily_evidence,
             generated_at=datetime(2026, 8, 24, tzinfo=timezone.utc),
             git_sha="fixture-sha",
             lock_sha256="fixture-lock",
@@ -93,6 +104,14 @@ class ScoreReproBundleTests(unittest.TestCase):
         self.assertEqual(len(fingerprint["matrix_sha256"]), 64)
         self.assertFalse(fingerprint["raw_provider_payloads_archived"])
         self.assertFalse(fingerprint["public_full_source_history_included"])
+        provider_fingerprint = bundle[
+            "provider_derived_daily_history_fingerprint"
+        ]
+        self.assertEqual(provider_fingerprint["version"], 1)
+        self.assertEqual(len(provider_fingerprint["matrix_sha256"]), 64)
+        self.assertFalse(provider_fingerprint["original_transport_bytes_hashed"])
+        self.assertFalse(provider_fingerprint["raw_provider_payloads_archived"])
+        self.assertFalse(provider_fingerprint["provider_derived_values_published"])
 
     def test_input_history_fingerprint_detects_one_driver_revision(self):
         original = build_input_history_fingerprint(self.weekly)
@@ -107,6 +126,30 @@ class ScoreReproBundleTests(unittest.TestCase):
         )
         self.assertEqual(
             original["drivers"]["WTI"]["sha256"],
+            changed["drivers"]["WTI"]["sha256"],
+        )
+
+    def test_provider_daily_fingerprint_detects_revision_before_weekly_processing(self):
+        revised = self.weekly.copy()
+        revised.loc[revised.index[0], "DXY"] += 0.0001
+        changed = score_v2.build_provider_derived_daily_fingerprint(
+            revised,
+            self.score_json["metadata"]["latest_date"],
+            retrieval_run_started_at=datetime(
+                2026, 8, 24, tzinfo=timezone.utc
+            ),
+            retrieval_mode="fixture",
+        )
+        self.assertNotEqual(
+            self.provider_daily_evidence["matrix_sha256"],
+            changed["matrix_sha256"],
+        )
+        self.assertNotEqual(
+            self.provider_daily_evidence["drivers"]["DXY"]["sha256"],
+            changed["drivers"]["DXY"]["sha256"],
+        )
+        self.assertEqual(
+            self.provider_daily_evidence["drivers"]["WTI"]["sha256"],
             changed["drivers"]["WTI"]["sha256"],
         )
 
@@ -145,11 +188,30 @@ class ScoreReproBundleTests(unittest.TestCase):
                     public_root=root / "public",
                 )
 
+            receipt_path = root / "work/provider-evidence.json"
+            score_v2.write_provider_evidence_receipt(
+                self.provider_daily_evidence,
+                receipt_path,
+                NullLogger(),
+                public_root=root / "public",
+            )
+            receipt_text = receipt_path.read_text(encoding="utf-8")
+            self.assertIn('"matrix_sha256"', receipt_text)
+            self.assertNotIn('"values"', receipt_text)
+            with self.assertRaisesRegex(RuntimeError, "outside the public output tree"):
+                score_v2.write_provider_evidence_receipt(
+                    self.provider_daily_evidence,
+                    root / "public/data/provider-evidence.json",
+                    NullLogger(),
+                    public_root=root / "public",
+                )
+
     def test_tampered_bundle_fails_verification(self):
         bundle = build_bundle(
             self.weekly,
             self.score_json["metadata"]["source_provenance"],
             self.score_json,
+            self.provider_daily_evidence,
         )
         bundle["components"]["DXY"]["z_clipped"] += 0.01
         with self.assertRaises(RuntimeError):
@@ -166,6 +228,7 @@ class ScoreReproBundleTests(unittest.TestCase):
                 self.weekly,
                 bad["metadata"]["source_provenance"],
                 bad,
+                self.provider_daily_evidence,
             )
 
 

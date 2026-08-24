@@ -61,6 +61,16 @@ INPUT_HISTORY_CANONICALIZATION = (
     "UTF-8 CSV; date plus production driver order; YYYY-MM-DD dates; "
     "finite floats formatted with 17 significant digits; LF line endings"
 )
+PROVIDER_DAILY_FINGERPRINT_VERSION = 1
+PROVIDER_DAILY_FINGERPRINT_SCOPE = (
+    "complete provider-derived daily input matrix on or before the completed "
+    "score Friday, after selected-field extraction and canonical driver "
+    "renaming, before calendar forward fill"
+)
+PROVIDER_DAILY_FINGERPRINT_CANONICALIZATION = (
+    "UTF-8 CSV; date plus production driver order; YYYY-MM-DD dates; missing "
+    "values empty; finite floats formatted with 17 significant digits; LF line endings"
+)
 SHA40_RE = re.compile(r"^[0-9a-f]{40}$")
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 SOURCE_CONTRACT = {
@@ -331,6 +341,81 @@ def validate_reproduction_bundle(root: Path, metadata: dict, week: str) -> None:
     fingerprint_drivers = input_fingerprint.get("drivers") or {}
     if set(fingerprint_drivers) != EXPECTED_DRIVERS:
         raise ValueError("Input-history fingerprint must contain exactly eight drivers")
+
+    daily_fingerprint = bundle.get(
+        "provider_derived_daily_history_fingerprint"
+    ) or {}
+    if daily_fingerprint.get("version") != PROVIDER_DAILY_FINGERPRINT_VERSION:
+        raise ValueError("Unexpected provider daily fingerprint version")
+    if daily_fingerprint.get("scope") != PROVIDER_DAILY_FINGERPRINT_SCOPE:
+        raise ValueError("Unexpected provider daily fingerprint scope")
+    if (
+        daily_fingerprint.get("canonicalization")
+        != PROVIDER_DAILY_FINGERPRINT_CANONICALIZATION
+    ):
+        raise ValueError("Unexpected provider daily fingerprint canonicalization")
+    if daily_fingerprint.get("score_week") != week:
+        raise ValueError("Provider daily fingerprint score_week is inconsistent")
+    if daily_fingerprint.get("retrieval_mode") != "live":
+        raise ValueError("Strict provider daily fingerprint must come from live retrieval")
+    retrieval_started_raw = str(
+        daily_fingerprint.get("retrieval_run_started_at_utc", "")
+    )
+    try:
+        retrieval_started = datetime.fromisoformat(
+            retrieval_started_raw.replace("Z", "+00:00")
+        )
+    except ValueError as error:
+        raise ValueError("Provider daily fingerprint timestamp is invalid") from error
+    if retrieval_started.tzinfo is None or retrieval_started.utcoffset() is None:
+        raise ValueError("Provider daily fingerprint timestamp must include a timezone")
+    if not SHA256_RE.fullmatch(str(daily_fingerprint.get("matrix_sha256", ""))):
+        raise ValueError("Provider daily matrix fingerprint is invalid")
+    if daily_fingerprint.get("original_transport_bytes_hashed") is not False:
+        raise ValueError("Bundle must not claim original transport-byte hashing")
+    if daily_fingerprint.get("raw_provider_payloads_archived") is not False:
+        raise ValueError("Bundle must not claim raw provider payload archival")
+    if daily_fingerprint.get("provider_derived_values_published") is not False:
+        raise ValueError("Bundle must not publish provider-derived daily values")
+    daily_drivers = daily_fingerprint.get("drivers") or {}
+    if set(daily_drivers) != EXPECTED_DRIVERS:
+        raise ValueError("Provider daily fingerprint must contain exactly eight drivers")
+    score_date = datetime.strptime(week, "%Y-%m-%d").date()
+    for driver in EXPECTED_DRIVERS:
+        item = daily_drivers[driver]
+        source_contract = SOURCE_CONTRACT[driver]
+        if item.get("provider_code") != source_contract["provider_code"]:
+            raise ValueError(f"Provider daily fingerprint {driver} provider is invalid")
+        if item.get("series") != source_contract["series"]:
+            raise ValueError(f"Provider daily fingerprint {driver} series is invalid")
+        if not SHA256_RE.fullmatch(str(item.get("sha256", ""))):
+            raise ValueError(f"Provider daily fingerprint {driver} SHA-256 is invalid")
+        try:
+            observation_start = datetime.strptime(
+                str(item.get("observation_start", "")), "%Y-%m-%d"
+            ).date()
+            observation_end = datetime.strptime(
+                str(item.get("observation_end", "")), "%Y-%m-%d"
+            ).date()
+        except ValueError as error:
+            raise ValueError(
+                f"Provider daily fingerprint {driver} dates are invalid"
+            ) from error
+        if observation_start > observation_end or observation_end > score_date:
+            raise ValueError(
+                f"Provider daily fingerprint {driver} observation range is invalid"
+            )
+        count = item.get("observation_count")
+        if not isinstance(count, int) or isinstance(count, bool) or count < 1:
+            raise ValueError(
+                f"Provider daily fingerprint {driver} observation count is invalid"
+            )
+        if item.get("observation_end") != provenance[driver].get(
+            "observation_date"
+        ):
+            raise ValueError(
+                f"Provider daily fingerprint {driver} endpoint differs from provenance"
+            )
 
     components = bundle.get("components") or {}
     if set(components) != EXPECTED_DRIVERS:
