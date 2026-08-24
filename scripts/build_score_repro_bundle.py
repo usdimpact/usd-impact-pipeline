@@ -227,7 +227,16 @@ def verify_bundle(bundle: dict[str, Any]) -> None:
 
 
 class _NullLogger:
+    def debug(self, *_args, **_kwargs):
+        pass
+
     def info(self, *_args, **_kwargs):
+        pass
+
+    def warning(self, *_args, **_kwargs):
+        pass
+
+    def error(self, *_args, **_kwargs):
         pass
 
 
