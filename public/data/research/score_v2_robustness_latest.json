@@ -1,0 +1,456 @@
+{
+  "study": "usd_impact_score_v2_robustness_battery",
+  "generated_at_utc": "2026-08-24T16:06:30.212236+00:00",
+  "production_methodology_changed": false,
+  "predictive_claim": false,
+  "as_published_vintage": false,
+  "purpose": "Descriptive robustness diagnostics for the production v2 specification. Results are current-vintage recalculations and do not change the production score.",
+  "data": {
+    "production_start_date": "2015-01-01",
+    "first_complete_week": "2015-01-02",
+    "latest_complete_week": "2026-08-21",
+    "complete_weeks": 608,
+    "latest_production_recalculated_score": -0.7216588847637988,
+    "latest_production_recalculated_regime": "Soft dollar regime",
+    "source_provenance": {
+      "DXY": {
+        "driver": "DXY",
+        "provider": "Yahoo Finance via yfinance",
+        "provider_code": "yahoo",
+        "series": "DX-Y.NYB",
+        "source_url": "https://finance.yahoo.com/quote/DX-Y.NYB/history",
+        "observation_date": "2026-08-21",
+        "score_week": "2026-08-21",
+        "age_days": 0,
+        "max_age_days": 3,
+        "status": "fresh",
+        "retrieval_mode": "live"
+      },
+      "WTI": {
+        "driver": "WTI",
+        "provider": "Yahoo Finance via yfinance",
+        "provider_code": "yahoo",
+        "series": "CL=F",
+        "source_url": "https://finance.yahoo.com/quote/CL%3DF/history",
+        "observation_date": "2026-08-21",
+        "score_week": "2026-08-21",
+        "age_days": 0,
+        "max_age_days": 3,
+        "status": "fresh",
+        "retrieval_mode": "live"
+      },
+      "SPX": {
+        "driver": "SPX",
+        "provider": "Yahoo Finance via yfinance",
+        "provider_code": "yahoo",
+        "series": "^GSPC",
+        "source_url": "https://finance.yahoo.com/quote/%5EGSPC/history",
+        "observation_date": "2026-08-21",
+        "score_week": "2026-08-21",
+        "age_days": 0,
+        "max_age_days": 3,
+        "status": "fresh",
+        "retrieval_mode": "live"
+      },
+      "VIX": {
+        "driver": "VIX",
+        "provider": "Yahoo Finance via yfinance",
+        "provider_code": "yahoo",
+        "series": "^VIX",
+        "source_url": "https://finance.yahoo.com/quote/%5EVIX/history",
+        "observation_date": "2026-08-21",
+        "score_week": "2026-08-21",
+        "age_days": 0,
+        "max_age_days": 3,
+        "status": "fresh",
+        "retrieval_mode": "live"
+      },
+      "BTC": {
+        "driver": "BTC",
+        "provider": "Yahoo Finance via yfinance",
+        "provider_code": "yahoo",
+        "series": "BTC-USD",
+        "source_url": "https://finance.yahoo.com/quote/BTC-USD/history",
+        "observation_date": "2026-08-21",
+        "score_week": "2026-08-21",
+        "age_days": 0,
+        "max_age_days": 2,
+        "status": "fresh",
+        "retrieval_mode": "live"
+      },
+      "GOLD": {
+        "driver": "GOLD",
+        "provider": "Yahoo Finance via yfinance",
+        "provider_code": "yahoo",
+        "series": "GC=F",
+        "source_url": "https://finance.yahoo.com/quote/GC%3DF/history",
+        "observation_date": "2026-08-21",
+        "score_week": "2026-08-21",
+        "age_days": 0,
+        "max_age_days": 3,
+        "status": "fresh",
+        "retrieval_mode": "live"
+      },
+      "UST_2Y": {
+        "driver": "UST_2Y",
+        "provider": "Federal Reserve Bank of St. Louis (FRED)",
+        "provider_code": "fred",
+        "series": "DGS2",
+        "source_url": "https://fred.stlouisfed.org/series/DGS2",
+        "observation_date": "2026-08-20",
+        "score_week": "2026-08-21",
+        "age_days": 1,
+        "max_age_days": 4,
+        "status": "fresh",
+        "retrieval_mode": "live"
+      },
+      "UST_10Y": {
+        "driver": "UST_10Y",
+        "provider": "Federal Reserve Bank of St. Louis (FRED)",
+        "provider_code": "fred",
+        "series": "DGS10",
+        "source_url": "https://fred.stlouisfed.org/series/DGS10",
+        "observation_date": "2026-08-20",
+        "score_week": "2026-08-21",
+        "age_days": 1,
+        "max_age_days": 4,
+        "status": "fresh",
+        "retrieval_mode": "live"
+      }
+    }
+  },
+  "point_in_time_normalization": {
+    "min_prior_weeks": 52,
+    "first_evaluated_week": "2016-01-01",
+    "last_evaluated_week": "2026-08-21",
+    "evaluated_weeks": 556,
+    "summary": {
+      "mean_absolute_score_difference": 0.5124579576010689,
+      "max_absolute_score_difference": 1.430013920324749,
+      "regime_label_agreement_rate": 0.4010791366906475
+    },
+    "anchor_windows": [
+      {
+        "name": "2015-16 oil/EM stress",
+        "start": "2015-07-01",
+        "end": "2016-02-01",
+        "expected_sign": 1,
+        "weeks": 5,
+        "pit_sign_hit_rate": 1.0,
+        "full_sample_sign_hit_rate": 1.0,
+        "pit_mean_score": 0.9217073053784783,
+        "full_sample_mean_score": 0.5240669771432469,
+        "regime_label_agreement_rate": 0.6
+      },
+      {
+        "name": "2018 Fed tightening",
+        "start": "2018-06-01",
+        "end": "2018-12-31",
+        "expected_sign": 1,
+        "weeks": 31,
+        "pit_sign_hit_rate": 0.41935483870967744,
+        "full_sample_sign_hit_rate": 1.0,
+        "pit_mean_score": 0.06629411067689628,
+        "full_sample_mean_score": 0.21635459281918318,
+        "regime_label_agreement_rate": 0.9354838709677419
+      },
+      {
+        "name": "2020 COVID funding stress (phase 1)",
+        "start": "2020-03-01",
+        "end": "2020-03-23",
+        "expected_sign": 1,
+        "weeks": 3,
+        "pit_sign_hit_rate": 0.3333333333333333,
+        "full_sample_sign_hit_rate": 1.0,
+        "pit_mean_score": -0.15256585079832363,
+        "full_sample_mean_score": 0.5714451804136079,
+        "regime_label_agreement_rate": 0.3333333333333333
+      },
+      {
+        "name": "2020-21 post-Fed liquidity (phase 2)",
+        "start": "2020-04-01",
+        "end": "2021-10-01",
+        "expected_sign": -1,
+        "weeks": 79,
+        "pit_sign_hit_rate": 1.0,
+        "full_sample_sign_hit_rate": 0.7974683544303798,
+        "pit_mean_score": -1.2765503578558173,
+        "full_sample_mean_score": -0.2586661195664445,
+        "regime_label_agreement_rate": 0.0
+      },
+      {
+        "name": "2022 tightening cycle",
+        "start": "2022-02-01",
+        "end": "2023-03-01",
+        "expected_sign": 1,
+        "weeks": 56,
+        "pit_sign_hit_rate": 0.6964285714285714,
+        "full_sample_sign_hit_rate": 0.75,
+        "pit_mean_score": 0.14586694551691584,
+        "full_sample_mean_score": 0.21337135858634687,
+        "regime_label_agreement_rate": 0.8035714285714286
+      }
+    ]
+  },
+  "leave_one_driver_out": [
+    {
+      "omitted_driver": "DXY",
+      "remaining_absolute_weight_sum": 0.9999999999999998,
+      "latest_score": -0.8376983476640006,
+      "latest_score_difference": -0.11603946290020184,
+      "mean_absolute_score_difference": 0.11165898078538493,
+      "max_absolute_score_difference": 0.34099143441696533,
+      "sign_agreement_rate": 0.8486842105263158,
+      "regime_label_agreement_rate": 0.875,
+      "latest_regime": "Soft dollar regime"
+    },
+    {
+      "omitted_driver": "WTI",
+      "remaining_absolute_weight_sum": 0.9999999999999998,
+      "latest_score": -0.6350401171091132,
+      "latest_score_difference": 0.08661876765468557,
+      "mean_absolute_score_difference": 0.11121940520134863,
+      "max_absolute_score_difference": 0.464759235207602,
+      "sign_agreement_rate": 0.8618421052631579,
+      "regime_label_agreement_rate": 0.8338815789473685,
+      "latest_regime": "Soft dollar regime"
+    },
+    {
+      "omitted_driver": "SPX",
+      "remaining_absolute_weight_sum": 0.9999999999999998,
+      "latest_score": -0.4637020572563212,
+      "latest_score_difference": 0.2579568275074776,
+      "mean_absolute_score_difference": 0.10522616964660111,
+      "max_absolute_score_difference": 0.28967752645085043,
+      "sign_agreement_rate": 0.8042763157894737,
+      "regime_label_agreement_rate": 0.8930921052631579,
+      "latest_regime": "Soft dollar regime"
+    },
+    {
+      "omitted_driver": "VIX",
+      "remaining_absolute_weight_sum": 0.9999999999999998,
+      "latest_score": -0.7617168069003685,
+      "latest_score_difference": -0.04005792213656967,
+      "mean_absolute_score_difference": 0.10731226600607445,
+      "max_absolute_score_difference": 0.44885393522867656,
+      "sign_agreement_rate": 0.8914473684210527,
+      "regime_label_agreement_rate": 0.8388157894736842,
+      "latest_regime": "Soft dollar regime"
+    },
+    {
+      "omitted_driver": "BTC",
+      "remaining_absolute_weight_sum": 0.9999999999999998,
+      "latest_score": -0.612532404761373,
+      "latest_score_difference": 0.10912648000242575,
+      "mean_absolute_score_difference": 0.09624679325351275,
+      "max_absolute_score_difference": 0.3170385255882843,
+      "sign_agreement_rate": 0.805921052631579,
+      "regime_label_agreement_rate": 0.9046052631578947,
+      "latest_regime": "Soft dollar regime"
+    },
+    {
+      "omitted_driver": "GOLD",
+      "remaining_absolute_weight_sum": 0.9999999999999998,
+      "latest_score": -0.40281997578173867,
+      "latest_score_difference": 0.31883890898206013,
+      "mean_absolute_score_difference": 0.09421457385682566,
+      "max_absolute_score_difference": 0.42282772716126815,
+      "sign_agreement_rate": 0.837171052631579,
+      "regime_label_agreement_rate": 0.881578947368421,
+      "latest_regime": "Soft dollar regime"
+    },
+    {
+      "omitted_driver": "UST_2Y",
+      "remaining_absolute_weight_sum": 0.9999999999999998,
+      "latest_score": -0.9974667193291552,
+      "latest_score_difference": -0.2758078345653564,
+      "mean_absolute_score_difference": 0.1290861851098443,
+      "max_absolute_score_difference": 0.2800552442284937,
+      "sign_agreement_rate": 0.8667763157894737,
+      "regime_label_agreement_rate": 0.84375,
+      "latest_regime": "Soft dollar regime"
+    },
+    {
+      "omitted_driver": "UST_10Y",
+      "remaining_absolute_weight_sum": 0.9999999999999998,
+      "latest_score": -1.0622946493083198,
+      "latest_score_difference": -0.34063576454452105,
+      "mean_absolute_score_difference": 0.12588498880751886,
+      "max_absolute_score_difference": 0.3435062991302499,
+      "sign_agreement_rate": 0.8634868421052632,
+      "regime_label_agreement_rate": 0.8552631578947368,
+      "latest_regime": "Weak dollar regime"
+    }
+  ],
+  "rolling_normalization": [
+    {
+      "prior_window_weeks": 104,
+      "evaluated_weeks": 504,
+      "first_evaluated_week": "2016-12-30",
+      "last_evaluated_week": "2026-08-21",
+      "latest_score": -0.3004686337084661,
+      "latest_full_sample_score": -0.7216588847637988,
+      "mean_absolute_score_difference_vs_full_sample": 0.518088066450175,
+      "max_absolute_score_difference_vs_full_sample": 1.2828405633479558,
+      "sign_agreement_rate_vs_full_sample": 0.6309523809523809,
+      "regime_label_agreement_rate_vs_full_sample": 0.3968253968253968
+    },
+    {
+      "prior_window_weeks": 156,
+      "evaluated_weeks": 452,
+      "first_evaluated_week": "2017-12-29",
+      "last_evaluated_week": "2026-08-21",
+      "latest_score": -0.5510306113596111,
+      "latest_full_sample_score": -0.7216588847637988,
+      "mean_absolute_score_difference_vs_full_sample": 0.4823972235002931,
+      "max_absolute_score_difference_vs_full_sample": 1.155718760746452,
+      "sign_agreement_rate_vs_full_sample": 0.6836283185840708,
+      "regime_label_agreement_rate_vs_full_sample": 0.3915929203539823
+    },
+    {
+      "prior_window_weeks": 260,
+      "evaluated_weeks": 348,
+      "first_evaluated_week": "2019-12-27",
+      "last_evaluated_week": "2026-08-21",
+      "latest_score": -0.6979684629538792,
+      "latest_full_sample_score": -0.7216588847637988,
+      "mean_absolute_score_difference_vs_full_sample": 0.466671147617365,
+      "max_absolute_score_difference_vs_full_sample": 1.230677221896193,
+      "sign_agreement_rate_vs_full_sample": 0.7844827586206896,
+      "regime_label_agreement_rate_vs_full_sample": 0.4339080459770115
+    }
+  ],
+  "correlation_concentration": {
+    "diagnostic": "Pearson correlation of production weekly level inputs",
+    "caution": "Level correlations may reflect common trends and are not return correlations.",
+    "window_weeks": 52,
+    "window_start": "2025-08-29",
+    "window_end": "2026-08-21",
+    "mean_absolute_pair_correlation": 0.4361392415965037,
+    "max_absolute_pair_correlation": 0.9554926673187923,
+    "pairs_at_or_above_abs_0_70": 3,
+    "top_pairs": [
+      {
+        "left": "UST_2Y",
+        "right": "UST_10Y",
+        "correlation": 0.9554926673187923
+      },
+      {
+        "left": "SPX",
+        "right": "UST_2Y",
+        "correlation": 0.7905223089204004
+      },
+      {
+        "left": "SPX",
+        "right": "UST_10Y",
+        "correlation": 0.7825069171059421
+      },
+      {
+        "left": "DXY",
+        "right": "UST_2Y",
+        "correlation": 0.666953980498746
+      },
+      {
+        "left": "WTI",
+        "right": "UST_10Y",
+        "correlation": 0.6508924708274695
+      },
+      {
+        "left": "BTC",
+        "right": "UST_10Y",
+        "correlation": -0.6411004637209163
+      },
+      {
+        "left": "WTI",
+        "right": "UST_2Y",
+        "correlation": 0.6400440444116019
+      },
+      {
+        "left": "BTC",
+        "right": "UST_2Y",
+        "correlation": -0.6306754355523096
+      },
+      {
+        "left": "SPX",
+        "right": "BTC",
+        "correlation": -0.596869473550424
+      },
+      {
+        "left": "WTI",
+        "right": "BTC",
+        "correlation": -0.589417493334874
+      }
+    ]
+  },
+  "regime_threshold_sensitivity": [
+    {
+      "variant": "narrower",
+      "neutral_boundary": 0.2,
+      "strong_boundary": 0.8,
+      "latest_regime": "Soft dollar regime",
+      "label_agreement_rate_vs_production": 0.8536184210526315
+    },
+    {
+      "variant": "production",
+      "neutral_boundary": 0.3,
+      "strong_boundary": 1.0,
+      "latest_regime": "Soft dollar regime",
+      "label_agreement_rate_vs_production": 1.0
+    },
+    {
+      "variant": "wider",
+      "neutral_boundary": 0.4,
+      "strong_boundary": 1.2,
+      "latest_regime": "Soft dollar regime",
+      "label_agreement_rate_vs_production": 0.9029605263157895
+    }
+  ],
+  "subperiod_stability": [
+    {
+      "period": "2015-2018",
+      "start": "2015-01-01",
+      "end": "2018-12-31",
+      "weeks": 209,
+      "mean_score": 0.15622946193057174,
+      "score_std": 0.15834820007392075,
+      "min_score": -0.1848037057264468,
+      "max_score": 0.6478590733928941,
+      "positive_score_share": 0.8803827751196173,
+      "negative_score_share": 0.11961722488038277,
+      "neutral_regime_share": 0.8038277511961722
+    },
+    {
+      "period": "2019-2021",
+      "start": "2019-01-01",
+      "end": "2021-12-31",
+      "weeks": 157,
+      "mean_score": -0.12483739366931174,
+      "score_std": 0.3548201078773759,
+      "min_score": -0.7328160429264812,
+      "max_score": 0.7755704654139729,
+      "positive_score_share": 0.4267515923566879,
+      "negative_score_share": 0.5732484076433121,
+      "neutral_regime_share": 0.5668789808917197
+    },
+    {
+      "period": "2022-latest",
+      "start": "2022-01-01",
+      "end": "2026-08-21",
+      "weeks": 242,
+      "mean_score": -0.05926933305201591,
+      "score_std": 0.37997227482949647,
+      "min_score": -0.8278211534340283,
+      "max_score": 0.8993486367574093,
+      "positive_score_share": 0.5165289256198347,
+      "negative_score_share": 0.4834710743801653,
+      "neutral_regime_share": 0.5330578512396694
+    }
+  ],
+  "limitations": [
+    "The production score is descriptive, not predictive.",
+    "Current-vintage source histories can differ from historical as-published vintages.",
+    "Leave-one-out and rolling-window variants are diagnostics, not alternative production models.",
+    "Correlation diagnostics use the weekly input levels consumed by v2 and may reflect common trends.",
+    "2008 is outside canonical v2 because the production specification begins in 2015 and includes Bitcoin."
+  ]
+}
