@@ -1,0 +1,266 @@
+name: Score v3 prospective shadow ingestion
+
+# Research-only downstream consumer of an already-successful push-to-main Score
+# v2 reproduction attestation. It never blocks, regenerates, or modifies the
+# production v2 release. Before 2026-08-28 it exits successfully without writes.
+on:
+  workflow_run:
+    workflows: ["Score v2 reproduction attestation"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: write
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: score-v3-prospective-shadow-ingestion
+  cancel-in-progress: false
+
+jobs:
+  ingest:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.head_branch == 'main')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Resolve successful post-merge attestation
+        id: source
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+          WORKFLOW_RUN_ID: ${{ github.event.workflow_run.id }}
+          WORKFLOW_RUN_URL: ${{ github.event.workflow_run.html_url }}
+          WORKFLOW_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          if [ "$EVENT_NAME" = "workflow_run" ]; then
+            echo "attested_sha=$WORKFLOW_HEAD_SHA" >> "$GITHUB_OUTPUT"
+            echo "attestation_run_id=$WORKFLOW_RUN_ID" >> "$GITHUB_OUTPUT"
+            echo "attestation_url=$WORKFLOW_RUN_URL" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          latest="$(gh run list \
+            --workflow repro-attestation.yml \
+            --branch main \
+            --event push \
+            --status success \
+            --limit 20 \
+            --json databaseId,headSha,url \
+            --jq '.[0]')"
+          if [ -z "$latest" ] || [ "$latest" = "null" ]; then
+            echo "No successful push-to-main Score v2 attestation is available for manual recovery."
+            exit 1
+          fi
+          echo "attested_sha=$(echo "$latest" | jq -r '.headSha')" >> "$GITHUB_OUTPUT"
+          echo "attestation_run_id=$(echo "$latest" | jq -r '.databaseId')" >> "$GITHUB_OUTPUT"
+          echo "attestation_url=$(echo "$latest" | jq -r '.url')" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout current main with full history
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Prove attested release and research engine are unchanged
+        env:
+          ATTESTED_SHA: ${{ steps.source.outputs.attested_sha }}
+        run: |
+          current_week="$(python -c "import json; print(json.load(open('public/data/usd_impact_score_v2.json'))['metadata']['latest_date'])")"
+          if [[ "$current_week" < "2026-08-28" ]]; then
+            echo "Pre-holdout week ${current_week}; provenance drift proof is not yet acceptance-critical."
+            exit 0
+          fi
+
+          git merge-base --is-ancestor "$ATTESTED_SHA" HEAD || {
+            echo "Source attestation commit is not an ancestor of current main."
+            exit 1
+          }
+
+          critical_paths=(
+            usd_impact_score_v2.py
+            requirements.lock
+            public/data/usd_impact_score_v2.json
+            public/data/score_repro_bundle_latest.json
+            public/data/score_v2_methodology.json
+            public/data/score_v2_methodology.schema.json
+            public/archive
+            scripts/build_score_repro_bundle.py
+            scripts/validate_weekly_release.py
+            scripts/validate_methodology_contract.py
+            research/score_v3_preregistration.json
+            research/score_v3_initialization_2026-08-21.csv
+            research/score_v3_initialization_2026-08-21.manifest.json
+            research/score_v3_prospective_manifest.schema.json
+            scripts/score_v3_candidates.py
+            scripts/score_v3_manifest.py
+            scripts/score_v3_shadow_ingestion.py
+          )
+
+          if ! git diff --quiet "$ATTESTED_SHA" HEAD -- "${critical_paths[@]}"; then
+            echo "Critical v2 evidence or v3 engine changed after the successful source attestation."
+            git diff --name-only "$ATTESTED_SHA" HEAD -- "${critical_paths[@]}"
+            echo "Refusing to ingest. Obtain a fresh push-to-main v2 attestation first."
+            exit 1
+          fi
+          echo "Attested release and v3 engine are unchanged on current main."
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: requirements.lock
+
+      - name: Install locked dependencies
+        run: |
+          python -m pip install --upgrade pip==26.2.1
+          python -m pip install -r requirements.lock
+          python -m pip check
+
+      - name: Revalidate checked-out v2 release contract
+        run: |
+          python -m scripts.validate_methodology_contract --json
+          python scripts/validate_weekly_release.py
+
+      - name: Ingest latest attested week into research shadow
+        id: ingest
+        run: |
+          python -m scripts.score_v3_shadow_ingestion \
+            --attestation-run-id "${{ steps.source.outputs.attestation_run_id }}" \
+            --attestation-url "${{ steps.source.outputs.attestation_url }}" \
+            --report "$RUNNER_TEMP/score-v3-shadow-ingestion.json"
+          status="$(python -c "import json; print(json.load(open('$RUNNER_TEMP/score-v3-shadow-ingestion.json'))['status'])")"
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+
+      - name: Record shadow ingestion summary
+        if: always()
+        run: |
+          if [ ! -f "$RUNNER_TEMP/score-v3-shadow-ingestion.json" ]; then
+            echo '## Score v3 prospective shadow ingestion' >> "$GITHUB_STEP_SUMMARY"
+            echo '' >> "$GITHUB_STEP_SUMMARY"
+            echo '**FAILED before a report was produced.**' >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json, os
+          from pathlib import Path
+          report = json.loads(Path(os.environ['RUNNER_TEMP'], 'score-v3-shadow-ingestion.json').read_text())
+          print('## Score v3 prospective shadow ingestion')
+          print('')
+          print(f"- Status: **{report['status']}**")
+          print(f"- Published v2 week: `{report['published_week']}`")
+          print(f"- Research-only: **{report['research_only']}**")
+          print(f"- Writes performed: **{report['writes_performed']}**")
+          if report.get('source_v2_bundle_sha256'):
+              print(f"- Source v2 bundle SHA-256: `{report['source_v2_bundle_sha256']}`")
+          if report.get('candidate_result_sha256'):
+              print(f"- Candidate-result SHA-256: `{report['candidate_result_sha256']}`")
+          PY
+
+      - name: Open, exact-head validate, and merge research-only weekly PR
+        if: steps.ingest.outputs.status == 'ingested'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          allowed='^( M|M |A |\?\?) research/(score_v3_prospective_manifest.json|prospective/score_v3_shadow_[0-9]{4}-[0-9]{2}-[0-9]{2}\.json)$'
+          unexpected="$(git status --porcelain | grep -Ev "$allowed" || true)"
+          if [ -n "$unexpected" ]; then
+            echo "Unexpected working-tree changes; refusing research publication:"
+            echo "$unexpected"
+            exit 1
+          fi
+
+          WEEK="$(python -c "import json; print(json.load(open('$RUNNER_TEMP/score-v3-shadow-ingestion.json'))['published_week'])")"
+          branch="automation/score-v3-shadow-${WEEK}-${GITHUB_RUN_ID}"
+          git config user.name "USD Impact Research Pipeline"
+          git config user.email "pipeline@lbx-fx.com"
+          git checkout -b "$branch"
+          git add research/score_v3_prospective_manifest.json research/prospective/
+          git commit -m "Record Score v3 prospective shadow week ${WEEK}"
+          git push --set-upstream origin "$branch"
+          head_sha="$(git rev-parse HEAD)"
+
+          cat > "$RUNNER_TEMP/score-v3-shadow-pr.md" <<EOF
+          ## Automated Score v3 prospective shadow record
+
+          Research-only observation for **${WEEK}**, downstream of a successful push-to-main Score v2 reproduction attestation.
+
+          - consumes the immutable as-published v2 reproduction bundle;
+          - uses the locked preregistration commit and frozen 2026-08-21 initialization matrix;
+          - records exactly the four preregistered candidate calculations;
+          - makes no production Score v2 change;
+          - makes no predictive, trading, PnL, or candidate-selection claim.
+
+          This PR is merged only after Weekly score quality passes on this exact head SHA.
+          EOF
+
+          pr_url="$(gh pr create \
+            --base main \
+            --head "$branch" \
+            --title "Record Score v3 shadow research — ${WEEK}" \
+            --body-file "$RUNNER_TEMP/score-v3-shadow-pr.md")"
+
+          gh workflow run quality.yml --ref "$branch"
+          run_id=""
+          for attempt in $(seq 1 30); do
+            run_id="$(gh run list \
+              --workflow quality.yml \
+              --branch "$branch" \
+              --event workflow_dispatch \
+              --limit 10 \
+              --json databaseId,headSha \
+              --jq ".[] | select(.headSha == \"$head_sha\") | .databaseId" | head -n 1)"
+            if [ -n "$run_id" ]; then
+              break
+            fi
+            sleep 5
+          done
+          if [ -z "$run_id" ]; then
+            echo "Could not locate exact-head quality run for $head_sha."
+            exit 1
+          fi
+          gh run watch "$run_id" --exit-status
+          gh pr merge "$pr_url" --squash --delete-branch
+
+      - name: Surface post-holdout ingestion failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          week="unknown"
+          if [ -f public/data/usd_impact_score_v2.json ]; then
+            week="$(python -c "import json; print(json.load(open('public/data/usd_impact_score_v2.json'))['metadata']['latest_date'])" 2>/dev/null || echo unknown)"
+          fi
+          if [[ "$week" < "2026-08-28" ]]; then
+            echo "Failure occurred before the prospective holdout; no production impact."
+            exit 0
+          fi
+
+          title="Score v3 prospective shadow ingestion requires attention"
+          body="$RUNNER_TEMP/score-v3-shadow-failure.md"
+          cat > "$body" <<EOF
+          ## Score v3 prospective shadow ingestion failure
+
+          The research-only downstream ingestion failed after a successful v2 post-merge attestation. **Production Score v2 is unaffected.**
+
+          - v2 week: ${week}
+          - downstream run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
+          - source attestation: ${{ steps.source.outputs.attestation_url }}
+          - attested SHA: ${{ steps.source.outputs.attested_sha }}
+
+          The prospective ledger is fail-closed; do not reconstruct or skip this week from later provider history.
+          EOF
+
+          issue="$(gh issue list --state open --limit 100 --json number,title --jq ".[] | select(.title == \"$title\") | .number" | head -n 1)"
+          if [ -n "$issue" ]; then
+            gh issue comment "$issue" --body-file "$body"
+          else
+            gh issue create --title "$title" --body-file "$body"
+          fi
