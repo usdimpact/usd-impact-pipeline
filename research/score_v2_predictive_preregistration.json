@@ -1,0 +1,116 @@
+{
+  "$schema": "./score_v2_predictive_preregistration.schema.json",
+  "protocol_id": "usd_impact_score_v2_one_week_dxy_direction_2026-08-25",
+  "protocol_version": 1,
+  "registered_date": "2026-08-25",
+  "registration_status": "preregistered_before_untouched_holdout",
+  "production_change": false,
+  "production_methodology_affected": false,
+  "current_predictive_claim_authorized": false,
+  "trading_strategy_claim": false,
+  "purpose": "Prospectively test whether the sign of the as-published USD Impact Score v2 has directional information about the next completed-Friday DXY move. This research protocol does not change production and does not authorize a predictive claim before the formal gate is completed.",
+  "knowledge_boundary": {
+    "latest_observation_seen_at_registration": "2026-08-21",
+    "first_untouched_prediction_origin": "2026-08-28",
+    "first_resolvable_outcome_week": "2026-09-04",
+    "required_resolved_predictions": 52,
+    "earliest_expected_formal_outcome_week_if_no_gap": "2027-08-27",
+    "all_data_through_latest_observation_are_retrospective_design_information": true,
+    "score_v2_and_prediction_rule_were_selected_before_untouched_holdout": true,
+    "pre_holdout_results_are_untouched_test_evidence": false,
+    "post_holdout_rule_change_allowed": false
+  },
+  "predictor": {
+    "model": "USD Impact Score v2",
+    "origin_source": "immutable as-published strict reproduction bundle for the origin week",
+    "score_field": "published.score",
+    "prediction_rule": "predict DXY up when score >= 0; predict DXY down when score < 0",
+    "prediction_timestamp_boundary": "only after the origin week's successful push-to-main reproduction attestation and before the next completed Friday outcome bundle exists",
+    "abstention_allowed": false,
+    "threshold_optimization_allowed": false,
+    "magnitude_forecast": false
+  },
+  "target": {
+    "asset": "DXY",
+    "origin_level_source": "origin strict reproduction bundle components.DXY.weekly_level",
+    "outcome_level_source": "next strict reproduction bundle components.DXY.weekly_level",
+    "horizon": "one completed Friday to the immediately following completed Friday",
+    "return_formula": "ln(outcome_DXY_level / origin_DXY_level)",
+    "actual_direction_rule": "up when return >= 0; down when return < 0",
+    "later_provider_recalculation_allowed": false,
+    "outcome_substitution_allowed": false
+  },
+  "comparators": {
+    "always_up": "predict up for every origin",
+    "one_week_dxy_momentum": "predict the sign of the immediately preceding as-published DXY weekly move; for the first origin only, use the frozen 2026-08-21 initialization level as the prior level",
+    "comparator_selection_after_results_allowed": false
+  },
+  "sample_integrity": {
+    "weekly_grid": "W-FRI beginning 2026-08-28",
+    "consecutive_origins_required": true,
+    "missed_origin_may_be_backfilled_after_outcome": false,
+    "failed_or_missing_origin_must_be_reported": true,
+    "target_week_may_be_skipped": false,
+    "zero_score_handling": "predict up",
+    "zero_return_handling": "classify as up",
+    "driver_or_regime_based_exclusions_allowed": false
+  },
+  "primary_endpoint": {
+    "name": "one_week_dxy_directional_accuracy",
+    "formula": "correct model directions / 52 resolved predictions",
+    "primary_inference": "preregistered circular-shift null comparison preserving the observed prediction and outcome sequences",
+    "circular_shift_rule": "compare observed accuracy with all 51 non-zero circular shifts of the 52 prediction signs relative to the fixed 52 outcome signs",
+    "p_value_formula": "(1 + number_of_nonzero_shifts_with_accuracy_at_least_observed) / 52",
+    "significance_threshold": 0.05,
+    "descriptive_interval": "two-sided 95% Wilson interval for directional accuracy"
+  },
+  "meaningful_predictive_evidence_rule": {
+    "all_conditions_required": true,
+    "conditions": [
+      "exactly 52 consecutive resolved prospective predictions exist with no backfill",
+      "every origin and outcome is bound to its immutable as-published strict reproduction bundle",
+      "observed directional accuracy is at least 0.60",
+      "circular-shift p-value is less than or equal to 0.05",
+      "model accuracy exceeds the better of always-up and one-week DXY momentum accuracy by at least 0.05"
+    ],
+    "failure_result": "No meaningful one-week DXY directional predictive evidence was established under this preregistered test.",
+    "passing_result_boundary": "A pass supports only a bounded one-week DXY directional association in this prospective sample; it does not establish trading profitability, causal power, calibration, performance for other assets or durable future accuracy."
+  },
+  "secondary_endpoints": [
+    {
+      "name": "spearman_score_return_association",
+      "definition": "Spearman rank correlation between origin score and next-week DXY log return",
+      "confirmatory": false
+    },
+    {
+      "name": "accuracy_lift_over_always_up",
+      "definition": "model directional accuracy minus always-up accuracy",
+      "confirmatory": false
+    },
+    {
+      "name": "accuracy_lift_over_momentum",
+      "definition": "model directional accuracy minus one-week DXY momentum accuracy",
+      "confirmatory": false
+    }
+  ],
+  "reporting_policy": {
+    "integrity_checkpoints_after_resolved_predictions": [13, 26, 39],
+    "interim_performance_values_may_be_published": false,
+    "interim_accept_or_reject_decision_allowed": false,
+    "formal_performance_report_after_resolved_predictions": 52,
+    "automatic_site_predictive_claim_allowed": false,
+    "production_promotion_allowed": false
+  },
+  "amendment_policy": {
+    "cosmetic_clarification_before_first_origin": "versioned amendment allowed if it does not change predictor, target, sample, endpoint, comparator or decision rule",
+    "material_change_after_first_origin": "requires a new protocol ID and a reset untouched holdout",
+    "implementation_defect_after_outcome_known": "report the defect; do not repair, reconstruct or backfill the affected origin under this protocol"
+  },
+  "limitations": [
+    "The target is DXY only, not broad dollar performance or another covered asset.",
+    "DXY is also one contemporaneous input to Score v2; the one-week horizon prevents direct same-week target leakage but does not make the predictor economically independent of DXY.",
+    "A 52-week sample is limited and may not span all macroeconomic regimes.",
+    "The test has no transaction costs, position sizing, drawdown, PnL or portfolio objective.",
+    "A passing result would remain first-party evidence until independently reproduced or audited."
+  ]
+}

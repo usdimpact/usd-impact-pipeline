@@ -204,6 +204,8 @@ The JSON and CSV vintage-comparison artifacts measure this difference directly. 
 
 The generated legacy backtest is descriptive across selected historical regime windows. The point-in-time and robustness research explicitly tests normalization/specification sensitivity, including leave-one-out and adversarial sign flips. It also publishes score-distribution and consecutive regime-duration diagnostics, which the generated dashboards visualize. Neither is a predictive forecast test, a trading strategy, or evidence of guaranteed future performance. Current research results must be read from the published JSON artifacts rather than hard-coded into operational documentation.
 
+A separate [Score v2 one-week DXY predictive protocol](docs/score-v2-predictive-preregistration.md) was preregistered on August 25, 2026, before its first eligible origin on August 28. It requires 52 consecutive, non-backfilled future predictions and does not authorize any current predictive or trading claim. Earlier information was available when Score v2 and the prediction rule were selected and is explicitly treated as retrospective design information, not untouched test evidence.
+
 ## Change-safety rules
 
 - Never push generated releases directly to `main`.
