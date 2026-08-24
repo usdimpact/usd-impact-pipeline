@@ -70,10 +70,12 @@ jobs:
             --web \
             --output-dir public \
             --backtest \
-            --weekly-levels-output "$RUNNER_TEMP/score-v2-rehearsal-weekly-levels.csv"
+            --weekly-levels-output "$RUNNER_TEMP/score-v2-rehearsal-weekly-levels.csv" \
+            --provider-evidence-output "$RUNNER_TEMP/score-v2-rehearsal-provider-evidence.json"
           python -m scripts.build_score_repro_bundle \
             --score-json public/data/usd_impact_score_v2.json \
             --weekly-levels "$RUNNER_TEMP/score-v2-rehearsal-weekly-levels.csv" \
+            --provider-evidence "$RUNNER_TEMP/score-v2-rehearsal-provider-evidence.json" \
             --output public/data/score_repro_bundle_latest.json
           python scripts/generate_weekly_commentary.py \
             --score-json public/data/usd_impact_score_v2.json \

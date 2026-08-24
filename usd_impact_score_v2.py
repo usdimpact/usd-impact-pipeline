@@ -44,6 +44,7 @@ from __future__ import annotations
 
 import argparse
 import base64
+import hashlib
 import io
 import json
 import logging
@@ -113,6 +114,16 @@ SOURCE_MAX_AGE_DAYS = {
 }
 
 SOURCE_PROVENANCE_VERSION = 1
+PROVIDER_DAILY_FINGERPRINT_VERSION = 1
+PROVIDER_DAILY_FINGERPRINT_SCOPE = (
+    "complete provider-derived daily input matrix on or before the completed "
+    "score Friday, after selected-field extraction and canonical driver "
+    "renaming, before calendar forward fill"
+)
+PROVIDER_DAILY_FINGERPRINT_CANONICALIZATION = (
+    "UTF-8 CSV; date plus production driver order; YYYY-MM-DD dates; missing "
+    "values empty; finite floats formatted with 17 significant digits; LF line endings"
+)
 
 # Sign = expected direction of move under a stronger dollar regime.
 # Magnitude 0.125 means equal-weight across eight inputs (sum of |w| = 1.0).
@@ -355,6 +366,105 @@ def build_source_provenance(
     return provenance
 
 
+def _canonical_provider_daily_bytes(
+    raw_df: pd.DataFrame,
+    drivers: list[str],
+) -> bytes:
+    lines = [",".join(("date", *drivers))]
+    for index, row in raw_df[drivers].iterrows():
+        date_text = pd.Timestamp(index).date().isoformat()
+        values = []
+        for driver in drivers:
+            value = row[driver]
+            if pd.isna(value):
+                values.append("")
+                continue
+            numeric = float(value)
+            if not np.isfinite(numeric):
+                raise RuntimeError(
+                    f"Non-finite provider-derived daily input for {driver} {date_text}"
+                )
+            values.append(format(numeric, ".17g"))
+        lines.append(",".join((date_text, *values)))
+    return ("\n".join(lines) + "\n").encode("utf-8")
+
+
+def build_provider_derived_daily_fingerprint(
+    raw_df: pd.DataFrame,
+    score_week: date | pd.Timestamp,
+    *,
+    retrieval_run_started_at: datetime,
+    retrieval_mode: str = "live",
+) -> dict[str, object]:
+    """Bind a release to its provider-derived daily histories without values.
+
+    This hashes parsed, selected daily series rather than original HTTP response
+    bytes. It deliberately retains neither transport payloads nor source values.
+    """
+    drivers = list(WEIGHTS)
+    missing = [driver for driver in drivers if driver not in raw_df.columns]
+    if missing:
+        raise RuntimeError(
+            f"Provider-derived daily fingerprint is missing drivers: {missing}"
+        )
+
+    score_date = pd.Timestamp(score_week).date()
+    frame = raw_df[drivers].copy()
+    frame.index = pd.to_datetime(frame.index)
+    frame = frame[
+        [pd.Timestamp(index).date() <= score_date for index in frame.index]
+    ].sort_index()
+    if frame.empty or frame.index.has_duplicates:
+        raise RuntimeError(
+            "Provider-derived daily fingerprint needs non-empty, unique dates"
+        )
+    if not frame.index.is_monotonic_increasing:
+        raise RuntimeError("Provider-derived daily fingerprint dates must be ordered")
+
+    driver_fingerprints: dict[str, dict[str, object]] = {}
+    for driver, (provider_code, series) in TICKERS.items():
+        observed = frame[[driver]].dropna()
+        if observed.empty:
+            raise RuntimeError(
+                f"Provider-derived daily fingerprint has no observations for {driver}"
+            )
+        driver_fingerprints[driver] = {
+            "sha256": hashlib.sha256(
+                _canonical_provider_daily_bytes(observed, [driver])
+            ).hexdigest(),
+            "provider_code": provider_code,
+            "series": series,
+            "observation_start": observed.index[0].date().isoformat(),
+            "observation_end": observed.index[-1].date().isoformat(),
+            "observation_count": len(observed),
+        }
+
+    if retrieval_run_started_at.tzinfo is None:
+        retrieval_run_started_at = retrieval_run_started_at.replace(
+            tzinfo=timezone.utc
+        )
+    started_at_utc = retrieval_run_started_at.astimezone(timezone.utc)
+    return {
+        "version": PROVIDER_DAILY_FINGERPRINT_VERSION,
+        "scope": PROVIDER_DAILY_FINGERPRINT_SCOPE,
+        "canonicalization": PROVIDER_DAILY_FINGERPRINT_CANONICALIZATION,
+        "score_week": score_date.isoformat(),
+        "retrieval_run_started_at_utc": started_at_utc.isoformat(),
+        "retrieval_mode": retrieval_mode,
+        "matrix_sha256": hashlib.sha256(
+            _canonical_provider_daily_bytes(frame, drivers)
+        ).hexdigest(),
+        "drivers": driver_fingerprints,
+        "original_transport_bytes_hashed": False,
+        "raw_provider_payloads_archived": False,
+        "provider_derived_values_published": False,
+        "purpose": (
+            "Detect later changes in the exact provider-derived daily histories "
+            "eligible for this release without retaining or redistributing values."
+        ),
+    }
+
+
 def validate_source_freshness(
     provenance: dict[str, dict[str, object]],
     score_week: date | pd.Timestamp,
@@ -448,6 +558,11 @@ def fetch_all_inputs(
     reference_time = as_of or datetime.now(timezone.utc)
     score_week = latest_completed_friday(reference_time)
     provenance = build_source_provenance(df, score_week)
+    provider_daily_fingerprint = build_provider_derived_daily_fingerprint(
+        df,
+        score_week,
+        retrieval_run_started_at=reference_time,
+    )
 
     # Forward fill up to 3 observations for holiday-calendar alignment. Source
     # provenance above is captured first so copied values retain their true
@@ -455,6 +570,9 @@ def fetch_all_inputs(
     df = df.ffill(limit=3)
     df.attrs["source_provenance_version"] = SOURCE_PROVENANCE_VERSION
     df.attrs["source_provenance"] = provenance
+    df.attrs["provider_derived_daily_history_fingerprint"] = (
+        provider_daily_fingerprint
+    )
     df.attrs["expected_score_week"] = score_week.isoformat()
 
     logger.info(
@@ -664,6 +782,39 @@ def write_weekly_levels_snapshot(
     logger.info(
         f"Wrote non-public same-run weekly input snapshot: {path} "
         f"({len(snapshot)} weeks)"
+    )
+
+
+def write_provider_evidence_receipt(
+    receipt: dict[str, object],
+    path: Path,
+    logger: logging.Logger,
+    *,
+    public_root: Path | None = None,
+) -> None:
+    """Write a non-public same-run handoff containing hashes, never values."""
+    resolved_path = path.resolve()
+    if public_root is not None:
+        resolved_public_root = public_root.resolve()
+        if resolved_path == resolved_public_root or resolved_path.is_relative_to(
+            resolved_public_root
+        ):
+            raise RuntimeError(
+                "Provider evidence receipt must remain outside the public output tree"
+            )
+    if receipt.get("raw_provider_payloads_archived") is not False:
+        raise RuntimeError("Provider evidence receipt must not claim raw archival")
+    if receipt.get("provider_derived_values_published") is not False:
+        raise RuntimeError("Provider evidence receipt must not contain published values")
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps(receipt, indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+    logger.info(
+        "Wrote non-public same-run provider evidence receipt with hashes only: "
+        f"{path}"
     )
 
 
@@ -1226,6 +1377,14 @@ def main() -> int:
             "reproduction-bundle step"
         ),
     )
+    parser.add_argument(
+        "--provider-evidence-output",
+        type=Path,
+        help=(
+            "Optional non-public same-run provider-derived daily fingerprint "
+            "receipt for the reproduction-bundle step"
+        ),
+    )
     args = parser.parse_args()
 
     output_dir: Path = args.output_dir
@@ -1285,6 +1444,21 @@ def main() -> int:
             expected_score_week,
             logger,
         )
+
+        if args.provider_evidence_output is not None:
+            provider_evidence = daily.attrs.get(
+                "provider_derived_daily_history_fingerprint"
+            )
+            if not isinstance(provider_evidence, dict):
+                raise RuntimeError(
+                    "Provider evidence output requires a same-run live fingerprint"
+                )
+            write_provider_evidence_receipt(
+                provider_evidence,
+                args.provider_evidence_output,
+                logger,
+                public_root=output_dir if args.web else None,
+            )
 
         weekly = resample_weekly(
             daily,

@@ -71,6 +71,16 @@ class WeeklyReleaseReproductionBundleTests(unittest.TestCase):
                 for idx, row in out.iterrows()
             ],
         }
+        self.provider_daily_evidence = (
+            score_v2.build_provider_derived_daily_fingerprint(
+                self.weekly,
+                self.week,
+                retrieval_run_started_at=datetime(
+                    2026, 8, 24, tzinfo=timezone.utc
+                ),
+                retrieval_mode="live",
+            )
+        )
 
     def _make_root_and_bundle(self):
         temp = tempfile.TemporaryDirectory()
@@ -82,6 +92,7 @@ class WeeklyReleaseReproductionBundleTests(unittest.TestCase):
             self.weekly,
             self.metadata["source_provenance"],
             self.score_json,
+            self.provider_daily_evidence,
             generated_at=datetime(2026, 8, 24, tzinfo=timezone.utc),
             git_sha="a" * 40,
             lock_sha256=lock_sha,
@@ -149,6 +160,32 @@ class WeeklyReleaseReproductionBundleTests(unittest.TestCase):
         self.addCleanup(temp.cleanup)
         tampered = copy.deepcopy(bundle)
         tampered["input_history_fingerprint"]["drivers"]["DXY"]["sha256"] = "bad"
+        payload = json.dumps(tampered, indent=2)
+        latest_path.write_text(payload, encoding="utf-8")
+        archive_path.write_text(payload, encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "DXY SHA-256 is invalid"):
+            validate_reproduction_bundle(root, self.metadata, self.week)
+
+    def test_validator_rejects_false_raw_payload_claim_in_daily_receipt(self):
+        temp, root, bundle, latest_path, archive_path = self._make_root_and_bundle()
+        self.addCleanup(temp.cleanup)
+        tampered = copy.deepcopy(bundle)
+        tampered["provider_derived_daily_history_fingerprint"][
+            "raw_provider_payloads_archived"
+        ] = True
+        payload = json.dumps(tampered, indent=2)
+        latest_path.write_text(payload, encoding="utf-8")
+        archive_path.write_text(payload, encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "must not claim raw provider"):
+            validate_reproduction_bundle(root, self.metadata, self.week)
+
+    def test_validator_rejects_malformed_provider_daily_hash(self):
+        temp, root, bundle, latest_path, archive_path = self._make_root_and_bundle()
+        self.addCleanup(temp.cleanup)
+        tampered = copy.deepcopy(bundle)
+        tampered["provider_derived_daily_history_fingerprint"]["drivers"][
+            "DXY"
+        ]["sha256"] = "bad"
         payload = json.dumps(tampered, indent=2)
         latest_path.write_text(payload, encoding="utf-8")
         archive_path.write_text(payload, encoding="utf-8")
