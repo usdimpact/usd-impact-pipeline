@@ -1,0 +1,126 @@
+name: Score v2 reproduction acceptance rehearsal
+
+# Non-publishing plumbing rehearsal. This intentionally exercises the strict
+# archived-bundle gate even when the latest completed week is still a legacy
+# release. A pass is not production acceptance evidence.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/repro-rehearsal.yml'
+      - 'usd_impact_score_v2.py'
+      - 'requirements.lock'
+      - 'scripts/build_score_repro_bundle.py'
+      - 'scripts/generate_weekly_commentary.py'
+      - 'scripts/rerender_dashboard.py'
+      - 'scripts/generate_weekly_archive_index.py'
+      - 'scripts/validate_weekly_release.py'
+      - 'scripts/validate_methodology_contract.py'
+      - 'scripts/rehearse_score_repro_acceptance.py'
+      - 'public/data/score_v2_methodology.json'
+      - 'public/data/score_v2_methodology.schema.json'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: score-v2-repro-rehearsal-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rehearse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: requirements.lock
+
+      - name: Install locked dependencies
+        run: |
+          python -m pip install --upgrade pip==26.2.1
+          python -m pip install -r requirements.lock
+          python -m pip check
+
+      - name: Verify machine-readable methodology contract
+        run: python -m scripts.validate_methodology_contract --json
+
+      - name: Rehearse full release bundle and archive path
+        env:
+          PYTHONUNBUFFERED: 1
+        run: |
+          set -euo pipefail
+          work="$RUNNER_TEMP/score-v2-reproduction-rehearsal"
+          rm -rf "$work"
+          cp -a . "$work"
+          cd "$work"
+
+          python usd_impact_score_v2.py --web --output-dir public --backtest
+          python -m scripts.build_score_repro_bundle \
+            --score-json public/data/usd_impact_score_v2.json \
+            --output public/data/score_repro_bundle_latest.json
+          python scripts/generate_weekly_commentary.py \
+            --score-json public/data/usd_impact_score_v2.json \
+            --commentary-dir commentary \
+            --bridge-dir data \
+            --public-data-dir public/data
+          python scripts/rerender_dashboard.py \
+            --csv public/data/usd_impact_score_v2.csv \
+            --output-dir public
+
+          WEEK=$(python -c "import json; print(json.load(open('public/data/usd_impact_score_v2.json'))['metadata']['latest_date'])")
+          rm -rf "public/archive/$WEEK"
+          mkdir -p "public/archive/$WEEK"
+          cp public/en/index.html "public/archive/$WEEK/en.html"
+          cp public/es/index.html "public/archive/$WEEK/es.html"
+          cp public/data/usd_impact_score_v2.json "public/archive/$WEEK/score.json"
+          cp public/data/weekly_input_latest.json "public/archive/$WEEK/weekly_input.json"
+          cp public/data/score_repro_bundle_latest.json "public/archive/$WEEK/repro_bundle.json"
+          python scripts/generate_weekly_archive_index.py
+
+          # First prove the ordinary current-date release contract, then invoke
+          # the strict reproduction validator directly so the legacy-date
+          # exemption cannot hide a bundle/archive plumbing defect.
+          python scripts/validate_weekly_release.py
+          python -m scripts.rehearse_score_repro_acceptance \
+            --root . \
+            --report "$RUNNER_TEMP/score-v2-rehearsal-report.json"
+
+      - name: Record rehearsal evidence in job summary
+        if: always()
+        run: |
+          if [ -f "$RUNNER_TEMP/score-v2-rehearsal-report.json" ]; then
+            python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json, os
+          from pathlib import Path
+          report = json.loads(Path(os.environ['RUNNER_TEMP'], 'score-v2-rehearsal-report.json').read_text())
+          print('## Score v2 reproduction acceptance rehearsal')
+          print('')
+          print('**REHEARSAL ONLY — not production acceptance evidence.**')
+          print('')
+          print(f"- Result: **{report['result']}**")
+          print(f"- Score week exercised: `{report['score_week']}`")
+          print(f"- Score/regime: `{report['score']:+.6f}` / `{report['regime']}`")
+          print(f"- Strict offline reproduction gate: **{report['strict_offline_reproduction_gate']}**")
+          print(f"- Bundle/archive SHA-256 match: **{report['bundle_archive_match']}**")
+          print(f"- Live provenance drivers: **{report['live_provenance_driver_count']}**")
+          print(f"- Methodology contract SHA-256: `{report['methodology_contract_sha256']}`")
+          print('')
+          print(report['disclaimer'])
+          PY
+          else
+            echo '## Score v2 reproduction acceptance rehearsal' >> "$GITHUB_STEP_SUMMARY"
+            echo '' >> "$GITHUB_STEP_SUMMARY"
+            echo '**FAILED before a rehearsal report was produced. No publication was attempted.**' >> "$GITHUB_STEP_SUMMARY"
+          fi
