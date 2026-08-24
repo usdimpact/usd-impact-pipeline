@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://usd-impact-pipeline.pages.dev/data/score_v2_methodology.schema.json",
+  "title": "USD Impact Score v2 methodology contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "contract_version",
+    "methodology_version",
+    "status",
+    "purpose",
+    "predictive_claim",
+    "production_start_date",
+    "frequency",
+    "normalization",
+    "missing_data",
+    "correlation_adjustment",
+    "weights_rebalanced",
+    "drivers",
+    "regime_bands",
+    "source_provenance_version",
+    "reproduction_bundle",
+    "scope_boundaries"
+  ],
+  "properties": {
+    "$schema": {"type": "string"},
+    "contract_version": {"const": 1},
+    "methodology_version": {"const": "usd_impact_score_v2"},
+    "status": {"const": "production"},
+    "purpose": {"type": "string", "minLength": 1},
+    "predictive_claim": {"const": false},
+    "production_start_date": {"type": "string", "format": "date"},
+    "frequency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resample_rule", "weekly_observation"],
+      "properties": {
+        "resample_rule": {"const": "W-FRI"},
+        "weekly_observation": {"type": "string", "minLength": 1}
+      }
+    },
+    "normalization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["input_type", "sample", "mean", "standard_deviation", "ddof", "zscore_clip"],
+      "properties": {
+        "input_type": {"const": "weekly levels"},
+        "sample": {"const": "full available complete weekly sample"},
+        "mean": {"const": "arithmetic mean"},
+        "standard_deviation": {"const": "sample standard deviation"},
+        "ddof": {"const": 1},
+        "zscore_clip": {"const": 3.5}
+      }
+    },
+    "missing_data": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["daily_alignment", "forward_fill_limit_observations", "weekly_complete_case_required", "latest_week_complete_required"],
+      "properties": {
+        "daily_alignment": {"const": "outer join across providers"},
+        "forward_fill_limit_observations": {"const": 3},
+        "weekly_complete_case_required": {"const": true},
+        "latest_week_complete_required": {"const": true}
+      }
+    },
+    "correlation_adjustment": {"const": "none"},
+    "weights_rebalanced": {"const": false},
+    "drivers": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "provider_code", "provider", "series", "source_url", "max_age_days", "weight"],
+        "properties": {
+          "name": {"enum": ["DXY", "WTI", "SPX", "VIX", "BTC", "GOLD", "UST_2Y", "UST_10Y"]},
+          "provider_code": {"enum": ["yahoo", "fred"]},
+          "provider": {"type": "string", "minLength": 1},
+          "series": {"type": "string", "minLength": 1},
+          "source_url": {"type": "string", "format": "uri"},
+          "max_age_days": {"type": "integer", "minimum": 0},
+          "weight": {"type": "number"}
+        }
+      }
+    },
+    "regime_bands": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["low", "high", "label"],
+        "properties": {
+          "low": {"type": ["number", "null"]},
+          "high": {"type": ["number", "null"]},
+          "label": {"enum": ["Strong dollar regime", "Firm dollar regime", "Neutral / transitional", "Soft dollar regime", "Weak dollar regime"]}
+        }
+      }
+    },
+    "source_provenance_version": {"const": 1},
+    "reproduction_bundle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["bundle_version", "required_from_release", "absolute_tolerance"],
+      "properties": {
+        "bundle_version": {"const": 1},
+        "required_from_release": {"const": "2026-08-28"},
+        "absolute_tolerance": {"const": 1e-9}
+      }
+    },
+    "scope_boundaries": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["predictive_backtest", "canonical_2008_result", "historical_full_sample_series_is_point_in_time"],
+      "properties": {
+        "predictive_backtest": {"const": false},
+        "canonical_2008_result": {"const": false},
+        "historical_full_sample_series_is_point_in_time": {"const": false}
+      }
+    }
+  }
+}
