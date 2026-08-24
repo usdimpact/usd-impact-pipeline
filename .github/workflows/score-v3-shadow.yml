@@ -98,9 +98,13 @@ jobs:
             research/score_v3_initialization_2026-08-21.csv
             research/score_v3_initialization_2026-08-21.manifest.json
             research/score_v3_prospective_manifest.schema.json
+            research/score_v3_metric_implementation_contract.json
+            research/score_v3_metric_implementation_contract.schema.json
             scripts/score_v3_candidates.py
             scripts/score_v3_manifest.py
             scripts/score_v3_shadow_ingestion.py
+            scripts/score_v3_metrics.py
+            scripts/score_v3_metric_reporting.py
           )
 
           if ! git diff --quiet "$ATTESTED_SHA" HEAD -- "${critical_paths[@]}"; then
@@ -164,12 +168,43 @@ jobs:
               print(f"- Candidate-result SHA-256: `{report['candidate_result_sha256']}`")
           PY
 
+      - name: Validate metric state and record checkpoint only when due
+        id: metrics
+        if: steps.ingest.outputs.status != 'pre_holdout_noop'
+        run: |
+          python -m scripts.score_v3_metric_reporting \
+            --report "$RUNNER_TEMP/score-v3-metric-reporting.json"
+          status="$(python -c "import json; print(json.load(open('$RUNNER_TEMP/score-v3-metric-reporting.json'))['status'])")"
+          checkpoint_written="$(python -c "import json; print(str(json.load(open('$RUNNER_TEMP/score-v3-metric-reporting.json'))['checkpoint_written']).lower())")"
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          echo "checkpoint_written=$checkpoint_written" >> "$GITHUB_OUTPUT"
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json, os
+          from pathlib import Path
+          report = json.loads(Path(os.environ['RUNNER_TEMP'], 'score-v3-metric-reporting.json').read_text())
+          print('')
+          print('## Score v3 metric governance')
+          print('')
+          print(f"- Status: **{report['status']}**")
+          print(f"- Prospective weeks: **{report['prospective_weeks']}**")
+          print(f"- Latest week: `{report.get('latest_week')}`")
+          print(f"- Metric state validated: **{report['metric_state_validated']}**")
+          print(f"- Endpoint values emitted in weekly validation: **{report['endpoint_values_emitted']}**")
+          print(f"- Checkpoint due: **{report['checkpoint_due']}**")
+          print(f"- Checkpoint written: **{report['checkpoint_written']}**")
+          print(f"- Ranking performed by weekly validation: **{report['ranking_performed']}**")
+          print(f"- Production promotion performed: **{report['production_promotion_performed']}**")
+          if report.get('checkpoint_file'):
+              print(f"- Durable checkpoint: `{report['checkpoint_file']}`")
+              print(f"- Checkpoint SHA-256: `{report['checkpoint_sha256']}`")
+          PY
+
       - name: Open, exact-head validate, and merge research-only weekly PR
-        if: steps.ingest.outputs.status == 'ingested'
+        if: steps.ingest.outputs.status == 'ingested' || steps.metrics.outputs.checkpoint_written == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          allowed='^( M|M |A |\?\?) research/(score_v3_prospective_manifest.json|prospective/score_v3_shadow_[0-9]{4}-[0-9]{2}-[0-9]{2}\.json)$'
+          allowed='^( M|M |A |\?\?) research/(score_v3_prospective_manifest.json|prospective/score_v3_shadow_[0-9]{4}-[0-9]{2}-[0-9]{2}\.json|prospective/checkpoints/score_v3_checkpoint_(013|026|039|052)\.json)$'
           unexpected="$(git status --porcelain | grep -Ev "$allowed" || true)"
           if [ -n "$unexpected" ]; then
             echo "Unexpected working-tree changes; refusing research publication:"
@@ -178,25 +213,32 @@ jobs:
           fi
 
           WEEK="$(python -c "import json; print(json.load(open('$RUNNER_TEMP/score-v3-shadow-ingestion.json'))['published_week'])")"
+          METRIC_STATUS="$(python -c "import json; print(json.load(open('$RUNNER_TEMP/score-v3-metric-reporting.json'))['status'])")"
+          CHECKPOINT_FILE="$(python -c "import json; print(json.load(open('$RUNNER_TEMP/score-v3-metric-reporting.json')).get('checkpoint_file') or 'none')")"
           branch="automation/score-v3-shadow-${WEEK}-${GITHUB_RUN_ID}"
           git config user.name "USD Impact Research Pipeline"
           git config user.email "pipeline@lbx-fx.com"
           git checkout -b "$branch"
           git add research/score_v3_prospective_manifest.json research/prospective/
-          git commit -m "Record Score v3 prospective shadow week ${WEEK}"
+          git commit -m "Record Score v3 prospective research state ${WEEK}"
           git push --set-upstream origin "$branch"
           head_sha="$(git rev-parse HEAD)"
 
           cat > "$RUNNER_TEMP/score-v3-shadow-pr.md" <<EOF
           ## Automated Score v3 prospective shadow record
 
-          Research-only observation for **${WEEK}**, downstream of a successful push-to-main Score v2 reproduction attestation.
+          Research-only state for **${WEEK}**, downstream of a successful push-to-main Score v2 reproduction attestation.
 
           - consumes the immutable as-published v2 reproduction bundle;
-          - uses the locked preregistration commit and frozen 2026-08-21 initialization matrix;
+          - uses the locked preregistration commit, frozen 2026-08-21 initialization matrix, and frozen metric implementation contract;
           - records exactly the four preregistered candidate calculations;
+          - silently validates the locked metric state every prospective week without exposing weekly endpoint values;
+          - emits a durable endpoint report only at preregistered checkpoints 13/26/39/52;
+          - metric reporting status: **${METRIC_STATUS}**;
+          - checkpoint file: `${CHECKPOINT_FILE}`;
           - makes no production Score v2 change;
-          - makes no predictive, trading, PnL, or candidate-selection claim.
+          - makes no predictive, trading, or PnL claim;
+          - never promotes a research candidate to production automatically, including at week 52.
 
           This PR is merged only after Weekly score quality passes on this exact head SHA.
           EOF
@@ -229,7 +271,7 @@ jobs:
           gh run watch "$run_id" --exit-status
           gh pr merge "$pr_url" --squash --delete-branch
 
-      - name: Surface post-holdout ingestion failure
+      - name: Surface post-holdout shadow research failure
         if: failure()
         env:
           GH_TOKEN: ${{ github.token }}
@@ -243,19 +285,19 @@ jobs:
             exit 0
           fi
 
-          title="Score v3 prospective shadow ingestion requires attention"
+          title="Score v3 prospective shadow research requires attention"
           body="$RUNNER_TEMP/score-v3-shadow-failure.md"
           cat > "$body" <<EOF
-          ## Score v3 prospective shadow ingestion failure
+          ## Score v3 prospective shadow research failure
 
-          The research-only downstream ingestion failed after a successful v2 post-merge attestation. **Production Score v2 is unaffected.**
+          The research-only downstream ingestion or governed metric validation failed after a successful v2 post-merge attestation. **Production Score v2 is unaffected.**
 
           - v2 week: ${week}
           - downstream run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
           - source attestation: ${{ steps.source.outputs.attestation_url }}
           - attested SHA: ${{ steps.source.outputs.attested_sha }}
 
-          The prospective ledger is fail-closed; do not reconstruct or skip this week from later provider history.
+          The prospective ledger and checkpoint sequence are fail-closed. Do not reconstruct, skip, or backfill this week/checkpoint from later provider history or later prospective outcomes.
           EOF
 
           issue="$(gh issue list --state open --limit 100 --json number,title --jq ".[] | select(.title == \"$title\") | .number" | head -n 1)"
