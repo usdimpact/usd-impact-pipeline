@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/usdimpact/usd-impact-pipeline/blob/main/research/score_v3_prospective_manifest.schema.json",
+  "title": "USD Impact Score v3 prospective research manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "manifest_version",
+    "study",
+    "research_only",
+    "production_change",
+    "predictive_claim",
+    "append_only",
+    "locked_preregistration_commit_sha",
+    "prospective_holdout_start",
+    "minimum_completed_weeks_before_selection",
+    "interim_review_weeks",
+    "candidate_ids",
+    "initialization",
+    "entries"
+  ],
+  "properties": {
+    "$schema": {"const": "./score_v3_prospective_manifest.schema.json"},
+    "manifest_version": {"const": 1},
+    "study": {"const": "usd_impact_score_v3_descriptive_research_2026-08-24"},
+    "research_only": {"const": true},
+    "production_change": {"const": false},
+    "predictive_claim": {"const": false},
+    "append_only": {"const": true},
+    "locked_preregistration_commit_sha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "prospective_holdout_start": {"const": "2026-08-28"},
+    "minimum_completed_weeks_before_selection": {"const": 52},
+    "interim_review_weeks": {
+      "type": "array",
+      "prefixItems": [{"const": 13}, {"const": 26}, {"const": 39}],
+      "items": false,
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "candidate_ids": {
+      "type": "array",
+      "prefixItems": [
+        {"const": "V3_E52"},
+        {"const": "V3_R260"},
+        {"const": "V3_MAD260"},
+        {"const": "V3_GRP_MAD260"}
+      ],
+      "items": false,
+      "minItems": 4,
+      "maxItems": 4
+    },
+    "initialization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "matrix_file",
+        "manifest_file",
+        "matrix_sha256",
+        "cutoff_week",
+        "historical_data_status",
+        "generated_at_utc",
+        "generator_commit_sha"
+      ],
+      "properties": {
+        "matrix_file": {"const": "score_v3_initialization_2026-08-21.csv"},
+        "manifest_file": {"const": "score_v3_initialization_2026-08-21.manifest.json"},
+        "matrix_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "cutoff_week": {"const": "2026-08-21"},
+        "historical_data_status": {"const": "retrospective_current_vintage_not_as_published"},
+        "generated_at_utc": {"type": "string", "minLength": 20},
+        "generator_commit_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"}
+      }
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "week",
+          "ingested_at_utc",
+          "source_v2_bundle_sha256",
+          "source_v2_pipeline_commit_sha",
+          "source_v2_attestation_status",
+          "locked_preregistration_commit_sha",
+          "initialization_matrix_sha256",
+          "candidate_result_file",
+          "candidate_result_sha256"
+        ],
+        "properties": {
+          "week": {"type": "string", "format": "date"},
+          "ingested_at_utc": {"type": "string", "minLength": 20},
+          "source_v2_bundle_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "source_v2_pipeline_commit_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+          "source_v2_attestation_status": {"const": "passed"},
+          "locked_preregistration_commit_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+          "initialization_matrix_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "candidate_result_file": {"type": "string", "minLength": 1},
+          "candidate_result_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        }
+      }
+    }
+  }
+}
