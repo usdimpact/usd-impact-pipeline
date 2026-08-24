@@ -1,6 +1,6 @@
 {
   "study": "usd_impact_score_v2_point_in_time_normalization",
-  "generated_at_utc": "2026-08-24T20:29:10.875642+00:00",
+  "generated_at_utc": "2026-08-24T20:53:38.902499+00:00",
   "production_methodology_changed": false,
   "predictive_claim": false,
   "purpose": "Robustness comparison only. PIT normalization for week t uses only complete weekly observations strictly before t.",
