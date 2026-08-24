@@ -1,0 +1,66 @@
+{
+  "$schema": "./score_v2_data_semantics.schema.json",
+  "contract_version": 1,
+  "methodology_version": "usd_impact_score_v2",
+  "status": "supplemental_transparency_contract",
+  "production_methodology_changed": false,
+  "purpose": "Disclose the exact source-field, calendar, timestamp, and futures-series semantics used by the production pipeline.",
+  "retrieval": {
+    "yahoo": {
+      "client": "yfinance",
+      "frequency": "daily",
+      "field": "Close",
+      "auto_adjust": true,
+      "threads": false,
+      "intraday_timestamp_retained": false,
+      "date_semantics": "Provider-returned daily date index; the pipeline does not retain an exchange settlement timestamp."
+    },
+    "fred": {
+      "endpoint": "https://fred.stlouisfed.org/graph/fredgraph.csv?id={series}",
+      "frequency": "daily",
+      "date_field": "observation_date",
+      "value_field": "the named FRED series column",
+      "intraday_timestamp_retained": false,
+      "date_semantics": "FRED observation date; the pipeline does not retain the provider publication timestamp."
+    }
+  },
+  "alignment": {
+    "join": "outer join across providers, sorted by date",
+    "source_provenance_captured": "before forward fill",
+    "forward_fill_limit_observations": 3,
+    "weekly_rule": "W-FRI",
+    "weekly_value": "last available aligned observation in the Friday-ended week",
+    "incomplete_future_weeks_removed": true,
+    "complete_case_required_for_score": true,
+    "holiday_handling": "Different provider calendars are aligned by a maximum three-observation forward fill; release freshness limits still use each original provider observation date."
+  },
+  "futures": {
+    "WTI": {
+      "symbol": "CL=F",
+      "series_semantics": "Yahoo Finance provider-defined continuous front-month futures history",
+      "pipeline_controls_contract_selection": false,
+      "pipeline_controls_roll_calendar": false,
+      "pipeline_controls_back_adjustment": false
+    },
+    "GOLD": {
+      "symbol": "GC=F",
+      "series_semantics": "Yahoo Finance provider-defined continuous front-month futures history",
+      "pipeline_controls_contract_selection": false,
+      "pipeline_controls_roll_calendar": false,
+      "pipeline_controls_back_adjustment": false
+    },
+    "replication_boundary": "A live cross-vendor reconstruction must not assume identical roll or revision history. Strict release bundles freeze the exact weekly levels actually used from 2026-08-28 onward."
+  },
+  "revision_policy": {
+    "latest_history": "Current-vintage recalculation that may change when providers revise history or the full-sample normalization window expands.",
+    "as_published_archive": "Dated release folders preserve published score outputs and commentary.",
+    "strict_reproduction_bundle_required_from": "2026-08-28",
+    "raw_provider_payload_archive": "not_implemented",
+    "limitation": "The strict bundle preserves calculation inputs and outputs, but not the complete raw provider response."
+  },
+  "vendor_resilience": {
+    "alternative_vendor_in_production": false,
+    "status": "not_implemented",
+    "acceptance_requirement": "Any alternative source must document field, timezone, holiday, revision, and futures-roll equivalence before use."
+  }
+}

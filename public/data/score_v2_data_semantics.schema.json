@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://usd-impact-pipeline.pages.dev/data/score_v2_data_semantics.schema.json",
+  "title": "USD Impact Score v2 data semantics contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "contract_version",
+    "methodology_version",
+    "status",
+    "production_methodology_changed",
+    "purpose",
+    "retrieval",
+    "alignment",
+    "futures",
+    "revision_policy",
+    "vendor_resilience"
+  ],
+  "properties": {
+    "$schema": {"const": "./score_v2_data_semantics.schema.json"},
+    "contract_version": {"const": 1},
+    "methodology_version": {"const": "usd_impact_score_v2"},
+    "status": {"const": "supplemental_transparency_contract"},
+    "production_methodology_changed": {"const": false},
+    "purpose": {"type": "string", "minLength": 1},
+    "retrieval": {"type": "object"},
+    "alignment": {"type": "object"},
+    "futures": {"type": "object"},
+    "revision_policy": {"type": "object"},
+    "vendor_resilience": {"type": "object"}
+  }
+}

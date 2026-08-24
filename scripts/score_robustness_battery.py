@@ -98,6 +98,129 @@ def leave_one_driver_out(weekly: pd.DataFrame) -> list[dict[str, Any]]:
     return results
 
 
+def sign_sensitivity(weekly: pd.DataFrame) -> list[dict[str, Any]]:
+    """Flip each transmission sign while holding every other choice fixed.
+
+    This deliberately adversarial diagnostic asks how much the published score
+    depends on each directional assumption. It is not an alternative model and
+    does not select signs from the observed results.
+    """
+    z, baseline = _full_sample_components(weekly)
+    baseline_regime = baseline.apply(score_v2.label_regime)
+    results: list[dict[str, Any]] = []
+
+    for flipped in score_v2.WEIGHTS:
+        weights = dict(score_v2.WEIGHTS)
+        weights[flipped] = -weights[flipped]
+        alt = sum(z[k] * w for k, w in weights.items())
+        alt_regime = alt.apply(score_v2.label_regime)
+        results.append({
+            "flipped_driver": flipped,
+            "production_weight": float(score_v2.WEIGHTS[flipped]),
+            "diagnostic_weight": float(weights[flipped]),
+            "latest_score": float(alt.iloc[-1]),
+            "latest_score_difference": float(alt.iloc[-1] - baseline.iloc[-1]),
+            "mean_absolute_score_difference": float((alt - baseline).abs().mean()),
+            "max_absolute_score_difference": float((alt - baseline).abs().max()),
+            "sign_agreement_rate": float((np.sign(alt) == np.sign(baseline)).mean()),
+            "regime_label_agreement_rate": float((alt_regime == baseline_regime).mean()),
+            "latest_regime": alt_regime.iloc[-1],
+        })
+    return results
+
+
+def score_distribution(weekly: pd.DataFrame) -> dict[str, Any]:
+    """Summarize the practical distribution of the recalculated v2 score."""
+    _, score = _full_sample_components(weekly)
+    regimes = score.apply(score_v2.label_regime)
+    quantiles = score.quantile([0.05, 0.25, 0.50, 0.75, 0.95])
+    regime_order = [label for _low, _high, label in score_v2.REGIME_BANDS]
+    regime_counts = regimes.value_counts()
+
+    return {
+        "diagnostic": "Distribution of the current-vintage recalculated production score",
+        "caution": (
+            "Full-sample normalization makes this a current-vintage descriptive "
+            "distribution, not an immutable as-published history or forecast."
+        ),
+        "observations": int(len(score)),
+        "mean": float(score.mean()),
+        "sample_standard_deviation": float(score.std()),
+        "minimum": float(score.min()),
+        "maximum": float(score.max()),
+        "quantiles": {
+            "p05": float(quantiles.loc[0.05]),
+            "p25": float(quantiles.loc[0.25]),
+            "p50": float(quantiles.loc[0.50]),
+            "p75": float(quantiles.loc[0.75]),
+            "p95": float(quantiles.loc[0.95]),
+        },
+        "regimes": [
+            {
+                "regime": regime,
+                "weeks": int(regime_counts.get(regime, 0)),
+                "share": float((regimes == regime).mean()),
+            }
+            for regime in regime_order
+        ],
+    }
+
+
+def regime_duration(weekly: pd.DataFrame) -> dict[str, Any]:
+    """Measure consecutive time spent in each production regime."""
+    _, score = _full_sample_components(weekly)
+    labels = score.apply(score_v2.label_regime)
+    runs: list[dict[str, Any]] = []
+    start_pos = 0
+    current = labels.iloc[0]
+
+    for idx in range(1, len(labels)):
+        label = labels.iloc[idx]
+        if label == current:
+            continue
+        runs.append({
+            "regime": current,
+            "start": labels.index[start_pos].date().isoformat(),
+            "end": labels.index[idx - 1].date().isoformat(),
+            "weeks": int(idx - start_pos),
+        })
+        start_pos = idx
+        current = label
+
+    runs.append({
+        "regime": current,
+        "start": labels.index[start_pos].date().isoformat(),
+        "end": labels.index[-1].date().isoformat(),
+        "weeks": int(len(labels) - start_pos),
+    })
+
+    regime_order = [label for _low, _high, label in score_v2.REGIME_BANDS]
+    summaries = []
+    for regime in regime_order:
+        durations = [run["weeks"] for run in runs if run["regime"] == regime]
+        summaries.append({
+            "regime": regime,
+            "runs": int(len(durations)),
+            "total_weeks": int(sum(durations)),
+            "mean_weeks": float(np.mean(durations)) if durations else None,
+            "median_weeks": float(np.median(durations)) if durations else None,
+            "maximum_weeks": int(max(durations)) if durations else None,
+        })
+
+    return {
+        "diagnostic": "Consecutive duration of current-vintage production regime labels",
+        "caution": (
+            "Historical labels may change when full-sample normalization or upstream "
+            "source history is recalculated."
+        ),
+        "observations": int(len(labels)),
+        "run_count": int(len(runs)),
+        "current_run": runs[-1],
+        "by_regime": summaries,
+        "runs": runs,
+    }
+
+
 def _rolling_prior_score(data: pd.DataFrame, window: int) -> pd.Series:
     rows: list[tuple[pd.Timestamp, float]] = []
     for idx in range(window, len(data)):
@@ -448,6 +571,7 @@ def build_robustness_report(
             "anchor_windows": pit["anchor_windows"],
         },
         "leave_one_driver_out": leave_one_driver_out(data),
+        "sign_sensitivity": sign_sensitivity(data),
         "rolling_normalization": rolling_window_sensitivity(data, windows=rolling_windows),
         "correlation_concentration": correlation_concentration(data, window=correlation_window),
         "rolling_component_correlations": rolling_component_correlations(
@@ -457,11 +581,14 @@ def build_robustness_report(
             data, window=correlation_window
         ),
         "regime_threshold_sensitivity": threshold_sensitivity(data),
+        "score_distribution": score_distribution(data),
+        "regime_duration": regime_duration(data),
         "subperiod_stability": subperiod_stability(data),
         "limitations": [
             "The production score is descriptive, not predictive.",
             "Current-vintage source histories can differ from historical as-published vintages.",
             "Leave-one-out and rolling-window variants are diagnostics, not alternative production models.",
+            "Sign flips are adversarial assumption checks, not data-selected alternative weights.",
             "Correlation diagnostics use current-vintage weekly levels or component z-scores and may reflect common trends.",
             "The correlation-adjusted contribution concentration is a transparent heuristic, not a covariance risk model.",
             "2008 is outside canonical v2 because the production specification begins in 2015 and includes Bitcoin.",
