@@ -1,0 +1,61 @@
+name: Score research evidence review health
+
+# Read-only Monday reminder for review-gated v2/v3 research evidence. It does
+# not merge PRs, modify evidence, calculate performance, or affect production.
+on:
+  schedule:
+    - cron: '15 8 * * 1'  # Monday 08:15 UTC, before the next Friday origin
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: score-research-evidence-review-health
+  cancel-in-progress: false
+
+jobs:
+  verify-review-state:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout current main
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Capture open evidence PR metadata
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr list \
+            --repo "$GITHUB_REPOSITORY" \
+            --state open \
+            --limit 100 \
+            --json title,url,headRefName,createdAt \
+            > "$RUNNER_TEMP/open-score-evidence-prs.json"
+
+      - name: Check review-gated evidence state
+        id: health
+        continue-on-error: true
+        run: |
+          python -m scripts.check_score_research_evidence_health \
+            --open-prs "$RUNNER_TEMP/open-score-evidence-prs.json" \
+            --report "$RUNNER_TEMP/score-research-evidence-health.md"
+
+      - name: Record claim-safe health summary
+        if: always()
+        run: |
+          if [ -f "$RUNNER_TEMP/score-research-evidence-health.md" ]; then
+            cat "$RUNNER_TEMP/score-research-evidence-health.md" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo '## Score research evidence review health' >> "$GITHUB_STEP_SUMMARY"
+            echo '' >> "$GITHUB_STEP_SUMMARY"
+            echo '**FAILED before a health report was produced.**' >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Fail when evidence needs review or investigation
+        if: steps.health.outcome == 'failure'
+        run: |
+          echo "Score research evidence requires review or investigation. Production Score v2 is unaffected."
+          exit 1
