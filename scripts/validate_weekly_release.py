@@ -4,8 +4,10 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import math
+import re
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
@@ -19,12 +21,39 @@ EXPECTED_REGIMES = {
     "Soft dollar regime",
     "Weak dollar regime",
 }
+EXPECTED_WEIGHTS = {
+    "DXY": 0.125,
+    "WTI": -0.125,
+    "SPX": -0.125,
+    "VIX": 0.125,
+    "BTC": -0.125,
+    "GOLD": -0.125,
+    "UST_2Y": 0.125,
+    "UST_10Y": 0.125,
+}
+EXPECTED_REGIME_BANDS = [
+    {"low": 1.0, "high": None, "label": "Strong dollar regime"},
+    {"low": 0.3, "high": 1.0, "label": "Firm dollar regime"},
+    {"low": -0.3, "high": 0.3, "label": "Neutral / transitional"},
+    {"low": -1.0, "high": -0.3, "label": "Soft dollar regime"},
+    {"low": None, "high": -1.0, "label": "Weak dollar regime"},
+]
 SPANISH_MONTHS = [
     "enero", "febrero", "marzo", "abril", "mayo", "junio",
     "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
 ]
 PROVENANCE_REQUIRED_FROM = date(2026, 8, 14)
+# Releases through 2026-08-21 are intentionally retained as legacy artifacts.
+# The first newly generated weekly release after the bundle implementation is
+# 2026-08-28; from that release forward the archived reproduction artifact is a
+# mandatory part of the publication contract.
+REPRO_BUNDLE_REQUIRED_FROM = date(2026, 8, 28)
 SOURCE_PROVENANCE_VERSION = 1
+REPRO_BUNDLE_VERSION = 1
+REPRO_METHODOLOGY_VERSION = "usd_impact_score_v2"
+REPRO_TOLERANCE = 1e-9
+SHA40_RE = re.compile(r"^[0-9a-f]{40}$")
+SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 SOURCE_CONTRACT = {
     "DXY": {
         "provider": "Yahoo Finance via yfinance",
@@ -105,9 +134,9 @@ def finite_number(value: object, label: str) -> float:
 
 
 def localized_dates(week: str) -> tuple[str, str]:
-    date = datetime.strptime(week, "%Y-%m-%d")
-    english = date.strftime("%B %d, %Y").replace(" 0", " ")
-    spanish = f"{date.day} de {SPANISH_MONTHS[date.month - 1]} de {date.year}"
+    parsed = datetime.strptime(week, "%Y-%m-%d")
+    english = parsed.strftime("%B %d, %Y").replace(" 0", " ")
+    spanish = f"{parsed.day} de {SPANISH_MONTHS[parsed.month - 1]} de {parsed.year}"
     return english, spanish
 
 
@@ -116,6 +145,22 @@ def latest_completed_friday(value: datetime) -> date:
         value = value.replace(tzinfo=timezone.utc)
     utc_date = value.astimezone(timezone.utc).date()
     return utc_date - timedelta(days=(utc_date.weekday() - 4) % 7)
+
+
+def reproduction_bundle_required(week: str) -> bool:
+    return datetime.strptime(week, "%Y-%m-%d").date() >= REPRO_BUNDLE_REQUIRED_FROM
+
+
+def canonical_regime(score: float) -> str:
+    if score >= 1.0:
+        return "Strong dollar regime"
+    if score >= 0.3:
+        return "Firm dollar regime"
+    if score >= -0.3:
+        return "Neutral / transitional"
+    if score >= -1.0:
+        return "Soft dollar regime"
+    return "Weak dollar regime"
 
 
 def validate_source_provenance(metadata: dict, bridge: dict, week: str) -> None:
@@ -191,6 +236,190 @@ def validate_source_provenance(metadata: dict, bridge: dict, week: str) -> None:
             raise ValueError(
                 f"Source provenance {driver} is stale by {age_days} days"
             )
+
+
+def validate_reproduction_bundle(root: Path, metadata: dict, week: str) -> None:
+    """Independently reproduce a frozen score bundle and its archived copy.
+
+    The validation intentionally consumes only fields frozen inside the bundle,
+    plus canonical methodology constants and the checked-in dependency lock.
+    It does not download Yahoo/FRED history and therefore proves that a future
+    third party can reproduce the as-published score from the release artifact.
+    """
+    latest_path = root / "public/data/score_repro_bundle_latest.json"
+    archive_path = root / f"public/archive/{week}/repro_bundle.json"
+    bundle = load_json(latest_path)
+    archived = load_json(archive_path)
+    if archived != bundle:
+        raise ValueError("Archived reproduction bundle differs from latest bundle")
+
+    if bundle.get("bundle_version") != REPRO_BUNDLE_VERSION:
+        raise ValueError("Unexpected reproduction bundle version")
+    if bundle.get("methodology_version") != REPRO_METHODOLOGY_VERSION:
+        raise ValueError("Unexpected reproduction methodology version")
+    if bundle.get("score_week") != week:
+        raise ValueError("Reproduction bundle score_week does not match release week")
+
+    generated_at_raw = str(bundle.get("bundle_generated_at_utc", ""))
+    try:
+        datetime.fromisoformat(generated_at_raw.replace("Z", "+00:00"))
+    except ValueError as error:
+        raise ValueError("Reproduction bundle timestamp is invalid") from error
+
+    pipeline_sha = str(bundle.get("pipeline_git_sha", ""))
+    if not SHA40_RE.fullmatch(pipeline_sha):
+        raise ValueError("Reproduction bundle pipeline_git_sha must be a 40-char SHA")
+
+    lock_sha = str(bundle.get("requirements_lock_sha256", ""))
+    if not SHA256_RE.fullmatch(lock_sha):
+        raise ValueError("Reproduction bundle requirements lock hash is invalid")
+    lock_path = root / "requirements.lock"
+    if not lock_path.is_file():
+        raise ValueError("requirements.lock is missing")
+    expected_lock_sha = hashlib.sha256(lock_path.read_bytes()).hexdigest()
+    if lock_sha != expected_lock_sha:
+        raise ValueError("Reproduction bundle requirements lock hash does not match")
+
+    calculation = bundle.get("calculation") or {}
+    if calculation.get("input_frequency") != "weekly Friday-ended levels":
+        raise ValueError("Unexpected reproduction input frequency")
+    if calculation.get("production_start_date") != "2015-01-01":
+        raise ValueError("Unexpected reproduction production start date")
+    if calculation.get("normalization") != "full available complete weekly sample":
+        raise ValueError("Unexpected reproduction normalization contract")
+    if calculation.get("standard_deviation") != "sample standard deviation (ddof=1)":
+        raise ValueError("Unexpected reproduction standard deviation contract")
+    if finite_number(calculation.get("zscore_clip"), "bundle zscore_clip") != 3.5:
+        raise ValueError("Unexpected reproduction z-score clip")
+    if calculation.get("weights") != EXPECTED_WEIGHTS:
+        raise ValueError("Reproduction bundle weights differ from production weights")
+    if calculation.get("score_formula") != "sum(component_z_clipped * weight)":
+        raise ValueError("Unexpected reproduction score formula")
+    if calculation.get("regime_bands") != EXPECTED_REGIME_BANDS:
+        raise ValueError("Reproduction bundle regime bands differ from production bands")
+
+    if bundle.get("source_provenance_version") != metadata.get(
+        "source_provenance_version"
+    ):
+        raise ValueError("Reproduction bundle provenance version is inconsistent")
+    provenance = metadata.get("source_provenance") or {}
+    if set(provenance) != EXPECTED_DRIVERS:
+        raise ValueError("Release metadata provenance is incomplete for reproduction")
+
+    components = bundle.get("components") or {}
+    if set(components) != EXPECTED_DRIVERS:
+        raise ValueError("Reproduction bundle must contain exactly eight components")
+
+    reproduced_score = 0.0
+    for driver, expected_weight in EXPECTED_WEIGHTS.items():
+        component = components[driver]
+        weekly_level = finite_number(
+            component.get("weekly_level"), f"bundle {driver} weekly_level"
+        )
+        normalization = component.get("normalization") or {}
+        sample_count = normalization.get("sample_count")
+        if not isinstance(sample_count, int) or isinstance(sample_count, bool) or sample_count < 5:
+            raise ValueError(f"Reproduction bundle {driver} sample_count is invalid")
+        sample_start_raw = str(normalization.get("sample_start", ""))
+        sample_end_raw = str(normalization.get("sample_end", ""))
+        try:
+            sample_start = datetime.strptime(sample_start_raw, "%Y-%m-%d").date()
+            sample_end = datetime.strptime(sample_end_raw, "%Y-%m-%d").date()
+        except ValueError as error:
+            raise ValueError(
+                f"Reproduction bundle {driver} normalization dates are invalid"
+            ) from error
+        if sample_start > sample_end or sample_end.isoformat() != week:
+            raise ValueError(
+                f"Reproduction bundle {driver} normalization sample endpoint is invalid"
+            )
+
+        mean = finite_number(normalization.get("mean"), f"bundle {driver} mean")
+        sample_sd = finite_number(
+            normalization.get("sample_std_ddof_1"), f"bundle {driver} sample std"
+        )
+        if sample_sd <= 0:
+            raise ValueError(f"Reproduction bundle {driver} sample std must be positive")
+        raw_z = finite_number(
+            component.get("z_unclipped"), f"bundle {driver} unclipped z"
+        )
+        clipped_z = finite_number(
+            component.get("z_clipped"), f"bundle {driver} clipped z"
+        )
+        clip_limit = finite_number(
+            component.get("clip_limit"), f"bundle {driver} clip limit"
+        )
+        if clip_limit != 3.5:
+            raise ValueError(f"Reproduction bundle {driver} clip limit is invalid")
+        recomputed_raw_z = (weekly_level - mean) / sample_sd
+        if abs(raw_z - recomputed_raw_z) > REPRO_TOLERANCE:
+            raise ValueError(
+                f"Reproduction bundle {driver} raw z does not reproduce from frozen moments"
+            )
+        recomputed_clipped_z = max(-3.5, min(3.5, recomputed_raw_z))
+        if abs(clipped_z - recomputed_clipped_z) > REPRO_TOLERANCE:
+            raise ValueError(
+                f"Reproduction bundle {driver} clipped z does not reproduce"
+            )
+
+        weight = finite_number(component.get("weight"), f"bundle {driver} weight")
+        if weight != expected_weight:
+            raise ValueError(f"Reproduction bundle {driver} weight is invalid")
+        contribution = finite_number(
+            component.get("contribution"), f"bundle {driver} contribution"
+        )
+        recomputed_contribution = clipped_z * weight
+        if abs(contribution - recomputed_contribution) > REPRO_TOLERANCE:
+            raise ValueError(
+                f"Reproduction bundle {driver} contribution does not reproduce"
+            )
+        reproduced_score += recomputed_contribution
+
+        source = provenance[driver]
+        source_expectations = {
+            "source_observation_date": source.get("observation_date"),
+            "source_provider": source.get("provider"),
+            "source_series": source.get("series"),
+            "source_url": source.get("source_url"),
+        }
+        for field, expected in source_expectations.items():
+            if component.get(field) != expected:
+                raise ValueError(
+                    f"Reproduction bundle {driver}.{field} differs from release provenance"
+                )
+        if component.get("forward_fill_possible") is not True:
+            raise ValueError(
+                f"Reproduction bundle {driver} must disclose forward-fill possibility"
+            )
+
+    metadata_score = finite_number(metadata.get("latest_score"), "metadata.latest_score")
+    published = bundle.get("published") or {}
+    published_score = finite_number(published.get("score"), "bundle published score")
+    published_regime = published.get("regime")
+    if abs(reproduced_score - metadata_score) > REPRO_TOLERANCE:
+        raise ValueError("Frozen reproduction bundle does not reproduce release score")
+    if abs(published_score - metadata_score) > REPRO_TOLERANCE:
+        raise ValueError("Reproduction bundle published score differs from release score")
+    expected_regime = canonical_regime(reproduced_score)
+    if expected_regime != metadata.get("latest_regime"):
+        raise ValueError("Frozen reproduction bundle does not reproduce release regime")
+    if published_regime != expected_regime:
+        raise ValueError("Reproduction bundle published regime is inconsistent")
+
+    reproduction = bundle.get("reproduction") or {}
+    reproduction_score = finite_number(
+        reproduction.get("score"), "bundle reproduction score"
+    )
+    if abs(reproduction_score - reproduced_score) > REPRO_TOLERANCE:
+        raise ValueError("Bundle reproduction score field is inconsistent")
+    if reproduction.get("regime") != expected_regime:
+        raise ValueError("Bundle reproduction regime field is inconsistent")
+    if finite_number(
+        reproduction.get("absolute_tolerance"), "bundle reproduction tolerance"
+    ) != REPRO_TOLERANCE:
+        raise ValueError("Unexpected bundle reproduction tolerance")
+    if reproduction.get("verified_equal_to_published") is not True:
+        raise ValueError("Reproduction bundle must be marked verified_equal_to_published")
 
 
 def validate(root: Path) -> str:
@@ -288,6 +517,9 @@ def validate(root: Path) -> str:
         raise ValueError("Archived score JSON does not match the current release week")
     if archived_bridge != bridge:
         raise ValueError("Archived weekly bridge JSON differs from the latest bridge JSON")
+
+    if reproduction_bundle_required(week):
+        validate_reproduction_bundle(root, metadata, week)
 
     return week
 
