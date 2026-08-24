@@ -273,7 +273,7 @@ def fetch_fred(series: list[str], start: str, logger: logging.Logger) -> pd.Data
         one[s] = pd.to_numeric(one[s], errors="coerce")
         frames.append(one)
 
-    df = pd.concat(frames, axis=1)
+    df = pd.concat(frames, axis=1, sort=True)
     # Filter to start date
     df = df[df.index >= pd.Timestamp(start)]
     if df.empty:
