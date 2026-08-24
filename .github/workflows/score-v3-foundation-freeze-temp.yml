@@ -1,16 +1,20 @@
 name: TEMP Score v3 initialization freeze
 
 on:
-  push:
-    branches: [agent/score-v3-foundation]
+  pull_request:
+    branches: [main]
     paths:
       - research/score_v3_freeze_request.json
+      - scripts/freeze_score_v3_initialization.py
+      - scripts/score_v3_candidates.py
+      - .github/workflows/score-v3-foundation-freeze-temp.yml
 
 permissions:
   contents: write
 
 jobs:
   freeze:
+    if: github.head_ref == 'agent/score-v3-foundation'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
