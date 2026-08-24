@@ -1,0 +1,23 @@
+{
+  "lock_id": "usd_impact_score_v2_predictive_engine_2026-08-25",
+  "lock_version": 1,
+  "locked_date": "2026-08-25",
+  "research_only": true,
+  "production_change": false,
+  "implementation_commit_sha": "b08a057dc4372d0ab48a25d9fab0950dd0b3c11e",
+  "preregistration_commit_sha": "89bf56bafd594987176f31efaa926ecf02228289",
+  "preregistration_file_sha256": "36accc42e4915bb48caa1c4d2fd0fac8ba27c51c0eb988916990c415830e3ca0",
+  "immutable_files": {
+    "research/score_v2_predictive_implementation_contract.json": "13c2b546abda5c7ba44bdf178371346062d6717c1ed7f10f6a16aac319a9f789",
+    "research/score_v2_predictive_manifest.schema.json": "27a9319ea7a7f5d5148edc05b67488caa96354787bdbf11d9489ae48fe8898d4",
+    "research/score_v2_predictive_week.schema.json": "3769fb0212248e17f97555806040312d945c39d90c30e157675bec9f9ccee4b5",
+    "research/score_v2_predictive_checkpoint.schema.json": "905a75518ce9f9cdc288c7d084d149de944320bbe0c5d6d7ad3c0642b58fb54c",
+    "research/score_v3_initialization_2026-08-21.csv": "6e17100c061cebc3116fdac9c83708b94a72165957ffbcf688d9a08e9d280580",
+    "scripts/score_v2_predictive_manifest.py": "0f4608a0912f9276560dd1d4b3230b27b6481cdb0dfa3ce6948dbf679ed0367c",
+    "scripts/score_v2_predictive_ingestion.py": "5729a9248f14d3c1e95558b0b8d976caf300b1d55329f4da59375fde5d30d2f3",
+    "scripts/score_v2_predictive_metrics.py": "a77fedaa5688cede9e3015a245b45afeb8dc139cd7a24b0860c88f402f620d8c",
+    "scripts/score_v2_predictive_reporting.py": "ae1607870b057c72e1d74d5d7405eac87fe8769064d4b03ad169978761203215"
+  },
+  "change_policy": "Any immutable-file change after the first origin requires a new protocol ID and reset untouched holdout. Do not relabel a changed engine as this locked study.",
+  "automatic_override_allowed": false
+}

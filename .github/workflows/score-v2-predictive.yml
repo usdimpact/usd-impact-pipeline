@@ -108,8 +108,10 @@ jobs:
             scripts/validate_methodology_contract.py
             research/score_v2_predictive_preregistration.json
             research/score_v2_predictive_implementation_contract.json
+            research/score_v2_predictive_engine_lock.json
             research/score_v2_predictive_manifest.json
             research/score_v3_initialization_2026-08-21.csv
+            scripts/verify_score_v2_predictive_engine_lock.py
             scripts/score_v2_predictive_manifest.py
             scripts/score_v2_predictive_ingestion.py
             scripts/score_v2_predictive_metrics.py
@@ -137,6 +139,7 @@ jobs:
 
       - name: Revalidate checked-out Score v2 release
         run: |
+          python -m scripts.verify_score_v2_predictive_engine_lock --json
           python -m scripts.validate_methodology_contract --json
           python scripts/validate_weekly_release.py
 
