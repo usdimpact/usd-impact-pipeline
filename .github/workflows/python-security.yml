@@ -43,6 +43,34 @@ jobs:
       - name: Audit the frozen production dependency lock
         run: pip-audit --requirement requirements.lock
 
+      - name: Generate CycloneDX SBOM evidence
+        run: pip-audit --requirement requirements.lock --format cyclonedx-json --output "$RUNNER_TEMP/usd-impact-score-python-sbom.cdx.json"
+
+      - name: Validate CycloneDX SBOM evidence
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          path = Path(os.environ['RUNNER_TEMP']) / 'usd-impact-score-python-sbom.cdx.json'
+          data = json.loads(path.read_text(encoding='utf-8'))
+          if data.get('bomFormat') != 'CycloneDX':
+              raise SystemExit('Invalid CycloneDX SBOM: missing bomFormat')
+          components = data.get('components')
+          if not isinstance(components, list) or not components:
+              raise SystemExit('Invalid CycloneDX SBOM: no dependency components')
+          print(f'CycloneDX SBOM components: {len(components)}')
+          PY
+
+      - name: Upload SBOM evidence
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: usd-impact-score-python-sbom-${{ github.sha }}
+          path: ${{ runner.temp }}/usd-impact-score-python-sbom.cdx.json
+          if-no-files-found: error
+          retention-days: 30
+
   codeql:
     name: CodeQL (python)
     runs-on: ubuntu-latest
