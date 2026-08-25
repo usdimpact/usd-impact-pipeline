@@ -1,0 +1,61 @@
+name: Cloudflare Pages security posture
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'public/_headers'
+      - '.github/workflows/pages-security-posture.yml'
+  schedule:
+    - cron: '53 7 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-live-pages:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Verify live Cloudflare Pages security policy
+        shell: bash
+        run: |
+          set -euo pipefail
+          origin="https://usd-impact-pipeline.pages.dev"
+          tmp="$(mktemp -d)"
+          trap 'rm -rf "$tmp"' EXIT
+
+          for attempt in $(seq 1 30); do
+            status="$(curl --silent --show-error --location \
+              --dump-header "$tmp/headers" \
+              --output "$tmp/body" \
+              --write-out '%{http_code}' \
+              "$origin/en/" || true)"
+            tr -d '\r' < "$tmp/headers" > "$tmp/headers.clean"
+            csp="$(grep -i '^content-security-policy:' "$tmp/headers.clean" | tail -n 1 || true)"
+
+            if [ "$status" = "200" ] \
+              && grep -q 'USD Impact Score' "$tmp/body" \
+              && grep -qi '^x-content-type-options: nosniff$' "$tmp/headers.clean" \
+              && grep -qi '^referrer-policy: strict-origin-when-cross-origin$' "$tmp/headers.clean" \
+              && grep -qi '^permissions-policy: camera=(), microphone=(), geolocation=()$' "$tmp/headers.clean" \
+              && grep -qi '^x-permitted-cross-domain-policies: none$' "$tmp/headers.clean" \
+              && printf '%s' "$csp" | grep -Fq "default-src 'none'" \
+              && printf '%s' "$csp" | grep -Fq "script-src 'self' 'sha256-IGL29GGZMxoGb4lM3VdzVRyVvzRgYYWet+kIdn3Xjik='" \
+              && printf '%s' "$csp" | grep -Fq "script-src-attr 'none'" \
+              && printf '%s' "$csp" | grep -Fq 'frame-ancestors https://www.usd-impact.com https://usd-impact.com'; then
+              echo "Cloudflare Pages security posture is healthy."
+              exit 0
+            fi
+
+            echo "Attempt $attempt: Pages deployment has not reached the expected security posture yet."
+            if [ "$attempt" -lt 30 ]; then
+              sleep 10
+            fi
+          done
+
+          echo "Cloudflare Pages did not expose the expected security headers within the bounded verification window."
+          echo "HTTP status: ${status:-unknown}"
+          echo "Observed CSP: ${csp:-missing}"
+          exit 1
