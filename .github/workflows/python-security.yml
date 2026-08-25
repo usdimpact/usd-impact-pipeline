@@ -1,0 +1,67 @@
+name: Python security analysis
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '**/*.py'
+      - 'requirements.txt'
+      - 'requirements.lock'
+      - '.github/workflows/python-security.yml'
+  push:
+    branches: [main]
+    paths:
+      - '**/*.py'
+      - 'requirements.txt'
+      - 'requirements.lock'
+      - '.github/workflows/python-security.yml'
+  schedule:
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  dependency-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: requirements.lock
+
+      - name: Install pinned pip-audit tool
+        run: python -m pip install --disable-pip-version-check pip-audit==2.10.1
+
+      - name: Audit the frozen production dependency lock
+        run: pip-audit --requirement requirements.lock
+
+  codeql:
+    name: CodeQL (python)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      security-events: write
+      packages: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@db488ddef3bf6cb639b32c2e9a7c0a7ea8271d28 # v4, resolved 2026-08-21
+        with:
+          languages: python
+          queries: security-extended
+
+      - name: Analyze Python
+        uses: github/codeql-action/analyze@db488ddef3bf6cb639b32c2e9a7c0a7ea8271d28 # v4, resolved 2026-08-21
+        with:
+          category: '/language:python'
