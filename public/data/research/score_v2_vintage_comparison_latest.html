@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="index,follow">
+  <title>USD Impact Score v2 | As-published vs current vintage audit</title>
+  <meta name="description" content="Human-readable revision audit comparing valid as-published USD Impact Score v2 readings with the same weeks in the current recalculated history.">
+  <style>
+    :root { color-scheme: light; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f5f6f7; color: #17202a; }
+    body { margin: 0; }
+    main { max-width: 1200px; margin: 0 auto; padding: 36px 20px 64px; }
+    h1, h2 { line-height: 1.15; }
+    h1 { max-width: 900px; margin-bottom: 12px; }
+    p { line-height: 1.6; }
+    a { color: #163a63; }
+    .lede { max-width: 900px; font-size: 1.08rem; }
+    .notice { margin: 24px 0; padding: 16px 18px; border-left: 4px solid #9b7a2f; background: #fffaf0; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin: 24px 0; }
+    .card { background: #fff; border: 1px solid #dfe3e7; border-radius: 10px; padding: 16px; }
+    .metric { font-size: 1.35rem; font-weight: 700; margin-top: 6px; }
+    .table-wrap { overflow-x: auto; background: #fff; border: 1px solid #dfe3e7; border-radius: 10px; }
+    table { width: 100%; border-collapse: collapse; min-width: 980px; }
+    th, td { padding: 10px 12px; border-bottom: 1px solid #edf0f2; text-align: left; vertical-align: top; font-size: 0.92rem; }
+    th { background: #f0f2f4; position: sticky; top: 0; }
+    code { overflow-wrap: anywhere; }
+    .links { display: flex; gap: 14px; flex-wrap: wrap; margin: 18px 0 30px; }
+    .links a { display: inline-block; padding: 9px 12px; background: #17202a; color: #fff; text-decoration: none; border-radius: 7px; }
+    footer { margin-top: 36px; color: #53606c; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+<main>
+  <p><strong>USD Impact Score v2 research audit</strong></p>
+  <h1>As-published vs current recalculated score vintages</h1>
+  <p class="lede">This page compares each valid dated archive's declared latest USD Impact Score v2 reading with the same score week in the current full-history recalculation. It is designed to make historical revision risk directly inspectable.</p>
+
+  <div class="notice"><strong>Descriptive revision audit only.</strong> This is not a predictive backtest, performance record, trading signal, probability estimate, or independent audit. Differences can combine expanding-sample normalization effects with upstream provider revisions.</div>
+
+  <div class="grid">
+    <div class="card"><div>Valid as-published vintages</div><div class="metric">15</div></div>
+    <div class="card"><div>Mean absolute score revision</div><div class="metric">0.034</div></div>
+    <div class="card"><div>Maximum absolute score revision</div><div class="metric">0.078</div></div>
+    <div class="card"><div>Regime agreement</div><div class="metric">100.0%</div></div>
+    <div class="card"><div>Score-sign agreement</div><div class="metric">100.0%</div></div>
+    <div class="card"><div>Excluded legacy archives</div><div class="metric">3</div></div>
+  </div>
+
+  <p><strong>Difference definition:</strong> current recalculated value minus as-published value. Current reference latest week: <code>2026-08-21</code>. Audit generated: <code>2026-08-25T15:35:50.963469+00:00</code>.</p>
+
+  <div class="links">
+    <a href="./score_v2_vintage_comparison_latest.json">Download JSON</a>
+    <a href="./score_v2_vintage_comparison_latest.csv">Download CSV</a>
+    <a href="/archive/en/">Open score archive</a>
+  </div>
+
+  <h2>Vintage-by-vintage comparison</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Published at (UTC)</th><th>Score week</th><th>As published</th><th>Current recalculated</th><th>Difference</th><th>As-published regime</th><th>Current regime</th><th>Regime changed?</th><th>Largest component revision</th>
+        </tr>
+      </thead>
+      <tbody><tr><td>2026-08-21T22:21:39.945186+00:00</td><td>2026-08-21</td><td>-0.723</td><td>-0.723</td><td>+0.000</td><td>Soft dollar regime</td><td>Soft dollar regime</td><td>No</td><td>DXY (0.000)</td></tr><tr><td>2026-08-14T22:20:17.687164+00:00</td><td>2026-08-14</td><td>-0.620</td><td>-0.601</td><td>+0.019</td><td>Soft dollar regime</td><td>Soft dollar regime</td><td>No</td><td>GOLD (0.079)</td></tr><tr><td>2026-08-07T22:32:31.108080+00:00</td><td>2026-08-07</td><td>-0.563</td><td>-0.563</td><td>+0.000</td><td>Soft dollar regime</td><td>Soft dollar regime</td><td>No</td><td>GOLD (0.107)</td></tr><tr><td>2026-08-02T20:27:47.504927+00:00</td><td>2026-07-31</td><td>-0.527</td><td>-0.496</td><td>+0.031</td><td>Soft dollar regime</td><td>Soft dollar regime</td><td>No</td><td>GOLD (0.118)</td></tr><tr><td>2026-07-24T22:59:21.607191+00:00</td><td>2026-07-24</td><td>-0.457</td><td>-0.441</td><td>+0.016</td><td>Soft dollar regime</td><td>Soft dollar regime</td><td>No</td><td>WTI (0.073)</td></tr><tr><td>2026-07-17T22:48:18.005885+00:00</td><td>2026-07-17</td><td>-0.444</td><td>-0.430</td><td>+0.013</td><td>Soft dollar regime</td><td>Soft dollar regime</td><td>No</td><td>GOLD (0.091)</td></tr><tr><td>2026-07-10T22:58:09.183235+00:00</td><td>2026-07-10</td><td>-0.466</td><td>-0.435</td><td>+0.031</td><td>Soft dollar regime</td><td>Soft dollar regime</td><td>No</td><td>GOLD (0.123)</td></tr><tr><td>2026-07-03T23:01:38.951131+00:00</td><td>2026-07-03</td><td>-0.438</td><td>-0.399</td><td>+0.040</td><td>Soft dollar regime</td><td>Soft dollar regime</td><td>No</td><td>GOLD (0.194)</td></tr><tr><td>2026-06-26T23:04:39.433206+00:00</td><td>2026-06-26</td><td>-0.374</td><td>-0.340</td><td>+0.034</td><td>Soft dollar regime</td><td>Soft dollar regime</td><td>No</td><td>GOLD (0.152)</td></tr><tr><td>2026-06-19T22:55:54.713134+00:00</td><td>2026-06-19</td><td>-0.481</td><td>-0.470</td><td>+0.012</td><td>Soft dollar regime</td><td>Soft dollar regime</td><td>No</td><td>SPX (0.137)</td></tr><tr><td>2026-05-29T23:11:13.274455+00:00</td><td>2026-05-29</td><td>-0.772</td><td>-0.724</td><td>+0.048</td><td>Soft dollar regime</td><td>Soft dollar regime</td><td>No</td><td>GOLD (0.237)</td></tr><tr><td>2026-05-22T22:57:36.947288+00:00</td><td>2026-05-22</td><td>-0.779</td><td>-0.723</td><td>+0.056</td><td>Soft dollar regime</td><td>Soft dollar regime</td><td>No</td><td>GOLD (0.239)</td></tr><tr><td>2026-04-24T23:58:46.569802+00:00</td><td>2026-04-24</td><td>-0.833</td><td>-0.756</td><td>+0.076</td><td>Soft dollar regime</td><td>Soft dollar regime</td><td>No</td><td>GOLD (0.402)</td></tr><tr><td>2026-04-17T23:59:01.731288+00:00</td><td>2026-04-17</td><td>-0.793</td><td>-0.740</td><td>+0.053</td><td>Soft dollar regime</td><td>Soft dollar regime</td><td>No</td><td>GOLD (0.292)</td></tr><tr><td>2026-04-10T23:54:09.613066+00:00</td><td>2026-04-10</td><td>-0.794</td><td>-0.716</td><td>+0.078</td><td>Soft dollar regime</td><td>Soft dollar regime</td><td>No</td><td>GOLD (0.396)</td></tr></tbody>
+    </table>
+  </div>
+
+  <h2>Excluded archives</h2>
+  <p>Invalid legacy archives are reported rather than repaired or silently accepted.</p>
+  <div class="table-wrap">
+    <table style="min-width: 520px">
+      <thead><tr><th>Archive ID</th><th>Exclusion reason</th></tr></thead>
+      <tbody><tr><td>2026-05-02</td><td>score_week_after_generation_date</td></tr><tr><td>2026-05-09</td><td>score_week_after_generation_date</td></tr><tr><td>2026-05-16</td><td>score_week_after_generation_date</td></tr></tbody>
+    </table>
+  </div>
+
+  <h2>Limitations</h2>
+  <ul><li>This is a descriptive revision audit, not a predictive backtest or performance test.</li><li>Only the latest declared week from each dated archive is treated as an as-published observation.</li><li>Differences can combine expanding-sample normalization effects and upstream provider revisions; this artifact does not identify their separate causes.</li><li>The legacy archive is incomplete and includes explicitly reported invalid entries; excluded archives are not repaired or silently rewritten.</li><li>Archive timestamps and contents are first-party publication records, not independently notarized evidence.</li></ul>
+
+  <footer>
+    <p>Educational and informational only. Archive timestamps and contents are first-party publication records, not independently notarized evidence. See the public USD Impact Score methodology for the production formula, normalization and validation limitations.</p>
+  </footer>
+</main>
+</body>
+</html>
