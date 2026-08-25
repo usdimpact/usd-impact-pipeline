@@ -1,0 +1,129 @@
+name: Branded Score domain readiness
+
+on:
+  workflow_dispatch:
+    inputs:
+      origin:
+        description: Branded HTTPS origin to verify
+        required: true
+        default: https://score.usd-impact.com
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  verify-branded-origin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Verify branded origin against the current Pages origin
+        shell: bash
+        env:
+          REQUESTED_ORIGIN: ${{ inputs.origin }}
+          BRANDED_ORIGIN: https://score.usd-impact.com
+          LEGACY_ORIGIN: https://usd-impact-pipeline.pages.dev
+        run: |
+          set -euo pipefail
+
+          origin="${REQUESTED_ORIGIN%/}"
+          if [ "$origin" != "$BRANDED_ORIGIN" ]; then
+            echo "Refusing to verify an unapproved origin: $origin"
+            echo "Expected exactly: $BRANDED_ORIGIN"
+            exit 1
+          fi
+
+          tmp="$(mktemp -d)"
+          trap 'rm -rf "$tmp"' EXIT
+
+          paths=(
+            "/en/"
+            "/archive/en/"
+            "/data/research/score_v2_vintage_comparison_latest.html"
+            "/data/research/score_v2_vintage_comparison_latest.json"
+            "/data/research/score_v2_vintage_comparison_latest.csv"
+            "/data/score_v2_data_semantics.json"
+            "/data/weekly_input_latest.json"
+          )
+
+          printf '# Branded Score domain readiness\n\n' >> "$GITHUB_STEP_SUMMARY"
+          printf 'Branded origin: `%s`\n\n' "$origin" >> "$GITHUB_STEP_SUMMARY"
+          printf '| Path | Legacy | Branded | Content match |\n' >> "$GITHUB_STEP_SUMMARY"
+          printf '| --- | --- | --- | --- |\n' >> "$GITHUB_STEP_SUMMARY"
+
+          for path in "${paths[@]}"; do
+            legacy_body="$tmp/legacy-body"
+            branded_body="$tmp/branded-body"
+            legacy_headers="$tmp/legacy-headers"
+            branded_headers="$tmp/branded-headers"
+
+            legacy_status="$(curl --silent --show-error --location \
+              --dump-header "$legacy_headers" \
+              --output "$legacy_body" \
+              --write-out '%{http_code}' \
+              "$LEGACY_ORIGIN$path")"
+
+            branded_effective="$tmp/branded-effective"
+            branded_status="$(curl --silent --show-error --location \
+              --dump-header "$branded_headers" \
+              --output "$branded_body" \
+              --write-out '%{http_code} %{url_effective}' \
+              "$origin$path")"
+
+            branded_code="${branded_status%% *}"
+            effective_url="${branded_status#* }"
+
+            if [ "$legacy_status" != "200" ]; then
+              echo "Legacy Pages origin failed for $path: HTTP $legacy_status"
+              exit 1
+            fi
+            if [ "$branded_code" != "200" ]; then
+              echo "Branded origin failed for $path: HTTP $branded_code"
+              exit 1
+            fi
+            if printf '%s' "$effective_url" | grep -Fq 'pages.dev'; then
+              echo "Branded request for $path redirected to pages.dev: $effective_url"
+              exit 1
+            fi
+
+            legacy_hash="$(sha256sum "$legacy_body" | awk '{print $1}')"
+            branded_hash="$(sha256sum "$branded_body" | awk '{print $1}')"
+            if [ "$legacy_hash" != "$branded_hash" ]; then
+              echo "Content mismatch for $path"
+              echo "Legacy SHA-256:  $legacy_hash"
+              echo "Branded SHA-256: $branded_hash"
+              exit 1
+            fi
+
+            printf '| `%s` | 200 | 200 | SHA-256 match |\n' "$path" >> "$GITHUB_STEP_SUMMARY"
+          done
+
+          curl --silent --show-error --location \
+            --dump-header "$tmp/security-headers" \
+            --output "$tmp/security-body" \
+            "$origin/en/"
+          tr -d '\r' < "$tmp/security-headers" > "$tmp/security-headers-clean"
+          csp="$(grep -i '^content-security-policy:' "$tmp/security-headers-clean" | tail -n 1 || true)"
+
+          grep -q 'USD Impact Score' "$tmp/security-body"
+          grep -qi '^x-content-type-options: nosniff$' "$tmp/security-headers-clean"
+          grep -qi '^referrer-policy: strict-origin-when-cross-origin$' "$tmp/security-headers-clean"
+          grep -qi '^permissions-policy: camera=(), microphone=(), geolocation=()$' "$tmp/security-headers-clean"
+          grep -qi '^x-permitted-cross-domain-policies: none$' "$tmp/security-headers-clean"
+          printf '%s' "$csp" | grep -Fq "default-src 'none'"
+          printf '%s' "$csp" | grep -Fq "script-src-attr 'none'"
+          printf '%s' "$csp" | grep -Fq 'frame-ancestors https://www.usd-impact.com https://usd-impact.com'
+
+          printf '\nSecurity headers: **PASS**\n\n' >> "$GITHUB_STEP_SUMMARY"
+          printf 'Legacy `pages.dev` compatibility: **PASS**\n\n' >> "$GITHUB_STEP_SUMMARY"
+          printf 'Result: **READY FOR WEBSITE CUTOVER REVIEW**\n' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Confirm workflow remains read-only
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "This workflow performs network reads only. It does not modify DNS, Pages settings, repository content, deployments, or production data."
