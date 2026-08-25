@@ -32,15 +32,15 @@ jobs:
               --output "$tmp/body" \
               --write-out '%{http_code}' \
               "$origin/en/" || true)"
-
-            csp="$(grep -i '^content-security-policy:' "$tmp/headers" | tail -n 1 | tr -d '\r' || true)"
+            tr -d '\r' < "$tmp/headers" > "$tmp/headers.clean"
+            csp="$(grep -i '^content-security-policy:' "$tmp/headers.clean" | tail -n 1 || true)"
 
             if [ "$status" = "200" ] \
               && grep -q 'USD Impact Score' "$tmp/body" \
-              && grep -qi '^x-content-type-options: nosniff\r\{0,1\}$' "$tmp/headers" \
-              && grep -qi '^referrer-policy: strict-origin-when-cross-origin\r\{0,1\}$' "$tmp/headers" \
-              && grep -qi '^permissions-policy: camera=(), microphone=(), geolocation=()\r\{0,1\}$' "$tmp/headers" \
-              && grep -qi '^x-permitted-cross-domain-policies: none\r\{0,1\}$' "$tmp/headers" \
+              && grep -qi '^x-content-type-options: nosniff$' "$tmp/headers.clean" \
+              && grep -qi '^referrer-policy: strict-origin-when-cross-origin$' "$tmp/headers.clean" \
+              && grep -qi '^permissions-policy: camera=(), microphone=(), geolocation=()$' "$tmp/headers.clean" \
+              && grep -qi '^x-permitted-cross-domain-policies: none$' "$tmp/headers.clean" \
               && printf '%s' "$csp" | grep -Fq "default-src 'none'" \
               && printf '%s' "$csp" | grep -Fq "script-src 'self' 'sha256-IGL29GGZMxoGb4lM3VdzVRyVvzRgYYWet+kIdn3Xjik='" \
               && printf '%s' "$csp" | grep -Fq "script-src-attr 'none'" \
