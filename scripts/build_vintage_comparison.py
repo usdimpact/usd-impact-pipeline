@@ -14,6 +14,7 @@ import csv
 import hashlib
 import json
 from datetime import datetime, timezone
+from html import escape
 from pathlib import Path
 from typing import Any
 
@@ -27,6 +28,7 @@ DEFAULT_CURRENT = ROOT / "public/data/usd_impact_score_v2.json"
 DEFAULT_ARCHIVE_ROOT = ROOT / "public/archive"
 DEFAULT_JSON_OUTPUT = ROOT / "public/data/research/score_v2_vintage_comparison_latest.json"
 DEFAULT_CSV_OUTPUT = ROOT / "public/data/research/score_v2_vintage_comparison_latest.csv"
+DEFAULT_HTML_OUTPUT = ROOT / "public/data/research/score_v2_vintage_comparison_latest.html"
 ABSOLUTE_TOLERANCE = 1e-12
 
 
@@ -328,12 +330,147 @@ def write_csv(report: dict[str, Any], path: Path) -> None:
             writer.writerow(row)
 
 
+def _score(value: float) -> str:
+    return f"{value:+.3f}"
+
+
+def _percent(value: float) -> str:
+    return f"{value * 100:.1f}%"
+
+
+def write_html(report: dict[str, Any], path: Path) -> None:
+    summary = report["summary"]
+    current_reference = report["current_reference"]
+    rows = []
+    for vintage in reversed(report["vintages"]):
+        largest = vintage["largest_absolute_component_revision"]
+        regime_change = "Yes" if vintage["regime_changed"] else "No"
+        rows.append(
+            "<tr>"
+            f"<td>{escape(vintage['published_at_utc'])}</td>"
+            f"<td>{escape(vintage['score_week'])}</td>"
+            f"<td>{_score(float(vintage['as_published_score']))}</td>"
+            f"<td>{_score(float(vintage['current_recalculated_score']))}</td>"
+            f"<td>{_score(float(vintage['score_difference']))}</td>"
+            f"<td>{escape(vintage['as_published_regime'])}</td>"
+            f"<td>{escape(vintage['current_recalculated_regime'])}</td>"
+            f"<td>{regime_change}</td>"
+            f"<td>{escape(str(largest['driver']))} ({float(largest['absolute_difference']):.3f})</td>"
+            "</tr>"
+        )
+
+    excluded_rows = []
+    for excluded in report["excluded_archives"]:
+        excluded_rows.append(
+            "<tr>"
+            f"<td>{escape(str(excluded['archive_id']))}</td>"
+            f"<td>{escape(str(excluded['reason']))}</td>"
+            "</tr>"
+        )
+    if not excluded_rows:
+        excluded_rows.append('<tr><td colspan="2">None.</td></tr>')
+
+    limitations = "".join(
+        f"<li>{escape(str(item))}</li>" for item in report["limitations"]
+    )
+    html = f"""<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="index,follow">
+  <title>USD Impact Score v2 | As-published vs current vintage audit</title>
+  <meta name="description" content="Human-readable revision audit comparing valid as-published USD Impact Score v2 readings with the same weeks in the current recalculated history.">
+  <style>
+    :root {{ color-scheme: light; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f5f6f7; color: #17202a; }}
+    body {{ margin: 0; }}
+    main {{ max-width: 1200px; margin: 0 auto; padding: 36px 20px 64px; }}
+    h1, h2 {{ line-height: 1.15; }}
+    h1 {{ max-width: 900px; margin-bottom: 12px; }}
+    p {{ line-height: 1.6; }}
+    a {{ color: #163a63; }}
+    .lede {{ max-width: 900px; font-size: 1.08rem; }}
+    .notice {{ margin: 24px 0; padding: 16px 18px; border-left: 4px solid #9b7a2f; background: #fffaf0; }}
+    .grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin: 24px 0; }}
+    .card {{ background: #fff; border: 1px solid #dfe3e7; border-radius: 10px; padding: 16px; }}
+    .metric {{ font-size: 1.35rem; font-weight: 700; margin-top: 6px; }}
+    .table-wrap {{ overflow-x: auto; background: #fff; border: 1px solid #dfe3e7; border-radius: 10px; }}
+    table {{ width: 100%; border-collapse: collapse; min-width: 980px; }}
+    th, td {{ padding: 10px 12px; border-bottom: 1px solid #edf0f2; text-align: left; vertical-align: top; font-size: 0.92rem; }}
+    th {{ background: #f0f2f4; position: sticky; top: 0; }}
+    code {{ overflow-wrap: anywhere; }}
+    .links {{ display: flex; gap: 14px; flex-wrap: wrap; margin: 18px 0 30px; }}
+    .links a {{ display: inline-block; padding: 9px 12px; background: #17202a; color: #fff; text-decoration: none; border-radius: 7px; }}
+    footer {{ margin-top: 36px; color: #53606c; font-size: 0.9rem; }}
+  </style>
+</head>
+<body>
+<main>
+  <p><strong>USD Impact Score v2 research audit</strong></p>
+  <h1>As-published vs current recalculated score vintages</h1>
+  <p class="lede">This page compares each valid dated archive's declared latest USD Impact Score v2 reading with the same score week in the current full-history recalculation. It is designed to make historical revision risk directly inspectable.</p>
+
+  <div class="notice"><strong>Descriptive revision audit only.</strong> This is not a predictive backtest, performance record, trading signal, probability estimate, or independent audit. Differences can combine expanding-sample normalization effects with upstream provider revisions.</div>
+
+  <div class="grid">
+    <div class="card"><div>Valid as-published vintages</div><div class="metric">{int(summary['valid_vintages'])}</div></div>
+    <div class="card"><div>Mean absolute score revision</div><div class="metric">{float(summary['mean_absolute_score_difference']):.3f}</div></div>
+    <div class="card"><div>Maximum absolute score revision</div><div class="metric">{float(summary['maximum_absolute_score_difference']):.3f}</div></div>
+    <div class="card"><div>Regime agreement</div><div class="metric">{_percent(float(summary['regime_agreement_rate']))}</div></div>
+    <div class="card"><div>Score-sign agreement</div><div class="metric">{_percent(float(summary['score_sign_agreement_rate']))}</div></div>
+    <div class="card"><div>Excluded legacy archives</div><div class="metric">{int(summary['excluded_archives'])}</div></div>
+  </div>
+
+  <p><strong>Difference definition:</strong> current recalculated value minus as-published value. Current reference latest week: <code>{escape(str(current_reference.get('latest_week')))}</code>. Audit generated: <code>{escape(str(report['generated_at_utc']))}</code>.</p>
+
+  <div class="links">
+    <a href="./score_v2_vintage_comparison_latest.json">Download JSON</a>
+    <a href="./score_v2_vintage_comparison_latest.csv">Download CSV</a>
+    <a href="/archive/en/">Open score archive</a>
+  </div>
+
+  <h2>Vintage-by-vintage comparison</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Published at (UTC)</th><th>Score week</th><th>As published</th><th>Current recalculated</th><th>Difference</th><th>As-published regime</th><th>Current regime</th><th>Regime changed?</th><th>Largest component revision</th>
+        </tr>
+      </thead>
+      <tbody>{''.join(rows)}</tbody>
+    </table>
+  </div>
+
+  <h2>Excluded archives</h2>
+  <p>Invalid legacy archives are reported rather than repaired or silently accepted.</p>
+  <div class="table-wrap">
+    <table style="min-width: 520px">
+      <thead><tr><th>Archive ID</th><th>Exclusion reason</th></tr></thead>
+      <tbody>{''.join(excluded_rows)}</tbody>
+    </table>
+  </div>
+
+  <h2>Limitations</h2>
+  <ul>{limitations}</ul>
+
+  <footer>
+    <p>Educational and informational only. Archive timestamps and contents are first-party publication records, not independently notarized evidence. See the public USD Impact Score methodology for the production formula, normalization and validation limitations.</p>
+  </footer>
+</main>
+</body>
+</html>
+"""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(html, encoding="utf-8")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--current", type=Path, default=DEFAULT_CURRENT)
     parser.add_argument("--archive-root", type=Path, default=DEFAULT_ARCHIVE_ROOT)
     parser.add_argument("--json-output", type=Path, default=DEFAULT_JSON_OUTPUT)
     parser.add_argument("--csv-output", type=Path, default=DEFAULT_CSV_OUTPUT)
+    parser.add_argument("--html-output", type=Path, default=DEFAULT_HTML_OUTPUT)
     args = parser.parse_args()
 
     report = build_vintage_comparison(args.current, args.archive_root)
@@ -343,6 +480,7 @@ def main() -> int:
         encoding="utf-8",
     )
     write_csv(report, args.csv_output)
+    write_html(report, args.html_output)
     print(
         "Vintage comparison generated: "
         f"{report['summary']['valid_vintages']} valid, "
