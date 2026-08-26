@@ -1,0 +1,129 @@
+{
+  "version": 1,
+  "as_of": "2026-08-26",
+  "title": "USD Impact Score v2 Independent Replication Protocol",
+  "status": "prepared_not_executed",
+  "independent_review_completed": false,
+  "independent_validation_claim_allowed": false,
+  "first_eligible_release_week": "2026-08-28",
+  "scope": "A protocol for an external reviewer to test whether one strict as-published USD Impact Score v2 release can be reproduced from frozen public artifacts and whether the public methodology is sufficiently clear to implement independently. It is not a predictive-performance audit and it does not itself constitute independent review.",
+  "why_not_current_release": "Releases through 2026-08-21 predate the mandatory immutable reproduction-bundle contract. The first eligible release is 2026-08-28 or later after successful post-merge reproduction attestation.",
+  "independence_criteria": [
+    "The reviewer must not have designed USD Impact Score v2, selected its production variables, signs, weights or thresholds, or implemented its production pipeline.",
+    "The reviewer must perform the primary recomputation in an environment they control and disclose any compensation, commercial relationship or other material conflict.",
+    "USD Impact may answer clarification questions only if each material clarification is retained with the final review record; undisclosed private corrections are not permitted.",
+    "The reviewer must be free to publish MATCH, MISMATCH, AMBIGUOUS or NOT_TESTABLE findings without USD Impact editing the substantive result.",
+    "Running USD Impact's own CI, rehearsal or post-merge attestation does not satisfy the independence criterion."
+  ],
+  "release_eligibility": {
+    "minimum_week_ending": "2026-08-28",
+    "requires_strict_reproduction_bundle": true,
+    "requires_latest_archive_bundle_identity": true,
+    "requires_main_post_merge_reproduction_attestation": true,
+    "requires_exact_release_commit": true,
+    "requires_requirements_lock_hash_in_bundle": true,
+    "requires_public_methodology_and_data_semantics": true
+  },
+  "review_materials": [
+    {
+      "id": "methodology",
+      "path": "public/data/score_v2_methodology.json",
+      "purpose": "Machine-readable production variables, signed weights, normalization, clipping, missing-data rules and regime thresholds."
+    },
+    {
+      "id": "data_semantics",
+      "path": "public/data/score_v2_data_semantics.json",
+      "purpose": "Provider field, alignment, resampling, continuous-futures and timestamp/retention boundaries."
+    },
+    {
+      "id": "strict_bundle_latest",
+      "path": "public/data/score_repro_bundle_latest.json",
+      "purpose": "Frozen weekly levels, normalization moments, z-scores, contributions, provenance, matrix fingerprints, pipeline SHA and dependency-lock hash for the strict release."
+    },
+    {
+      "id": "strict_bundle_archive",
+      "path_template": "public/archive/{week_ending}/score_repro_bundle.json",
+      "purpose": "Immutable dated counterpart that must match the latest strict bundle for the reviewed release."
+    },
+    {
+      "id": "score_json",
+      "path": "public/data/usd_impact_score_v2.json",
+      "purpose": "Published current-vintage score output and release metadata."
+    },
+    {
+      "id": "bridge",
+      "path": "public/data/weekly_input_latest.json",
+      "purpose": "Published latest-week bridge used by the main website."
+    },
+    {
+      "id": "dependency_lock",
+      "path": "requirements.lock",
+      "purpose": "Exact Python dependency environment whose SHA-256 is bound into strict reproduction bundles."
+    },
+    {
+      "id": "reference_validator_secondary_only",
+      "path": "scripts/validate_weekly_release.py",
+      "purpose": "USD Impact reference validator. It may be used as a secondary cross-check but must not be the reviewer's only recomputation because that would test the implementation against itself."
+    }
+  ],
+  "primary_replication_steps": [
+    "Select one eligible strict release and record its week ending, exact merged production commit and public URLs before calculation begins.",
+    "Hash the reviewed methodology, data-semantics, latest bundle, dated bundle, dependency lock, score JSON and bridge. Retain the hashes in the review report.",
+    "Confirm the latest and dated strict reproduction bundles are byte-identical for the selected release and that the bundle's requirements.lock SHA-256 matches the reviewed lockfile.",
+    "Without importing usd_impact_score_v2.py or using scripts/validate_weekly_release.py as the primary calculation, independently implement the published score arithmetic from the methodology and frozen bundle fields.",
+    "For each of the eight drivers, recompute the unclipped z-score from frozen weekly level, mean and sample standard deviation; apply the published clipping rule, signed fixed weight and contribution.",
+    "Sum the eight independently recomputed contributions and independently apply the published regime thresholds.",
+    "Compare recomputed per-driver z-scores, contributions, total score and regime with the strict bundle and published latest-week output using the declared numerical tolerance.",
+    "Review the public data-semantics contract and identify any field, resampling, futures-roll, timestamp, forward-fill or provider boundary that could prevent a new implementation from understanding what the production pipeline consumed.",
+    "Optionally run USD Impact's reference validator only after the independent recomputation and report whether it agrees with the independent result.",
+    "Publish the completed report using the required finding classes and disclose reviewer identity/qualification, independence statement, conflicts/compensation, environment, exact release commit, artifact hashes and all material clarifications."
+  ],
+  "required_finding_classes": [
+    {
+      "class": "MATCH",
+      "definition": "The independently implemented check agrees with the frozen/public value within the declared tolerance and no material ambiguity prevents the check."
+    },
+    {
+      "class": "MISMATCH",
+      "definition": "The independent calculation or artifact comparison disagrees outside tolerance. The report must preserve both values and the smallest known point of divergence."
+    },
+    {
+      "class": "AMBIGUOUS",
+      "definition": "Two or more reasonable implementations are possible from the public specification and the ambiguity could materially change replication."
+    },
+    {
+      "class": "NOT_TESTABLE",
+      "definition": "A claimed or required check cannot be independently performed from the available public/frozen evidence. The missing evidence must be identified explicitly."
+    }
+  ],
+  "minimum_report_checks": [
+    "exact release commit identity",
+    "reviewed artifact SHA-256 hashes",
+    "latest/archive strict-bundle byte identity",
+    "requirements.lock hash binding",
+    "eight frozen weekly levels",
+    "eight means and sample standard deviations",
+    "eight unclipped z-scores",
+    "eight clipped z-scores",
+    "eight signed weights",
+    "eight contributions",
+    "total Score v2 value",
+    "regime label",
+    "source/provenance identity",
+    "weekly matrix and provider-daily fingerprint presence and scope",
+    "methodology clarity findings",
+    "data-semantics clarity findings",
+    "known raw-data-retention limitation",
+    "reference-validator secondary cross-check status"
+  ],
+  "numerical_tolerance": {
+    "absolute": 1e-9,
+    "meaning": "Maximum absolute difference for frozen-bundle arithmetic checks unless a reviewed field is explicitly textual or exact-hash based."
+  },
+  "claim_policy": {
+    "before_external_report": "Use only 'independent replication protocol prepared' or equivalent. Do not claim independent replication, validation, audit, endorsement or verified model performance.",
+    "after_external_report": "Describe only what the report actually tested and found. A reproduction MATCH may support a narrow reproducibility claim for the reviewed release; it does not establish predictive power, economic usefulness, future performance or institutional endorsement.",
+    "predictive_power": "Not tested by this protocol. Predictive claims remain governed exclusively by the separate preregistered prospective Score v2 study."
+  },
+  "known_boundary": "The strict bundle freezes the calculation inputs and normalization moments needed to reproduce the published score and includes hashes of broader provider-derived histories, but complete raw Yahoo/FRED responses and full provider-derived histories are not publicly redistributed. Therefore this protocol tests frozen-release arithmetic and public specification clarity; it does not claim a complete independent reconstruction from original provider transport bytes."
+}
