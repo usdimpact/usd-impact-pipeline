@@ -30,6 +30,20 @@ class ScoreResearchEvidenceHealthTests(unittest.TestCase):
         )
         self.assertEqual(state.status, "landed")
 
+    def test_post_holdout_without_evidence_remains_unhealthy(self) -> None:
+        states = [
+            health.evaluate_study(
+                study,
+                published_week=date(2026, 8, 28),
+                entry_weeks=[],
+                open_prs=[],
+            )
+            for study in health.STUDIES
+        ]
+        self.assertTrue(all(state.status == "missing_evidence" for state in states))
+        healthy_statuses = {"not_due", "landed", "complete"}
+        self.assertFalse(all(state.status in healthy_statuses for state in states))
+
     def test_exact_open_pr_requires_review(self) -> None:
         state = health.evaluate_study(
             health.STUDIES[0],
