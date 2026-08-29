@@ -1,17 +1,35 @@
 {
   "$schema": "./score_v2_predictive_manifest.schema.json",
-  "manifest_version": 1,
-  "study": "usd_impact_score_v2_one_week_dxy_direction_2026-08-25",
-  "research_only": true,
-  "production_change": false,
-  "predictive_power_status": "not_established_pending_52_resolved_predictions",
   "append_only": true,
+  "entries": [
+    {
+      "implementation_contract_sha256": "13c2b546abda5c7ba44bdf178371346062d6717c1ed7f10f6a16aac319a9f789",
+      "locked_preregistration_commit_sha": "89bf56bafd594987176f31efaa926ecf02228289",
+      "record_role": "predictive_origin",
+      "recorded_at_utc": "2026-08-29T22:07:56.742573+00:00",
+      "source_v2_attestation_run_id": 33277480141,
+      "source_v2_attestation_status": "passed",
+      "source_v2_bundle_sha256": "60f75ec0265d159c92e5584f425a1a881e2b4c3799bed43cb8f5bb40c188a96b",
+      "source_v2_pipeline_commit_sha": "5bc1a6bb1575b7a8d9268219bb72bcdf42d974b6",
+      "week": "2026-08-28",
+      "weekly_record_file": "score_v2_predictive_week_2026-08-28.json",
+      "weekly_record_sha256": "97891ec38541e6bc1a48269c7a71b78530c2e189e657310fef4c7777c57a1b1e"
+    }
+  ],
+  "first_prediction_origin": "2026-08-28",
+  "implementation_contract_sha256": "13c2b546abda5c7ba44bdf178371346062d6717c1ed7f10f6a16aac319a9f789",
+  "interim_integrity_checkpoints": [
+    13,
+    26,
+    39
+  ],
   "locked_preregistration_commit_sha": "89bf56bafd594987176f31efaa926ecf02228289",
   "locked_preregistration_file_sha256": "36accc42e4915bb48caa1c4d2fd0fac8ba27c51c0eb988916990c415830e3ca0",
-  "implementation_contract_sha256": "13c2b546abda5c7ba44bdf178371346062d6717c1ed7f10f6a16aac319a9f789",
-  "first_prediction_origin": "2026-08-28",
+  "manifest_version": 1,
+  "predictive_power_status": "not_established_pending_52_resolved_predictions",
+  "production_change": false,
   "required_predictive_origins": 52,
   "required_weekly_observations": 53,
-  "interim_integrity_checkpoints": [13, 26, 39],
-  "entries": []
+  "research_only": true,
+  "study": "usd_impact_score_v2_one_week_dxy_direction_2026-08-25"
 }
