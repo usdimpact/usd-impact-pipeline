@@ -81,7 +81,9 @@ def _summary(eff: float, loo: float, turnover: float, *, immune: bool = True) ->
 
 class ScoreV3MetricContractTests(unittest.TestCase):
     def test_contract_and_bootstrap_are_ready_before_holdout(self) -> None:
-        with patch.object(metrics, "_load_prospective_records", return_value=[]):
+        manifest = metrics.manifest_v3.load_manifest(ROOT / metrics.manifest_v3.MANIFEST_PATH)
+        manifest["entries"] = []
+        with patch.object(metrics.manifest_v3, "load_manifest", return_value=manifest):
             report = metrics.readiness_report(ROOT)
         self.assertEqual(report["prospective_holdout_start"], "2026-08-28")
         self.assertEqual(report["prospective_weeks_stored"], 0)
