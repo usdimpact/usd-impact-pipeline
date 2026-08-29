@@ -1,0 +1,364 @@
+{
+  "bundle_version": 1,
+  "methodology_version": "usd_impact_score_v2",
+  "score_week": "2026-08-28",
+  "bundle_generated_at_utc": "2026-08-29T07:06:15.777247+00:00",
+  "pipeline_git_sha": "ac13266d284a42eb48b8341441ebca747a5ce153",
+  "requirements_lock_sha256": "a4c6fb90909a04eb267057d3e31049c7fc38b12e8a7d556e79c0141aa0d52db6",
+  "calculation": {
+    "input_frequency": "weekly Friday-ended levels",
+    "production_start_date": "2015-01-01",
+    "normalization": "full available complete weekly sample",
+    "standard_deviation": "sample standard deviation (ddof=1)",
+    "zscore_clip": 3.5,
+    "weights": {
+      "DXY": 0.125,
+      "WTI": -0.125,
+      "SPX": -0.125,
+      "VIX": 0.125,
+      "BTC": -0.125,
+      "GOLD": -0.125,
+      "UST_2Y": 0.125,
+      "UST_10Y": 0.125
+    },
+    "score_formula": "sum(component_z_clipped * weight)",
+    "regime_bands": [
+      {
+        "low": 1.0,
+        "high": null,
+        "label": "Strong dollar regime"
+      },
+      {
+        "low": 0.3,
+        "high": 1.0,
+        "label": "Firm dollar regime"
+      },
+      {
+        "low": -0.3,
+        "high": 0.3,
+        "label": "Neutral / transitional"
+      },
+      {
+        "low": -1.0,
+        "high": -0.3,
+        "label": "Soft dollar regime"
+      },
+      {
+        "low": null,
+        "high": -1.0,
+        "label": "Weak dollar regime"
+      }
+    ]
+  },
+  "source_provenance_version": 1,
+  "provider_derived_daily_history_fingerprint": {
+    "version": 1,
+    "scope": "complete provider-derived daily input matrix on or before the completed score Friday, after selected-field extraction and canonical driver renaming, before calendar forward fill",
+    "canonicalization": "UTF-8 CSV; date plus production driver order; YYYY-MM-DD dates; missing values empty; finite floats formatted with 17 significant digits; LF line endings",
+    "score_week": "2026-08-28",
+    "retrieval_run_started_at_utc": "2026-08-29T07:06:09.970520+00:00",
+    "retrieval_mode": "live",
+    "matrix_sha256": "5dceb4547f4d81ac2fd1bbc8756393b126d133d22da4300d75546858bc7d1803",
+    "drivers": {
+      "DXY": {
+        "sha256": "c03a94746efcaef37fb6bb7d4efdeddd81babbd906eb0ab9faf9d2b9a75db137",
+        "provider_code": "yahoo",
+        "series": "DX-Y.NYB",
+        "observation_start": "2015-01-02",
+        "observation_end": "2026-08-27",
+        "observation_count": 2931
+      },
+      "WTI": {
+        "sha256": "aae0bd570221ebf1d222fecb8dc6adf7acd093f5abcb488639c47183166de755",
+        "provider_code": "yahoo",
+        "series": "CL=F",
+        "observation_start": "2015-01-02",
+        "observation_end": "2026-08-27",
+        "observation_count": 2930
+      },
+      "SPX": {
+        "sha256": "38ee6d6071997d333d203ba839d0ebe2514f5409a0a1ab51d87e066ef613ab72",
+        "provider_code": "yahoo",
+        "series": "^GSPC",
+        "observation_start": "2015-01-02",
+        "observation_end": "2026-08-27",
+        "observation_count": 2930
+      },
+      "VIX": {
+        "sha256": "53d9005addfd43f69a90b97d982c79611bacf7e5c954b5d884cb8cb0c9fc69f8",
+        "provider_code": "yahoo",
+        "series": "^VIX",
+        "observation_start": "2015-01-02",
+        "observation_end": "2026-08-27",
+        "observation_count": 2931
+      },
+      "BTC": {
+        "sha256": "87ca708f095fa19c53278465e9246720cdde32f199a8e8db68bf72447a37c392",
+        "provider_code": "yahoo",
+        "series": "BTC-USD",
+        "observation_start": "2015-01-01",
+        "observation_end": "2026-08-27",
+        "observation_count": 4257
+      },
+      "GOLD": {
+        "sha256": "31ad51bc432fb61ec44c965bf46b084714a440db0a7d2ee56a3a892b80fdbd2f",
+        "provider_code": "yahoo",
+        "series": "GC=F",
+        "observation_start": "2015-01-02",
+        "observation_end": "2026-08-27",
+        "observation_count": 2929
+      },
+      "UST_2Y": {
+        "sha256": "d64914f3bec7cdaacda1ea394b0ecb46892f64982e33ed9198f093c036841865",
+        "provider_code": "fred",
+        "series": "DGS2",
+        "observation_start": "2015-01-02",
+        "observation_end": "2026-08-27",
+        "observation_count": 2915
+      },
+      "UST_10Y": {
+        "sha256": "05237ada53ce08c579588ff8a2698cb4dcf556af77401adbdce462807da92b40",
+        "provider_code": "fred",
+        "series": "DGS10",
+        "observation_start": "2015-01-02",
+        "observation_end": "2026-08-27",
+        "observation_count": 2915
+      }
+    },
+    "original_transport_bytes_hashed": false,
+    "raw_provider_payloads_archived": false,
+    "provider_derived_values_published": false,
+    "purpose": "Detect later changes in the exact provider-derived daily histories eligible for this release without retaining or redistributing values."
+  },
+  "input_history_fingerprint": {
+    "version": 1,
+    "scope": "complete production weekly input matrix after limited daily alignment, Friday-ended resampling and complete-case filtering",
+    "canonicalization": "UTF-8 CSV; date plus production driver order; YYYY-MM-DD dates; finite floats formatted with 17 significant digits; LF line endings",
+    "matrix_sha256": "e472ad09d43f3bc1803fafd8ba7b071ffcda8d57d30bb24dc3fb763ae45b4b2e",
+    "drivers": {
+      "DXY": {
+        "sha256": "6dced5ee225034cae3fdfe290b4485d59432d9fe6ce251606b1aba1b6ba51ddc",
+        "sample_start": "2015-01-02",
+        "sample_end": "2026-08-28",
+        "sample_count": 609
+      },
+      "WTI": {
+        "sha256": "4fb4f7cf37301431d65f4ffb4579d3c16c3c0e315eee7fd5561e978fac24f653",
+        "sample_start": "2015-01-02",
+        "sample_end": "2026-08-28",
+        "sample_count": 609
+      },
+      "SPX": {
+        "sha256": "78e2f7fb71b0e58a0f3085f2a2d5200f6d28d447c6e087bb5556ea736a6c1173",
+        "sample_start": "2015-01-02",
+        "sample_end": "2026-08-28",
+        "sample_count": 609
+      },
+      "VIX": {
+        "sha256": "76214552199931bcb5b1c4f4f51263b4e50b239620e59351473f28596a1d6bfd",
+        "sample_start": "2015-01-02",
+        "sample_end": "2026-08-28",
+        "sample_count": 609
+      },
+      "BTC": {
+        "sha256": "71bc72c12c24d9275046ef7f7057b0d71883b339883a592b16d91c486afe90c1",
+        "sample_start": "2015-01-02",
+        "sample_end": "2026-08-28",
+        "sample_count": 609
+      },
+      "GOLD": {
+        "sha256": "82645e8257c3ee44bec67dde20264bc56dfe2f86334486e5e32e5122429c0c74",
+        "sample_start": "2015-01-02",
+        "sample_end": "2026-08-28",
+        "sample_count": 609
+      },
+      "UST_2Y": {
+        "sha256": "a8c69e3ed67914cdabbf692edc85f46050461539a17d73f3c7f16a82c9b9c9bf",
+        "sample_start": "2015-01-02",
+        "sample_end": "2026-08-28",
+        "sample_count": 609
+      },
+      "UST_10Y": {
+        "sha256": "61d640571c5963a41472e13d37963a2f0ddfd7229105569321cb4ff870619886",
+        "sample_start": "2015-01-02",
+        "sample_end": "2026-08-28",
+        "sample_count": 609
+      }
+    },
+    "raw_provider_payloads_archived": false,
+    "public_full_source_history_included": false,
+    "purpose": "Bind the release to the exact same-run weekly input history while avoiding redistribution of complete provider-derived histories."
+  },
+  "components": {
+    "DXY": {
+      "weekly_level": 99.16000366210938,
+      "source_observation_date": "2026-08-27",
+      "source_provider": "Yahoo Finance via yfinance",
+      "source_series": "DX-Y.NYB",
+      "source_url": "https://finance.yahoo.com/quote/DX-Y.NYB/history",
+      "forward_fill_possible": true,
+      "normalization": {
+        "sample_start": "2015-01-02",
+        "sample_end": "2026-08-28",
+        "sample_count": 609,
+        "mean": 98.3715271221593,
+        "sample_std_ddof_1": 4.738926433903064
+      },
+      "z_unclipped": 0.16638294578898213,
+      "z_clipped": 0.16638294578898213,
+      "clip_limit": 3.5,
+      "weight": 0.125,
+      "contribution": 0.020797868223622767
+    },
+    "WTI": {
+      "weekly_level": 83.52999877929688,
+      "source_observation_date": "2026-08-27",
+      "source_provider": "Yahoo Finance via yfinance",
+      "source_series": "CL=F",
+      "source_url": "https://finance.yahoo.com/quote/CL%3DF/history",
+      "forward_fill_possible": true,
+      "normalization": {
+        "sample_start": "2015-01-02",
+        "sample_end": "2026-08-28",
+        "sample_count": 609,
+        "mean": 63.468686312094505,
+        "sample_std_ddof_1": 17.793523402848756
+      },
+      "z_unclipped": 1.1274502532753317,
+      "z_clipped": 1.1274502532753317,
+      "clip_limit": 3.5,
+      "weight": -0.125,
+      "contribution": -0.14093128165941646
+    },
+    "SPX": {
+      "weekly_level": 7730.990234375,
+      "source_observation_date": "2026-08-27",
+      "source_provider": "Yahoo Finance via yfinance",
+      "source_series": "^GSPC",
+      "source_url": "https://finance.yahoo.com/quote/%5EGSPC/history",
+      "forward_fill_possible": true,
+      "normalization": {
+        "sample_start": "2015-01-02",
+        "sample_end": "2026-08-28",
+        "sample_count": 609,
+        "mean": 3818.917079781468,
+        "sample_std_ddof_1": 1535.0117680139472
+      },
+      "z_unclipped": 2.5485623212225343,
+      "z_clipped": 2.5485623212225343,
+      "clip_limit": 3.5,
+      "weight": -0.125,
+      "contribution": -0.3185702901528168
+    },
+    "VIX": {
+      "weekly_level": 14.510000228881836,
+      "source_observation_date": "2026-08-27",
+      "source_provider": "Yahoo Finance via yfinance",
+      "source_series": "^VIX",
+      "source_url": "https://finance.yahoo.com/quote/%5EVIX/history",
+      "forward_fill_possible": true,
+      "normalization": {
+        "sample_start": "2015-01-02",
+        "sample_end": "2026-08-28",
+        "sample_count": 609,
+        "mean": 18.134614145814492,
+        "sample_std_ddof_1": 6.818755229111468
+      },
+      "z_unclipped": -0.5315653363619812,
+      "z_clipped": -0.5315653363619812,
+      "clip_limit": 3.5,
+      "weight": 0.125,
+      "contribution": -0.06644566704524765
+    },
+    "BTC": {
+      "weekly_level": 80257.5390625,
+      "source_observation_date": "2026-08-27",
+      "source_provider": "Yahoo Finance via yfinance",
+      "source_series": "BTC-USD",
+      "source_url": "https://finance.yahoo.com/quote/BTC-USD/history",
+      "forward_fill_possible": true,
+      "normalization": {
+        "sample_start": "2015-01-02",
+        "sample_end": "2026-08-28",
+        "sample_count": 609,
+        "mean": 30054.619460483293,
+        "sample_std_ddof_1": 32592.813626127994
+      },
+      "z_unclipped": 1.5403064055130113,
+      "z_clipped": 1.5403064055130113,
+      "clip_limit": 3.5,
+      "weight": -0.125,
+      "contribution": -0.19253830068912642
+    },
+    "GOLD": {
+      "weekly_level": 4609.7001953125,
+      "source_observation_date": "2026-08-27",
+      "source_provider": "Yahoo Finance via yfinance",
+      "source_series": "GC=F",
+      "source_url": "https://finance.yahoo.com/quote/GC%3DF/history",
+      "forward_fill_possible": true,
+      "normalization": {
+        "sample_start": "2015-01-02",
+        "sample_end": "2026-08-28",
+        "sample_count": 609,
+        "mean": 1930.0187176483605,
+        "sample_std_ddof_1": 919.3530384049557
+      },
+      "z_unclipped": 2.914746964140446,
+      "z_clipped": 2.914746964140446,
+      "clip_limit": 3.5,
+      "weight": -0.125,
+      "contribution": -0.3643433705175558
+    },
+    "UST_2Y": {
+      "weekly_level": 4.2,
+      "source_observation_date": "2026-08-27",
+      "source_provider": "Federal Reserve Bank of St. Louis (FRED)",
+      "source_series": "DGS2",
+      "source_url": "https://fred.stlouisfed.org/series/DGS2",
+      "forward_fill_possible": true,
+      "normalization": {
+        "sample_start": "2015-01-02",
+        "sample_end": "2026-08-28",
+        "sample_count": 609,
+        "mean": 2.2639737274220035,
+        "sample_std_ddof_1": 1.5965039846467115
+      },
+      "z_unclipped": 1.2126661074425176,
+      "z_clipped": 1.2126661074425176,
+      "clip_limit": 3.5,
+      "weight": 0.125,
+      "contribution": 0.1515832634303147
+    },
+    "UST_10Y": {
+      "weekly_level": 4.67,
+      "source_observation_date": "2026-08-27",
+      "source_provider": "Federal Reserve Bank of St. Louis (FRED)",
+      "source_series": "DGS10",
+      "source_url": "https://fred.stlouisfed.org/series/DGS10",
+      "forward_fill_possible": true,
+      "normalization": {
+        "sample_start": "2015-01-02",
+        "sample_end": "2026-08-28",
+        "sample_count": 609,
+        "mean": 2.744548440065681,
+        "sample_std_ddof_1": 1.1737244622109841
+      },
+      "z_unclipped": 1.640463006374836,
+      "z_clipped": 1.640463006374836,
+      "clip_limit": 3.5,
+      "weight": 0.125,
+      "contribution": 0.2050578757968545
+    }
+  },
+  "published": {
+    "score": -0.7053899026133718,
+    "regime": "Soft dollar regime"
+  },
+  "reproduction": {
+    "score": -0.7053899026133711,
+    "regime": "Soft dollar regime",
+    "absolute_tolerance": 1e-09,
+    "verified_equal_to_published": true
+  }
+}
