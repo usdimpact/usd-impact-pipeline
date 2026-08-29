@@ -27,6 +27,11 @@ class ScoreV3ShadowIngestionTests(unittest.TestCase):
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(REPO / relative, target)
 
+        manifest_path = self.root / "research/score_v3_prospective_manifest.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["entries"] = []
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+
     def tearDown(self) -> None:
         self.temp.cleanup()
 
