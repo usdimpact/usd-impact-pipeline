@@ -29,6 +29,11 @@ def copy_predictive_contract(root: Path) -> None:
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(REPO / relative, target)
 
+    manifest_path = root / "research/score_v2_predictive_manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["entries"] = []
+    manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+
 
 def write_score(root: Path, week: str, score: float) -> None:
     path = root / "public/data/usd_impact_score_v2.json"
