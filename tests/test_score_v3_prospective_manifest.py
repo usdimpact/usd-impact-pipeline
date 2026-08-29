@@ -14,6 +14,7 @@ class ScoreV3ProspectiveManifestTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.manifest = manifest_v3.load_manifest()
+        cls.manifest["entries"] = []
         cls.initialization = json.loads(
             manifest_v3.INITIALIZATION_MANIFEST_PATH.read_text(encoding="utf-8")
         )
