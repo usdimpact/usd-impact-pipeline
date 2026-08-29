@@ -30,6 +30,20 @@ class ScoreResearchEvidenceHealthTests(unittest.TestCase):
         )
         self.assertEqual(state.status, "landed")
 
+    def test_post_holdout_without_evidence_remains_unhealthy(self) -> None:
+        states = [
+            health.evaluate_study(
+                study,
+                published_week=date(2026, 8, 28),
+                entry_weeks=[],
+                open_prs=[],
+            )
+            for study in health.STUDIES
+        ]
+        self.assertTrue(all(state.status == "missing_evidence" for state in states))
+        healthy_statuses = {"not_due", "landed", "complete"}
+        self.assertFalse(all(state.status in healthy_statuses for state in states))
+
     def test_exact_open_pr_requires_review(self) -> None:
         state = health.evaluate_study(
             health.STUDIES[0],
@@ -88,14 +102,26 @@ class ScoreResearchEvidenceHealthTests(unittest.TestCase):
         )
         self.assertEqual(state.status, "complete")
 
-    def test_repository_pre_holdout_report_is_claim_safe(self) -> None:
+    def test_repository_report_remains_claim_safe_across_holdout(self) -> None:
         report = health.build_health(ROOT, [])
-        self.assertTrue(report["healthy"])
-        self.assertEqual(report["published_week"], "2026-08-21")
         self.assertIs(report["performance_calculated"], False)
         self.assertIs(report["evidence_modified"], False)
         self.assertEqual(report["score_v3_engine_lock_status"], "verified")
-        self.assertTrue(all(item["status"] == "not_due" for item in report["studies"]))
+
+        healthy_statuses = {"not_due", "landed", "complete"}
+        statuses = {item["status"] for item in report["studies"]}
+        expected_healthy = all(status in healthy_statuses for status in statuses)
+        self.assertEqual(report["healthy"], expected_healthy)
+        self.assertEqual(
+            report["status"],
+            "healthy" if expected_healthy else "attention_required",
+        )
+
+        published_week = date.fromisoformat(report["published_week"])
+        if published_week < health.HOLDOUT_START:
+            self.assertEqual(statuses, {"not_due"})
+        elif "missing_evidence" in statuses:
+            self.assertFalse(report["healthy"])
 
     def test_workflow_is_strictly_read_only(self) -> None:
         workflow = (ROOT / ".github/workflows/score-research-evidence-health.yml").read_text(
