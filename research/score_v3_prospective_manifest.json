@@ -9,7 +9,11 @@
   "locked_preregistration_commit_sha": "bf49152fa6005edd20b770db287924d56cfa7499",
   "prospective_holdout_start": "2026-08-28",
   "minimum_completed_weeks_before_selection": 52,
-  "interim_review_weeks": [13, 26, 39],
+  "interim_review_weeks": [
+    13,
+    26,
+    39
+  ],
   "candidate_ids": [
     "V3_E52",
     "V3_R260",
@@ -25,5 +29,17 @@
     "generated_at_utc": "2026-08-24T17:35:21+00:00",
     "generator_commit_sha": "5dfb55650590228fefb54f50eb8093cd620bba78"
   },
-  "entries": []
+  "entries": [
+    {
+      "week": "2026-08-28",
+      "ingested_at_utc": "2026-08-29T22:07:44.573064+00:00",
+      "source_v2_bundle_sha256": "60f75ec0265d159c92e5584f425a1a881e2b4c3799bed43cb8f5bb40c188a96b",
+      "source_v2_pipeline_commit_sha": "5bc1a6bb1575b7a8d9268219bb72bcdf42d974b6",
+      "source_v2_attestation_status": "passed",
+      "locked_preregistration_commit_sha": "bf49152fa6005edd20b770db287924d56cfa7499",
+      "initialization_matrix_sha256": "6e17100c061cebc3116fdac9c83708b94a72165957ffbcf688d9a08e9d280580",
+      "candidate_result_file": "score_v3_shadow_2026-08-28.json",
+      "candidate_result_sha256": "dc2ebab40b8ef8a8005c981a3469bc520a577966b1c98837dccc4b27d7b71eb7"
+    }
+  ]
 }
