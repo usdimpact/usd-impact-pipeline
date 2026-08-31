@@ -1,9 +1,11 @@
 name: Weekly USD Impact Recovery
 
 # Runs once after the normal Friday release window. It dispatches exactly one
-# catch-up run only when the expected weekly workflow failed or never arrived.
-# The normal publication PR, exact-commit quality gate, and merge flow remain
-# responsible for every production update.
+# catch-up run only when the expected weekly workflow failed or never arrived
+# and no successfully validated publication PR is already awaiting protected
+# human review. The publication PR, exact-commit quality and attestation gates,
+# protected review, and separately authorized merge remain responsible for
+# every production update.
 
 on:
   schedule:
@@ -13,6 +15,7 @@ on:
 permissions:
   actions: write
   contents: read
+  pull-requests: read
 
 concurrency:
   group: weekly-usd-impact-recovery
@@ -34,6 +37,54 @@ jobs:
         run: |
           set -euo pipefail
 
+          expected_week="$(python -c 'from datetime import datetime, timedelta, timezone; today = datetime.now(timezone.utc).date(); print((today - timedelta(days=(today.weekday() - 4) % 7)).isoformat())')"
+          expected_title="Publish Weekly USD Impact Score — ${expected_week}"
+          expected_branch_prefix="automation/weekly-usd-impact-${expected_week}-"
+          validated_pr_url=""
+
+          while IFS=$'\t' read -r pr_number pr_branch pr_sha pr_url; do
+            if [ -z "$pr_number" ]; then
+              continue
+            fi
+
+            quality_success="$(gh run list \
+              --repo "$GITHUB_REPOSITORY" \
+              --workflow quality.yml \
+              --branch "$pr_branch" \
+              --event workflow_dispatch \
+              --limit 20 \
+              --json headSha,status,conclusion \
+              --jq "[.[] | select(.headSha == \"$pr_sha\" and .status == \"completed\" and .conclusion == \"success\")] | length")"
+
+            attestation_success="$(gh run list \
+              --repo "$GITHUB_REPOSITORY" \
+              --workflow repro-attestation.yml \
+              --branch "$pr_branch" \
+              --event workflow_dispatch \
+              --limit 20 \
+              --json headSha,status,conclusion \
+              --jq "[.[] | select(.headSha == \"$pr_sha\" and .status == \"completed\" and .conclusion == \"success\")] | length")"
+
+            if [ "$quality_success" -gt 0 ] && [ "$attestation_success" -gt 0 ]; then
+              validated_pr_url="$pr_url"
+              echo "Validated publication PR #$pr_number is already open at exact head $pr_sha."
+              break
+            fi
+          done < <(
+            gh pr list \
+              --repo "$GITHUB_REPOSITORY" \
+              --state open \
+              --base main \
+              --limit 100 \
+              --json number,title,headRefName,headRefOid,url \
+              --jq ".[] | select(.title == \"$expected_title\" and (.headRefName | startswith(\"$expected_branch_prefix\"))) | [.number, .headRefName, .headRefOid, .url] | @tsv"
+          )
+
+          if [ -n "$validated_pr_url" ]; then
+            echo "No recovery dispatch: validated publication PR is already open for protected human review: $validated_pr_url"
+            exit 0
+          fi
+
           gh run list \
             --repo "$GITHUB_REPOSITORY" \
             --workflow weekly.yml \
@@ -46,7 +97,7 @@ jobs:
             --runs-file "$RUNNER_TEMP/latest-weekly-runs.json" \
             --max-age-hours "$MAX_AGE_HOURS"; then
             gh workflow run weekly.yml --repo "$GITHUB_REPOSITORY" --ref main
-            echo "Dispatched one guarded Weekly USD Impact Score recovery run."
+            echo "Dispatched one guarded Weekly USD Impact Score recovery run; any validated publication PR will remain open for protected human review."
           else
-            echo "No Weekly USD Impact Score recovery run is needed."
+            echo "No guarded Weekly USD Impact Score recovery dispatch is needed."
           fi
