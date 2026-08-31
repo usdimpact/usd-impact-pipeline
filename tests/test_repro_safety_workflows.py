@@ -93,20 +93,54 @@ class ReproductionSafetyWorkflowTests(unittest.TestCase):
         )
         self.assertIn('"acceptance_candidate": context == "main_post_merge"', script)
 
-    def test_weekly_publication_waits_for_exact_branch_attestation_before_merge(self):
+    def test_weekly_publication_stops_for_protected_review_after_exact_attestation(self):
         workflow = (WORKFLOWS / "weekly.yml").read_text(encoding="utf-8")
         dispatch = 'gh workflow run repro-attestation.yml --ref "$branch"'
-        locate = '--workflow repro-attestation.yml'
+        locate = "--workflow repro-attestation.yml"
         watch = 'gh run watch "$attestation_run_id" --exit-status'
-        merge = 'gh pr merge "$pr_url" --squash --delete-branch'
+        ready = (
+            "Weekly USD Impact Score ${WEEK} passed exact-head quality and "
+            "reproduction attestation."
+        )
 
         self.assertIn(dispatch, workflow)
         self.assertIn(locate, workflow)
         self.assertIn('select(.headSha == \\"$head_sha\\")', workflow)
         self.assertIn(watch, workflow)
-        self.assertIn(merge, workflow)
+        self.assertIn(ready, workflow)
+        self.assertIn(
+            "The workflow then stops with the pull request open for protected human review.",
+            workflow,
+        )
+        self.assertNotIn("gh pr merge", workflow)
         self.assertLess(workflow.index(dispatch), workflow.index(watch))
-        self.assertLess(workflow.index(watch), workflow.index(merge))
+        self.assertLess(workflow.index(watch), workflow.index(ready))
+
+    def test_weekly_recovery_respects_validated_open_publication_pr(self):
+        workflow = (WORKFLOWS / "weekly-recovery.yml").read_text(encoding="utf-8")
+
+        self.assertIn("pull-requests: read", workflow)
+        self.assertIn(
+            'expected_title="Publish Weekly USD Impact Score — ${expected_week}"',
+            workflow,
+        )
+        self.assertIn(
+            'expected_branch_prefix="automation/weekly-usd-impact-${expected_week}-"',
+            workflow,
+        )
+        self.assertIn('quality_success="$(gh run list', workflow)
+        self.assertIn('attestation_success="$(gh run list', workflow)
+        self.assertIn(
+            'if [ "$quality_success" -gt 0 ] && [ "$attestation_success" -gt 0 ]; then',
+            workflow,
+        )
+        self.assertIn(
+            "No recovery dispatch: validated publication PR is already open for "
+            "protected human review",
+            workflow,
+        )
+        self.assertLess(workflow.index("gh pr list"), workflow.index("weekly_recovery_decision.py"))
+        self.assertNotIn("gh pr merge", workflow)
 
     def test_weekly_score_and_bundle_share_one_provider_fetch(self):
         workflow = (WORKFLOWS / "weekly.yml").read_text(encoding="utf-8")

@@ -1,9 +1,10 @@
 name: Weekly USD Impact Score
 
 # Runs the score, commentary, archive, and dashboard pipeline every Friday at
-# 22:00 UTC. A generated release is merged only after the exact publication
-# commit passes both Weekly score quality and the read-only reproduction
-# attestation. Cloudflare Pages then auto-deploys the validated main commit.
+# 22:00 UTC. A generated release remains open for protected human review only
+# after the exact publication commit passes both Weekly score quality and the
+# read-only reproduction attestation. A separately authorized merge lets
+# Cloudflare Pages deploy the validated main commit.
 #
 # Manual runs: Actions tab → Weekly USD Impact Score → Run workflow.
 
@@ -111,7 +112,7 @@ jobs:
       - name: Validate generated weekly release
         run: python scripts/validate_weekly_release.py
 
-      - name: Open, validate, attest, and merge weekly publication pull request
+      - name: Open and validate weekly publication pull request
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -136,7 +137,7 @@ jobs:
 
           This pull request contains the generated score, deterministic English and Spanish commentary, bridge data, dashboards, dated archive, and immutable score-reproduction evidence for **${WEEK}**.
 
-          Publication is automatic only after both the Weekly score quality workflow and the read-only Score v2 reproduction attestation pass on this exact commit. A failed gate leaves this pull request open and does not change the Cloudflare Pages production deployment.
+          The exact publication commit must pass both the Weekly score quality workflow and the read-only Score v2 reproduction attestation. The workflow then stops with the pull request open for protected human review. A failed gate leaves the pull request open and does not change the Cloudflare Pages production deployment.
           EOF
 
           pr_url="$(gh pr create \
@@ -170,8 +171,8 @@ jobs:
           gh run watch "$quality_run_id" --exit-status
 
           # Run the same frozen-bundle attestation on the exact publication
-          # branch before merge. workflow_dispatch is intentionally a read-only
-          # context and can never claim production acceptance.
+          # branch before protected review. workflow_dispatch is intentionally
+          # a read-only context and can never claim production acceptance.
           gh workflow run repro-attestation.yml --ref "$branch"
 
           attestation_run_id=""
@@ -195,5 +196,5 @@ jobs:
           fi
 
           gh run watch "$attestation_run_id" --exit-status
-          gh pr merge "$pr_url" --squash --delete-branch
-          echo "Merged Weekly USD Impact Score for ${WEEK}. Cloudflare Pages and the push-to-main reproduction attestation will follow from main."
+          echo "Weekly USD Impact Score ${WEEK} passed exact-head quality and reproduction attestation."
+          echo "Protected human review and a separately authorized merge remain required: $pr_url"
