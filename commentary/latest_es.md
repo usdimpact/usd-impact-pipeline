@@ -1,16 +1,16 @@
 # Comentario Automático de Régimen — Semana del 28 de agosto de 2026
 
-**USD Impact Score: −0.69  |  Régimen de dólar suave**
+**USD Impact Score: −0.66  |  Régimen de dólar suave**
 
 Este comentario se genera automáticamente con los mismos datos semanales que utiliza el panel. No añade afirmaciones sobre eventos externos ni realiza previsiones.
 
 ## Qué indica el resultado
 
-El índice se sitúa en −0.69, con un cambio semanal de +0.02 y un cambio de cuatro semanas de −0.20. El régimen permanece en Régimen de dólar suave. Entre las ocho variables, 3 contribuyen hacia una lectura de dólar más firme y 5 hacia una lectura de dólar más suave.
+El índice se sitúa en −0.66, con un cambio semanal de +0.05 y un cambio de cuatro semanas de −0.17. El régimen permanece en Régimen de dólar suave. Entre las ocho variables, 3 contribuyen hacia una lectura de dólar más firme y 5 hacia una lectura de dólar más suave.
 
 ## Qué impulsa la lectura
 
-- **oro:** puntuación z +2.91; contribución al índice −0.364, coherente con un dólar más suave.
+- **oro:** puntuación z +2.77; contribución al índice −0.347, coherente con un dólar más suave.
 - **S&P 500:** puntuación z +2.54; contribución al índice −0.317, coherente con un dólar más suave.
 - **rendimiento del Tesoro de EE. UU. a 10 años:** puntuación z +1.64; contribución al índice +0.205, coherente con un dólar más firme.
 

@@ -1,16 +1,16 @@
 {
   "week_ending": "2026-08-28",
-  "score": -0.6910878223615368,
+  "score": -0.6618231096254853,
   "regime": "Soft dollar regime",
-  "week_over_week_change": 0.016658262366859078,
-  "four_week_change": -0.19921486767102525,
+  "week_over_week_change": 0.04625393418407031,
+  "four_week_change": -0.1696829360206249,
   "nearest_regime_boundary": -1.0,
   "drivers": [
     {
       "name": "GOLD",
-      "z": 2.914746964140446,
+      "z": 2.773695125571723,
       "weight": -0.125,
-      "contribution": -0.3643433705175558
+      "contribution": -0.34671189069646535
     },
     {
       "name": "SPX",
@@ -26,9 +26,9 @@
     },
     {
       "name": "BTC",
-      "z": 1.5403064055130113,
+      "z": 1.4662267302565466,
       "weight": -0.125,
-      "contribution": -0.19253830068912642
+      "contribution": -0.18327834128206832
     },
     {
       "name": "UST_2Y",
@@ -38,15 +38,15 @@
     },
     {
       "name": "WTI",
-      "z": 1.1274502532753317,
+      "z": 1.1201715018083354,
       "weight": -0.125,
-      "contribution": -0.14093128165941646
+      "contribution": -0.14002143772604192
     },
     {
       "name": "VIX",
-      "z": -0.5432727729582089,
+      "z": -0.5315653363619812,
       "weight": 0.125,
-      "contribution": -0.06790909661977611
+      "contribution": -0.06644566704524765
     },
     {
       "name": "DXY",
@@ -81,9 +81,9 @@
       "provider_code": "yahoo",
       "series": "CL=F",
       "source_url": "https://finance.yahoo.com/quote/CL%3DF/history",
-      "observation_date": "2026-08-27",
+      "observation_date": "2026-08-28",
       "score_week": "2026-08-28",
-      "age_days": 1,
+      "age_days": 0,
       "max_age_days": 3,
       "status": "fresh",
       "retrieval_mode": "live"
@@ -107,9 +107,9 @@
       "provider_code": "yahoo",
       "series": "^VIX",
       "source_url": "https://finance.yahoo.com/quote/%5EVIX/history",
-      "observation_date": "2026-08-28",
+      "observation_date": "2026-08-27",
       "score_week": "2026-08-28",
-      "age_days": 0,
+      "age_days": 1,
       "max_age_days": 3,
       "status": "fresh",
       "retrieval_mode": "live"
@@ -120,9 +120,9 @@
       "provider_code": "yahoo",
       "series": "BTC-USD",
       "source_url": "https://finance.yahoo.com/quote/BTC-USD/history",
-      "observation_date": "2026-08-27",
+      "observation_date": "2026-08-28",
       "score_week": "2026-08-28",
-      "age_days": 1,
+      "age_days": 0,
       "max_age_days": 2,
       "status": "fresh",
       "retrieval_mode": "live"
@@ -133,9 +133,9 @@
       "provider_code": "yahoo",
       "series": "GC=F",
       "source_url": "https://finance.yahoo.com/quote/GC%3DF/history",
-      "observation_date": "2026-08-27",
+      "observation_date": "2026-08-28",
       "score_week": "2026-08-28",
-      "age_days": 1,
+      "age_days": 0,
       "max_age_days": 3,
       "status": "fresh",
       "retrieval_mode": "live"

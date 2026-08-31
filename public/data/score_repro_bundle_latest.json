@@ -2,8 +2,8 @@
   "bundle_version": 1,
   "methodology_version": "usd_impact_score_v2",
   "score_week": "2026-08-28",
-  "bundle_generated_at_utc": "2026-08-29T21:45:21.815020+00:00",
-  "pipeline_git_sha": "5bc1a6bb1575b7a8d9268219bb72bcdf42d974b6",
+  "bundle_generated_at_utc": "2026-08-31T19:17:45.074704+00:00",
+  "pipeline_git_sha": "6158bcd885ff11d7f94edefaabe8b433abc8e84d",
   "requirements_lock_sha256": "a4c6fb90909a04eb267057d3e31049c7fc38b12e8a7d556e79c0141aa0d52db6",
   "calculation": {
     "input_frequency": "weekly Friday-ended levels",
@@ -56,9 +56,9 @@
     "scope": "complete provider-derived daily input matrix on or before the completed score Friday, after selected-field extraction and canonical driver renaming, before calendar forward fill",
     "canonicalization": "UTF-8 CSV; date plus production driver order; YYYY-MM-DD dates; missing values empty; finite floats formatted with 17 significant digits; LF line endings",
     "score_week": "2026-08-28",
-    "retrieval_run_started_at_utc": "2026-08-29T21:45:17.732044+00:00",
+    "retrieval_run_started_at_utc": "2026-08-31T19:17:39.660908+00:00",
     "retrieval_mode": "live",
-    "matrix_sha256": "4f2c6bf4a1c5580c382bf9693cdb350efdbe1a5178ca9345c2465fcde0d0bb35",
+    "matrix_sha256": "86a214d4525abbcf3fb31822819fa2063345e83115005d91a6d8e6a277993e91",
     "drivers": {
       "DXY": {
         "sha256": "490637b6bd05cf103b1900662a5e9ead95cb5c74dffc31514158548d62a9206b",
@@ -69,12 +69,12 @@
         "observation_count": 2932
       },
       "WTI": {
-        "sha256": "aae0bd570221ebf1d222fecb8dc6adf7acd093f5abcb488639c47183166de755",
+        "sha256": "69b747fb88c985beb76e9fe1f279906309c7cf97ef9b57abaa9c80806bbd5fcb",
         "provider_code": "yahoo",
         "series": "CL=F",
         "observation_start": "2015-01-02",
-        "observation_end": "2026-08-27",
-        "observation_count": 2930
+        "observation_end": "2026-08-28",
+        "observation_count": 2931
       },
       "SPX": {
         "sha256": "68504cc018e7cd238230ba35d6d1e9ecc30dd883e1d09bcc74cb810cd57834b7",
@@ -85,28 +85,28 @@
         "observation_count": 2931
       },
       "VIX": {
-        "sha256": "b84b69bc1af5f1878a224d3a30b40b9568b0584d3c86698960c586b9f9d302c5",
+        "sha256": "53d9005addfd43f69a90b97d982c79611bacf7e5c954b5d884cb8cb0c9fc69f8",
         "provider_code": "yahoo",
         "series": "^VIX",
         "observation_start": "2015-01-02",
-        "observation_end": "2026-08-28",
-        "observation_count": 2932
+        "observation_end": "2026-08-27",
+        "observation_count": 2931
       },
       "BTC": {
-        "sha256": "87ca708f095fa19c53278465e9246720cdde32f199a8e8db68bf72447a37c392",
+        "sha256": "5f20ec090c2b353a03784adf3976aeff3974c352c7643b6860524d9081b5a252",
         "provider_code": "yahoo",
         "series": "BTC-USD",
         "observation_start": "2015-01-01",
-        "observation_end": "2026-08-27",
-        "observation_count": 4257
+        "observation_end": "2026-08-28",
+        "observation_count": 4258
       },
       "GOLD": {
-        "sha256": "31ad51bc432fb61ec44c965bf46b084714a440db0a7d2ee56a3a892b80fdbd2f",
+        "sha256": "7e694f9a6178b3c38e84fbb793def2c3417c15355f2d8066d653aeb97e97db8b",
         "provider_code": "yahoo",
         "series": "GC=F",
         "observation_start": "2015-01-02",
-        "observation_end": "2026-08-27",
-        "observation_count": 2929
+        "observation_end": "2026-08-28",
+        "observation_count": 2930
       },
       "UST_2Y": {
         "sha256": "d64914f3bec7cdaacda1ea394b0ecb46892f64982e33ed9198f093c036841865",
@@ -134,7 +134,7 @@
     "version": 1,
     "scope": "complete production weekly input matrix after limited daily alignment, Friday-ended resampling and complete-case filtering",
     "canonicalization": "UTF-8 CSV; date plus production driver order; YYYY-MM-DD dates; finite floats formatted with 17 significant digits; LF line endings",
-    "matrix_sha256": "c8f709fe1b56ca02220023f1af64fe7e1a83fec72abf8c8d06584ef59738d65e",
+    "matrix_sha256": "b25549eb65b920435d5e73485e8665a3f15765bf320fef6303bf7b9b4e6b27a0",
     "drivers": {
       "DXY": {
         "sha256": "1632ba037ef19be9994e438da93244c9a4fa6b82269bce03d9d3ef95f635434b",
@@ -143,7 +143,7 @@
         "sample_count": 609
       },
       "WTI": {
-        "sha256": "4fb4f7cf37301431d65f4ffb4579d3c16c3c0e315eee7fd5561e978fac24f653",
+        "sha256": "9ad06420940560d246450dd13b7c4ba3cdc33351c4704a97f5e3a1035c1c4af0",
         "sample_start": "2015-01-02",
         "sample_end": "2026-08-28",
         "sample_count": 609
@@ -155,19 +155,19 @@
         "sample_count": 609
       },
       "VIX": {
-        "sha256": "8e121da9257f0f66e7c366ee8ea4c54532abeffa140907c66a4cd81bdc5a923c",
+        "sha256": "76214552199931bcb5b1c4f4f51263b4e50b239620e59351473f28596a1d6bfd",
         "sample_start": "2015-01-02",
         "sample_end": "2026-08-28",
         "sample_count": 609
       },
       "BTC": {
-        "sha256": "71bc72c12c24d9275046ef7f7057b0d71883b339883a592b16d91c486afe90c1",
+        "sha256": "e2353a763b1b86194539da8af7518fbcc88d6b95e35853f443186a57ea07ae04",
         "sample_start": "2015-01-02",
         "sample_end": "2026-08-28",
         "sample_count": 609
       },
       "GOLD": {
-        "sha256": "82645e8257c3ee44bec67dde20264bc56dfe2f86334486e5e32e5122429c0c74",
+        "sha256": "eb1e1443248e79a85dd60a1c3107ef7b1b4c66701b010c02c70814c9495ffaf3",
         "sample_start": "2015-01-02",
         "sample_end": "2026-08-28",
         "sample_count": 609
@@ -211,8 +211,8 @@
       "contribution": 0.03501656993275447
     },
     "WTI": {
-      "weekly_level": 83.52999877929688,
-      "source_observation_date": "2026-08-27",
+      "weekly_level": 83.4000015258789,
+      "source_observation_date": "2026-08-28",
       "source_provider": "Yahoo Finance via yfinance",
       "source_series": "CL=F",
       "source_url": "https://finance.yahoo.com/quote/CL%3DF/history",
@@ -221,14 +221,14 @@
         "sample_start": "2015-01-02",
         "sample_end": "2026-08-28",
         "sample_count": 609,
-        "mean": 63.468686312094505,
-        "sample_std_ddof_1": 17.793523402848756
+        "mean": 63.46847285190827,
+        "sample_std_ddof_1": 17.793283119410212
       },
-      "z_unclipped": 1.1274502532753317,
-      "z_clipped": 1.1274502532753317,
+      "z_unclipped": 1.1201715018083354,
+      "z_clipped": 1.1201715018083354,
       "clip_limit": 3.5,
       "weight": -0.125,
-      "contribution": -0.14093128165941646
+      "contribution": -0.14002143772604192
     },
     "SPX": {
       "weekly_level": 7711.759765625,
@@ -251,8 +251,8 @@
       "contribution": -0.31702348203558506
     },
     "VIX": {
-      "weekly_level": 14.430000305175781,
-      "source_observation_date": "2026-08-28",
+      "weekly_level": 14.510000228881836,
+      "source_observation_date": "2026-08-27",
       "source_provider": "Yahoo Finance via yfinance",
       "source_series": "^VIX",
       "source_url": "https://finance.yahoo.com/quote/%5EVIX/history",
@@ -261,18 +261,18 @@
         "sample_start": "2015-01-02",
         "sample_end": "2026-08-28",
         "sample_count": 609,
-        "mean": 18.134482783049787,
-        "sample_std_ddof_1": 6.818825942081533
+        "mean": 18.134614145814492,
+        "sample_std_ddof_1": 6.818755229111468
       },
-      "z_unclipped": -0.5432727729582089,
-      "z_clipped": -0.5432727729582089,
+      "z_unclipped": -0.5315653363619812,
+      "z_clipped": -0.5315653363619812,
       "clip_limit": 3.5,
       "weight": 0.125,
-      "contribution": -0.06790909661977611
+      "contribution": -0.06644566704524765
     },
     "BTC": {
-      "weekly_level": 80257.5390625,
-      "source_observation_date": "2026-08-27",
+      "weekly_level": 77830.2890625,
+      "source_observation_date": "2026-08-28",
       "source_provider": "Yahoo Finance via yfinance",
       "source_series": "BTC-USD",
       "source_url": "https://finance.yahoo.com/quote/BTC-USD/history",
@@ -281,18 +281,18 @@
         "sample_start": "2015-01-02",
         "sample_end": "2026-08-28",
         "sample_count": 609,
-        "mean": 30054.619460483293,
-        "sample_std_ddof_1": 32592.813626127994
+        "mean": 30050.633828299386,
+        "sample_std_ddof_1": 32586.812290511563
       },
-      "z_unclipped": 1.5403064055130113,
-      "z_clipped": 1.5403064055130113,
+      "z_unclipped": 1.4662267302565466,
+      "z_clipped": 1.4662267302565466,
       "clip_limit": 3.5,
       "weight": -0.125,
-      "contribution": -0.19253830068912642
+      "contribution": -0.18327834128206832
     },
     "GOLD": {
-      "weekly_level": 4609.7001953125,
-      "source_observation_date": "2026-08-27",
+      "weekly_level": 4478.10009765625,
+      "source_observation_date": "2026-08-28",
       "source_provider": "Yahoo Finance via yfinance",
       "source_series": "GC=F",
       "source_url": "https://finance.yahoo.com/quote/GC%3DF/history",
@@ -301,14 +301,14 @@
         "sample_start": "2015-01-02",
         "sample_end": "2026-08-28",
         "sample_count": 609,
-        "mean": 1930.0187176483605,
-        "sample_std_ddof_1": 919.3530384049557
+        "mean": 1929.8026255339826,
+        "sample_std_ddof_1": 918.7374086750086
       },
-      "z_unclipped": 2.914746964140446,
-      "z_clipped": 2.914746964140446,
+      "z_unclipped": 2.773695125571723,
+      "z_clipped": 2.773695125571723,
       "clip_limit": 3.5,
       "weight": -0.125,
-      "contribution": -0.3643433705175558
+      "contribution": -0.34671189069646535
     },
     "UST_2Y": {
       "weekly_level": 4.2,
@@ -352,11 +352,11 @@
     }
   },
   "published": {
-    "score": -0.6910878223615368,
+    "score": -0.6618231096254853,
     "regime": "Soft dollar regime"
   },
   "reproduction": {
-    "score": -0.6910878223615361,
+    "score": -0.6618231096254846,
     "regime": "Soft dollar regime",
     "absolute_tolerance": 1e-09,
     "verified_equal_to_published": true
