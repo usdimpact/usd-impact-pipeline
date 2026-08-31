@@ -116,6 +116,33 @@ class ReproductionSafetyWorkflowTests(unittest.TestCase):
         self.assertLess(workflow.index(dispatch), workflow.index(watch))
         self.assertLess(workflow.index(watch), workflow.index(ready))
 
+    def test_weekly_preflight_gates_all_live_generation(self):
+        workflow = (WORKFLOWS / "weekly.yml").read_text(encoding="utf-8")
+        preflight_job = "\n  preflight:\n"
+        pipeline_job = "\n  run-pipeline:\n"
+        preflight_command = "python -m scripts.weekly_publication_preflight"
+        live_provider_command = "python usd_impact_score_v2.py"
+
+        self.assertIn(preflight_job, workflow)
+        self.assertIn(pipeline_job, workflow)
+        self.assertIn(preflight_command, workflow)
+        self.assertIn("needs: preflight", workflow)
+        self.assertIn(
+            "if: needs.preflight.outputs.action == 'generate'",
+            workflow,
+        )
+        self.assertIn("Record immutable-week no-op", workflow)
+        self.assertIn(
+            "existing publication validated before any provider retrieval or generated write",
+            workflow,
+        )
+        self.assertLess(workflow.index(preflight_job), workflow.index(pipeline_job))
+        self.assertLess(
+            workflow.index(preflight_command),
+            workflow.index(live_provider_command),
+        )
+        self.assertEqual(workflow.count(live_provider_command), 1)
+
     def test_weekly_recovery_respects_validated_open_publication_pr(self):
         workflow = (WORKFLOWS / "weekly-recovery.yml").read_text(encoding="utf-8")
 

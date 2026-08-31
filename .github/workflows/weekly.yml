@@ -1,12 +1,12 @@
 name: Weekly USD Impact Score
 
 # Runs the score, commentary, archive, and dashboard pipeline every Friday at
-# 22:00 UTC. A generated release remains open for protected human review only
-# after the exact publication commit passes both Weekly score quality and the
-# read-only reproduction attestation. A separately authorized merge lets
-# Cloudflare Pages deploy the validated main commit.
+# 22:00 UTC. A fail-closed immutable-week preflight prevents provider re-fetches
+# from revising an already published vintage. A newly generated release remains
+# open for protected human review only after the exact publication commit passes
+# both Weekly score quality and the read-only reproduction attestation.
 #
-# Manual runs: Actions tab → Weekly USD Impact Score → Run workflow.
+# Manual runs: Actions tab -> Weekly USD Impact Score -> Run workflow.
 
 on:
   schedule:
@@ -23,7 +23,38 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      action: ${{ steps.decision.outputs.action }}
+      week: ${{ steps.decision.outputs.week }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Decide whether the expected week is already immutable
+        id: decision
+        run: |
+          python -m scripts.weekly_publication_preflight \
+            --root . \
+            --github-output "$GITHUB_OUTPUT"
+
+      - name: Record immutable-week no-op
+        if: steps.decision.outputs.action == 'noop'
+        run: |
+          {
+            echo "### Weekly USD Impact publication no-op"
+            echo
+            echo "- Expected week: \`${{ steps.decision.outputs.week }}\`"
+            echo "- Result: existing publication validated before any provider retrieval or generated write."
+            echo "- Reason: ${{ steps.decision.outputs.reason }}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
   run-pipeline:
+    needs: preflight
+    if: needs.preflight.outputs.action == 'generate'
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
