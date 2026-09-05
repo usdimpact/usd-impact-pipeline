@@ -1,0 +1,33 @@
+{
+  "$schema": "../score_v2_predictive_week.schema.json",
+  "as_published_observation": {
+    "dxy_weekly_level": 99.15699768066406,
+    "score": -0.712292630238848
+  },
+  "frozen_predictions": {
+    "always_up_direction": "up",
+    "model_direction": "down",
+    "momentum_direction": "down",
+    "momentum_prior_dxy_level": 99.69999694824219,
+    "momentum_prior_source": "previous_predictive_week_record",
+    "momentum_prior_week": "2026-08-28"
+  },
+  "implementation_contract_sha256": "13c2b546abda5c7ba44bdf178371346062d6717c1ed7f10f6a16aac319a9f789",
+  "locked_preregistration_commit_sha": "89bf56bafd594987176f31efaa926ecf02228289",
+  "locked_preregistration_file_sha256": "36accc42e4915bb48caa1c4d2fd0fac8ba27c51c0eb988916990c415830e3ca0",
+  "predictive_power_status": "not_established_pending_52_resolved_predictions",
+  "production_change": false,
+  "record_role": "predictive_origin",
+  "record_schema_version": 1,
+  "recorded_at_utc": "2026-09-05T18:36:11.382611+00:00",
+  "research_only": true,
+  "source_v2_bundle": {
+    "attestation_run_id": 33984532620,
+    "attestation_status": "passed",
+    "attestation_url": "https://github.com/usdimpact/usd-impact-pipeline/actions/runs/33984532620",
+    "pipeline_commit_sha": "58ae75e09d9ab7abfdb896afc77cbe7fe745c6c9",
+    "sha256": "4f20d492a749defe0123c15d4880ecbecc3285b90264e7c4807648b388ecce01"
+  },
+  "study": "usd_impact_score_v2_one_week_dxy_direction_2026-08-25",
+  "week": "2026-09-04"
+}
