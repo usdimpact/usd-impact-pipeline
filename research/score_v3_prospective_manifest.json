@@ -40,6 +40,17 @@
       "initialization_matrix_sha256": "6e17100c061cebc3116fdac9c83708b94a72165957ffbcf688d9a08e9d280580",
       "candidate_result_file": "score_v3_shadow_2026-08-28.json",
       "candidate_result_sha256": "dc2ebab40b8ef8a8005c981a3469bc520a577966b1c98837dccc4b27d7b71eb7"
+    },
+    {
+      "week": "2026-09-04",
+      "ingested_at_utc": "2026-09-05T18:36:14.565340+00:00",
+      "source_v2_bundle_sha256": "4f20d492a749defe0123c15d4880ecbecc3285b90264e7c4807648b388ecce01",
+      "source_v2_pipeline_commit_sha": "58ae75e09d9ab7abfdb896afc77cbe7fe745c6c9",
+      "source_v2_attestation_status": "passed",
+      "locked_preregistration_commit_sha": "bf49152fa6005edd20b770db287924d56cfa7499",
+      "initialization_matrix_sha256": "6e17100c061cebc3116fdac9c83708b94a72165957ffbcf688d9a08e9d280580",
+      "candidate_result_file": "score_v3_shadow_2026-09-04.json",
+      "candidate_result_sha256": "82e6f2c13bd4ce47f0359773a12999a9afcbd74f8faae2395b3d8068fdefc197"
     }
   ]
 }
