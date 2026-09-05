@@ -20,6 +20,7 @@ from urllib.request import Request, urlopen
 
 USER_AGENT = "usd-impact-score-methodology-health/1.0"
 DEFAULT_PIPELINE_BASE = "https://usd-impact-pipeline.pages.dev"
+BRANDED_PIPELINE_BASE = "https://score.usd-impact.com"
 DEFAULT_SITE_PAGE = "https://www.usd-impact.com/score/methodology/"
 EXPECTED_DRIVERS = ["DXY", "WTI", "SPX", "VIX", "BTC", "GOLD", "UST_2Y", "UST_10Y"]
 
@@ -56,6 +57,19 @@ def request_json(url: str) -> dict[str, Any]:
 
 def request_text(url: str) -> str:
     return request_bytes(url, accept="text/html").decode("utf-8", errors="replace")
+
+
+def approved_public_artifact_urls(url: str) -> tuple[str, ...]:
+    """Return the exact approved public aliases for one pipeline artifact URL."""
+    legacy_prefix = f"{DEFAULT_PIPELINE_BASE}/"
+    branded_prefix = f"{BRANDED_PIPELINE_BASE}/"
+    if url.startswith(legacy_prefix):
+        suffix = url[len(DEFAULT_PIPELINE_BASE) :]
+        return (url, f"{BRANDED_PIPELINE_BASE}{suffix}")
+    if url.startswith(branded_prefix):
+        suffix = url[len(BRANDED_PIPELINE_BASE) :]
+        return (url, f"{DEFAULT_PIPELINE_BASE}{suffix}")
+    return (url,)
 
 
 def validate_contract_shape(payload: dict[str, Any]) -> None:
@@ -124,18 +138,24 @@ def build_checks(
             "Semantic JSON equality confirmed." if remote_schema == local_schema else "Remote schema differs from checked-in public/data/score_v2_methodology.schema.json.",
         )
     )
+
+    contract_link_present = any(candidate in methodology_html for candidate in approved_public_artifact_urls(contract_url))
+    schema_link_present = any(candidate in methodology_html for candidate in approved_public_artifact_urls(schema_url))
+    contract_label_present = "Machine-readable methodology JSON" in methodology_html
+    schema_label_present = "Methodology JSON Schema" in methodology_html
+
     checks.append(
         Check(
             "Public methodology page links contract",
-            contract_url in methodology_html and "Machine-readable methodology JSON" in methodology_html,
-            "Contract URL and label are present." if contract_url in methodology_html and "Machine-readable methodology JSON" in methodology_html else "Contract URL/label is missing from the public methodology page.",
+            contract_link_present and contract_label_present,
+            "Approved contract URL and label are present." if contract_link_present and contract_label_present else "Approved contract URL/label is missing from the public methodology page.",
         )
     )
     checks.append(
         Check(
             "Public methodology page links schema",
-            schema_url in methodology_html and "Methodology JSON Schema" in methodology_html,
-            "Schema URL and label are present." if schema_url in methodology_html and "Methodology JSON Schema" in methodology_html else "Schema URL/label is missing from the public methodology page.",
+            schema_link_present and schema_label_present,
+            "Approved schema URL and label are present." if schema_link_present and schema_label_present else "Approved schema URL/label is missing from the public methodology page.",
         )
     )
     checks.append(
