@@ -1,0 +1,10 @@
+/ /member-required.html 302
+/index.html /member-required.html 302
+/en /member-required.html 302
+/en/ /member-required.html 302
+/en/index.html /member-required.html 302
+/es /member-required.html 302
+/es/ /member-required.html 302
+/es/index.html /member-required.html 302
+/archive/*/ /member-required.html 302
+/archive/*/index.html /member-required.html 302
