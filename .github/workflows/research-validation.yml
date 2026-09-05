@@ -19,6 +19,7 @@ on:
       - 'scripts/point_in_time_validation.py'
       - 'scripts/build_vintage_comparison.py'
       - 'usd_impact_score_v2.py'
+      - 'public/data/usd_impact_score_v2.json'
 
 permissions:
   actions: write
@@ -52,7 +53,35 @@ jobs:
           python -m pip install -r requirements.lock
           python -m pip check
 
+      - name: Check upstream weekly release readiness
+        id: upstream
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          from datetime import datetime, timezone
+          from pathlib import Path
+          import usd_impact_score_v2 as score_v2
+
+          expected_week = score_v2.latest_completed_friday(datetime.now(timezone.utc)).isoformat()
+          payload = json.loads(Path('public/data/usd_impact_score_v2.json').read_text(encoding='utf-8'))
+          current_week = str(payload.get('metadata', {}).get('latest_date') or '')
+          ready = current_week == expected_week
+          print(f"ready={'true' if ready else 'false'}")
+          print(f"expected_week={expected_week}")
+          print(f"current_week={current_week}")
+          PY
+
+      - name: Defer until weekly release is current
+        if: steps.upstream.outputs.ready != 'true'
+        run: |
+          echo "Research publication deferred: weekly Score upstream is ${CURRENT_WEEK}; expected ${EXPECTED_WEEK}."
+          echo "Weekly health owns upstream freshness alerting. This workflow will run again when the weekly Score artifact reaches main."
+        env:
+          CURRENT_WEEK: ${{ steps.upstream.outputs.current_week }}
+          EXPECTED_WEEK: ${{ steps.upstream.outputs.expected_week }}
+
       - name: Generate live point-in-time and robustness research
+        if: steps.upstream.outputs.ready == 'true'
         env:
           PYTHONUNBUFFERED: 1
         run: |
@@ -70,6 +99,7 @@ jobs:
             2>&1 | tee -a "$RUNNER_TEMP/score-v2-research.log"
 
       - name: Validate research publication contract
+        if: steps.upstream.outputs.ready == 'true'
         run: |
           set -o pipefail
           python - <<'PY' 2>&1 | tee -a "$RUNNER_TEMP/score-v2-research.log"
@@ -144,7 +174,7 @@ jobs:
           PY
 
       - name: Report research validation failure
-        if: failure()
+        if: ${{ steps.upstream.outputs.ready == 'true' && failure() }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -186,6 +216,7 @@ jobs:
           fi
 
       - name: Open, validate, and merge research publication pull request
+        if: steps.upstream.outputs.ready == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
