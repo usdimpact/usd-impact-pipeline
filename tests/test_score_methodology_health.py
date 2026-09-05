@@ -37,6 +37,43 @@ class ScoreMethodologyHealthTests(unittest.TestCase):
         )
         self.assertTrue(all(check.passed for check in checks))
 
+    def test_approved_branded_origin_links_are_healthy(self) -> None:
+        branded_html = (
+            '<a href="https://score.usd-impact.com/data/score_v2_methodology.json">Machine-readable methodology JSON</a>'
+            '<a href="https://score.usd-impact.com/data/score_v2_methodology.schema.json">Methodology JSON Schema</a>'
+            '<p>5.82 ordinary effective components and 1.89 effective correlated components; '
+            'this is an audit/transparency diagnostic, not a risk model.</p>'
+        )
+        checks = health.build_checks(
+            local_contract=self.contract,
+            local_schema=self.schema,
+            remote_contract=copy.deepcopy(self.contract),
+            remote_schema=copy.deepcopy(self.schema),
+            methodology_html=branded_html,
+            contract_url=self.contract_url,
+            schema_url=self.schema_url,
+        )
+        self.assertTrue(all(check.passed for check in checks))
+
+    def test_unapproved_mirror_does_not_satisfy_public_link_check(self) -> None:
+        mirror_html = (
+            '<a href="https://example.com/data/score_v2_methodology.json">Machine-readable methodology JSON</a>'
+            '<a href="https://example.com/data/score_v2_methodology.schema.json">Methodology JSON Schema</a>'
+            '<p>5.82 ordinary effective components and 1.89 effective correlated components; '
+            'this is an audit/transparency diagnostic, not a risk model.</p>'
+        )
+        checks = health.build_checks(
+            local_contract=self.contract,
+            local_schema=self.schema,
+            remote_contract=copy.deepcopy(self.contract),
+            remote_schema=copy.deepcopy(self.schema),
+            methodology_html=mirror_html,
+            contract_url=self.contract_url,
+            schema_url=self.schema_url,
+        )
+        self.assertFalse(next(c for c in checks if c.name == "Public methodology page links contract").passed)
+        self.assertFalse(next(c for c in checks if c.name == "Public methodology page links schema").passed)
+
     def test_remote_contract_drift_is_visible_even_when_shape_still_valid(self) -> None:
         remote = copy.deepcopy(self.contract)
         remote["drivers"][0]["weight"] = 0.2
