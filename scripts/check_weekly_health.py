@@ -19,6 +19,7 @@ from urllib.request import Request, urlopen
 USER_AGENT = "usd-impact-weekly-health/1.0"
 ENGLISH_HEADING = "Automated Regime Commentary"
 SPANISH_HEADING = "Comentario Automático de Régimen"
+MEMBER_GATE_HEADING = "Research Membership required"
 
 
 @dataclass
@@ -35,6 +36,13 @@ def parse_utc(value: str) -> datetime:
 def latest_completed_friday(run_date: date) -> date:
     """Return the most recent Friday that is complete on ``run_date``."""
     return run_date - timedelta(days=(run_date.weekday() - 4) % 7)
+
+
+def weekly_run_matches_expected_period(run_started_at: datetime, now: datetime) -> bool:
+    """Return true when a weekly run belongs to the currently expected Friday period."""
+    return latest_completed_friday(run_started_at.astimezone(timezone.utc).date()) == latest_completed_friday(
+        now.astimezone(timezone.utc).date()
+    )
 
 
 def request_bytes(url: str, headers: dict[str, str] | None = None, attempts: int = 3) -> bytes:
@@ -123,13 +131,16 @@ def main() -> int:
     parser.add_argument("--workflow", default="weekly.yml")
     parser.add_argument("--branch", default="main")
     parser.add_argument("--base-url", default="https://usd-impact-pipeline.pages.dev")
-    parser.add_argument("--max-run-age-hours", type=float, default=36.0)
     parser.add_argument("--report", type=Path, default=Path("weekly-health-report.md"))
     args = parser.parse_args()
 
     checks: list[Check] = []
-    metadata = {"generated_at": datetime.now(timezone.utc).isoformat()}
-    expected_date: str | None = None
+    now = datetime.now(timezone.utc)
+    expected_date = latest_completed_friday(now.date()).isoformat()
+    metadata = {
+        "generated_at": now.isoformat(),
+        "expected_date": expected_date,
+    }
     token = os.environ.get("GITHUB_TOKEN", "")
 
     if not args.repo:
@@ -149,25 +160,20 @@ def main() -> int:
                 )
             )
 
-            completed_at = parse_utc(str(run.get("updated_at") or run.get("created_at")))
-            age_hours = (datetime.now(timezone.utc) - completed_at).total_seconds() / 3600
+            started_at = parse_utc(str(run.get("run_started_at") or run.get("created_at")))
+            run_period = latest_completed_friday(started_at.date()).isoformat()
             checks.append(
                 Check(
-                    "Latest weekly workflow freshness",
-                    0 <= age_hours <= args.max_run_age_hours,
-                    f"Latest completed run is {age_hours:.1f} hours old; limit is {args.max_run_age_hours:.1f} hours.",
+                    "Latest weekly workflow period",
+                    weekly_run_matches_expected_period(started_at, now),
+                    f"Latest completed run maps to Friday `{run_period}`; expected `{expected_date}`.",
                 )
             )
-
-            started_at = parse_utc(str(run.get("run_started_at") or run.get("created_at")))
-            expected_date = latest_completed_friday(started_at.date()).isoformat()
-            metadata["expected_date"] = expected_date
         except Exception as error:
             checks.append(Check("GitHub weekly workflow lookup", False, str(error)))
 
     base_url = args.base_url.rstrip("/")
     bridge_url = f"{base_url}/data/weekly_input_latest.json"
-    bridge: dict[str, Any] | None = None
     try:
         bridge = request_json(bridge_url)
         score_date = str(bridge.get("week_ending", ""))
@@ -175,8 +181,8 @@ def main() -> int:
         checks.append(
             Check(
                 "Score date freshness",
-                bool(expected_date) and score_date == expected_date,
-                f"Deployed week ending is `{score_date or 'missing'}`; expected `{expected_date or 'unknown'}`.",
+                score_date == expected_date,
+                f"Deployed week ending is `{score_date or 'missing'}`; expected `{expected_date}`.",
             )
         )
         checks.append(
@@ -189,11 +195,27 @@ def main() -> int:
     except Exception as error:
         checks.append(Check("Latest bridge JSON", False, str(error)))
 
+    # Current score routes are intentionally member-gated. Verify that boundary, then
+    # verify the deployed dated archive artifacts that contain the actual EN/ES score pages.
     for language, heading in (("en", ENGLISH_HEADING), ("es", SPANISH_HEADING)):
-        url = f"{base_url}/{language}/"
+        current_url = f"{base_url}/{language}/"
         try:
-            html = request_text(url)
-            checks.append(Check(f"{language.upper()} dashboard availability", True, f"Loaded `{url}`."))
+            current_html = request_text(current_url)
+            gated = MEMBER_GATE_HEADING in current_html
+            checks.append(
+                Check(
+                    f"{language.upper()} current route member gate",
+                    gated,
+                    f"Expected member gate {'was found' if gated else 'was not found'} at `{current_url}`.",
+                )
+            )
+        except Exception as error:
+            checks.append(Check(f"{language.upper()} current route member gate", False, str(error)))
+
+        archive_url = f"{base_url}/archive/{expected_date}/{language}.html"
+        try:
+            html = request_text(archive_url)
+            checks.append(Check(f"{language.upper()} archive dashboard availability", True, f"Loaded `{archive_url}`."))
             checks.append(
                 Check(
                     f"{language.upper()} commentary heading",
@@ -204,12 +226,12 @@ def main() -> int:
             checks.append(
                 Check(
                     f"{language.upper()} current score date",
-                    bool(expected_date) and expected_date in html,
-                    f"Expected date `{expected_date or 'unknown'}` {'was found' if expected_date and expected_date in html else 'was not found'}.",
+                    expected_date in html,
+                    f"Expected date `{expected_date}` {'was found' if expected_date in html else 'was not found'}.",
                 )
             )
         except Exception as error:
-            checks.append(Check(f"{language.upper()} dashboard availability", False, str(error)))
+            checks.append(Check(f"{language.upper()} archive dashboard availability", False, str(error)))
 
     report = render_report(checks, metadata)
     args.report.write_text(report, encoding="utf-8")
