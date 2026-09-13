@@ -36,7 +36,6 @@ jobs:
             --workflow weekly.yml \
             --branch main \
             --base-url https://usd-impact-pipeline.pages.dev \
-            --max-run-age-hours 36 \
             --report weekly-health-report.md
 
       - name: Open or update health issue
