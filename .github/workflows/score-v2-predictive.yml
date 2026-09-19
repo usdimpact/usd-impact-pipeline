@@ -110,7 +110,8 @@ jobs:
             research/score_v2_predictive_preregistration.json
             research/score_v2_predictive_implementation_contract.json
             research/score_v2_predictive_engine_lock.json
-            research/score_v2_predictive_manifest.json
+            # Append-only predictive ledger state is intentionally excluded here.
+            # Current main may contain already-reviewed prior-week records after the source attestation.
             research/score_v3_initialization_2026-08-21.csv
             scripts/verify_score_v2_predictive_engine_lock.py
             scripts/score_v2_predictive_manifest.py
