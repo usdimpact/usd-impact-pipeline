@@ -233,7 +233,7 @@ jobs:
           - silently validates the locked metric state every prospective week without exposing weekly endpoint values;
           - emits a durable endpoint report only at preregistered checkpoints 13/26/39/52;
           - metric reporting status: **${METRIC_STATUS}**;
-          - checkpoint file: `${CHECKPOINT_FILE}`;
+          - checkpoint file: \`${CHECKPOINT_FILE}\`;
           - makes no production Score v2 change;
           - makes no predictive, trading, or PnL claim;
           - never promotes a research candidate to production automatically, including at week 52.
