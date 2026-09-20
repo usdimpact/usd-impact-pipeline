@@ -1,0 +1,105 @@
+name: Research PR exact-head quality dispatch
+
+# Base-context dispatcher for research-only PRs created by the downstream
+# Score v3 shadow and Score v2 predictive collectors. Keeping dispatch here
+# preserves the collectors' invariant that they never launch other workflows.
+on:
+  workflow_run:
+    workflows:
+      - "Score v3 prospective shadow ingestion"
+      - "Score v2 prospective predictive evidence"
+    types: [completed]
+
+permissions:
+  actions: write
+  contents: read
+  pull-requests: read
+
+jobs:
+  dispatch:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'workflow_run' &&
+      github.event.workflow_run.head_branch == 'main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Resolve exact research PR created by source run
+        id: source
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_RUN_ID: ${{ github.event.workflow_run.id }}
+          SOURCE_WORKFLOW: ${{ github.event.workflow_run.name }}
+        run: |
+          case "$SOURCE_WORKFLOW" in
+            "Score v3 prospective shadow ingestion")
+              prefix="automation/score-v3-shadow-"
+              ;;
+            "Score v2 prospective predictive evidence")
+              prefix="automation/score-v2-predictive-"
+              ;;
+            *)
+              echo "Unexpected source workflow: $SOURCE_WORKFLOW"
+              exit 1
+              ;;
+          esac
+
+          suffix="-${SOURCE_RUN_ID}"
+          matches="$(gh pr list \
+            --repo "$GITHUB_REPOSITORY" \
+            --state open \
+            --base main \
+            --json number,headRefName,headRefOid,url \
+            --jq "[.[] | select(.headRefName | startswith(\"$prefix\")) | select(.headRefName | endswith(\"$suffix\"))]")"
+
+          count="$(echo "$matches" | jq 'length')"
+          if [ "$count" = "0" ]; then
+            echo "No open research PR was created by source run $SOURCE_RUN_ID; nothing to dispatch."
+            echo "found=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [ "$count" != "1" ]; then
+            echo "Expected exactly one research PR for source run $SOURCE_RUN_ID; found $count."
+            echo "$matches"
+            exit 1
+          fi
+
+          echo "found=true" >> "$GITHUB_OUTPUT"
+          echo "branch=$(echo "$matches" | jq -r '.[0].headRefName')" >> "$GITHUB_OUTPUT"
+          echo "head_sha=$(echo "$matches" | jq -r '.[0].headRefOid')" >> "$GITHUB_OUTPUT"
+          echo "pr_url=$(echo "$matches" | jq -r '.[0].url')" >> "$GITHUB_OUTPUT"
+
+      - name: Dispatch Weekly score quality on exact research head
+        if: steps.source.outputs.found == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ steps.source.outputs.branch }}
+          HEAD_SHA: ${{ steps.source.outputs.head_sha }}
+          PR_URL: ${{ steps.source.outputs.pr_url }}
+        run: |
+          gh workflow run quality.yml --ref "$BRANCH"
+
+          quality_run_id=""
+          for attempt in $(seq 1 30); do
+            quality_run_id="$(gh run list \
+              --repo "$GITHUB_REPOSITORY" \
+              --workflow quality.yml \
+              --branch "$BRANCH" \
+              --event workflow_dispatch \
+              --limit 10 \
+              --json databaseId,headSha \
+              --jq ".[] | select(.headSha == \"$HEAD_SHA\") | .databaseId" | head -n 1)"
+            if [ -n "$quality_run_id" ]; then
+              break
+            fi
+            sleep 5
+          done
+
+          if [ -z "$quality_run_id" ]; then
+            echo "Could not locate exact-head Weekly score quality for $HEAD_SHA."
+            exit 1
+          fi
+
+          gh run watch "$quality_run_id" --repo "$GITHUB_REPOSITORY" --exit-status
+          echo "Exact-head Weekly score quality passed for $PR_URL at $HEAD_SHA."
