@@ -10,7 +10,6 @@ on:
   workflow_dispatch:
 
 permissions:
-  actions: write
   contents: write
   pull-requests: write
 
@@ -240,38 +239,11 @@ jobs:
           This workflow cannot merge the PR. Normal review, branch protection, and the automatically triggered Weekly score quality check remain the final gate.
           EOF
 
-          pr_url="$(gh pr create \
+          gh pr create \
             --base main \
             --head "$branch" \
             --title "Record Score v2 predictive evidence — ${WEEK}" \
-            --body-file "$RUNNER_TEMP/score-v2-predictive-pr.md")"
-
-          head_sha="$(git rev-parse HEAD)"
-          gh workflow run quality.yml --ref "$branch"
-
-          quality_run_id=""
-          for attempt in $(seq 1 30); do
-            quality_run_id="$(gh run list \
-              --workflow quality.yml \
-              --branch "$branch" \
-              --event workflow_dispatch \
-              --limit 10 \
-              --json databaseId,headSha \
-              --jq ".[] | select(.headSha == \"$head_sha\") | .databaseId" | head -n 1)"
-            if [ -n "$quality_run_id" ]; then
-              break
-            fi
-            sleep 5
-          done
-
-          if [ -z "$quality_run_id" ]; then
-            echo "Could not locate the dispatched Weekly score quality run for $head_sha."
-            exit 1
-          fi
-
-          gh run watch "$quality_run_id" --exit-status
-          echo "Score v2 predictive evidence ${WEEK} passed exact-head Weekly score quality."
-          echo "Protected human review and a separately authorized merge remain required: $pr_url"
+            --body-file "$RUNNER_TEMP/score-v2-predictive-pr.md"
 
       - name: Surface prospective predictive evidence failure
         if: failure()
