@@ -229,11 +229,11 @@ jobs:
           Research-only state for **${WEEK}**, downstream of a successful push-to-main Score v2 reproduction attestation.
 
           - binds the weekly score, DXY level, and frozen directions to the immutable as-published bundle;
-          - follows the preregistration locked in commit `89bf56bafd594987176f31efaa926ecf02228289`;
+          - follows the preregistration locked in commit \`89bf56bafd594987176f31efaa926ecf02228289\`;
           - rejects gaps and never backfills a missed prediction after its outcome exists;
           - calculates no interim performance and exposes no interim endpoint values;
           - reporting status: **${REPORTING_STATUS}**;
-          - checkpoint file: `${CHECKPOINT_FILE}`;
+          - checkpoint file: \`${CHECKPOINT_FILE}\`;
           - changes neither production Score v2 nor the public site's predictive claim.
 
           This workflow cannot merge the PR. Normal review, branch protection, and the automatically triggered Weekly score quality check remain the final gate.
