@@ -14,6 +14,19 @@ sys.path.insert(0, str(REPO_ROOT))
 
 from usd_impact_score_v2 import build_graphic_payload, export_html, setup_logging  # noqa: E402
 
+SPANISH_REGIME_LABEL_FIXES = {
+    "Régimen débil": "Régimen de dólar suave",
+    "Régimen muy débil": "Régimen de dólar débil",
+}
+
+
+def normalize_spanish_regime_labels(path: Path) -> None:
+    """Align rendered Spanish dashboard labels with canonical commentary wording."""
+    content = path.read_text(encoding="utf-8")
+    for old, new in SPANISH_REGIME_LABEL_FIXES.items():
+        content = content.replace(f">{old}</div>", f">{new}</div>")
+    path.write_text(content, encoding="utf-8")
+
 
 def main() -> int:
     parser = argparse.ArgumentParser()
@@ -34,6 +47,7 @@ def main() -> int:
 
     export_html(build_graphic_payload(frame, score, lang="en"), en_path, logger)
     export_html(build_graphic_payload(frame, score, lang="es"), es_path, logger)
+    normalize_spanish_regime_labels(es_path)
     print("Rebuilt English and Spanish dashboards with current commentary.")
     return 0
 
