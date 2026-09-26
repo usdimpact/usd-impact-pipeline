@@ -1083,8 +1083,8 @@ def build_graphic_payload(df: pd.DataFrame, score: pd.Series, lang: str = "en") 
             "Strong dollar regime":   "Régimen fuerte",
             "Firm dollar regime":     "Régimen firme",
             "Neutral / transitional": "Neutral / transicional",
-            "Soft dollar regime":     "Régimen de dólar suave",
-            "Weak dollar regime":     "Régimen de dólar débil",
+            "Soft dollar regime":     "Régimen débil",
+            "Weak dollar regime":     "Régimen muy débil",
         }
         latest_regime = regime_map.get(latest_regime, latest_regime)
     else:
