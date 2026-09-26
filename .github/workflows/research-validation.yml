@@ -215,7 +215,7 @@ jobs:
             echo "Opened research validation failure issue."
           fi
 
-      - name: Open, validate, and merge research publication pull request
+      - name: Open and validate research publication pull request
         if: steps.upstream.outputs.ready == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
@@ -252,7 +252,7 @@ jobs:
 
           These outputs are descriptive, not predictive, and do **not** modify the production Score v2 methodology. The robustness studies use the current recalculated history. The revision audit separately compares each valid archive's declared latest observation with the same week in the current history; it does not identify whether a difference came from expanding-sample normalization or an upstream provider revision.
 
-          Publication is automatic only after the Weekly score quality workflow passes on this exact commit.
+          Publication requires protected human review after the Weekly score quality workflow passes on this exact commit. This workflow does not merge the pull request.
           EOF
 
           pr_url="$(gh pr create \
@@ -284,5 +284,6 @@ jobs:
           fi
 
           gh run watch "$run_id" --exit-status
-          gh pr merge "$pr_url" --squash --delete-branch
-          echo "Merged Score v2 research publication for ${WEEK}."
+          echo "Exact-head Weekly score quality passed for ${head_sha}."
+          echo "Research publication PR is ready for protected human review: ${pr_url}"
+          echo "No merge was attempted by this workflow."
