@@ -66,6 +66,19 @@
       "week": "2026-09-25",
       "weekly_record_file": "score_v2_predictive_week_2026-09-25.json",
       "weekly_record_sha256": "96e8a0e4b4049b82895b55d2d048395fbd5a5b787af48c5fa589187063195fb4"
+    },
+    {
+      "implementation_contract_sha256": "13c2b546abda5c7ba44bdf178371346062d6717c1ed7f10f6a16aac319a9f789",
+      "locked_preregistration_commit_sha": "89bf56bafd594987176f31efaa926ecf02228289",
+      "record_role": "predictive_origin",
+      "recorded_at_utc": "2026-10-03T13:21:46.865416+00:00",
+      "source_v2_attestation_run_id": 37125859786,
+      "source_v2_attestation_status": "passed",
+      "source_v2_bundle_sha256": "9a85df9ee1a3c14b11cb463b03b2b0c8d0bd0559fd929efbfd18e906a63c9ac0",
+      "source_v2_pipeline_commit_sha": "05df45d423db48f86d05744b19f663124ba10964",
+      "week": "2026-10-02",
+      "weekly_record_file": "score_v2_predictive_week_2026-10-02.json",
+      "weekly_record_sha256": "b5446ef095cee386bd3525e5746bd6fa4f11224be69e51cdd4f5f2d88807b5fe"
     }
   ],
   "first_prediction_origin": "2026-08-28",
