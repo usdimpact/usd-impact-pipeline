@@ -63,6 +63,7 @@ jobs:
       - name: Rehearse full release bundle and archive path
         env:
           PYTHONUNBUFFERED: 1
+          USD_IMPACT_REHEARSAL_ACTIVE_RUNTIME: 1
         run: |
           set -euo pipefail
           work="$RUNNER_TEMP/score-v2-reproduction-rehearsal"
