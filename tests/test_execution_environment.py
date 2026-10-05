@@ -4,11 +4,11 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from scripts.execution_environment import load_profile, parse_lock, verify_profile
+from scripts.execution_environment import EXPECTED_CALLERS, load_profile, parse_lock, verify_profile
 
 
 class ExecutionEnvironmentTests(unittest.TestCase):
-    def make_root(self):
+    def make_root(self, active=False):
         temp=tempfile.TemporaryDirectory()
         root=Path(temp.name)
         (root/"runtime").mkdir()
@@ -16,7 +16,23 @@ class ExecutionEnvironmentTests(unittest.TestCase):
         candidate=b"a==1\nurllib3==2.8.0\n"
         (root/"requirements.lock").write_bytes(legacy)
         (root/"runtime/candidate.lock").write_bytes(candidate)
-        profile={"schema_version":1,"profile_id":"test","status":"candidate_not_active","python":{"implementation":"CPython","major_minor":"3.11"},"platform":"ubuntu-24.04","lock_path":"runtime/candidate.lock","legacy_frozen_lock":{"path":"requirements.lock","sha256":hashlib.sha256(legacy).hexdigest(),"purpose":"frozen_research_and_historical_release_provenance"},"activation":{"active":False,"caller_allowlist":[]}}
+        profile={
+            "schema_version":1,
+            "profile_id":"test",
+            "status":"active_candidate" if active else "candidate_not_active",
+            "python":{"implementation":"CPython","major_minor":"3.11"},
+            "platform":"ubuntu-24.04",
+            "lock_path":"runtime/candidate.lock",
+            "legacy_frozen_lock":{
+                "path":"requirements.lock",
+                "sha256":hashlib.sha256(legacy).hexdigest(),
+                "purpose":"frozen_research_and_historical_release_provenance",
+            },
+            "activation":{
+                "active":active,
+                "caller_allowlist":sorted(EXPECTED_CALLERS) if active else [],
+            },
+        }
         path=root/"runtime/profile.json"
         path.write_text(json.dumps(profile),encoding="utf-8")
         return temp,root,path,profile
@@ -27,10 +43,15 @@ class ExecutionEnvironmentTests(unittest.TestCase):
         self.assertEqual(report["status"],"verified_candidate_not_active")
         self.assertFalse(report["active"])
 
-    def test_activation_is_fail_closed(self):
-        temp,_,path,profile=self.make_root(); self.addCleanup(temp.cleanup)
-        profile["activation"]["active"]=True; path.write_text(json.dumps(profile),encoding="utf-8")
-        with self.assertRaisesRegex(ValueError,"must not activate"): load_profile(path)
+    def test_active_candidate_requires_exact_callers(self):
+        temp,root,path,profile=self.make_root(active=True); self.addCleanup(temp.cleanup)
+        report=verify_profile(root,path)
+        self.assertEqual(report["status"],"verified_active_candidate")
+        self.assertTrue(report["active"])
+        profile["activation"]["caller_allowlist"].pop()
+        path.write_text(json.dumps(profile),encoding="utf-8")
+        with self.assertRaisesRegex(ValueError,"incomplete or broadened"):
+            load_profile(path)
 
     def test_unknown_field_is_rejected(self):
         temp,_,path,profile=self.make_root(); self.addCleanup(temp.cleanup)
@@ -52,11 +73,12 @@ class ExecutionEnvironmentTests(unittest.TestCase):
             p=Path(td)/"lock"; p.write_text("urllib3>=2.8.0\n")
             with self.assertRaisesRegex(ValueError,"non-exact"): parse_lock(p)
 
-    def test_repository_profile_is_valid_and_inactive(self):
+    def test_repository_profile_is_active_candidate(self):
         root=Path(__file__).resolve().parents[1]
         report=verify_profile(root,root/"runtime/active-environment.json")
         self.assertEqual(report["profile_id"],"online-python-2026-10-05")
-        self.assertFalse(report["active"])
+        self.assertTrue(report["active"])
+        self.assertEqual(set(report["caller_allowlist"]), EXPECTED_CALLERS)
 
 
 if __name__=="__main__": unittest.main()
