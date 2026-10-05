@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "status": "generated_per_run",
+  "source_lock": "requirements.lock",
+  "source_lock_sha256": "a4c6fb90909a04eb267057d3e31049c7fc38b12e8a7d556e79c0141aa0d52db6",
+  "downloader_lock": "runtime/requirements-2026-10-05.lock",
+  "base_image": "python:3.11.15-slim-bookworm@sha256:d29f48a31a8b408ed19272ca1e7b10ebae13b240a27e862d3d4217c528e2e0c3",
+  "platform": "linux/amd64",
+  "download_policy": {
+    "only_binary": true,
+    "no_source_builds": true,
+    "wheel_hashes_retained": true
+  },
+  "runtime_boundary": {
+    "network": "none",
+    "read_only_root": true,
+    "drop_all_capabilities": true,
+    "no_new_privileges": true,
+    "non_root_uid": 65532
+  }
+}
