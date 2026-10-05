@@ -54,5 +54,57 @@ jobs:
       - name: Test market-data fetch resilience
         run: python -m unittest discover -s tests -v
 
+      - name: Validate frozen research container boundary
+        run: |
+          set -euo pipefail
+          wheelhouse="$RUNNER_TEMP/frozen-wheelhouse"
+          context="$RUNNER_TEMP/frozen-build-context"
+          rm -rf "$wheelhouse" "$context"
+          mkdir -p "$wheelhouse" "$context/repo"
+          python -m pip download \
+            --disable-pip-version-check \
+            --only-binary=:all: \
+            --dest "$wheelhouse" \
+            --requirement requirements.lock
+          cp requirements.lock "$context/requirements.lock"
+          cp -a "$wheelhouse" "$context/wheelhouse"
+          tar --exclude=.git --exclude=.venv --exclude='__pycache__' \
+            -cf - . | tar -xf - -C "$context/repo"
+          cp runtime/research-worker.Dockerfile "$context/Dockerfile"
+          image="usd-impact-frozen-boundary:${GITHUB_RUN_ID}"
+          docker pull "python:3.11.15-slim-bookworm@sha256:d29f48a31a8b408ed19272ca1e7b10ebae13b240a27e862d3d4217c528e2e0c3"
+          docker build --network=none --pull=false -f "$context/Dockerfile" -t "$image" "$context"
+          docker run --rm \
+            --network none \
+            --read-only \
+            --cap-drop ALL \
+            --security-opt no-new-privileges \
+            --pids-limit 64 \
+            --memory 512m \
+            --cpus 1 \
+            --entrypoint python \
+            "$image" -c '
+          import os, socket, urllib3
+          assert os.geteuid() != 0
+          assert urllib3.__version__ == "2.7.0"
+          forbidden = {"GITHUB_TOKEN","GH_TOKEN","ACTIONS_RUNTIME_TOKEN","ACTIONS_ID_TOKEN_REQUEST_TOKEN"}
+          assert not (forbidden & set(os.environ))
+          try:
+              socket.getaddrinfo("example.com", 80)
+          except OSError:
+              pass
+          else:
+              raise SystemExit("DNS unexpectedly available")
+          for address in (("1.1.1.1", 53), ("127.0.0.1", 80)):
+              try:
+                  socket.create_connection(address, timeout=0.5)
+              except OSError:
+                  pass
+              else:
+                  raise SystemExit(f"network unexpectedly reachable: {address}")
+          print("Frozen research container boundary verified.")
+          '
+          docker image rm --force "$image"
+
       - name: Validate weekly release consistency
         run: python scripts/validate_weekly_release.py
