@@ -70,7 +70,14 @@ class FrozenResearchBoundaryTests(unittest.TestCase):
             workflow,
         )
         self.assertIn("frozen-research-risk:", workflow)
-        self.assertIn("pip-audit --requirement requirements.lock", workflow)
+        self.assertIn("--requirement requirements.lock", workflow)
+        self.assertIn("PYSEC-2026-4175", workflow)
+        self.assertIn("PYSEC-2026-4176", workflow)
+        self.assertIn("PYSEC-2026-4177", workflow)
+        self.assertIn("2026-11-05", workflow)
+        self.assertIn("found != expected", workflow)
+        self.assertIn("No other frozen dependency findings were accepted.", workflow)
+        self.assertIn("frozen-research-audit.json", workflow)
         self.assertNotIn("continue-on-error: true", workflow)
 
 
