@@ -48,7 +48,8 @@ The selected release must bind the reviewer to one exact merged production commi
 - `public/archive/<week>/score_repro_bundle.json`;
 - `public/data/usd_impact_score_v2.json`;
 - `public/data/weekly_input_latest.json`;
-- `requirements.lock`; and
+- the exact dependency lock identified by the release environment/provenance receipt;
+- `runtime/active-environment.json` for releases generated after the runtime split, while legacy releases retain their original `requirements.lock` binding; and
 - the exact release commit identifier.
 
 The repository reference validator, `scripts/validate_weekly_release.py`, may be used only as a **secondary** cross-check after the reviewer has completed an independent implementation.
@@ -57,7 +58,7 @@ The repository reference validator, `scripts/validate_weekly_release.py`, may be
 
 1. Record the selected week, exact merged commit, artifact URLs and local SHA-256 hashes.
 2. Confirm the latest and dated strict bundles are byte-identical.
-3. Confirm the bundle's dependency-lock hash equals the reviewed `requirements.lock` hash.
+3. Confirm the bundle's dependency-lock hash equals the exact release-environment lock resolved for that publication; do not substitute the repository's newest online lock for a historical release.
 4. Do not import `usd_impact_score_v2.py` for the primary calculation.
 5. Independently implement the arithmetic described by the public methodology.
 6. For each of the eight drivers, recompute the z-score from the frozen level, mean and sample standard deviation.
