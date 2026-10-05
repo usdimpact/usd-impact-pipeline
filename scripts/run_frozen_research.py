@@ -83,7 +83,7 @@ def docker_run_args(image: str, output_dir: Path, mode: str, attestation_id: str
         "--pids-limit","256",
         "--memory","2g",
         "--cpus","2",
-        "--tmpfs","/work:rw,nosuid,nodev,size=1024m",
+        "--tmpfs","/work:rw,nosuid,nodev,size=1024m,uid=65532,mode=0700",
         "--mount",f"type=bind,src={output_dir.resolve()},dst=/output",
         image,
         "--inside-mode",mode,
