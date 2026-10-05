@@ -11,7 +11,7 @@ from typing import Any
 
 PROFILE_KEYS = {"schema_version","profile_id","status","python","platform","lock_path","legacy_frozen_lock","activation"}
 SHA256 = re.compile(r"^[0-9a-f]{64}$")
-PIN = re.compile(r"^([A-Za-z0-9_.-]+)==([^\\s]+)$")
+PIN = re.compile(r"^([A-Za-z0-9_.-]+)==([^\s]+)$")
 
 
 def sha256_file(path: Path) -> str:
