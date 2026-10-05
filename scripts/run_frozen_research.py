@@ -97,6 +97,22 @@ def _copy_repo_for_build(source: Path, destination: Path) -> None:
     shutil.copytree(source, destination, ignore=ignored, symlinks=False)
 
 
+def _prepare_output_tree(output: Path) -> None:
+    """Precreate every allowed bind-mount directory with host-cleanable permissions."""
+    for relative in (
+        Path("."),
+        Path("reports"),
+        Path("research"),
+        Path("research/prospective"),
+        Path("research/prospective/checkpoints"),
+        Path("research/predictive"),
+        Path("research/predictive/checkpoints"),
+    ):
+        directory = output / relative
+        directory.mkdir(parents=True, exist_ok=True)
+        directory.chmod(stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO)
+
+
 def _wheel_manifest(wheelhouse: Path, policy: dict[str, Any]) -> dict[str, Any]:
     wheels = []
     for path in sorted(wheelhouse.glob("*.whl")):
@@ -159,8 +175,7 @@ def _run_host(args: argparse.Namespace) -> int:
         ])
 
         output = temp / "output"
-        output.mkdir()
-        output.chmod(stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO)
+        _prepare_output_tree(output)
         subprocess.check_call(
             docker_run_args(
                 image, output, args.mode, args.attestation_run_id, args.attestation_url
