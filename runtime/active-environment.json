@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "profile_id": "online-python-2026-10-05",
+  "status": "candidate_not_active",
+  "python": {"implementation": "CPython", "major_minor": "3.11"},
+  "platform": "ubuntu-24.04",
+  "lock_path": "runtime/requirements-2026-10-05.lock",
+  "legacy_frozen_lock": {
+    "path": "requirements.lock",
+    "sha256": "a4c6fb90909a04eb267057d3e31049c7fc38b12e8a7d556e79c0141aa0d52db6",
+    "purpose": "frozen_research_and_historical_release_provenance"
+  },
+  "activation": {"active": false, "caller_allowlist": []}
+}
