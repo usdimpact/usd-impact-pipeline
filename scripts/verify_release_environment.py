@@ -129,6 +129,19 @@ def resolve_release_environment(root: Path, week: str) -> dict[str, Any]:
     commits = [line for line in history.splitlines() if line]
     profile = verify_profile(root, root / "runtime/active-environment.json")
 
+    rehearsal_override = os.environ.get("USD_IMPACT_REHEARSAL_ACTIVE_RUNTIME") == "1"
+    if rehearsal_override:
+        if os.environ.get("GITHUB_WORKFLOW") != "Score v2 reproduction acceptance rehearsal":
+            raise ValueError("active-runtime rehearsal override is not authorized for this workflow")
+        if os.environ.get("GITHUB_EVENT_NAME") not in {"pull_request", "workflow_dispatch"}:
+            raise ValueError("active-runtime rehearsal override is not allowed in this event context")
+        return {
+            "mode": "active_runtime_rehearsal",
+            "lock_path": profile["lock_path"],
+            "lock_sha256": profile["lock_sha256"],
+            "profile_id": profile["profile_id"],
+        }
+
     # Before a new archive path is committed, or while validating the exact
     # commit that first introduces it, bind it to the active runtime candidate.
     if not commits or commits[0] == head:
