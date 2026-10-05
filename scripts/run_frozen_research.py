@@ -243,7 +243,7 @@ def _run_inside(args: argparse.Namespace) -> int:
     reports = output / "reports"
     reports.mkdir(parents=True, exist_ok=True)
     if args.inside_mode == "score-v3-shadow":
-        _run_checked(work, [sys.executable,"-m","scripts.verify_score_v3_engine_lock","--json"])
+        _run_checked(work, [sys.executable,"-m","scripts.verify_score_v3_engine_lock","--filesystem-only","--json"])
         _run_checked(work, [
             sys.executable,"-m","scripts.score_v3_shadow_ingestion",
             "--attestation-run-id",args.attestation_run_id,
@@ -255,7 +255,7 @@ def _run_inside(args: argparse.Namespace) -> int:
             "--report",str(reports / "governance.json"),
         ])
     elif args.inside_mode == "score-v2-predictive":
-        _run_checked(work, [sys.executable,"-m","scripts.verify_score_v2_predictive_engine_lock","--json"])
+        _run_checked(work, [sys.executable,"-m","scripts.verify_score_v2_predictive_engine_lock","--filesystem-only","--json"])
         _run_checked(work, [
             sys.executable,"-m","scripts.score_v2_predictive_ingestion",
             "--attestation-run-id",args.attestation_run_id,
