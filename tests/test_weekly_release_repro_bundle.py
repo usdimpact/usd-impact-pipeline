@@ -141,7 +141,7 @@ class WeeklyReleaseReproductionBundleTests(unittest.TestCase):
         temp, root, _bundle, _latest, _archive = self._make_root_and_bundle()
         self.addCleanup(temp.cleanup)
         (root / "requirements.lock").write_text("changed lock\n", encoding="utf-8")
-        with self.assertRaisesRegex(ValueError, "requirements lock hash does not match"):
+        with self.assertRaisesRegex(ValueError, "dependency lock hash does not match"):
             validate_reproduction_bundle(root, self.metadata, self.week)
 
     def test_validator_rejects_false_raw_provider_archive_claim(self):

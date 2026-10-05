@@ -27,8 +27,8 @@ class GitHubActionRuntimeTests(unittest.TestCase):
         for workflow_name in ("quality.yml", "weekly.yml"):
             workflow = (WORKFLOWS / workflow_name).read_text(encoding="utf-8")
             with self.subTest(workflow=workflow_name):
-                self.assertIn("cache-dependency-path: requirements.lock", workflow)
-                self.assertIn("python -m pip install -r requirements.lock", workflow)
+                self.assertIn("cache-dependency-path: runtime/requirements-2026-10-05.lock", workflow)
+                self.assertIn("python -m pip install -r runtime/requirements-2026-10-05.lock", workflow)
                 self.assertIn("python -m pip check", workflow)
 
 

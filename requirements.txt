@@ -1,7 +1,8 @@
 # USD Impact Score v2 direct dependency specification.
 #
-# Production and CI install requirements.lock, which preserves the exact
-# environment from a verified green weekly release. Use this file only as the
+# Online production and CI install the active versioned lock declared by
+# runtime/active-environment.json. The root requirements.lock is retained as
+# frozen research and historical-release provenance. Use this file only as the
 # human-maintained compatibility range for deliberate dependency upgrades.
 # Python 3.11 is the production runtime.
 

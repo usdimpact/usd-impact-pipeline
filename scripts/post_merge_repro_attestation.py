@@ -22,6 +22,7 @@ from pathlib import Path
 from typing import Any
 
 from scripts.validate_methodology_contract import validate_contract
+from scripts.verify_release_environment import resolve_release_environment
 from scripts.validate_weekly_release import (
     load_json,
     reproduction_bundle_required,
@@ -89,6 +90,9 @@ def attest(root: Path) -> dict[str, Any]:
         return report
 
     validate_reproduction_bundle(root, metadata, week)
+    release_environment = resolve_release_environment(root, week)
+    report["release_environment_mode"] = release_environment["mode"]
+    report["release_environment_lock_sha256"] = release_environment["lock_sha256"]
     latest_bundle_path = root / "public/data/score_repro_bundle_latest.json"
     archive_bundle_path = root / f"public/archive/{week}/repro_bundle.json"
     bundle = load_json(latest_bundle_path)

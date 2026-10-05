@@ -169,7 +169,9 @@ class ScoreV3MetricReportingTests(unittest.TestCase):
 
     def test_shadow_workflow_wires_silent_validation_and_checkpoint_only_writes(self) -> None:
         workflow = (REPO / ".github/workflows/score-v3-shadow.yml").read_text(encoding="utf-8")
-        self.assertIn("python -m scripts.score_v3_metric_reporting", workflow)
+        self.assertIn("python -m scripts.run_frozen_research", workflow)
+        self.assertIn("--mode score-v3-shadow", workflow)
+        self.assertIn("$RUNNER_TEMP/score-v3-metric-reporting.json", workflow)
         self.assertIn("steps.ingest.outputs.status != 'pre_holdout_noop'", workflow)
         self.assertIn("steps.metrics.outputs.checkpoint_written == 'true'", workflow)
         self.assertIn("prospective/checkpoints/score_v3_checkpoint_(013|026|039|052)", workflow)
