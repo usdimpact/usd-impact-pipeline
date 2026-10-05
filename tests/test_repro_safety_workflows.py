@@ -27,7 +27,7 @@ class ReproductionSafetyWorkflowTests(unittest.TestCase):
             2,
         )
         self.assertNotIn("--live-refetch", workflow)
-        self.assertIn("python -m scripts.build_score_repro_bundle", workflow)
+        self.assertIn("python -m scripts.build_runtime_score_repro_bundle", workflow)
         self.assertIn("python -m scripts.rehearse_score_repro_acceptance", workflow)
         self.assertIn('cp -a . "$work"', workflow)
         self.assertIn('rm -rf "public/archive/$WEEK"', workflow)
@@ -186,8 +186,8 @@ class ReproductionSafetyWorkflowTests(unittest.TestCase):
             workflow = (WORKFLOWS / workflow_name).read_text(encoding="utf-8")
             with self.subTest(workflow=workflow_name):
                 self.assertIn("python-version: '3.11'", workflow)
-                self.assertIn("cache-dependency-path: requirements.lock", workflow)
-                self.assertIn("python -m pip install -r requirements.lock", workflow)
+                self.assertIn("cache-dependency-path: runtime/requirements-2026-10-05.lock", workflow)
+                self.assertIn("python -m pip install -r runtime/requirements-2026-10-05.lock", workflow)
                 self.assertIn("python -m pip check", workflow)
 
     def test_rehearsal_report_cannot_claim_acceptance(self):
