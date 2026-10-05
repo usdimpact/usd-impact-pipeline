@@ -8,7 +8,7 @@ The weekly score, English commentary, Spanish commentary, bridge data, dashboard
 
 The authoritative workflow is `.github/workflows/weekly.yml`:
 
-1. Friday at 22:00 UTC, the workflow runs the score pipeline with the locked Python environment.
+1. Friday at 22:00 UTC, the workflow runs the score pipeline with the versioned active online Python environment.
 2. The pipeline records and validates the raw observation date and canonical source identity for each of the eight drivers.
 3. Commentary is generated deterministically from the score JSON. No external model or current-event narrative is introduced.
 4. The English and Spanish dashboards are rebuilt with the matching commentary.
@@ -108,7 +108,8 @@ English and Spanish are both required for every release. `commentary/latest.md` 
 | `commentary/latest*.md` | Generator | Do not hand-edit during normal operation. |
 | `commentary/archive/` | Immutable release history | Never delete or rewrite a published edition. |
 | `public/archive/` | Immutable dashboard/data history | Preserve complete dated snapshots. |
-| `requirements.lock` | Production environment | Update only through a dedicated dependency PR. |
+| `runtime/requirements-2026-10-05.lock` | Active online environment candidate | Update only through a dedicated dependency/security PR. |
+| `requirements.lock` | Frozen research and historical-release environment | Preserve its accepted bytes; prospective frozen research executes it only inside the isolated offline worker. |
 | Source provenance in score/bridge JSON | Score pipeline and commentary generator | Must describe the raw provider observations and match exactly across both files. |
 
 ## Source freshness contract
