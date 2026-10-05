@@ -27,12 +27,12 @@ jobs:
         with:
           python-version: '3.11'
           cache: pip
-          cache-dependency-path: requirements.lock
+          cache-dependency-path: runtime/requirements-2026-10-05.lock
 
       - name: Install locked dependencies
         run: |
           python -m pip install --upgrade pip==26.2.1
-          python -m pip install -r requirements.lock
+          python -m pip install -r runtime/requirements-2026-10-05.lock
           python -m pip check
 
       - name: Verify checked-in methodology still matches production code
