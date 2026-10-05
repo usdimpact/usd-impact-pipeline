@@ -1,7 +1,13 @@
 #!/usr/bin/env python3
-"""Phase A environment-profile validation. This module never activates or installs a runtime."""
+"""Execution-environment profile helpers.
+
+The active online profile is separate from the frozen research lock. This
+module validates metadata and installed-package identity; it never installs
+packages.
+"""
 from __future__ import annotations
 
+import argparse
 import hashlib
 import importlib.metadata
 import json
@@ -12,6 +18,12 @@ from typing import Any
 PROFILE_KEYS = {"schema_version","profile_id","status","python","platform","lock_path","legacy_frozen_lock","activation"}
 SHA256 = re.compile(r"^[0-9a-f]{64}$")
 PIN = re.compile(r"^([A-Za-z0-9_.-]+)==([^\s]+)$")
+EXPECTED_CALLERS = {
+    "quality.yml","weekly.yml","python-security.yml","repro-attestation.yml",
+    "repro-rehearsal.yml","methodology-health.yml",
+    "score-research-evidence-health.yml","research-validation.yml",
+    "score-v3-shadow.yml","score-v2-predictive.yml",
+}
 
 
 def sha256_file(path: Path) -> str:
@@ -49,12 +61,24 @@ def load_profile(path: Path) -> dict[str, Any]:
     payload = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(payload, dict) or set(payload) != PROFILE_KEYS:
         raise ValueError("environment profile fields differ from closed schema")
-    if payload["schema_version"] != 1 or payload["status"] != "candidate_not_active":
-        raise ValueError("Phase A profile must remain candidate_not_active")
+    if payload["schema_version"] != 1:
+        raise ValueError("unsupported environment profile schema")
+    if payload["status"] not in {"candidate_not_active", "active_candidate"}:
+        raise ValueError("unsupported environment profile status")
     if payload["python"] != {"implementation":"CPython","major_minor":"3.11"}:
         raise ValueError("unexpected Python runtime contract")
-    if payload["activation"] != {"active":False,"caller_allowlist":[]}:
-        raise ValueError("Phase A must not activate callers")
+    activation = payload["activation"]
+    if not isinstance(activation, dict) or set(activation) != {"active","caller_allowlist"}:
+        raise ValueError("activation fields differ from closed schema")
+    callers = activation["caller_allowlist"]
+    if not isinstance(callers, list) or len(callers) != len(set(callers)):
+        raise ValueError("caller_allowlist must be a unique list")
+    if payload["status"] == "candidate_not_active":
+        if activation != {"active":False,"caller_allowlist":[]}:
+            raise ValueError("inactive candidate must not activate callers")
+    else:
+        if activation.get("active") is not True or set(callers) != EXPECTED_CALLERS:
+            raise ValueError("active candidate caller allowlist is incomplete or broadened")
     legacy = payload["legacy_frozen_lock"]
     if not isinstance(legacy, dict) or set(legacy) != {"path","sha256","purpose"}:
         raise ValueError("legacy lock fields differ from closed schema")
@@ -68,8 +92,10 @@ def load_profile(path: Path) -> dict[str, Any]:
 def verify_profile(root: Path, profile_path: Path) -> dict[str, Any]:
     root = root.resolve()
     profile = load_profile(profile_path)
-    lock = root / _safe_relative(profile["lock_path"], "lock_path")
-    legacy = root / _safe_relative(profile["legacy_frozen_lock"]["path"], "legacy_frozen_lock.path")
+    lock_rel = _safe_relative(profile["lock_path"], "lock_path")
+    legacy_rel = _safe_relative(profile["legacy_frozen_lock"]["path"], "legacy_frozen_lock.path")
+    lock = root / lock_rel
+    legacy = root / legacy_rel
     for path,label in ((lock,"candidate lock"),(legacy,"legacy lock")):
         if not path.is_file() or path.is_symlink():
             raise ValueError(f"{label} must be a regular file")
@@ -81,14 +107,55 @@ def verify_profile(root: Path, profile_path: Path) -> dict[str, Any]:
         raise ValueError("candidate runtime must contain patched urllib3 2.8.0")
     if frozen.get("urllib3") != "2.7.0":
         raise ValueError("legacy frozen lock identity changed")
-    return {"status":"verified_candidate_not_active","profile_id":profile["profile_id"],"active":False,"candidate_packages":len(candidate),"legacy_packages":len(frozen),"candidate_lock_sha256":sha256_file(lock)}
+    return {
+        "status": "verified_active_candidate" if profile["activation"]["active"] else "verified_candidate_not_active",
+        "profile_id": profile["profile_id"],
+        "active": bool(profile["activation"]["active"]),
+        "lock_path": lock_rel.as_posix(),
+        "lock_sha256": sha256_file(lock),
+        "legacy_lock_path": legacy_rel.as_posix(),
+        "legacy_lock_sha256": sha256_file(legacy),
+        "candidate_packages": len(candidate),
+        "legacy_packages": len(frozen),
+        "caller_allowlist": list(profile["activation"]["caller_allowlist"]),
+    }
 
 
 def verify_installed_packages(lock_path: Path) -> dict[str, Any]:
     expected = parse_lock(lock_path)
-    installed = {re.sub(r"[-_.]+","-",d.metadata["Name"]).lower():d.version for d in importlib.metadata.distributions() if d.metadata.get("Name")}
+    installed = {
+        re.sub(r"[-_.]+","-",d.metadata["Name"]).lower(): d.version
+        for d in importlib.metadata.distributions()
+        if d.metadata.get("Name")
+    }
     missing = sorted(k for k in expected if k not in installed)
-    wrong = sorted(f"{k}: expected {expected[k]}, got {installed[k]}" for k in expected if k in installed and installed[k] != expected[k])
+    wrong = sorted(
+        f"{k}: expected {expected[k]}, got {installed[k]}"
+        for k in expected if k in installed and installed[k] != expected[k]
+    )
     if missing or wrong:
-        raise ValueError("installed environment differs from lock: " + "; ".join([*(f"missing {x}" for x in missing),*wrong]))
+        raise ValueError(
+            "installed environment differs from lock: "
+            + "; ".join([*(f"missing {x}" for x in missing), *wrong])
+        )
     return {"status":"installed_environment_matches_lock","packages":len(expected)}
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--root", type=Path, default=Path("."))
+    parser.add_argument("--profile", type=Path, default=Path("runtime/active-environment.json"))
+    parser.add_argument("--json", action="store_true")
+    args = parser.parse_args()
+    root = args.root.resolve()
+    profile_path = args.profile if args.profile.is_absolute() else root / args.profile
+    report = verify_profile(root, profile_path)
+    if args.json:
+        print(json.dumps(report, indent=2, sort_keys=True))
+    else:
+        print(f"{report['status']}: {report['profile_id']} -> {report['lock_path']}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
