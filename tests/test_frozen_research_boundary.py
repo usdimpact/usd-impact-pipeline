@@ -77,6 +77,18 @@ class FrozenResearchBoundaryTests(unittest.TestCase):
         self.assertNotIn("apt-get", dockerfile)
         self.assertNotIn(" git ", dockerfile)
 
+    def test_output_tree_is_precreated_for_host_cleanup(self):
+        worker = (ROOT / "scripts/run_frozen_research.py").read_text(encoding="utf-8")
+        for relative in (
+            'Path("reports")',
+            'Path("research/prospective")',
+            'Path("research/prospective/checkpoints")',
+            'Path("research/predictive")',
+            'Path("research/predictive/checkpoints")',
+        ):
+            self.assertIn(relative, worker)
+        self.assertIn("directory.chmod(stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO)", worker)
+
     def test_security_workflow_keeps_residual_risk_visible(self):
         workflow = (WORKFLOWS / "python-security.yml").read_text(encoding="utf-8")
         self.assertIn(
