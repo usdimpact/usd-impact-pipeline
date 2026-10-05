@@ -53,6 +53,7 @@ class ReproductionSafetyWorkflowTests(unittest.TestCase):
         self.assertIn("fetch-depth: 0", workflow)
         self.assertIn("python -m scripts.post_merge_repro_attestation", workflow)
         self.assertIn("python -m scripts.validate_methodology_contract", workflow)
+        self.assertEqual(workflow.count("scripts/run_frozen_research.py"), 2)
         for forbidden in (
             "git push",
             "git commit",

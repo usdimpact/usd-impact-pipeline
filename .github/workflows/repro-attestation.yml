@@ -24,6 +24,7 @@ on:
       - 'scripts/validate_weekly_release.py'
       - 'scripts/validate_methodology_contract.py'
       - 'scripts/post_merge_repro_attestation.py'
+      - 'scripts/run_frozen_research.py'
       - '.github/workflows/repro-attestation.yml'
   push:
     branches: [main]
@@ -41,6 +42,7 @@ on:
       - 'scripts/validate_weekly_release.py'
       - 'scripts/validate_methodology_contract.py'
       - 'scripts/post_merge_repro_attestation.py'
+      - 'scripts/run_frozen_research.py'
       - '.github/workflows/repro-attestation.yml'
 
 permissions:
