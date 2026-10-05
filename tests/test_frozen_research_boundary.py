@@ -63,6 +63,20 @@ class FrozenResearchBoundaryTests(unittest.TestCase):
                 self.assertNotIn("python -m pip install -r requirements.lock", workflow)
                 self.assertIn("Retain frozen research wheel hashes", workflow)
 
+    def test_worker_uses_filesystem_only_engine_lock_verification(self):
+        worker = (ROOT / "scripts/run_frozen_research.py").read_text(encoding="utf-8")
+        self.assertIn(
+            '"scripts.verify_score_v3_engine_lock","--filesystem-only","--json"',
+            worker,
+        )
+        self.assertIn(
+            '"scripts.verify_score_v2_predictive_engine_lock","--filesystem-only","--json"',
+            worker,
+        )
+        dockerfile = (ROOT / "runtime/research-worker.Dockerfile").read_text(encoding="utf-8")
+        self.assertNotIn("apt-get", dockerfile)
+        self.assertNotIn(" git ", dockerfile)
+
     def test_security_workflow_keeps_residual_risk_visible(self):
         workflow = (WORKFLOWS / "python-security.yml").read_text(encoding="utf-8")
         self.assertIn(
