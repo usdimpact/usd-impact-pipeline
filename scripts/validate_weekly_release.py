@@ -11,6 +11,8 @@ import re
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
+from scripts.verify_release_environment import resolve_release_environment
+
 EXPECTED_DRIVERS = {
     "DXY", "WTI", "SPX", "VIX", "BTC", "GOLD", "UST_2Y", "UST_10Y"
 }
@@ -292,12 +294,13 @@ def validate_reproduction_bundle(root: Path, metadata: dict, week: str) -> None:
     lock_sha = str(bundle.get("requirements_lock_sha256", ""))
     if not SHA256_RE.fullmatch(lock_sha):
         raise ValueError("Reproduction bundle requirements lock hash is invalid")
-    lock_path = root / "requirements.lock"
-    if not lock_path.is_file():
-        raise ValueError("requirements.lock is missing")
-    expected_lock_sha = hashlib.sha256(lock_path.read_bytes()).hexdigest()
+    release_environment = resolve_release_environment(root, week)
+    expected_lock_sha = str(release_environment["lock_sha256"])
     if lock_sha != expected_lock_sha:
-        raise ValueError("Reproduction bundle requirements lock hash does not match")
+        raise ValueError(
+            "Reproduction bundle dependency lock hash does not match "
+            f"the resolved {release_environment['mode']} environment"
+        )
 
     calculation = bundle.get("calculation") or {}
     if calculation.get("input_frequency") != "weekly Friday-ended levels":
