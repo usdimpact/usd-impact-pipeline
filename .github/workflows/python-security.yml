@@ -7,6 +7,10 @@ on:
       - '**/*.py'
       - 'requirements.txt'
       - 'requirements.lock'
+      - 'runtime/requirements-2026-10-05.lock'
+      - 'runtime/active-environment.json'
+      - 'runtime/frozen-research-wheelhouse.json'
+      - 'runtime/research-worker.Dockerfile'
       - '.github/workflows/python-security.yml'
   push:
     branches: [main]
@@ -14,6 +18,10 @@ on:
       - '**/*.py'
       - 'requirements.txt'
       - 'requirements.lock'
+      - 'runtime/requirements-2026-10-05.lock'
+      - 'runtime/active-environment.json'
+      - 'runtime/frozen-research-wheelhouse.json'
+      - 'runtime/research-worker.Dockerfile'
       - '.github/workflows/python-security.yml'
   schedule:
     - cron: '17 6 * * 1'
