@@ -161,6 +161,14 @@ def classify_health(checks: list[Check], pending: PendingReview) -> str:
     return "UNHEALTHY"
 
 
+def write_health_status_output(path: Path, status: str) -> None:
+    """Expose a typed health state to Actions without mistaking pending for recovered."""
+    if status not in {"HEALTHY", "PENDING_PROTECTED_REVIEW", "UNHEALTHY"}:
+        raise ValueError(f"Unknown health result: {status}")
+    with path.open("a", encoding="utf-8") as handle:
+        handle.write(f"status={status}\n")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Check weekly USD Impact deployment health.")
     parser.add_argument("--repo", default=os.environ.get("GITHUB_REPOSITORY", ""))
@@ -168,6 +176,7 @@ def main() -> int:
     parser.add_argument("--branch", default="main")
     parser.add_argument("--base-url", default="https://usd-impact-pipeline.pages.dev")
     parser.add_argument("--report", type=Path, default=Path("weekly-health-report.md"))
+    parser.add_argument("--github-output", type=Path, help="GitHub Actions step-output path")
     args = parser.parse_args()
 
     checks: list[Check] = []
@@ -316,6 +325,8 @@ def main() -> int:
 
     report = render_report(checks, metadata, status=status)
     args.report.write_text(report, encoding="utf-8")
+    if args.github_output:
+        write_health_status_output(args.github_output, status)
     print(report)
     # Pending review is a non-incident but emphatically not a deployed/healthy release.
     # The workflow does not auto-merge; returning zero avoids a false failure issue.

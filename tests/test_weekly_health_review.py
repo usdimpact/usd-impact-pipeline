@@ -5,10 +5,12 @@ import base64
 import copy
 import json
 import unittest
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from datetime import datetime, timedelta, timezone
 from urllib.parse import parse_qs, urlparse
 
-from scripts.check_weekly_health import Check, classify_health, render_report
+from scripts.check_weekly_health import Check, classify_health, render_report, write_health_status_output
 from scripts.weekly_health_review import DRIVERS, valid_score_bridge, verify_pending_review
 
 
@@ -301,6 +303,34 @@ class WeeklyHealthReviewTests(unittest.TestCase):
             ]
             self.assertEqual(classify_health(damaged, verified), "UNHEALTHY", failed)
 
+
+    def test_actions_status_output_is_explicit_and_fail_closed(self):
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "github_output"
+            path.write_text("", encoding="utf-8")
+            write_health_status_output(path, "PENDING_PROTECTED_REVIEW")
+            self.assertEqual(path.read_text(encoding="utf-8"), "status=PENDING_PROTECTED_REVIEW\n")
+            write_health_status_output(path, "HEALTHY")
+            self.assertIn("status=HEALTHY\n", path.read_text(encoding="utf-8"))
+            with self.assertRaises(ValueError):
+                write_health_status_output(path, "READY_TO_MERGE")
+
+    def test_workflow_never_closes_a_health_issue_for_pending_review(self):
+        workflow_path = Path(__file__).resolve().parents[1] / ".github/workflows/weekly-health.yml"
+        workflow = workflow_path.read_text(encoding="utf-8")
+        self.assertIn("pull-requests: read", workflow)
+        self.assertIn('--github-output "$GITHUB_OUTPUT"', workflow)
+        self.assertIn(
+            "if: steps.health.outcome == 'success' && steps.health.outputs.status == 'PENDING_PROTECTED_REVIEW'",
+            workflow,
+        )
+        close_step = workflow.split("- name: Close recovered health issue", 1)[1]
+        self.assertIn(
+            "if: steps.health.outcome == 'success' && steps.health.outputs.status == 'HEALTHY'",
+            close_step,
+        )
+        self.assertNotIn("if: steps.health.outcome == 'success'\n", close_step)
+        self.assertIn("if: steps.health.outcome == 'failure'", workflow)
 
 if __name__ == "__main__":
     unittest.main()

@@ -10,6 +10,7 @@ on:
 permissions:
   actions: read
   contents: read
+  pull-requests: read  # pending-review verification only; no merge/write permission
   issues: write
 
 concurrency:
@@ -36,7 +37,8 @@ jobs:
             --workflow weekly.yml \
             --branch main \
             --base-url https://usd-impact-pipeline.pages.dev \
-            --report weekly-health-report.md
+            --report weekly-health-report.md \
+            --github-output "$GITHUB_OUTPUT"
 
       - name: Open or update health issue
         if: steps.health.outcome == 'failure'
@@ -63,8 +65,17 @@ jobs:
               --body-file weekly-health-report.md
           fi
 
+      - name: Surface pending protected review
+        if: steps.health.outcome == 'success' && steps.health.outputs.status == 'PENDING_PROTECTED_REVIEW'
+        run: |
+          {
+            echo "### Weekly Score: PENDING_PROTECTED_REVIEW (not deployed)"
+            echo
+            cat weekly-health-report.md
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Close recovered health issue
-        if: steps.health.outcome == 'success'
+        if: steps.health.outcome == 'success' && steps.health.outputs.status == 'HEALTHY'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_TITLE: Weekly USD Impact pipeline requires attention
