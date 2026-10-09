@@ -8,7 +8,7 @@ import unittest
 from datetime import datetime, timedelta, timezone
 from urllib.parse import parse_qs, urlparse
 
-from scripts.check_weekly_health import Check, render_report
+from scripts.check_weekly_health import Check, classify_health, render_report
 from scripts.weekly_health_review import DRIVERS, valid_score_bridge, verify_pending_review
 
 
@@ -271,6 +271,35 @@ class WeeklyHealthReviewTests(unittest.TestCase):
         self.assertIn("not deployed", report.lower())
         self.assertNotIn("Status: **HEALTHY**", report)
         self.assertIn(HEAD, report)
+
+
+    def test_status_selection_defers_only_freshness_during_verified_review(self):
+        from scripts.weekly_health_review import PendingReview
+        verified = PendingReview(True, "verified", "https://github.com/usdimpact/usd-impact-pipeline/pull/133", HEAD, 5.9)
+        rejected = PendingReview(False, "unverified")
+
+        live = [
+            Check("Latest weekly workflow conclusion", True, "success"),
+            Check("Live source provenance", True, "all eight fresh at publication"),
+            Check("Score date freshness", True, "expected week live"),
+            Check("EN archive dashboard availability", True, "live"),
+            Check("ES archive dashboard availability", True, "live"),
+            Check("EN current route member gate", True, "protected"),
+            Check("ES current route member gate", True, "protected"),
+        ]
+        self.assertEqual(classify_health(live, rejected), "HEALTHY")
+        prior = [
+            Check(c.name, False if c.name == "Score date freshness" else c.passed, c.detail)
+            for c in live
+        ] + [Check("Protected review evidence", True, "verified")]
+        self.assertEqual(classify_health(prior, verified), "PENDING_PROTECTED_REVIEW")
+        self.assertEqual(classify_health(prior, rejected), "UNHEALTHY")
+        for failed in ("Live source provenance", "EN current route member gate", "ES archive dashboard availability"):
+            damaged = [
+                Check(c.name, False if c.name == failed else c.passed, c.detail)
+                for c in prior
+            ]
+            self.assertEqual(classify_health(damaged, verified), "UNHEALTHY", failed)
 
 
 if __name__ == "__main__":
