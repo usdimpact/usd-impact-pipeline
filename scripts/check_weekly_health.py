@@ -150,6 +150,17 @@ def render_report(
     return "\n".join(lines) + "\n"
 
 
+def classify_health(checks: list[Check], pending: PendingReview) -> str:
+    """Only defer the known publication-date mismatch, never a real failure."""
+    if all(check.passed for check in checks):
+        return "HEALTHY"
+    if pending.verified and all(
+        check.passed or check.name == "Score date freshness" for check in checks
+    ):
+        return "PENDING_PROTECTED_REVIEW"
+    return "UNHEALTHY"
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Check weekly USD Impact deployment health.")
     parser.add_argument("--repo", default=os.environ.get("GITHUB_REPOSITORY", ""))
@@ -297,17 +308,11 @@ def main() -> int:
             )
         )
 
-    if all(check.passed for check in checks):
-        status = "HEALTHY"
-    elif pending.verified and all(
-        check.passed or check.name == "Score date freshness" for check in checks
-    ):
-        status = "PENDING_PROTECTED_REVIEW"
+    status = classify_health(checks, pending)
+    if status == "PENDING_PROTECTED_REVIEW":
         metadata["pending_pr_url"] = pending.pr_url
         metadata["pending_head_sha"] = pending.head_sha
         metadata["pending_age_hours"] = f"{pending.age_hours:.1f}"
-    else:
-        status = "UNHEALTHY"
 
     report = render_report(checks, metadata, status=status)
     args.report.write_text(report, encoding="utf-8")
