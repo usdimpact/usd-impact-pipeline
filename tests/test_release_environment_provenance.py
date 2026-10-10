@@ -116,4 +116,51 @@ class ReleaseEnvironmentProvenanceTests(unittest.TestCase):
         self.assertEqual(resolved["generator_sha"],trusted["generator_sha"])
 
 
+    def test_resolver_uses_generator_active_runtime_lock_for_historical_release(self):
+        temp=tempfile.TemporaryDirectory(); root=Path(temp.name); self.addCleanup(temp.cleanup)
+        subprocess.check_call(["git","init","-q","-b","main"],cwd=root)
+        legacy=b"urllib3==2.7.0\n"
+        runtime=b"urllib3==2.8.0\n"
+        runtime_path="runtime/requirements-2026-10-05.lock"
+        (root/"requirements.lock").write_bytes(legacy)
+        (root/"runtime").mkdir()
+        (root/runtime_path).write_bytes(runtime)
+        (root/"runtime/active-environment.json").write_text(
+            json.dumps({
+                "lock_path": runtime_path,
+                "legacy_frozen_lock": {"path": "requirements.lock"},
+            })+"\n"
+        )
+        generator=commit(root,"runtime generator")
+        week="2026-10-09"
+        bundle={
+            "score_week":week,
+            "pipeline_git_sha":generator,
+            "requirements_lock_sha256":hashlib.sha256(runtime).hexdigest(),
+        }
+        archive_rel=f"public/archive/{week}/repro_bundle.json"
+        archive=root/archive_rel; archive.parent.mkdir(parents=True)
+        archive.write_text(json.dumps(bundle,sort_keys=True)+"\n")
+        publication=commit(root,"runtime publication")
+        (root/runtime_path).write_text("urllib3==2.9.0\n")
+        commit(root,"later runtime upgrade")
+        profile={
+            "lock_path":runtime_path,
+            "lock_sha256":"c"*64,
+            "profile_id":"current-runtime",
+        }
+        with mock.patch(
+            "scripts.verify_release_environment.verify_profile",
+            return_value=profile,
+        ):
+            resolved=resolve_release_environment(root,week)
+        self.assertEqual(resolved["mode"],"historical_release")
+        self.assertEqual(resolved["publication_sha"],publication)
+        self.assertEqual(resolved["generator_sha"],generator)
+        self.assertEqual(resolved["lock_path"],runtime_path)
+        self.assertEqual(
+            resolved["lock_sha256"], hashlib.sha256(runtime).hexdigest()
+        )
+
+
 if __name__=="__main__": unittest.main()
