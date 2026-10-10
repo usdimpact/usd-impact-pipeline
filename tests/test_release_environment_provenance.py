@@ -53,4 +53,63 @@ class ReleaseEnvironmentProvenanceTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,"safe relative path"): verify_historical_release(root,trusted)
 
 
+
+
+    def test_pull_request_merge_checkout_treats_new_archive_as_candidate(self):
+        temp=tempfile.TemporaryDirectory(); root=Path(temp.name); self.addCleanup(temp.cleanup)
+        subprocess.check_call(["git","init","-q","-b","main"],cwd=root)
+        (root/"requirements.lock").write_text("urllib3==2.7.0\n")
+        commit(root,"base")
+        git(root,"checkout","-q","-b","candidate")
+        archive_rel="public/archive/2026-10-09/repro_bundle.json"
+        archive=root/archive_rel; archive.parent.mkdir(parents=True)
+        archive.write_text("{}\n")
+        candidate=commit(root,"candidate archive")
+        git(root,"checkout","-q","main")
+        (root/"base-only.txt").write_text("base advanced\n")
+        commit(root,"base advance")
+        git(
+            root,
+            "-c","user.name=Test",
+            "-c","user.email=test@example.invalid",
+            "merge","-q","--no-ff","candidate","-m","synthetic pull request merge",
+        )
+        head=git(root,"rev-parse","HEAD")
+        full_history=git(root,"log","--format=%H","--reverse","--",archive_rel).splitlines()
+        mainline_history=git(
+            root,"log","--first-parent","--format=%H","--reverse","--",archive_rel
+        ).splitlines()
+        self.assertEqual(full_history[0],candidate)
+        self.assertNotEqual(candidate,head)
+        self.assertEqual(mainline_history[0],head)
+        profile={
+            "lock_path":"runtime/requirements-2026-10-05.lock",
+            "lock_sha256":"b"*64,
+            "profile_id":"test-active-runtime",
+        }
+        with mock.patch(
+            "scripts.verify_release_environment.verify_profile",
+            return_value=profile,
+        ):
+            resolved=resolve_release_environment(root,"2026-10-09")
+        self.assertEqual(resolved["mode"],"active_runtime_candidate")
+        self.assertEqual(resolved["lock_sha256"],"b"*64)
+
+    def test_resolver_keeps_historical_release_on_strict_mainline_path(self):
+        temp,root,trusted=self.make_repo(); self.addCleanup(temp.cleanup)
+        profile={
+            "lock_path":"runtime/requirements-2026-10-05.lock",
+            "lock_sha256":"b"*64,
+            "profile_id":"test-active-runtime",
+        }
+        with mock.patch(
+            "scripts.verify_release_environment.verify_profile",
+            return_value=profile,
+        ):
+            resolved=resolve_release_environment(root,"2026-09-18")
+        self.assertEqual(resolved["mode"],"historical_release")
+        self.assertEqual(resolved["publication_sha"],trusted["publication_sha"])
+        self.assertEqual(resolved["generator_sha"],trusted["generator_sha"])
+
+
 if __name__=="__main__": unittest.main()
