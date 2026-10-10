@@ -4,8 +4,12 @@ import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
-from scripts.verify_release_environment import verify_historical_release
+from scripts.verify_release_environment import (
+    resolve_release_environment,
+    verify_historical_release,
+)
 
 
 def git(root,*args):
