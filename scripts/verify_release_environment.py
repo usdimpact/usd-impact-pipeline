@@ -151,9 +151,44 @@ def resolve_release_environment(root: Path, week: str) -> dict[str, Any]:
     root = root.resolve()
     archive_rel = f"public/archive/{week}/repro_bundle.json"
 
-    # The offline frozen worker intentionally has no .git directory. Its root
-    # dependency lock is itself part of the frozen engine identity.
+    # The offline research worker intentionally has no .git directory. Its
+    # execution lock is frozen independently from the published release
+    # generator environment. Resolve the release lock only when the archived
+    # bundle digest matches a verified lock identity copied into the worker.
     if not (root / ".git").exists():
+        profile_path = root / "runtime/active-environment.json"
+        archive_path = root / archive_rel
+        if profile_path.is_file() and archive_path.is_file():
+            profile = verify_profile(root, profile_path)
+            bundle = json.loads(archive_path.read_text(encoding="utf-8"))
+            if not isinstance(bundle, dict) or bundle.get("score_week") != week:
+                raise ValueError("frozen offline worker release bundle week mismatch")
+            lock_sha = str(bundle.get("requirements_lock_sha256", ""))
+            if not SHA256.fullmatch(lock_sha):
+                raise ValueError("frozen offline worker release lock digest is invalid")
+
+            if lock_sha == profile["lock_sha256"]:
+                return {
+                    "mode": "frozen_offline_worker_active_release_identity",
+                    "lock_path": profile["lock_path"],
+                    "lock_sha256": lock_sha,
+                    "profile_id": profile["profile_id"],
+                    "worker_lock_path": profile["legacy_lock_path"],
+                    "worker_lock_sha256": profile["legacy_lock_sha256"],
+                }
+            if lock_sha == profile["legacy_lock_sha256"]:
+                return {
+                    "mode": "frozen_offline_worker_legacy_release_identity",
+                    "lock_path": profile["legacy_lock_path"],
+                    "lock_sha256": lock_sha,
+                    "profile_id": profile["profile_id"],
+                    "worker_lock_path": profile["legacy_lock_path"],
+                    "worker_lock_sha256": profile["legacy_lock_sha256"],
+                }
+            raise ValueError(
+                "frozen offline worker cannot resolve release dependency lock identity"
+            )
+
         lock = root / "requirements.lock"
         return {
             "mode": "frozen_offline_worker",

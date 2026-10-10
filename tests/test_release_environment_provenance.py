@@ -163,4 +163,105 @@ class ReleaseEnvironmentProvenanceTests(unittest.TestCase):
         )
 
 
+    def test_gitless_worker_resolves_active_release_lock_separately_from_worker_lock(self):
+        temp=tempfile.TemporaryDirectory(); root=Path(temp.name); self.addCleanup(temp.cleanup)
+        week="2026-10-09"
+        runtime=root/"runtime"; runtime.mkdir()
+        (runtime/"active-environment.json").write_text("{}\n", encoding="utf-8")
+        archive=root/f"public/archive/{week}/repro_bundle.json"
+        archive.parent.mkdir(parents=True)
+        active_sha="a"*64
+        legacy_sha="b"*64
+        archive.write_text(
+            json.dumps({
+                "score_week":week,
+                "requirements_lock_sha256":active_sha,
+            })+"\n",
+            encoding="utf-8",
+        )
+        profile={
+            "lock_path":"runtime/requirements-2026-10-05.lock",
+            "lock_sha256":active_sha,
+            "legacy_lock_path":"requirements.lock",
+            "legacy_lock_sha256":legacy_sha,
+            "profile_id":"test-active-runtime",
+        }
+        with mock.patch(
+            "scripts.verify_release_environment.verify_profile",
+            return_value=profile,
+        ):
+            resolved=resolve_release_environment(root,week)
+        self.assertEqual(
+            resolved["mode"],
+            "frozen_offline_worker_active_release_identity",
+        )
+        self.assertEqual(resolved["lock_sha256"],active_sha)
+        self.assertEqual(resolved["worker_lock_sha256"],legacy_sha)
+
+    def test_gitless_worker_accepts_legacy_release_lock_identity(self):
+        temp=tempfile.TemporaryDirectory(); root=Path(temp.name); self.addCleanup(temp.cleanup)
+        week="2026-09-18"
+        runtime=root/"runtime"; runtime.mkdir()
+        (runtime/"active-environment.json").write_text("{}\n", encoding="utf-8")
+        archive=root/f"public/archive/{week}/repro_bundle.json"
+        archive.parent.mkdir(parents=True)
+        active_sha="a"*64
+        legacy_sha="b"*64
+        archive.write_text(
+            json.dumps({
+                "score_week":week,
+                "requirements_lock_sha256":legacy_sha,
+            })+"\n",
+            encoding="utf-8",
+        )
+        profile={
+            "lock_path":"runtime/requirements-2026-10-05.lock",
+            "lock_sha256":active_sha,
+            "legacy_lock_path":"requirements.lock",
+            "legacy_lock_sha256":legacy_sha,
+            "profile_id":"test-active-runtime",
+        }
+        with mock.patch(
+            "scripts.verify_release_environment.verify_profile",
+            return_value=profile,
+        ):
+            resolved=resolve_release_environment(root,week)
+        self.assertEqual(
+            resolved["mode"],
+            "frozen_offline_worker_legacy_release_identity",
+        )
+        self.assertEqual(resolved["lock_sha256"],legacy_sha)
+
+    def test_gitless_worker_rejects_unknown_release_lock_identity(self):
+        temp=tempfile.TemporaryDirectory(); root=Path(temp.name); self.addCleanup(temp.cleanup)
+        week="2026-10-09"
+        runtime=root/"runtime"; runtime.mkdir()
+        (runtime/"active-environment.json").write_text("{}\n", encoding="utf-8")
+        archive=root/f"public/archive/{week}/repro_bundle.json"
+        archive.parent.mkdir(parents=True)
+        archive.write_text(
+            json.dumps({
+                "score_week":week,
+                "requirements_lock_sha256":"c"*64,
+            })+"\n",
+            encoding="utf-8",
+        )
+        profile={
+            "lock_path":"runtime/requirements-2026-10-05.lock",
+            "lock_sha256":"a"*64,
+            "legacy_lock_path":"requirements.lock",
+            "legacy_lock_sha256":"b"*64,
+            "profile_id":"test-active-runtime",
+        }
+        with mock.patch(
+            "scripts.verify_release_environment.verify_profile",
+            return_value=profile,
+        ):
+            with self.assertRaisesRegex(
+                ValueError,
+                "cannot resolve release dependency lock identity",
+            ):
+                resolve_release_environment(root,week)
+
+
 if __name__=="__main__": unittest.main()
