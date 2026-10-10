@@ -78,7 +78,7 @@ jobs:
           HEAD_SHA: ${{ steps.source.outputs.head_sha }}
           PR_URL: ${{ steps.source.outputs.pr_url }}
         run: |
-          gh workflow run quality.yml --ref "$BRANCH"
+          gh workflow run quality.yml --repo "$GITHUB_REPOSITORY" --ref "$BRANCH"
 
           quality_run_id=""
           for attempt in $(seq 1 30); do

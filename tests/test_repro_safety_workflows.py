@@ -94,6 +94,21 @@ class ReproductionSafetyWorkflowTests(unittest.TestCase):
         )
         self.assertIn('"acceptance_candidate": context == "main_post_merge"', script)
 
+    def test_research_pr_quality_dispatch_is_repo_explicit_without_checkout(self):
+        workflow = (WORKFLOWS / "research-pr-quality-dispatch.yml").read_text(
+            encoding="utf-8"
+        )
+        self.assertNotIn("actions/checkout", workflow)
+        self.assertIn(
+            'gh workflow run quality.yml --repo "$GITHUB_REPOSITORY" --ref "$BRANCH"',
+            workflow,
+        )
+        self.assertIn(
+            'gh run watch "$quality_run_id" --repo "$GITHUB_REPOSITORY" --exit-status',
+            workflow,
+        )
+
+
     def test_weekly_publication_stops_for_protected_review_after_exact_attestation(self):
         workflow = (WORKFLOWS / "weekly.yml").read_text(encoding="utf-8")
         dispatch = 'gh workflow run repro-attestation.yml --ref "$branch"'
