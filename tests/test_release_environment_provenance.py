@@ -166,6 +166,8 @@ class ReleaseEnvironmentProvenanceTests(unittest.TestCase):
     def test_gitless_worker_resolves_active_release_lock_separately_from_worker_lock(self):
         temp=tempfile.TemporaryDirectory(); root=Path(temp.name); self.addCleanup(temp.cleanup)
         week="2026-10-09"
+        runtime=root/"runtime"; runtime.mkdir()
+        (runtime/"active-environment.json").write_text("{}\n", encoding="utf-8")
         archive=root/f"public/archive/{week}/repro_bundle.json"
         archive.parent.mkdir(parents=True)
         active_sha="a"*64
@@ -199,6 +201,8 @@ class ReleaseEnvironmentProvenanceTests(unittest.TestCase):
     def test_gitless_worker_accepts_legacy_release_lock_identity(self):
         temp=tempfile.TemporaryDirectory(); root=Path(temp.name); self.addCleanup(temp.cleanup)
         week="2026-09-18"
+        runtime=root/"runtime"; runtime.mkdir()
+        (runtime/"active-environment.json").write_text("{}\n", encoding="utf-8")
         archive=root/f"public/archive/{week}/repro_bundle.json"
         archive.parent.mkdir(parents=True)
         active_sha="a"*64
@@ -231,6 +235,8 @@ class ReleaseEnvironmentProvenanceTests(unittest.TestCase):
     def test_gitless_worker_rejects_unknown_release_lock_identity(self):
         temp=tempfile.TemporaryDirectory(); root=Path(temp.name); self.addCleanup(temp.cleanup)
         week="2026-10-09"
+        runtime=root/"runtime"; runtime.mkdir()
+        (runtime/"active-environment.json").write_text("{}\n", encoding="utf-8")
         archive=root/f"public/archive/{week}/repro_bundle.json"
         archive.parent.mkdir(parents=True)
         archive.write_text(
