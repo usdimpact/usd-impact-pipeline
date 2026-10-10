@@ -63,6 +63,43 @@ def _regular_blob(root: Path, commit: str, path: str) -> bytes:
     return _git(root,"show",f"{commit}:{path}")
 
 
+def _generator_lock_path(root: Path, generator_sha: str, lock_sha: str) -> str:
+    """Resolve the exact dependency lock recorded by a historical generator."""
+    candidates: list[str] = []
+    try:
+        profile_raw = _regular_blob(
+            root, generator_sha, "runtime/active-environment.json"
+        )
+    except ValueError as exc:
+        if str(exc) != "trusted path is not an exact regular-file blob":
+            raise
+    else:
+        try:
+            profile = json.loads(profile_raw)
+        except json.JSONDecodeError as exc:
+            raise ValueError("generator environment profile is invalid") from exc
+        if not isinstance(profile, dict):
+            raise ValueError("generator environment profile must be an object")
+        active_lock = profile.get("lock_path")
+        if active_lock is not None:
+            candidates.append(_safe_path(active_lock))
+        legacy = profile.get("legacy_frozen_lock")
+        if isinstance(legacy, dict) and legacy.get("path") is not None:
+            candidates.append(_safe_path(legacy["path"]))
+
+    candidates.append("requirements.lock")
+    for lock_path in dict.fromkeys(candidates):
+        try:
+            lock_raw = _regular_blob(root, generator_sha, lock_path)
+        except ValueError as exc:
+            if str(exc) == "trusted path is not an exact regular-file blob":
+                continue
+            raise
+        if hashlib.sha256(lock_raw).hexdigest() == lock_sha:
+            return lock_path
+    raise ValueError("generator dependency lock digest mismatch")
+
+
 def _ancestor(root: Path, older: str, newer: str) -> None:
     try:
         subprocess.check_call(
@@ -159,6 +196,7 @@ def resolve_release_environment(root: Path, week: str) -> dict[str, Any]:
     bundle = json.loads(bundle_raw)
     generator_sha = str(bundle.get("pipeline_git_sha", ""))
     lock_sha = str(bundle.get("requirements_lock_sha256", ""))
+    lock_path = _generator_lock_path(root, generator_sha, lock_sha)
     trusted = {
         "week": week,
         "publication_sha": publication_sha,
@@ -166,7 +204,7 @@ def resolve_release_environment(root: Path, week: str) -> dict[str, Any]:
         "trusted_base_sha": head,
         "bundle_path": archive_rel,
         "bundle_sha256": hashlib.sha256(bundle_raw).hexdigest(),
-        "lock_path": "requirements.lock",
+        "lock_path": lock_path,
         "lock_sha256": lock_sha,
     }
     verified = verify_historical_release(root, trusted)
@@ -177,7 +215,7 @@ def resolve_release_environment(root: Path, week: str) -> dict[str, Any]:
         raise ValueError("historical release archive bytes differ from first publication")
     return {
         "mode": "historical_release",
-        "lock_path": "requirements.lock",
+        "lock_path": lock_path,
         "lock_sha256": verified["lock_sha256"],
         "publication_sha": publication_sha,
         "generator_sha": verified["generator_sha"],
