@@ -125,7 +125,9 @@ def resolve_release_environment(root: Path, week: str) -> dict[str, Any]:
         }
 
     head = _git_text(root, "rev-parse", "HEAD")
-    history = _git_text(root, "log", "--format=%H", "--reverse", "--", archive_rel)
+    history = _git_text(
+        root, "log", "--first-parent", "--format=%H", "--reverse", "--", archive_rel
+    )
     commits = [line for line in history.splitlines() if line]
     profile = verify_profile(root, root / "runtime/active-environment.json")
 
