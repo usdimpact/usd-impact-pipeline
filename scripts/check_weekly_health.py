@@ -16,6 +16,11 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import quote, urlencode
 from urllib.request import Request, urlopen
 
+try:
+    from .weekly_health_review import PendingReview, valid_score_bridge, verify_pending_review
+except ImportError:  # Direct script execution via python scripts/check_weekly_health.py
+    from weekly_health_review import PendingReview, valid_score_bridge, verify_pending_review
+
 USER_AGENT = "usd-impact-weekly-health/1.0"
 ENGLISH_HEADING = "Automated Regime Commentary"
 SPANISH_HEADING = "Comentario Automático de Régimen"
@@ -97,12 +102,16 @@ def github_workflow_run(repo: str, workflow: str, branch: str, token: str) -> di
     return runs[0]
 
 
-def render_report(checks: list[Check], metadata: dict[str, str]) -> str:
-    healthy = all(check.passed for check in checks)
+def render_report(
+    checks: list[Check], metadata: dict[str, str], *, status: str | None = None
+) -> str:
+    status = status or ("HEALTHY" if all(check.passed for check in checks) else "UNHEALTHY")
+    if status not in {"HEALTHY", "PENDING_PROTECTED_REVIEW", "UNHEALTHY"}:
+        raise ValueError(f"Unrecognized health status: {status}")
     lines = [
         "# Weekly USD Impact health report",
         "",
-        f"Status: **{'HEALTHY' if healthy else 'UNHEALTHY'}**",
+        f"Status: **{status}**",
         f"Generated: `{metadata['generated_at']}`",
         f"Expected score date: `{metadata.get('expected_date', 'unknown')}`",
     ]
@@ -111,9 +120,25 @@ def render_report(checks: list[Check], metadata: dict[str, str]) -> str:
 
     lines.extend(["", "## Checks", ""])
     for check in checks:
-        lines.append(f"- **{'PASS' if check.passed else 'FAIL'} — {check.name}:** {check.detail}")
+        verdict = "PASS" if check.passed else "FAIL"
+        if status == "PENDING_PROTECTED_REVIEW" and check.name == "Score date freshness":
+            verdict = "DEFERRED"
+        lines.append(f"- **{verdict} — {check.name}:** {check.detail}")
 
-    if not healthy:
+    if status == "PENDING_PROTECTED_REVIEW":
+        lines.extend(
+            [
+                "",
+                "## Protected human review required (not deployed)",
+                "",
+                f"- Verified publication PR: {metadata.get('pending_pr_url', 'unknown')}",
+                f"- Exact validated head SHA: `{metadata.get('pending_head_sha', 'unknown')}`",
+                f"- Review age: {metadata.get('pending_age_hours', 'unknown')} hours.",
+                "- Previous validated public release remains live; do not call this a newly published week.",
+                "- Review the PR and authorize its merge separately. Do not dispatch another weekly workflow solely because review is pending.",
+            ]
+        )
+    elif status == "UNHEALTHY":
         lines.extend(
             [
                 "",
@@ -125,6 +150,25 @@ def render_report(checks: list[Check], metadata: dict[str, str]) -> str:
     return "\n".join(lines) + "\n"
 
 
+def classify_health(checks: list[Check], pending: PendingReview) -> str:
+    """Only defer the known publication-date mismatch, never a real failure."""
+    if all(check.passed for check in checks):
+        return "HEALTHY"
+    if pending.verified and all(
+        check.passed or check.name == "Score date freshness" for check in checks
+    ):
+        return "PENDING_PROTECTED_REVIEW"
+    return "UNHEALTHY"
+
+
+def write_health_status_output(path: Path, status: str) -> None:
+    """Expose a typed health state to Actions without mistaking pending for recovered."""
+    if status not in {"HEALTHY", "PENDING_PROTECTED_REVIEW", "UNHEALTHY"}:
+        raise ValueError(f"Unknown health result: {status}")
+    with path.open("a", encoding="utf-8") as handle:
+        handle.write(f"status={status}\n")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Check weekly USD Impact deployment health.")
     parser.add_argument("--repo", default=os.environ.get("GITHUB_REPOSITORY", ""))
@@ -132,6 +176,7 @@ def main() -> int:
     parser.add_argument("--branch", default="main")
     parser.add_argument("--base-url", default="https://usd-impact-pipeline.pages.dev")
     parser.add_argument("--report", type=Path, default=Path("weekly-health-report.md"))
+    parser.add_argument("--github-output", type=Path, help="GitHub Actions step-output path")
     args = parser.parse_args()
 
     checks: list[Check] = []
@@ -142,6 +187,9 @@ def main() -> int:
         "expected_date": expected_date,
     }
     token = os.environ.get("GITHUB_TOKEN", "")
+    latest_run: dict[str, Any] | None = None
+    bridge: dict[str, Any] | None = None
+    score_date = ""
 
     if not args.repo:
         checks.append(Check("GitHub repository", False, "GITHUB_REPOSITORY or --repo was not provided."))
@@ -150,6 +198,7 @@ def main() -> int:
     else:
         try:
             run = github_workflow_run(args.repo, args.workflow, args.branch, token)
+            latest_run = run
             metadata["workflow_run_url"] = str(run.get("html_url", ""))
             conclusion = str(run.get("conclusion", "unknown"))
             checks.append(
@@ -180,6 +229,13 @@ def main() -> int:
         checks.append(Check("Latest bridge JSON", True, f"Loaded `{bridge_url}` with week ending `{score_date or 'missing'}`."))
         checks.append(
             Check(
+                "Live source provenance",
+                valid_score_bridge(bridge, score_date),
+                f"Eight fresh, live drivers and additive score are required for live vintage `{score_date}`.",
+            )
+        )
+        checks.append(
+            Check(
                 "Score date freshness",
                 score_date == expected_date,
                 f"Deployed week ending is `{score_date or 'missing'}`; expected `{expected_date}`.",
@@ -195,8 +251,13 @@ def main() -> int:
     except Exception as error:
         checks.append(Check("Latest bridge JSON", False, str(error)))
 
+    # Verify the actual last validated deployed archive when protected review is pending.
+    # Do not mistake a previous completed Friday for the new expected publication.
+    prior_week = (date.fromisoformat(expected_date) - timedelta(days=7)).isoformat()
+    archive_week = prior_week if score_date == prior_week else expected_date
+
     # Current score routes are intentionally member-gated. Verify that boundary, then
-    # verify the deployed dated archive artifacts that contain the actual EN/ES score pages.
+    # verify deployed dated archive artifacts containing actual EN/ES score pages.
     for language, heading in (("en", ENGLISH_HEADING), ("es", SPANISH_HEADING)):
         current_url = f"{base_url}/{language}/"
         try:
@@ -212,7 +273,7 @@ def main() -> int:
         except Exception as error:
             checks.append(Check(f"{language.upper()} current route member gate", False, str(error)))
 
-        archive_url = f"{base_url}/archive/{expected_date}/{language}.html"
+        archive_url = f"{base_url}/archive/{archive_week}/{language}.html"
         try:
             html = request_text(archive_url)
             checks.append(Check(f"{language.upper()} archive dashboard availability", True, f"Loaded `{archive_url}`."))
@@ -226,17 +287,50 @@ def main() -> int:
             checks.append(
                 Check(
                     f"{language.upper()} current score date",
-                    expected_date in html,
-                    f"Expected date `{expected_date}` {'was found' if expected_date in html else 'was not found'}.",
+                    archive_week in html,
+                    f"Deployed archive date `{archive_week}` {'was found' if archive_week in html else 'was not found'}.",
                 )
             )
         except Exception as error:
             checks.append(Check(f"{language.upper()} archive dashboard availability", False, str(error)))
 
-    report = render_report(checks, metadata)
+    pending = PendingReview(False, "not evaluated")
+    if bridge is not None and score_date == prior_week and token and args.repo:
+        github_headers = {
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/vnd.github+json",
+            "X-GitHub-Api-Version": "2022-11-28",
+        }
+        pending = verify_pending_review(
+            repo=args.repo,
+            expected_week=expected_date,
+            deployed_week=score_date,
+            weekly_run=latest_run,
+            get_json=lambda url: request_json(url, headers=github_headers),
+            now=now,
+        )
+        checks.append(
+            Check(
+                "Protected review evidence",
+                pending.verified,
+                f"{pending.reason}. PR: {pending.pr_url or 'unverified'}; head: {pending.head_sha or 'unverified'}.",
+            )
+        )
+
+    status = classify_health(checks, pending)
+    if status == "PENDING_PROTECTED_REVIEW":
+        metadata["pending_pr_url"] = pending.pr_url
+        metadata["pending_head_sha"] = pending.head_sha
+        metadata["pending_age_hours"] = f"{pending.age_hours:.1f}"
+
+    report = render_report(checks, metadata, status=status)
     args.report.write_text(report, encoding="utf-8")
+    if args.github_output:
+        write_health_status_output(args.github_output, status)
     print(report)
-    return 0 if all(check.passed for check in checks) else 1
+    # Pending review is a non-incident but emphatically not a deployed/healthy release.
+    # The workflow does not auto-merge; returning zero avoids a false failure issue.
+    return 0 if status in {"HEALTHY", "PENDING_PROTECTED_REVIEW"} else 1
 
 
 if __name__ == "__main__":
