@@ -95,6 +95,17 @@
       "initialization_matrix_sha256": "6e17100c061cebc3116fdac9c83708b94a72165957ffbcf688d9a08e9d280580",
       "candidate_result_file": "score_v3_shadow_2026-10-02.json",
       "candidate_result_sha256": "86cbf2ac506c63c93c24d1a1c1d8d300daac7b1248116b26f225017fe742f21e"
+    },
+    {
+      "week": "2026-10-09",
+      "ingested_at_utc": "2026-10-10T12:11:13.019668+00:00",
+      "source_v2_bundle_sha256": "7ac594d4ed7df544ea41944fa80208bdf936b8b1b865048636ba1a5ded30c60d",
+      "source_v2_pipeline_commit_sha": "aed97276b0fd1f36135c5ab3f78718458d67c934",
+      "source_v2_attestation_status": "passed",
+      "locked_preregistration_commit_sha": "bf49152fa6005edd20b770db287924d56cfa7499",
+      "initialization_matrix_sha256": "6e17100c061cebc3116fdac9c83708b94a72165957ffbcf688d9a08e9d280580",
+      "candidate_result_file": "score_v3_shadow_2026-10-09.json",
+      "candidate_result_sha256": "b4bed425b51ec3f46bc3bd8d21a6b1a17160b1773dc6b19dc554b8d4a2fef9f5"
     }
   ]
 }
