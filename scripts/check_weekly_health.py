@@ -4,8 +4,11 @@
 from __future__ import annotations
 
 import argparse
+import html as html_tools
 import json
+import math
 import os
+import re
 import sys
 import time
 from dataclasses import dataclass
@@ -70,10 +73,12 @@ def request_bytes(url: str, headers: dict[str, str] | None = None, attempts: int
     raise RuntimeError(f"Request failed after {attempts} attempts: {last_error}")
 
 
-def request_json(url: str, headers: dict[str, str] | None = None) -> dict[str, Any]:
+def request_json(
+    url: str, headers: dict[str, str] | None = None, *, allow_list: bool = False
+) -> Any:
     raw = request_bytes(url, headers=headers)
     payload = json.loads(raw.decode("utf-8"))
-    if not isinstance(payload, dict):
+    if not isinstance(payload, dict) and not (allow_list and isinstance(payload, list)):
         raise RuntimeError(f"Expected a JSON object from {url}")
     return payload
 
@@ -82,8 +87,29 @@ def request_text(url: str) -> str:
     return request_bytes(url, headers={"Accept": "text/html"}).decode("utf-8", errors="replace")
 
 
+def dashboard_score_matches(html: str, bridge: dict[str, Any] | None) -> bool:
+    """Check the single rendered score card against the published bridge."""
+    if not isinstance(bridge, dict):
+        return False
+    value = bridge.get("score")
+    if isinstance(value, bool) or not isinstance(value, (float, int)) or not math.isfinite(value):
+        return False
+    matches = re.findall(
+        r'<div\b[^>]*\bclass=["\'][^"\']*\bscore-value\b[^"\']*["\'][^>]*>(.*?)</div>',
+        html, flags=re.IGNORECASE | re.DOTALL,
+    )
+    if len(matches) != 1:
+        return False
+    text = html_tools.unescape(re.sub(r"<[^>]+>", "", matches[0])).strip().replace("\u2212", "-")
+    try:
+        return math.isclose(float(text), float(f"{value:.2f}"), rel_tol=0, abs_tol=1e-9)
+    except ValueError:
+        return False
+
+
 def github_workflow_run(repo: str, workflow: str, branch: str, token: str) -> dict[str, Any]:
-    params = urlencode({"branch": branch, "status": "completed", "per_page": 5})
+    # Do not hide a newer queued/running/failed execution behind a past success.
+    params = urlencode({"branch": branch, "per_page": 5})
     url = (
         f"https://api.github.com/repos/{quote(repo, safe='/')}/actions/workflows/"
         f"{quote(workflow, safe='')}/runs?{params}"
@@ -98,7 +124,7 @@ def github_workflow_run(repo: str, workflow: str, branch: str, token: str) -> di
     )
     runs = payload.get("workflow_runs")
     if not isinstance(runs, list) or not runs:
-        raise RuntimeError(f"No completed runs found for {workflow} on {branch}")
+        raise RuntimeError(f"No runs found for {workflow} on {branch}")
     return runs[0]
 
 
@@ -135,7 +161,9 @@ def render_report(
                 f"- Exact validated head SHA: `{metadata.get('pending_head_sha', 'unknown')}`",
                 f"- Review age: {metadata.get('pending_age_hours', 'unknown')} hours.",
                 "- Previous validated public release remains live; do not call this a newly published week.",
-                "- Review the PR and authorize its merge separately. Do not dispatch another weekly workflow solely because review is pending.",
+                f"- Next action: {metadata.get('pending_next_action', 'Review the publication PR through its normal protected process.')}",
+                f"- Verified PR jobs: {metadata.get('pending_validation_urls', 'unavailable')}",
+                "- Do not dispatch another weekly workflow solely because review is pending.",
             ]
         )
     elif status == "UNHEALTHY":
@@ -144,14 +172,18 @@ def render_report(
                 "",
                 "## Required action",
                 "",
-                "Open the linked weekly workflow run, correct the failed condition, rerun the weekly pipeline if needed, and then rerun this health workflow.",
+                "Inspect the failed checks and linked workflow, correct those conditions, then verify health again. Regenerate a score only if its generation actually failed.",
             ]
         )
+        if metadata.get("pending_next_action"):
+            lines.extend(["", metadata["pending_next_action"]])
     return "\n".join(lines) + "\n"
 
 
 def classify_health(checks: list[Check], pending: PendingReview) -> str:
     """Only defer the known publication-date mismatch, never a real failure."""
+    if not checks:
+        return "UNHEALTHY"
     if all(check.passed for check in checks):
         return "HEALTHY"
     if pending.verified and all(
@@ -204,8 +236,8 @@ def main() -> int:
             checks.append(
                 Check(
                     "Latest weekly workflow conclusion",
-                    conclusion == "success",
-                    f"Latest completed run concluded `{conclusion}`.",
+                    run.get("status") == "completed" and conclusion == "success",
+                    f"Latest run is `{run.get('status', 'unknown')}` with conclusion `{conclusion}`.",
                 )
             )
 
@@ -256,6 +288,17 @@ def main() -> int:
     prior_week = (date.fromisoformat(expected_date) - timedelta(days=7)).isoformat()
     archive_week = prior_week if score_date == prior_week else expected_date
 
+    archive_bridge_url = f"{base_url}/archive/{archive_week}/weekly_input.json"
+    try:
+        archived_bridge = request_json(archive_bridge_url)
+        checks.append(Check(
+            "Live bridge/archive agreement",
+            bridge is not None and archived_bridge == bridge,
+            f"Latest and dated bridge must agree at `{archive_bridge_url}`.",
+        ))
+    except Exception as error:
+        checks.append(Check("Live bridge/archive agreement", False, str(error)))
+
     # Current score routes are intentionally member-gated. Verify that boundary, then
     # verify deployed dated archive artifacts containing actual EN/ES score pages.
     for language, heading in (("en", ENGLISH_HEADING), ("es", SPANISH_HEADING)):
@@ -277,6 +320,11 @@ def main() -> int:
         try:
             html = request_text(archive_url)
             checks.append(Check(f"{language.upper()} archive dashboard availability", True, f"Loaded `{archive_url}`."))
+            checks.append(Check(
+                f"{language.upper()} archive score agreement",
+                dashboard_score_matches(html, bridge),
+                "The rendered score card must equal the rounded published bridge score.",
+            ))
             checks.append(
                 Check(
                     f"{language.upper()} commentary heading",
@@ -306,7 +354,7 @@ def main() -> int:
             expected_week=expected_date,
             deployed_week=score_date,
             weekly_run=latest_run,
-            get_json=lambda url: request_json(url, headers=github_headers),
+            get_json=lambda url: request_json(url, headers=github_headers, allow_list=True),
             now=now,
         )
         checks.append(
@@ -318,10 +366,13 @@ def main() -> int:
         )
 
     status = classify_health(checks, pending)
+    if pending.pr_url and (status == "PENDING_PROTECTED_REVIEW" or not pending.verified):
+        metadata["pending_next_action"] = pending.next_action
     if status == "PENDING_PROTECTED_REVIEW":
         metadata["pending_pr_url"] = pending.pr_url
         metadata["pending_head_sha"] = pending.head_sha
         metadata["pending_age_hours"] = f"{pending.age_hours:.1f}"
+        metadata["pending_validation_urls"] = " · ".join(pending.validation_urls)
 
     report = render_report(checks, metadata, status=status)
     args.report.write_text(report, encoding="utf-8")

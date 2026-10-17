@@ -10,6 +10,7 @@ on:
 permissions:
   actions: read
   contents: read
+  checks: read  # bind each PR validation job to its exact GitHub Actions check
   pull-requests: read  # pending-review verification only; no merge/write permission
   issues: write
 

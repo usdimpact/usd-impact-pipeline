@@ -63,6 +63,43 @@ def _regular_blob(root: Path, commit: str, path: str) -> bytes:
     return _git(root,"show",f"{commit}:{path}")
 
 
+def _generator_lock_path(root: Path, generator_sha: str, lock_sha: str) -> str:
+    """Resolve the exact dependency lock recorded by a historical generator."""
+    candidates: list[str] = []
+    try:
+        profile_raw = _regular_blob(
+            root, generator_sha, "runtime/active-environment.json"
+        )
+    except ValueError as exc:
+        if str(exc) != "trusted path is not an exact regular-file blob":
+            raise
+    else:
+        try:
+            profile = json.loads(profile_raw)
+        except json.JSONDecodeError as exc:
+            raise ValueError("generator environment profile is invalid") from exc
+        if not isinstance(profile, dict):
+            raise ValueError("generator environment profile must be an object")
+        active_lock = profile.get("lock_path")
+        if active_lock is not None:
+            candidates.append(_safe_path(active_lock))
+        legacy = profile.get("legacy_frozen_lock")
+        if isinstance(legacy, dict) and legacy.get("path") is not None:
+            candidates.append(_safe_path(legacy["path"]))
+
+    candidates.append("requirements.lock")
+    for lock_path in dict.fromkeys(candidates):
+        try:
+            lock_raw = _regular_blob(root, generator_sha, lock_path)
+        except ValueError as exc:
+            if str(exc) == "trusted path is not an exact regular-file blob":
+                continue
+            raise
+        if hashlib.sha256(lock_raw).hexdigest() == lock_sha:
+            return lock_path
+    raise ValueError("generator dependency lock digest mismatch")
+
+
 def _ancestor(root: Path, older: str, newer: str) -> None:
     try:
         subprocess.check_call(
@@ -114,9 +151,44 @@ def resolve_release_environment(root: Path, week: str) -> dict[str, Any]:
     root = root.resolve()
     archive_rel = f"public/archive/{week}/repro_bundle.json"
 
-    # The offline frozen worker intentionally has no .git directory. Its root
-    # dependency lock is itself part of the frozen engine identity.
+    # The offline research worker intentionally has no .git directory. Its
+    # execution lock is frozen independently from the published release
+    # generator environment. Resolve the release lock only when the archived
+    # bundle digest matches a verified lock identity copied into the worker.
     if not (root / ".git").exists():
+        profile_path = root / "runtime/active-environment.json"
+        archive_path = root / archive_rel
+        if profile_path.is_file() and archive_path.is_file():
+            profile = verify_profile(root, profile_path)
+            bundle = json.loads(archive_path.read_text(encoding="utf-8"))
+            if not isinstance(bundle, dict) or bundle.get("score_week") != week:
+                raise ValueError("frozen offline worker release bundle week mismatch")
+            lock_sha = str(bundle.get("requirements_lock_sha256", ""))
+            if not SHA256.fullmatch(lock_sha):
+                raise ValueError("frozen offline worker release lock digest is invalid")
+
+            if lock_sha == profile["lock_sha256"]:
+                return {
+                    "mode": "frozen_offline_worker_active_release_identity",
+                    "lock_path": profile["lock_path"],
+                    "lock_sha256": lock_sha,
+                    "profile_id": profile["profile_id"],
+                    "worker_lock_path": profile["legacy_lock_path"],
+                    "worker_lock_sha256": profile["legacy_lock_sha256"],
+                }
+            if lock_sha == profile["legacy_lock_sha256"]:
+                return {
+                    "mode": "frozen_offline_worker_legacy_release_identity",
+                    "lock_path": profile["legacy_lock_path"],
+                    "lock_sha256": lock_sha,
+                    "profile_id": profile["profile_id"],
+                    "worker_lock_path": profile["legacy_lock_path"],
+                    "worker_lock_sha256": profile["legacy_lock_sha256"],
+                }
+            raise ValueError(
+                "frozen offline worker cannot resolve release dependency lock identity"
+            )
+
         lock = root / "requirements.lock"
         return {
             "mode": "frozen_offline_worker",
@@ -125,7 +197,9 @@ def resolve_release_environment(root: Path, week: str) -> dict[str, Any]:
         }
 
     head = _git_text(root, "rev-parse", "HEAD")
-    history = _git_text(root, "log", "--format=%H", "--reverse", "--", archive_rel)
+    history = _git_text(
+        root, "log", "--first-parent", "--format=%H", "--reverse", "--", archive_rel
+    )
     commits = [line for line in history.splitlines() if line]
     profile = verify_profile(root, root / "runtime/active-environment.json")
 
@@ -157,6 +231,7 @@ def resolve_release_environment(root: Path, week: str) -> dict[str, Any]:
     bundle = json.loads(bundle_raw)
     generator_sha = str(bundle.get("pipeline_git_sha", ""))
     lock_sha = str(bundle.get("requirements_lock_sha256", ""))
+    lock_path = _generator_lock_path(root, generator_sha, lock_sha)
     trusted = {
         "week": week,
         "publication_sha": publication_sha,
@@ -164,7 +239,7 @@ def resolve_release_environment(root: Path, week: str) -> dict[str, Any]:
         "trusted_base_sha": head,
         "bundle_path": archive_rel,
         "bundle_sha256": hashlib.sha256(bundle_raw).hexdigest(),
-        "lock_path": "requirements.lock",
+        "lock_path": lock_path,
         "lock_sha256": lock_sha,
     }
     verified = verify_historical_release(root, trusted)
@@ -175,7 +250,7 @@ def resolve_release_environment(root: Path, week: str) -> dict[str, Any]:
         raise ValueError("historical release archive bytes differ from first publication")
     return {
         "mode": "historical_release",
-        "lock_path": "requirements.lock",
+        "lock_path": lock_path,
         "lock_sha256": verified["lock_sha256"],
         "publication_sha": publication_sha,
         "generator_sha": verified["generator_sha"],

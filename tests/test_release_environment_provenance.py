@@ -4,8 +4,12 @@ import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
-from scripts.verify_release_environment import verify_historical_release
+from scripts.verify_release_environment import (
+    resolve_release_environment,
+    verify_historical_release,
+)
 
 
 def git(root,*args):
@@ -51,6 +55,213 @@ class ReleaseEnvironmentProvenanceTests(unittest.TestCase):
         temp,root,trusted=self.make_repo(); self.addCleanup(temp.cleanup)
         trusted["lock_path"]="../requirements.lock"
         with self.assertRaisesRegex(ValueError,"safe relative path"): verify_historical_release(root,trusted)
+
+
+
+
+    def test_pull_request_merge_checkout_treats_new_archive_as_candidate(self):
+        temp=tempfile.TemporaryDirectory(); root=Path(temp.name); self.addCleanup(temp.cleanup)
+        subprocess.check_call(["git","init","-q","-b","main"],cwd=root)
+        (root/"requirements.lock").write_text("urllib3==2.7.0\n")
+        commit(root,"base")
+        git(root,"checkout","-q","-b","candidate")
+        archive_rel="public/archive/2026-10-09/repro_bundle.json"
+        archive=root/archive_rel; archive.parent.mkdir(parents=True)
+        archive.write_text("{}\n")
+        candidate=commit(root,"candidate archive")
+        git(root,"checkout","-q","main")
+        (root/"base-only.txt").write_text("base advanced\n")
+        commit(root,"base advance")
+        git(
+            root,
+            "-c","user.name=Test",
+            "-c","user.email=test@example.invalid",
+            "merge","-q","--no-ff","candidate","-m","synthetic pull request merge",
+        )
+        head=git(root,"rev-parse","HEAD")
+        full_history=git(root,"log","--format=%H","--reverse","--",archive_rel).splitlines()
+        mainline_history=git(
+            root,"log","--first-parent","--format=%H","--reverse","--",archive_rel
+        ).splitlines()
+        self.assertEqual(full_history[0],candidate)
+        self.assertNotEqual(candidate,head)
+        self.assertEqual(mainline_history[0],head)
+        profile={
+            "lock_path":"runtime/requirements-2026-10-05.lock",
+            "lock_sha256":"b"*64,
+            "profile_id":"test-active-runtime",
+        }
+        with mock.patch(
+            "scripts.verify_release_environment.verify_profile",
+            return_value=profile,
+        ):
+            resolved=resolve_release_environment(root,"2026-10-09")
+        self.assertEqual(resolved["mode"],"active_runtime_candidate")
+        self.assertEqual(resolved["lock_sha256"],"b"*64)
+
+    def test_resolver_keeps_historical_release_on_strict_mainline_path(self):
+        temp,root,trusted=self.make_repo(); self.addCleanup(temp.cleanup)
+        profile={
+            "lock_path":"runtime/requirements-2026-10-05.lock",
+            "lock_sha256":"b"*64,
+            "profile_id":"test-active-runtime",
+        }
+        with mock.patch(
+            "scripts.verify_release_environment.verify_profile",
+            return_value=profile,
+        ):
+            resolved=resolve_release_environment(root,"2026-09-18")
+        self.assertEqual(resolved["mode"],"historical_release")
+        self.assertEqual(resolved["publication_sha"],trusted["publication_sha"])
+        self.assertEqual(resolved["generator_sha"],trusted["generator_sha"])
+
+
+    def test_resolver_uses_generator_active_runtime_lock_for_historical_release(self):
+        temp=tempfile.TemporaryDirectory(); root=Path(temp.name); self.addCleanup(temp.cleanup)
+        subprocess.check_call(["git","init","-q","-b","main"],cwd=root)
+        legacy=b"urllib3==2.7.0\n"
+        runtime=b"urllib3==2.8.0\n"
+        runtime_path="runtime/requirements-2026-10-05.lock"
+        (root/"requirements.lock").write_bytes(legacy)
+        (root/"runtime").mkdir()
+        (root/runtime_path).write_bytes(runtime)
+        (root/"runtime/active-environment.json").write_text(
+            json.dumps({
+                "lock_path": runtime_path,
+                "legacy_frozen_lock": {"path": "requirements.lock"},
+            })+"\n"
+        )
+        generator=commit(root,"runtime generator")
+        week="2026-10-09"
+        bundle={
+            "score_week":week,
+            "pipeline_git_sha":generator,
+            "requirements_lock_sha256":hashlib.sha256(runtime).hexdigest(),
+        }
+        archive_rel=f"public/archive/{week}/repro_bundle.json"
+        archive=root/archive_rel; archive.parent.mkdir(parents=True)
+        archive.write_text(json.dumps(bundle,sort_keys=True)+"\n")
+        publication=commit(root,"runtime publication")
+        (root/runtime_path).write_text("urllib3==2.9.0\n")
+        commit(root,"later runtime upgrade")
+        profile={
+            "lock_path":runtime_path,
+            "lock_sha256":"c"*64,
+            "profile_id":"current-runtime",
+        }
+        with mock.patch(
+            "scripts.verify_release_environment.verify_profile",
+            return_value=profile,
+        ):
+            resolved=resolve_release_environment(root,week)
+        self.assertEqual(resolved["mode"],"historical_release")
+        self.assertEqual(resolved["publication_sha"],publication)
+        self.assertEqual(resolved["generator_sha"],generator)
+        self.assertEqual(resolved["lock_path"],runtime_path)
+        self.assertEqual(
+            resolved["lock_sha256"], hashlib.sha256(runtime).hexdigest()
+        )
+
+
+    def test_gitless_worker_resolves_active_release_lock_separately_from_worker_lock(self):
+        temp=tempfile.TemporaryDirectory(); root=Path(temp.name); self.addCleanup(temp.cleanup)
+        week="2026-10-09"
+        runtime=root/"runtime"; runtime.mkdir()
+        (runtime/"active-environment.json").write_text("{}\n", encoding="utf-8")
+        archive=root/f"public/archive/{week}/repro_bundle.json"
+        archive.parent.mkdir(parents=True)
+        active_sha="a"*64
+        legacy_sha="b"*64
+        archive.write_text(
+            json.dumps({
+                "score_week":week,
+                "requirements_lock_sha256":active_sha,
+            })+"\n",
+            encoding="utf-8",
+        )
+        profile={
+            "lock_path":"runtime/requirements-2026-10-05.lock",
+            "lock_sha256":active_sha,
+            "legacy_lock_path":"requirements.lock",
+            "legacy_lock_sha256":legacy_sha,
+            "profile_id":"test-active-runtime",
+        }
+        with mock.patch(
+            "scripts.verify_release_environment.verify_profile",
+            return_value=profile,
+        ):
+            resolved=resolve_release_environment(root,week)
+        self.assertEqual(
+            resolved["mode"],
+            "frozen_offline_worker_active_release_identity",
+        )
+        self.assertEqual(resolved["lock_sha256"],active_sha)
+        self.assertEqual(resolved["worker_lock_sha256"],legacy_sha)
+
+    def test_gitless_worker_accepts_legacy_release_lock_identity(self):
+        temp=tempfile.TemporaryDirectory(); root=Path(temp.name); self.addCleanup(temp.cleanup)
+        week="2026-09-18"
+        runtime=root/"runtime"; runtime.mkdir()
+        (runtime/"active-environment.json").write_text("{}\n", encoding="utf-8")
+        archive=root/f"public/archive/{week}/repro_bundle.json"
+        archive.parent.mkdir(parents=True)
+        active_sha="a"*64
+        legacy_sha="b"*64
+        archive.write_text(
+            json.dumps({
+                "score_week":week,
+                "requirements_lock_sha256":legacy_sha,
+            })+"\n",
+            encoding="utf-8",
+        )
+        profile={
+            "lock_path":"runtime/requirements-2026-10-05.lock",
+            "lock_sha256":active_sha,
+            "legacy_lock_path":"requirements.lock",
+            "legacy_lock_sha256":legacy_sha,
+            "profile_id":"test-active-runtime",
+        }
+        with mock.patch(
+            "scripts.verify_release_environment.verify_profile",
+            return_value=profile,
+        ):
+            resolved=resolve_release_environment(root,week)
+        self.assertEqual(
+            resolved["mode"],
+            "frozen_offline_worker_legacy_release_identity",
+        )
+        self.assertEqual(resolved["lock_sha256"],legacy_sha)
+
+    def test_gitless_worker_rejects_unknown_release_lock_identity(self):
+        temp=tempfile.TemporaryDirectory(); root=Path(temp.name); self.addCleanup(temp.cleanup)
+        week="2026-10-09"
+        runtime=root/"runtime"; runtime.mkdir()
+        (runtime/"active-environment.json").write_text("{}\n", encoding="utf-8")
+        archive=root/f"public/archive/{week}/repro_bundle.json"
+        archive.parent.mkdir(parents=True)
+        archive.write_text(
+            json.dumps({
+                "score_week":week,
+                "requirements_lock_sha256":"c"*64,
+            })+"\n",
+            encoding="utf-8",
+        )
+        profile={
+            "lock_path":"runtime/requirements-2026-10-05.lock",
+            "lock_sha256":"a"*64,
+            "legacy_lock_path":"requirements.lock",
+            "legacy_lock_sha256":"b"*64,
+            "profile_id":"test-active-runtime",
+        }
+        with mock.patch(
+            "scripts.verify_release_environment.verify_profile",
+            return_value=profile,
+        ):
+            with self.assertRaisesRegex(
+                ValueError,
+                "cannot resolve release dependency lock identity",
+            ):
+                resolve_release_environment(root,week)
 
 
 if __name__=="__main__": unittest.main()
