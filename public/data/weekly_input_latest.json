@@ -1,58 +1,58 @@
 {
-  "week_ending": "2026-10-09",
-  "score": -0.509254132042471,
+  "week_ending": "2026-10-16",
+  "score": -0.4710321332052917,
   "regime": "Soft dollar regime",
-  "week_over_week_change": -0.020959932200424358,
-  "four_week_change": 0.15430302017094433,
+  "week_over_week_change": 0.03398668923908443,
+  "four_week_change": 0.18139918639158703,
   "nearest_regime_boundary": -0.3,
   "drivers": [
     {
       "name": "SPX",
-      "z": 2.511145662564712,
+      "z": 2.401251163852943,
       "weight": -0.125,
-      "contribution": -0.313893207820589
+      "contribution": -0.3001563954816179
     },
     {
       "name": "GOLD",
-      "z": 2.3776211275105306,
+      "z": 2.330067216088234,
       "weight": -0.125,
-      "contribution": -0.2972026409388163
-    },
-    {
-      "name": "UST_10Y",
-      "z": 2.0602930116587888,
-      "weight": 0.125,
-      "contribution": 0.2575366264573486
-    },
-    {
-      "name": "BTC",
-      "z": 1.5578442686937861,
-      "weight": -0.125,
-      "contribution": -0.19473053358672326
+      "contribution": -0.29125840201102926
     },
     {
       "name": "WTI",
-      "z": 1.5518084247884847,
+      "z": 1.9546809739556952,
       "weight": -0.125,
-      "contribution": -0.19397605309856059
+      "contribution": -0.2443351217444619
+    },
+    {
+      "name": "UST_10Y",
+      "z": 1.951681651323028,
+      "weight": 0.125,
+      "contribution": 0.2439602064153785
+    },
+    {
+      "name": "BTC",
+      "z": 1.567447598512882,
+      "weight": -0.125,
+      "contribution": -0.19593094981411024
     },
     {
       "name": "UST_2Y",
-      "z": 1.532223180653914,
+      "z": 1.5402614151945604,
       "weight": 0.125,
-      "contribution": 0.19152789758173924
+      "contribution": 0.19253267689932005
     },
     {
       "name": "DXY",
-      "z": 0.812439907660098,
+      "z": 0.7158600726352131,
       "weight": 0.125,
-      "contribution": 0.10155498845751225
+      "contribution": 0.08948250907940164
     },
     {
       "name": "VIX",
-      "z": -0.48056967275505624,
+      "z": 0.27738674761461807,
       "weight": 0.125,
-      "contribution": -0.06007120909438203
+      "contribution": 0.03467334345182726
     }
   ],
   "generation": {
@@ -68,8 +68,8 @@
       "provider_code": "yahoo",
       "series": "DX-Y.NYB",
       "source_url": "https://finance.yahoo.com/quote/DX-Y.NYB/history",
-      "observation_date": "2026-10-09",
-      "score_week": "2026-10-09",
+      "observation_date": "2026-10-16",
+      "score_week": "2026-10-16",
       "age_days": 0,
       "max_age_days": 3,
       "status": "fresh",
@@ -81,8 +81,8 @@
       "provider_code": "yahoo",
       "series": "CL=F",
       "source_url": "https://finance.yahoo.com/quote/CL%3DF/history",
-      "observation_date": "2026-10-09",
-      "score_week": "2026-10-09",
+      "observation_date": "2026-10-16",
+      "score_week": "2026-10-16",
       "age_days": 0,
       "max_age_days": 3,
       "status": "fresh",
@@ -94,8 +94,8 @@
       "provider_code": "yahoo",
       "series": "^GSPC",
       "source_url": "https://finance.yahoo.com/quote/%5EGSPC/history",
-      "observation_date": "2026-10-09",
-      "score_week": "2026-10-09",
+      "observation_date": "2026-10-16",
+      "score_week": "2026-10-16",
       "age_days": 0,
       "max_age_days": 3,
       "status": "fresh",
@@ -107,8 +107,8 @@
       "provider_code": "yahoo",
       "series": "^VIX",
       "source_url": "https://finance.yahoo.com/quote/%5EVIX/history",
-      "observation_date": "2026-10-09",
-      "score_week": "2026-10-09",
+      "observation_date": "2026-10-16",
+      "score_week": "2026-10-16",
       "age_days": 0,
       "max_age_days": 3,
       "status": "fresh",
@@ -120,8 +120,8 @@
       "provider_code": "yahoo",
       "series": "BTC-USD",
       "source_url": "https://finance.yahoo.com/quote/BTC-USD/history",
-      "observation_date": "2026-10-08",
-      "score_week": "2026-10-09",
+      "observation_date": "2026-10-15",
+      "score_week": "2026-10-16",
       "age_days": 1,
       "max_age_days": 2,
       "status": "fresh",
@@ -133,8 +133,8 @@
       "provider_code": "yahoo",
       "series": "GC=F",
       "source_url": "https://finance.yahoo.com/quote/GC%3DF/history",
-      "observation_date": "2026-10-09",
-      "score_week": "2026-10-09",
+      "observation_date": "2026-10-16",
+      "score_week": "2026-10-16",
       "age_days": 0,
       "max_age_days": 3,
       "status": "fresh",
@@ -146,8 +146,8 @@
       "provider_code": "fred",
       "series": "DGS2",
       "source_url": "https://fred.stlouisfed.org/series/DGS2",
-      "observation_date": "2026-10-08",
-      "score_week": "2026-10-09",
+      "observation_date": "2026-10-15",
+      "score_week": "2026-10-16",
       "age_days": 1,
       "max_age_days": 4,
       "status": "fresh",
@@ -159,8 +159,8 @@
       "provider_code": "fred",
       "series": "DGS10",
       "source_url": "https://fred.stlouisfed.org/series/DGS10",
-      "observation_date": "2026-10-08",
-      "score_week": "2026-10-09",
+      "observation_date": "2026-10-15",
+      "score_week": "2026-10-16",
       "age_days": 1,
       "max_age_days": 4,
       "status": "fresh",
