@@ -11,6 +11,22 @@ Status: **PREPARED, NOT EXECUTED**. No Production configuration, database migrat
 - The Score redemption function accepts the Production hostname `score.usd-impact.com` and, only when `SCORE_PREVIEW_REDEMPTION_HOST` is explicitly configured, its exact matching `*.usd-impact-pipeline.pages.dev` Preview hostname. Confirm the pinned Preview hostname and isolated routing before browser redemption acceptance; do not use a broad wildcard or Production credentials.
 - Validate that Preview routing uses the consolidated website account API actions. Current draft Score backend URL path checks refer to `/api/score-edge-redeem` and `/api/score-edge-validate`; verify they resolve via the website's Vercel rewrites before testing.
 
+## Development database checkpoint (2026-10-19)
+
+**Development only:** The `usd-impact-development` Supabase project now has three applied migrations:
+
+| Supabase migration version | Source migration | Verification |
+|---|---|---|
+| `20261019170710` | `20261019010000_score_handoff_tickets.sql` | Table exists, empty, RLS enabled, digest/expiry/audience/path constraints |
+| `20261019170741` | `20261019020000_score_member_sessions.sql` | Table exists, empty, RLS enabled, digest/session-expiry constraints |
+| `20261019170935` | `20261019030000_score_handoff_account_indexes.sql` | Both account-ID foreign-key index advisories cleared |
+
+The security advisor reports `rls_enabled_no_policy` as an informational result for both intentionally server-only tables. Its warning about the existing `request_account_deletion()` SECURITY DEFINER function is unrelated to this handoff. The account-ID index advisory for pre-existing `subscription_events` is also unrelated.
+
+**Not yet verified:** direct RPC privilege/role execution tests, real ticket issue/consume/replay, Research Membership test identities, private backend connectivity, isolated shared secrets, same-origin embedding, and the 12 live browser/security scenarios below. No Score ticket or session rows were created, and no Production database migration was applied.
+
+Website Vercel Preview flags `SCORE_HANDOFF_ISSUANCE_ENABLED`, `SCORE_EDGE_REDEMPTION_ENABLED` and `SCORE_EDGE_VALIDATION_ENABLED` were each verified as `false` on the handoff branch. Score Preview is available at `https://fix-score-membership-handoff.usd-impact-pipeline.pages.dev`; its private member paths remained denied and approved public research routes were observed accessible. **All acceptance rows below remain NOT RUN pending controlled credential wiring.**
+
 ## Acceptance matrix (record actual status, not assumptions)
 
 | Test | Expected | Result |
