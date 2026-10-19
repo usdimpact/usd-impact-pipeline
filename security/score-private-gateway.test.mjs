@@ -39,3 +39,36 @@ test('invalid validation backend denies', async () => {
   c.env.SCORE_VALIDATION_BACKEND_URL = 'http://example.test/api/score-edge-validate';
   assert.equal((await onRequest(c)).status, 403);
 });
+
+test('verified backend permits premium content without caching', async (t) => {
+  const c = ctx('/en/', { cookie: token });
+  const originalFetch = globalThis.fetch;
+  let requests = 0;
+  t.after(() => { globalThis.fetch = originalFetch; });
+  globalThis.fetch = async (url, options) => {
+    requests++;
+    assert.equal(url, 'https://www.usd-impact.com/api/score-edge-validate');
+    assert.equal(options.method, 'POST');
+    assert.equal(options.redirect, 'manual');
+    assert.equal(options.headers['X-Score-Edge-Secret'], 'x'.repeat(48));
+    assert.deepEqual(JSON.parse(options.body), { token });
+    return Response.json({ allowed: true });
+  };
+  const response = await onRequest(c);
+  assert.equal(response.status, 200);
+  assert.equal(await response.text(), 'premium content');
+  assert.equal(response.headers.get('Cache-Control'), 'private, no-store');
+  assert.equal(response.headers.get('X-Robots-Tag'), 'noindex, nofollow');
+  assert.equal(c.calls, 1);
+  assert.equal(requests, 1);
+});
+
+test('backend membership denial blocks premium content', async (t) => {
+  const c = ctx('/en/', { cookie: token });
+  const originalFetch = globalThis.fetch;
+  t.after(() => { globalThis.fetch = originalFetch; });
+  globalThis.fetch = async () => Response.json({ allowed: false });
+  const response = await onRequest(c);
+  assert.equal(response.status, 403);
+  assert.equal(c.calls, 0);
+});
