@@ -8,7 +8,7 @@ Status: **PREPARED, NOT EXECUTED**. No Production configuration, database migrat
 - Use a separate non-Production Supabase project or isolated test database with only the reviewed Score ticket/session migrations. Do not apply SQL to Production.
 - Configure Preview-only server-to-server shared secret (minimum 32 characters), HTTPS Vercel backend endpoints, and Cloudflare Preview routing. Keep Production `SCORE_HANDOFF_ISSUANCE_ENABLED`, `SCORE_EDGE_REDEMPTION_ENABLED`, and `SCORE_EDGE_GATE_ENABLED` disabled.
 - Use dedicated test identities: active Research Membership, Library Pass-only, expired/revoked membership, and anonymous. No real customer entitlement modifications.
-- The Score redemption function currently rejects hosts other than `score.usd-impact.com`. A Cloudflare Preview hostname will return 403; **do not bypass this restriction**. A separate reviewed Preview-host allowlist or isolated test hostname is required before browser redemption acceptance.
+- The Score redemption function accepts the Production hostname `score.usd-impact.com` and, only when `SCORE_PREVIEW_REDEMPTION_HOST` is explicitly configured, its exact matching `*.usd-impact-pipeline.pages.dev` Preview hostname. Confirm the pinned Preview hostname and isolated routing before browser redemption acceptance; do not use a broad wildcard or Production credentials.
 - Validate that Preview routing uses the consolidated website account API actions. Current draft Score backend URL path checks refer to `/api/score-edge-redeem` and `/api/score-edge-validate`; verify they resolve via the website's Vercel rewrites before testing.
 
 ## Acceptance matrix (record actual status, not assumptions)
