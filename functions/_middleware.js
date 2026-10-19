@@ -24,7 +24,7 @@ const PUBLIC_PATHS = new Set([
   '/data/research/score_v2_vintage_comparison_latest.html',
   '/data/research/score_v2_vintage_comparison_latest', // Pages clean URL
 ]);
-const PUBLIC_DATED_ARCHIVE_RE = /^\\/archive\\/\\d{4}-\\d{2}-\\d{2}\\/(?:score|weekly_input|repro_bundle)\\.json$/;
+const PUBLIC_DATED_ARCHIVE_RE = /^\/archive\/\d{4}-\d{2}-\d{2}\/(?:score|weekly_input|repro_bundle)\.json$/;
 function isPublicPath(pathname) {
   return PUBLIC_PATHS.has(pathname) || PUBLIC_DATED_ARCHIVE_RE.test(pathname);
 }
