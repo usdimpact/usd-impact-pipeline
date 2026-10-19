@@ -1,9 +1,9 @@
-// Cloudflare Pages Functions security perimeter for Score HTML.
-// PREVIEW-ONLY until the ticket redemption, session validation and entitlement
-// refresh are implemented and verified. Existing _redirects stay in place.
-// This function deliberately FAILS CLOSED for all HTML and unknown routes.
+// Draft-only: protected resource gate. Do not enable in production until
+// storage, membership lookup, ticket redemption and host coverage are tested.
+import { authorizeScoreEdgeRequest } from '../security/score-edge-authorization.mjs';
+
 const PUBLIC_PATHS = new Set(['/member-required.html', '/robots.txt', '/favicon.ico']);
-const PROTECTED_EXTENSIONS = /\.(?:html?|json|xml|txt|pdf|csv)$/i;
+const HOSTS = new Set(['score.usd-impact.com', 'usd-impact-pipeline.pages.dev']);
 
 function deny() {
   return new Response('Research Membership required', {
@@ -16,26 +16,26 @@ function deny() {
     },
   });
 }
-
 export async function onRequest(context) {
   const { request, env } = context;
   const url = new URL(request.url);
+  if (!HOSTS.has(url.hostname) && !url.hostname.endsWith('.usd-impact-pipeline.pages.dev')) return deny();
   if (!['GET', 'HEAD'].includes(request.method)) {
     return new Response('Method Not Allowed', { status: 405, headers: { Allow: 'GET, HEAD' } });
   }
-  // Never trust a request Host or forwarded header for entitlement.
   if (PUBLIC_PATHS.has(url.pathname)) return context.next();
 
-  // No deployment flag can unlock HTML without a server-side verified session.
-  // This flag is informational only and cannot authorize a request.
-  void env?.SCORE_HANDOFF_ISSUANCE_ENABLED;
-  if (url.pathname.endsWith('/') || PROTECTED_EXTENSIONS.test(url.pathname) ||
-      !url.pathname.includes('.')) {
-    return deny();
-  }
-
-  // Static assets are not proof of membership. The deployment must audit
-  // whether JS/CSS/images themselves contain paid research before allowing.
-  // Default deny until an explicit audited asset manifest is implemented.
-  return deny();
+  // The route remains denied without an explicit, reviewed server-side
+  // implementation. The flag alone cannot grant access.
+  if (env?.SCORE_EDGE_GATE_ENABLED !== 'true') return deny();
+  const dependencies = context.data?.scoreAuthorization;
+  if (!dependencies || typeof dependencies.sessions?.lookup !== 'function' ||
+      typeof dependencies.membership?.isActive !== 'function') return deny();
+  const decision = await authorizeScoreEdgeRequest(request, dependencies);
+  if (!decision.allowed) return deny();
+  const response = await context.next();
+  const headers = new Headers(response.headers);
+  headers.set('Cache-Control', 'private, no-store');
+  headers.set('X-Robots-Tag', 'noindex, nofollow');
+  return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
 }
