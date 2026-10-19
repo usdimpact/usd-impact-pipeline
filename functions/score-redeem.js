@@ -52,7 +52,7 @@ export async function onRequestPost({ request, env }) {
         !['/en/', '/es/', '/archive/en/', '/archive/es/'].includes(payload.path)) {
       return new Response('Score handoff unavailable', { status: 503, headers });
     }
-    const cookie = scoreSessionCookie(payload.token, Date.parse(payload.expiresAt));
+    const cookie = scoreSessionCookie(payload.token, payload.expiresAtMs);
     return new Response(null, {
       status: 303,
       headers: { ...headers, Location: payload.path, 'Set-Cookie': cookie },
