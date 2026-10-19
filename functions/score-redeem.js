@@ -10,7 +10,12 @@ export async function onRequestPost({ request, env }) {
     return new Response('Score handoff unavailable', { status: 503, headers });
   }
   const origin = new URL(request.url);
-  if (origin.hostname !== 'score.usd-impact.com') {
+  // Preview host must be explicitly pinned; never accept arbitrary Pages subdomains.
+  const previewHost = env?.SCORE_PREVIEW_REDEMPTION_HOST;
+  const previewAllowed = typeof previewHost === 'string' &&
+    /^[a-z0-9-]+\.usd-impact-pipeline\.pages\.dev$/.test(previewHost) &&
+    origin.hostname === previewHost;
+  if (origin.hostname !== 'score.usd-impact.com' && !previewAllowed) {
     return new Response('Invalid Score host', { status: 403, headers });
   }
   const contentType = request.headers.get('content-type') || '';
