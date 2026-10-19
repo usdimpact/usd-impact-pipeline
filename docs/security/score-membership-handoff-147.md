@@ -1,10 +1,10 @@
 # Score Research Membership access — implementation contract (issue #147)
 
-Status: design and test plan only; **not a deployed authorization implementation**. Keep current deny-all HTML redirects until a server-side gate has been deployed and verified.
+Status: draft Preview implementation, not Production-approved. The draft branch uses fail-closed Cloudflare middleware and no longer has unconditional membership redirects. Live end-to-end acceptance is outstanding; Production flags remain disabled.
 
 ## Confirmed failure
 
-`public/_redirects` redirects the dashboard and archive HTML paths to `/member-required.html` unconditionally. The CTA links to `https://www.usd-impact.com/account/?returnTo=%2Fscore%2F` but does not establish a session on `score.usd-impact.com`. A user with an active Research Membership therefore still receives the gate.
+Previously, `public/_redirects` redirected dashboard and archive HTML paths to `/member-required.html` unconditionally. The CTA links to `https://www.usd-impact.com/account/?returnTo=%2Fscore%2F` but does not establish a session on `score.usd-impact.com`. A user with an active Research Membership therefore still receives the gate.
 
 ## Threat model and invariants
 
@@ -30,7 +30,7 @@ Status: design and test plan only; **not a deployed authorization implementation
 
 ## Routing / deployment decision
 
-Before editing `public/_redirects`, select an enforcement deployment capable of verifying sessions **before static assets are returned** (Cloudflare Worker/Pages Functions or same-origin protected proxy). The static Pages site alone cannot implement this requirement. Keep the fail-closed redirect until the gate, ticket store, secrets, and revocation path have passed Preview tests.
+The draft branch implements `functions/_middleware.js`, which denies premium requests unless the edge gate is enabled and the private Vercel validation endpoint approves the session. The redirects file now only normalizes language paths. Preview verification of direct Pages origins and protected assets is still required before any Production change.
 
 ## Tests required
 
@@ -53,7 +53,7 @@ Before editing `public/_redirects`, select an enforcement deployment capable of 
 
 - Preview only until all security, access, browser and direct-origin bypass tests pass.
 - No changes to Score calculations, vintages, publication pipeline, data semantics, existing QA entitlements, or billing.
-- Rollback means returning to the current **fail-closed** membership-required gate; never revert to public premium HTML.
+- Rollback must preserve fail-closed membership protection, by disabling authorization and/or restoring membership-required redirects; never expose premium HTML.
 - Document deployment IDs, CI checks, direct-origin tests, and QA evidence in PR before Production approval.
 
 ## Work decomposition
@@ -63,3 +63,10 @@ Before editing `public/_redirects`, select an enforcement deployment capable of 
 3. Wire main-site iframe to the protected same-origin path and add integration tests.
 4. Remove static unconditional redirects only after the protected origin is proven.
 5. Run Preview QA; submit separate Production go/no-go review.
+
+## Draft acceptance checkpoint (2026-10-19)
+
+- Website PR #836 at `4a844e7`: Vercel Preview READY, 14 successful GitHub checks.
+- Score PR #148 at `0cdf3fd`: Cloudflare Pages and release validation successful; mocked authorized and denied middleware tests added.
+- Outstanding Preview tests: atomic single-use ticket redemption, live Research Membership entitlement, revoked/refunded session, direct Pages and custom origins, embedded and standalone browsers, no-store headers and public data behavior.
+- Release HOLD: do not merge PRs, apply Production database migrations, change Production routing, or enable Production security flags without separate approval.
