@@ -20,7 +20,7 @@ export async function onRequest(context) {
   const { request, env } = context;
   const url = new URL(request.url);
   if (!HOSTS.has(url.hostname) && !url.hostname.endsWith('.usd-impact-pipeline.pages.dev')) return deny();
-  if (!['GET', 'HEAD'].includes(request.method)) {
+  // The redemption route performs its own secret-backed authorization.\n  if (url.pathname === '/score-redeem' && request.method === 'POST') return context.next();\n  if (!['GET', 'HEAD'].includes(request.method)) {
     return new Response('Method Not Allowed', { status: 405, headers: { Allow: 'GET, HEAD' } });
   }
   if (PUBLIC_PATHS.has(url.pathname)) return context.next();
