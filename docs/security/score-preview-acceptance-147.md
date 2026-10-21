@@ -1,6 +1,23 @@
 # Score Research Membership — isolated Preview acceptance plan
 
-Status: **PREPARED, NOT EXECUTED**. No Production configuration, database migrations, secrets, or feature flags are changed by this document.
+Status: **PARTIAL ACCEPTANCE EVIDENCE — REAL AUTHENTICATED PREVIEW HANDOFF STILL NOT RUN**. No Production configuration, database migrations, secrets, or feature flags are changed by this document.
+
+## Alternative verification checkpoint — 2026-10-22
+
+| Evidence | Result and boundary |
+|---|---|
+| Website PR #836 at `2fdf0df46b160164f0118dc10faa5cc19e2e9e31` | 13 GitHub workflow checks successful; Vercel Preview READY at `dpl_3fZhsh7asKf7sXwkxJ3YSeX4zUVW`; browser requires Vercel Preview authentication |
+| Score PR #148 at `63409bcf199b7be647607aab0172ce2acc3addb6` | Score quality CI success: https://github.com/usdimpact/usd-impact-pipeline/actions/runs/39691657705 |
+| Cloudflare Score Preview (TinyFish, unauthenticated) | `/en/` blocked with no premium dashboard content; approved `/data/score_v2_methodology.json` readable |
+| Development Supabase transactional authorization test | Existing active Research Membership authorized; unknown account denied; ticket issue, duplicate refusal, atomic consume, replay denial, invalid audience/path/expired refusal, session create/lookup/duplicate refusal PASS. Explicit ROLLBACK; confirmed 0 tickets, 0 sessions and 3 unchanged active Research entitlements |
+| New isolated contract integration `security/score-preview-flow-contract.test.mjs` | Cloudflare middleware and redemption handler joined through a **mock** private backend: one-time POST -> 303 secure cookie -> protected GET -> membership recheck -> post-revocation denial; replay, disabled flags, unapproved host and outage fail closed. Test PASS in CI, **NOT a real authenticated hosted Preview test** |
+| Member-required recovery path | Draft PR updates the plain denial response with an HTTP 403 safe return link to the first-party `/score/` entry. Preview static `/member-required.html` link verified by TinyFish; fully hosted current 403 HTML and authenticated redirect chain still need browser recheck |
+| Cloudflare administration | TinyFish profile setup attempted; Cloudflare's verification challenge failed in the hosted setup browser. Do not bypass bot verification or assume credentials are captured. Use ordinary authenticated Cloudflare dashboard access if needed |
+
+**Remaining HOLD gates:** secure Cloudflare Preview variables and exact host pinning; shared-secret pairing with the *Preview-only* Vercel environment; positive authenticated live ticket/session flow and revoke-after-issue; authorized direct Cloudflare origin/asset regression; private/normal browser tests; independent security review. No Production release.
+
+**Preview cookie caveat:** Vercel `.vercel.app` and Cloudflare `.pages.dev` are different browser sites. A `SameSite=Lax` session cookie is not suitable as proof that the embedded iframe works across these Preview sites. Check standalone first and use an independently reviewed same-site or same-origin delivery path for iframe acceptance; do not weaken cookie settings or claim Production-equivalent browser acceptance from this cross-site Preview.
+
 
 ## Boundaries and prerequisites
 
