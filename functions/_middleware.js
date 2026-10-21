@@ -30,14 +30,26 @@ function isPublicPath(pathname) {
 }
 const HOSTS = new Set(['score.usd-impact.com', 'usd-impact-pipeline.pages.dev']);
 
+// Deliberately static denial page: no account IDs, tokens, query parameters,
+// request-derived HTML, JavaScript, or redirects. A denied request remains 403.
+const DENIAL_PAGE = `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow">
+<title>Research Membership required | USD Impact</title></head>
+<body><main><h1>Research Membership required</h1>
+<p>The Weekly Score dashboard requires an active Research Membership.</p>
+<p><a href="https://www.usd-impact.com/score/">Continue at USD Impact to verify membership</a></p>
+</main></body></html>`;
+
 function deny() {
-  return new Response('Research Membership required', {
+  return new Response(DENIAL_PAGE, {
     status: 403,
     headers: {
-      'Content-Type': 'text/plain; charset=utf-8',
+      'Content-Type': 'text/html; charset=utf-8',
       'Cache-Control': 'private, no-store',
       'X-Content-Type-Options': 'nosniff',
       'X-Robots-Tag': 'noindex, nofollow',
+      'Referrer-Policy': 'no-referrer',
+      'Content-Security-Policy': "default-src 'none'; base-uri 'none'; object-src 'none'; form-action 'none'",
     },
   });
 }
