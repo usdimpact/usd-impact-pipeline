@@ -80,3 +80,21 @@ test('feature flag alone never grants access', async () => {
   ctx.env.SCORE_HANDOFF_ISSUANCE_ENABLED = 'true';
   assert.equal((await onRequest(ctx)).status, 403);
 });
+
+test('denied premium requests provide safe recovery without granting access', async () => {
+  for (const path of ['/en/', '/archive/en/', '/hidden.html']) {
+    const ctx = context(path);
+    const response = await onRequest(ctx);
+    assert.equal(response.status, 403);
+    assert.equal(ctx.nextCalls, 0);
+    assert.equal(response.headers.get('Content-Type'), 'text/html; charset=utf-8');
+    assert.equal(response.headers.get('Cache-Control'), 'private, no-store');
+    assert.equal(response.headers.get('Referrer-Policy'), 'no-referrer');
+    assert.equal(response.headers.get('Set-Cookie'), null);
+    assert.match(response.headers.get('Content-Security-Policy'), /default-src 'none'/);
+    const html = await response.text();
+    assert.match(html, /href="https:\/\/www\.usd-impact\.com\/score\/"/);
+    assert.match(html, /Research Membership required/);
+    assert.doesNotMatch(html, /<script|javascript:|(?:ticket|access_token|refresh_token)=/i);
+  }
+});
