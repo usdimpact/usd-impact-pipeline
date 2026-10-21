@@ -71,6 +71,9 @@ function makeFixture() {
         if (path === '/score-redeem') {
           return onRequestPost({ request: req, env: activeEnv });
         }
+        if (path === '/data/score_v2_methodology.json') {
+          return new Response('PUBLIC_SCORE_METHODOLOGY_FIXTURE', { status: 200 });
+        }
         premiumReads++;
         return new Response(PREMIUM, { status: 200 });
       },
@@ -96,7 +99,8 @@ test('anonymous Preview is denied before serving premium bytes, public methodolo
   assert.equal(f.backendCalls, 0);
   const approved = await f.request('/data/score_v2_methodology.json');
   assert.equal(approved.status, 200);
-  assert.equal(f.premiumReads, 1, 'public approved methodology follows the public static path');
+  assert.equal(await approved.text(), 'PUBLIC_SCORE_METHODOLOGY_FIXTURE');
+  assert.equal(f.premiumReads, 0, 'public methodology does not return member-only bytes');
 });
 
 test('single-use POST redemption issues a secure short-lived cookie; next request revalidates membership', async (t) => {
