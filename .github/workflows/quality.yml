@@ -42,6 +42,28 @@ jobs:
       - name: Test Score edge security contracts
         run: node --test security/*.test.mjs
 
+      # A single credential-free POST from CI confirms the isolated Development
+      # broker has not been accidentally enabled. Never test Production here.
+      - name: Confirm Development Score broker remains disabled (anonymous POST)
+        if: github.event_name == 'pull_request' && github.head_ref == 'fix/score-membership-handoff-147'
+        env:
+          SCORE_DEV_BROKER_URL: https://ycstrcvshdluovtuasjc.supabase.co/functions/v1/score-preview-broker
+        run: |
+          set -euo pipefail
+          reply="$RUNNER_TEMP/score-dev-broker-disabled.json"
+          # No API key, auth cookie, or actual Score token in the request.
+          status="$(curl --silent --show-error --connect-timeout 8 --max-time 20 --retry 0 \
+            --output "$reply" --write-out '%{http_code}' --request POST \
+            --header 'Content-Type: application/json' \
+            --data '{"action":"validate","token":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"}' \
+            "$SCORE_DEV_BROKER_URL")"
+          if [ "$status" != '503' ]; then
+            echo "::error::Development Score broker returned unexpected HTTP $status; expected disabled 503."
+            exit 1
+          fi
+          node -e 'const fs=require("node:fs"); const data=JSON.parse(fs.readFileSync(process.argv[1],"utf8")); if(data.allowed!==false || Object.keys(data).length!==1)process.exit(1)' "$reply"
+          echo 'Isolated Development broker rejects unauthenticated POST while disabled.'
+
       - name: Check Python syntax
         run: python -m compileall -q usd_impact_score_v2.py scripts tests
 
