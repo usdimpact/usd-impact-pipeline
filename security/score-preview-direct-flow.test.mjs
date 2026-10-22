@@ -1,192 +1,138 @@
-// Full Cloudflare middleware + Pages Function Preview flow using an in-memory
-// mock of the existing Development Supabase RPCs. NO live user or DB changes.
+// Isolated in-memory Cloudflare Pages -> Supabase Edge broker -> Development
+// RPC chain. No live network, account, secret or deployment mutation occurs.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { onRequest } from '../functions/_middleware.js';
 import { onRequestPost } from '../functions/score-redeem.js';
-import {
-  SCORE_DIRECT_PREVIEW_HOST, SCORE_DIRECT_WEBSITE_ORIGIN,
-} from './score-preview-dev-rpc.mjs';
+import { handleScorePreviewBroker } from './score-preview-broker-server.mjs';
+import { SCORE_PREVIEW_BROKER_URL } from './score-preview-broker-client.mjs';
+import { SCORE_DIRECT_PREVIEW_HOST, SCORE_DIRECT_WEBSITE_ORIGIN } from './score-preview-dev-rpc.mjs';
 
-const ticket = 'T'.repeat(43);
-const devAccount = '11111111-1111-4111-8111-111111111111';
-const developmentKey = 'sb_secret_' + 'M'.repeat(32);
-const premiumHtml = 'ONLY_RESEARCH_MEMBERS_MAY_READ';
-const expectedRpcPrefix = 'https://ycstrcvshdluovtuasjc.supabase.co/rest/v1/rpc/';
+const TICKET = 'T'.repeat(43);
+const ACCOUNT = '11111111-1111-4111-8111-111111111111';
+const SHARED = 's'.repeat(64);
+const DB_KEY = 'sb_secret_' + 'd'.repeat(32);
+const PREMIUM = 'ONLY_RESEARCH_MEMBERS_MAY_READ';
 
 function fixture() {
-  let ticketPending = true;
-  let activeMembership = true;
-  let sessionDigest = null;
-  let premiumReads = 0;
-  const rpcCalls = [];
+  let unused = true, member = true, sessionDigest = null, premiumReads = 0;
+  let brokerCalls = 0, dbCalls = 0, brokerUp = true;
   const env = {
-    SCORE_DIRECT_DEV_BACKEND_ENABLED: 'true',
-    SCORE_PREVIEW_SUPABASE_SECRET_KEY: developmentKey,
+    SCORE_DEV_BROKER_ENABLED: 'true',
     SCORE_EDGE_GATE_ENABLED: 'true',
     SCORE_EDGE_REDEMPTION_ENABLED: 'true',
     SCORE_PREVIEW_REDEMPTION_HOST: SCORE_DIRECT_PREVIEW_HOST,
-    // An unrelated, inaccessible Vercel backend must not be called.
-    SCORE_BACKEND_URL: 'https://not-an-allowed-vercel-host.test/api/score-edge-redeem',
-    SCORE_VALIDATION_BACKEND_URL: 'https://not-an-allowed-vercel-host.test/api/score-edge-validate',
-    SCORE_EDGE_SHARED_SECRET: 'x'.repeat(48),
+    SCORE_EDGE_SHARED_SECRET: SHARED,
+    SCORE_BACKEND_URL: 'https://invalid-preview.example.test/api/score-edge-redeem',
+    SCORE_VALIDATION_BACKEND_URL: 'https://invalid-preview.example.test/api/score-edge-validate',
   };
-  async function mockedFetch(url, options) {
-    rpcCalls.push(url);
-    assert.ok(url.startsWith(expectedRpcPrefix), 'Never call Vercel or arbitrary external URLs');
-    assert.equal(options.headers.apikey, developmentKey);
+  async function dbFetch(url, options) {
+    dbCalls++;
+    assert.match(url, /^https:\/\/ycstrcvshdluovtuasjc\.supabase\.co\/rest\/v1\/rpc\//);
+    assert.equal(options.headers.apikey, DB_KEY);
     assert.equal(options.headers.Authorization, undefined);
-    assert.equal(options.redirect, 'error');
-    const kind = url.slice(expectedRpcPrefix.length);
-    const input = JSON.parse(options.body);
-    if (kind === 'score_ticket_consume_atomic') {
-      if (!ticketPending) return Response.json(null);
-      ticketPending = false;
+    const name = url.split('/').at(-1), body = JSON.parse(options.body);
+    if (name === 'score_ticket_consume_atomic') {
+      if (!unused) return Response.json(null);
+      unused = false;
       return Response.json({
-        digest: input.p_digest, account_id: devAccount,
-        audience: 'score.usd-impact.com', path: '/en/',
-        expires_at: new Date(Date.now() + 40_000).toISOString(),
+        digest:body.p_digest,account_id:ACCOUNT,audience:'score.usd-impact.com',path:'/en/',
+        expires_at:new Date(Date.now()+40_000).toISOString(),
       });
     }
-    if (kind === 'score_membership_active') return Response.json(activeMembership);
-    if (kind === 'score_session_create') {
-      if (!activeMembership) return Response.json(false);
-      sessionDigest = input.p_digest;
-      return Response.json(true);
+    if (name === 'score_membership_active') return Response.json(member);
+    if (name === 'score_session_create') {
+      sessionDigest=body.p_digest;
+      return Response.json(member);
     }
-    if (kind === 'score_session_lookup') {
-      return Response.json(activeMembership && input.p_digest === sessionDigest ?
-        { account_id: devAccount, expires_at: new Date(Date.now() + 11 * 60_000).toISOString() } : null);
-    }
-    throw Error('Unexpected RPC name');
+    if (name === 'score_session_lookup') return Response.json(member && body.p_digest===sessionDigest ?
+      {account_id:ACCOUNT,expires_at:new Date(Date.now()+10*60_000).toISOString()} : null);
+    throw new Error('Unexpected database RPC: '+name);
   }
-  async function request(path, options = {}) {
-    const method = options.method || 'GET';
-    const headers = {};
-    if (options.cookie) headers.cookie = options.cookie;
-    if (method === 'POST') {
-      headers['Content-Type'] = 'application/x-www-form-urlencoded';
-      if (options.origin !== undefined) headers.Origin = options.origin;
-    }
-    const req = new Request('https://' + (options.host || SCORE_DIRECT_PREVIEW_HOST) + path, {
-      method, headers, ...(method === 'POST' ? {
-        body: new URLSearchParams({ ticket: options.ticket ?? ticket }),
-      } : {}),
-    });
-    const chosenEnv = { ...env, ...options.override };
-    return onRequest({
-      request: req,
-      env: chosenEnv,
-      next() {
-        if (path === '/score-redeem') return onRequestPost({ request: req, env: chosenEnv });
-        if (path === '/data/score_v2_methodology.json') {
-          return new Response('PUBLIC_METHOD', { status: 200 });
-        }
-        premiumReads++;
-        return new Response(premiumHtml, { status: 200 });
-      },
-    });
+  async function cloudflareFetch(url, options) {
+    brokerCalls++;
+    assert.equal(url,SCORE_PREVIEW_BROKER_URL);
+    assert.equal(options.headers['X-Score-Edge-Secret'],SHARED);
+    assert.equal(options.headers.apikey,undefined,'Cloudflare must never hold the database key');
+    if (!brokerUp) throw new Error('Broker unreachable');
+    const req=new Request(url,{method:'POST',headers:options.headers,body:options.body});
+    return handleScorePreviewBroker(req,{
+      enabled:'true',supabaseUrl:'https://ycstrcvshdluovtuasjc.supabase.co',
+      sharedSecret:SHARED,supabaseSecretKey:DB_KEY,
+    },dbFetch);
   }
-  return {
-    mockedFetch, request, rpcCalls,
-    get premiumReads() { return premiumReads; },
-    revoke() { activeMembership = false; },
-  };
+  async function request(path, params={}) {
+    const method=params.method||'GET';
+    const headers={};
+    if(params.cookie) headers.cookie=params.cookie;
+    if(method==='POST'){
+      headers['Content-Type']='application/x-www-form-urlencoded';
+      if(params.origin!==undefined)headers.Origin=params.origin;
+    }
+    const req=new Request('https://'+(params.host||SCORE_DIRECT_PREVIEW_HOST)+path,{
+      method,headers,...(method==='POST'?{body:new URLSearchParams({ticket:params.ticket||TICKET})}:{})
+    });
+    const selected={...env,...(params.override||{})};
+    return onRequest({request:req,env:selected,next:()=>{
+      if(path==='/score-redeem')return onRequestPost({request:req,env:selected});
+      if(path==='/data/score_v2_methodology.json')return new Response('PUBLIC_METHOD',{status:200});
+      premiumReads++;return new Response(PREMIUM,{status:200});
+    }});
+  }
+  return {request,cloudflareFetch,get dbCalls(){return dbCalls;},
+    get brokerCalls(){return brokerCalls;},get premiumReads(){return premiumReads;},
+    revoke(){member=false},brokerDown(){brokerUp=false}};
 }
-
-test('direct Preview flow: one-use POST, secure cookie, every-request membership checks, revocation', async (t) => {
-  const f=fixture();
-  const originalFetch=globalThis.fetch;
-  globalThis.fetch=f.mockedFetch;
-  t.after(()=>{ globalThis.fetch=originalFetch; });
-  const denied=await f.request('/en/');
-  assert.equal(denied.status,403);
+test('Preview: opaque POST -> broker -> DB -> host-only session -> recheck -> revoke',async(t)=>{
+  const f=fixture(),original=globalThis.fetch;
+  globalThis.fetch=f.cloudflareFetch;t.after(()=>{globalThis.fetch=original;});
+  assert.equal((await f.request('/en/')).status,403);
   assert.equal(f.premiumReads,0);
-  const approved=await f.request('/data/score_v2_methodology.json');
-  assert.equal(approved.status,200);
-  assert.equal(await approved.text(),'PUBLIC_METHOD');
-
-  const redeemed=await f.request('/score-redeem',{
-    method:'POST',origin:SCORE_DIRECT_WEBSITE_ORIGIN,
-  });
-  assert.equal(redeemed.status,303);
-  assert.equal(redeemed.headers.get('Location'),'/en/');
-  assert.equal(redeemed.headers.get('Cache-Control'),'no-store');
-  const setCookie=redeemed.headers.get('Set-Cookie');
+  const publicFile=await f.request('/data/score_v2_methodology.json');
+  assert.equal(publicFile.status,200);
+  assert.equal(await publicFile.text(),'PUBLIC_METHOD');
+  const granted=await f.request('/score-redeem',{method:'POST',origin:SCORE_DIRECT_WEBSITE_ORIGIN});
+  assert.equal(granted.status,303);
+  assert.equal(granted.headers.get('Location'),'/en/');
+  const setCookie=granted.headers.get('Set-Cookie');
   assert.match(setCookie,/^__Host-score_session=[A-Za-z0-9_-]{43};/);
-  for(const required of ['Secure','HttpOnly','SameSite=Lax','Path=/']) {
-    assert.ok(setCookie.includes(required));
-  }
-  assert.ok(!setCookie.includes(ticket));
+  for(const s of ['Secure','HttpOnly','SameSite=Lax','Path=/'])assert.ok(setCookie.includes(s));
+  assert.equal(setCookie.includes(TICKET),false);
   const cookie=setCookie.split(';')[0];
-  assert.ok(f.rpcCalls.length===3);
-  const content=await f.request('/en/',{cookie});
-  assert.equal(content.status,200);
-  assert.equal(await content.text(),premiumHtml);
-  assert.equal(content.headers.get('Cache-Control'),'private, no-store');
-  assert.equal(f.premiumReads,1);
+  const member=await f.request('/en/',{cookie});
+  assert.equal(member.status,200);
+  assert.equal(await member.text(),PREMIUM);
+  assert.equal(member.headers.get('Cache-Control'),'private, no-store');
   assert.equal((await f.request('/archive/en/',{cookie})).status,200);
   assert.equal(f.premiumReads,2);
-
-  const replay=await f.request('/score-redeem',{method:'POST',origin:SCORE_DIRECT_WEBSITE_ORIGIN});
-  assert.equal(replay.status,403);
-  assert.equal(replay.headers.get('Set-Cookie'),null);
+  assert.equal((await f.request('/score-redeem',{method:'POST',origin:SCORE_DIRECT_WEBSITE_ORIGIN})).status,403);
   f.revoke();
-  const revoked=await f.request('/en/',{cookie});
-  assert.equal(revoked.status,403);
-  assert.doesNotMatch(await revoked.text(),/ONLY_RESEARCH_MEMBERS_MAY_READ/);
+  const rejected=await f.request('/en/',{cookie});
+  assert.equal(rejected.status,403);
+  assert.equal((await rejected.text()).includes(PREMIUM),false);
   assert.equal(f.premiumReads,2);
+  assert.ok(f.brokerCalls>=5);
+  assert.ok(f.dbCalls>=5);
 });
-
-test('ticket injection, invalid preview host, production and disabled flags fail closed',async(t)=>{
-  const f=fixture();
-  const oldFetch=globalThis.fetch;
-  globalThis.fetch=f.mockedFetch;
-  t.after(()=>{globalThis.fetch=oldFetch;});
-  const rejectOrigin=await f.request('/score-redeem',{
-    method:'POST',origin:'https://evil.test',
-  });
-  assert.equal(rejectOrigin.status,403);
-  assert.equal((await f.request('/score-redeem',{method:'POST'})).status,403,'no Origin is not allowed');
-  assert.equal(f.rpcCalls.length,0);
+test('wrong host, wrong Origin, absent flags, broken broker all deny without serving premium content',async(t)=>{
+  const f=fixture(),original=globalThis.fetch;
+  globalThis.fetch=f.cloudflareFetch;t.after(()=>{globalThis.fetch=original;});
+  for(const origin of [undefined,'https://attacker.test','null']){
+    assert.equal((await f.request('/score-redeem',{method:'POST',origin})).status,403);
+  }
+  assert.equal(f.brokerCalls,0);
   assert.equal((await f.request('/score-redeem',{
-    method:'POST',origin:SCORE_DIRECT_WEBSITE_ORIGIN,
-    host:'score.usd-impact.com',
-  })).status,403,'production domain cannot use Development backend');
+    method:'POST',origin:SCORE_DIRECT_WEBSITE_ORIGIN,host:'score.usd-impact.com'})).status,403);
   assert.equal((await f.request('/score-redeem',{
-    method:'POST',origin:SCORE_DIRECT_WEBSITE_ORIGIN,
-    host:'other.usd-impact-pipeline.pages.dev',
-  })).status,403,'unlisted Pages hosts are denied');
+    method:'POST',origin:SCORE_DIRECT_WEBSITE_ORIGIN,host:'other.usd-impact-pipeline.pages.dev'})).status,403);
   assert.equal((await f.request('/score-redeem',{
-    method:'POST',origin:SCORE_DIRECT_WEBSITE_ORIGIN,
-    override:{SCORE_EDGE_REDEMPTION_ENABLED:'false'},
-  })).status,503);
+    method:'POST',origin:SCORE_DIRECT_WEBSITE_ORIGIN,override:{SCORE_EDGE_REDEMPTION_ENABLED:'false'}})).status,503);
   assert.equal((await f.request('/en/',{
-    cookie:'__Host-score_session='+'S'.repeat(43),
-    override:{SCORE_EDGE_GATE_ENABLED:'false'},
-  })).status,403);
-  assert.equal(f.premiumReads,0);
-  assert.equal(f.rpcCalls.length,0);
-});
-
-test('missing Development secret or RPC outage never grants a Preview session',async(t)=>{
-  const f=fixture();
-  const oldFetch=globalThis.fetch;
-  globalThis.fetch=f.mockedFetch;
-  t.after(()=>{globalThis.fetch=oldFetch;});
-  const badKey=await f.request('/score-redeem',{
-    method:'POST',origin:SCORE_DIRECT_WEBSITE_ORIGIN,
-    override:{SCORE_PREVIEW_SUPABASE_SECRET_KEY:'sk_live_bad'},
-  });
-  assert.equal(badKey.status,503);
-  assert.equal(badKey.headers.get('Set-Cookie'),null);
-  assert.equal(f.rpcCalls.length,0);
-  globalThis.fetch=async()=>{throw Error('network unreachable')};
-  const outage=await f.request('/score-redeem',{
-    method:'POST',origin:SCORE_DIRECT_WEBSITE_ORIGIN,
-  });
-  assert.equal(outage.status,503);
-  assert.equal(outage.headers.get('Set-Cookie'),null);
-  assert.equal((await f.request('/en/',{cookie:'__Host-score_session='+'S'.repeat(43)})).status,403);
+    cookie:'__Host-score_session='+'S'.repeat(43),override:{SCORE_EDGE_GATE_ENABLED:'false'}})).status,403);
+  f.brokerDown();
+  assert.equal((await f.request('/score-redeem',{
+    method:'POST',origin:SCORE_DIRECT_WEBSITE_ORIGIN})).status,503);
+  assert.equal((await f.request('/en/',{
+    cookie:'__Host-score_session='+'S'.repeat(43)})).status,403);
   assert.equal(f.premiumReads,0);
 });
