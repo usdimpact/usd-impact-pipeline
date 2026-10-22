@@ -3,7 +3,7 @@
 // Development Edge broker mode remains disabled until isolated Preview acceptance.
 import { scoreSessionCookie } from '../security/score-session-cookie.mjs';
 import { scoreBackendEndpoint } from '../security/score-backend-endpoints.mjs';
-import { SCORE_DIRECT_WEBSITE_ORIGIN, scoreDevBrokerPreviewEnabled } from '../security/score-preview-dev-rpc.mjs';
+import { SCORE_DIRECT_WEBSITE_ORIGIN, scoreDevBrokerPreviewEnabled } from '../security/score-preview-host-policy.mjs';
 import { redeemScoreBrokerTicket } from '../security/score-preview-broker-client.mjs';
 
 // A hostile client can omit or falsify Content-Length. Cap the streamed bytes
