@@ -4,7 +4,7 @@ import { onRequestPost } from '../functions/score-redeem.js';
 
 const ticket = 'a'.repeat(43);
 const preview = 'fix-score-membership-handoff-147.usd-impact-pipeline.pages.dev';
-const backend = 'https://preview.example.test/api/score-edge-redeem';
+const backend = 'https://usd-impact-site-qjfsh5lm7-usd-impact.vercel.app/api/score-edge-redeem';
 function context(hostname, configuredHost) {
   return {
     request: new Request('https://' + hostname + '/score-redeem', {
