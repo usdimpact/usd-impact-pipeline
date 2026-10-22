@@ -199,7 +199,7 @@ test('Worker Preview dependency graph excludes private Supabase RPC modules',()=
     assert.doesNotMatch(source,/SCORE_PREVIEW_SUPABASE_SECRET_KEY|SUPABASE_SECRET_KEYS|\/rest\/v1\/rpc\//);
     for(const match of source.matchAll(/(?:\b(?:import|export)\s+[\s\S]{0,200}?\s+from\s*|\bimport\s*)['"](\.{1,2}\/[^'"]+)['"]/g)){
       const dependency=relative(root,resolve(dirname(resolve(root,file)),match[1])).split(sep).join('/');
-      assert.ok(allowed.has(dependency),'unknown Worker's dependency: '+file+' => '+dependency);
+      assert.ok(allowed.has(dependency),'Unknown Worker dependency: '+file+' => '+dependency);
       queue.push(dependency);
     }
   }
