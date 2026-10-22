@@ -67,7 +67,7 @@ jobs:
       # The published branch Preview must not redeem even synthetic tickets.
       # Intentional Preview activation requires a separate reviewed test plan.
       - name: Confirm Cloudflare Score Preview redemption stays disabled
-        if: github.event_name == 'pull_request' && github.head_ref == 'fix-score-membership-handoff-147'
+        if: github.event_name == 'pull_request' && github.head_ref == 'fix/score-membership-handoff-147'
         env:
           SCORE_CF_PREVIEW_URL: https://fix-score-membership-handoff.usd-impact-pipeline.pages.dev/score-redeem
         run: |
