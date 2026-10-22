@@ -2,6 +2,7 @@
 // single-use ticket is not placed in URL, referrer or browser history.
 // Disabled until private Vercel endpoint and database migrations are verified.
 import { scoreSessionCookie } from '../security/score-session-cookie.mjs';
+import { scoreBackendEndpoint } from '../security/score-backend-endpoints.mjs';
 
 export async function onRequestPost({ request, env }) {
   const headers = { 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer' };
@@ -34,17 +35,13 @@ export async function onRequestPost({ request, env }) {
   if (!/^[A-Za-z0-9_-]{43}$/.test(ticket || '')) {
     return new Response('Invalid ticket', { status: 400, headers });
   }
-  // Backend URL must be an exact trusted deployment URL configured in Preview.
-  let backend;
-  try {
-    backend = new URL(env.SCORE_BACKEND_URL);
-    if (backend.protocol !== 'https:' || backend.username || backend.password ||
-        backend.search || backend.hash || backend.pathname !== '/api/score-edge-redeem') throw Error();
-  } catch {
+  // Never forward the Cloudflare shared secret to arbitrary HTTPS endpoints.
+  const backend = scoreBackendEndpoint(env.SCORE_BACKEND_URL, '/api/score-edge-redeem');
+  if (!backend) {
     return new Response('Score handoff unavailable', { status: 503, headers });
   }
   try {
-    const result = await fetch(backend.href, {
+    const result = await fetch(backend, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json',
         'X-Score-Edge-Secret': env.SCORE_EDGE_SHARED_SECRET },
