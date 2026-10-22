@@ -2,7 +2,7 @@
 // on EVERY premium request. No client-controlled identity or access claims.
 import { readScoreSessionCookie } from '../security/score-session-cookie.mjs';
 import { scoreBackendEndpoint } from '../security/score-backend-endpoints.mjs';
-import { scoreDevBrokerPreviewEnabled } from '../security/score-preview-dev-rpc.mjs';
+import { scoreDevBrokerPreviewEnabled } from '../security/score-preview-host-policy.mjs';
 import { scoreBrokerSessionAllowed } from '../security/score-preview-broker-client.mjs';
 
 // Only artifacts already published as public methodology/reproducibility data
