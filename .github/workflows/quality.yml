@@ -64,6 +64,27 @@ jobs:
           node -e 'const fs=require("node:fs"); const data=JSON.parse(fs.readFileSync(process.argv[1],"utf8")); if(data.allowed!==false || Object.keys(data).length!==1)process.exit(1)' "$reply"
           echo 'Isolated Development broker rejects unauthenticated POST while disabled.'
 
+      # The published branch Preview must not redeem even synthetic tickets.
+      # Intentional Preview activation requires a separate reviewed test plan.
+      - name: Confirm Cloudflare Score Preview redemption stays disabled
+        if: github.event_name == 'pull_request' && github.head_ref == 'fix-score-membership-handoff-147'
+        env:
+          SCORE_CF_PREVIEW_URL: https://fix-score-membership-handoff.usd-impact-pipeline.pages.dev/score-redeem
+        run: |
+          set -euo pipefail
+          reply="$RUNNER_TEMP/score-cloudflare-disabled.txt"
+          status="$(curl --silent --show-error --connect-timeout 8 --max-time 20 --retry 0 \
+            --output "$reply" --write-out '%{http_code}' --request POST \
+            --header 'Content-Type: application/x-www-form-urlencoded' \
+            --data-raw 'ticket=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' \
+            "$SCORE_CF_PREVIEW_URL")"
+          if [ "$status" != '503' ]; then
+            echo "::error::Cloudflare Score Preview redemption unexpectedly returned HTTP $status; expected disabled 503."
+            exit 1
+          fi
+          node -e 'const fs=require("node:fs"); if(fs.readFileSync(process.argv[1],"utf8")!=="Score handoff unavailable") process.exit(1)' "$reply"
+          echo 'Cloudflare Score Preview handoff route remains disabled.'
+
       - name: Check Python syntax
         run: python -m compileall -q usd_impact_score_v2.py scripts tests
 
