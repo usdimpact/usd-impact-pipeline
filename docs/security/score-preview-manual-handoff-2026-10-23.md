@@ -1,3 +1,18 @@
+## Cloudflare API execution evidence — 22 October 2026
+
+- The dedicated **parent Worker** `usd-impact-score-isolated-dev` and one isolated **Preview** `pr-148` were created via the authorized Cloudflare API; the actual URL is **https://pr-148-usd-impact-score-isolated-dev.michael-w-d0b.workers.dev**.
+- The reviewed **six JavaScript Worker modules** from Score draft commit `8e65a944a1afca03254f669de11687a6086cc163` have been deployed **only to the Preview**. The latest Cloudflare Preview deployment is `6c88746c-c376-437f-935b-883716d64dbd`.
+- Two Preview-only, approximate rate-limit bindings are installed: `SCORE_PREVIEW_REDEEM_LIMIT` (namespace `817420621`, 30/60s per location) and `SCORE_PREVIEW_VALIDATE_LIMIT` (namespace `817420622`, 180/60s per location). The exact Preview origin binding is also installed. Four activation flags all remain **false**.
+- **Production:** parent Worker subdomain disabled; no Production Worker code/deployment, custom domain, route or trigger. Existing Pages project unchanged.
+- **Live denied-state:** Preview `GET /en/`, `GET /archive/es/`, and `GET /data/score_v2_methodology.json` each returned HTTP **503** while disabled. This is expected; public files are also disabled until explicitly allowed later.
+- **Only remaining deployment artifact:** static files. The repository branch includes `public/` and `workers/score-preview/wrangler.jsonc`; no external attachment is required. The official Cloudflare API manifest upload session issued a token, but **the asset upload returned HTTP 401** through the OAuth API connector, including a trial with the temporary upload token. **No assets were uploaded or attached** and the `ASSETS` binding is absent. Do **not** copy temporary upload tokens to chat/PRs or change the Production Worker to work around it.
+- **Browser-only fallback:** Open [Score PR #148 branch](https://github.com/usdimpact/usd-impact-pipeline/tree/fix/score-membership-handoff-147) → **Code → Codespaces → Create codespace on this branch**. In the cloud terminal, authenticate using `npx --yes wrangler@4.135.0 login`, verify the account with `npx --yes wrangler@4.135.0 whoami`, then run `npx --yes wrangler@4.135.0 preview --name pr-148 --config workers/score-preview/wrangler.jsonc --json`. This updates **only** the existing Preview, uploading the `public/` assets and runtime bindings; do **not** run `wrangler deploy`, merge PRs, enable any flag or add a Production route.
+- The actual verified hostname is now included **only** in `previews.vars.SCORE_WORKER_PREVIEW_ORIGIN` in Wrangler config; source tests check this. This is public infrastructure metadata, not a secret.
+- Next: after an authenticated Preview upload, inspect the actual `ASSETS` binding and (run_worker_first) setting, confirm live all-off HTTP 503, audit no Production deploy, then separately plan real Research Membership activation acceptance.
+
+**Release HOLD:** source and safe Preview infrastructure are ready; the Worker is NOT ready to serve assets or real members.
+
+
 # 23 October 2026 — USD Impact Score Workers Preview manual handoff
 
 ## 22 October 2026 — verified same-day checkpoint (supersedes earlier package blocker)

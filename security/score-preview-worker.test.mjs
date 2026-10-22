@@ -163,6 +163,9 @@ test('preview-only rate limiting configuration and asset-first bypass are static
   assert.equal(config.assets.directory,'../../public');
   assert.equal(config.routes,undefined);
   assert.equal(config.previews.vars.SCORE_WORKER_PREVIEW_ENABLED,'false');
+  assert.equal(config.previews.vars.SCORE_WORKER_PREVIEW_ORIGIN,
+    'https://pr-148-usd-impact-score-isolated-dev.michael-w-d0b.workers.dev');
+  assert.equal(config.vars.SCORE_WORKER_PREVIEW_ORIGIN,undefined);
   for(const key of ['SCORE_DEV_BROKER_ENABLED','SCORE_EDGE_GATE_ENABLED','SCORE_EDGE_REDEMPTION_ENABLED']){
     assert.equal(config.previews.vars[key],'false');
     assert.equal(config.vars[key],'false');
