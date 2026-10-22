@@ -14,6 +14,8 @@ async function invoke(action, token, env, fetchImpl) {
   if (!name) throw new Error('Unsupported broker operation');
   const result = await fetchImpl(SCORE_PREVIEW_BROKER_URL, {
     method: 'POST', redirect: 'error', cache: 'no-store',
+    // Bound the entire Cloudflare-to-Development broker request, including response body.
+    signal: AbortSignal.timeout(18_000),
     headers: {
       'Content-Type': 'application/json',
       Accept: 'application/json',
