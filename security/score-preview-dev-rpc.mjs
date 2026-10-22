@@ -1,7 +1,7 @@
-// Isolated Cloudflare Pages Preview -> Development Supabase Score session route.
+// Private Development Supabase RPC adapter used exclusively inside the Edge broker.
 // Deliberately uses Web Crypto only (Cloudflare Pages runtime, not Node).
 // All RPCs are server-side and restricted to the existing service_role grants.
-// Do not provide a Production secret or enable flags without security approval.
+// Never copy its privileged key to Cloudflare Pages or Production.
 
 export const SCORE_DIRECT_PREVIEW_HOST = 'fix-score-membership-handoff.usd-impact-pipeline.pages.dev';
 export const SCORE_DIRECT_WEBSITE_ORIGIN = 'https://usd-impact-site-git-feat-score-membership-han-fb189b-usd-impact.vercel.app';
@@ -16,8 +16,8 @@ const RPC_NAMES = new Set([
   'score_session_create', 'score_session_lookup',
 ]);
 
-export function scoreDirectDevEnabled(request, env) {
-  if (env?.SCORE_DIRECT_DEV_BACKEND_ENABLED !== 'true') return false;
+export function scoreDevBrokerPreviewEnabled(request, env) {
+  if (env?.SCORE_DEV_BROKER_ENABLED !== 'true') return false;
   try {
     const url = new URL(request.url);
     return url.protocol === 'https:' && url.hostname === SCORE_DIRECT_PREVIEW_HOST &&
@@ -41,9 +41,8 @@ function newScoreSessionToken() {
 }
 
 function privateRpc(env, fetchImpl) {
-  // Hostname is hardcoded: a misconfigured URL must not redirect credentials
-  // to a Production instance or an attacker. This module only operates on
-  // the exact Cloudflare Preview host, enforced by each calling route.
+  // Hardcoded Development database; only the isolated Supabase Edge broker
+  // passes a server-only secret key. Never expose the key in Pages Preview.
   const key = env?.SCORE_PREVIEW_SUPABASE_SECRET_KEY;
   if (typeof key !== 'string' || !KEY_RE.test(key)) {
     throw new Error('Score Development credential unavailable');
