@@ -1,6 +1,7 @@
 // Cloudflare Pages Functions Score perimeter. Private validation is required
 // on EVERY premium request. No client-controlled identity or access claims.
 import { readScoreSessionCookie } from '../security/score-session-cookie.mjs';
+import { scoreBackendEndpoint } from '../security/score-backend-endpoints.mjs';
 
 // Only artifacts already published as public methodology/reproducibility data
 // bypass the membership gate. Never open a directory prefix: archive HTML,
@@ -53,14 +54,6 @@ function deny() {
     },
   });
 }
-function backendUrl(value) {
-  try {
-    const url = new URL(value);
-    if (url.protocol !== 'https:' || url.username || url.password ||
-        url.search || url.hash || url.pathname !== '/api/score-edge-validate') return null;
-    return url.href;
-  } catch { return null; }
-}
 export async function onRequest(context) {
   const { request, env } = context;
   const url = new URL(request.url);
@@ -73,7 +66,7 @@ export async function onRequest(context) {
 
   if (env?.SCORE_EDGE_GATE_ENABLED !== 'true') return deny();
   const token = readScoreSessionCookie(request.headers.get('cookie'));
-  const endpoint = backendUrl(env?.SCORE_VALIDATION_BACKEND_URL);
+  const endpoint = scoreBackendEndpoint(env?.SCORE_VALIDATION_BACKEND_URL, '/api/score-edge-validate');
   if (!token || !endpoint || typeof env?.SCORE_EDGE_SHARED_SECRET !== 'string' ||
       env.SCORE_EDGE_SHARED_SECRET.length < 32) return deny();
   try {
