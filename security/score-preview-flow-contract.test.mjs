@@ -7,7 +7,7 @@ import { onRequest } from '../functions/_middleware.js';
 import { onRequestPost } from '../functions/score-redeem.js';
 
 const HOST = 'fix-score-membership-handoff.usd-impact-pipeline.pages.dev';
-const BACKEND = 'https://preview.example.test';
+const BACKEND = 'https://usd-impact-site-qjfsh5lm7-usd-impact.vercel.app';
 const TICKET = 'T'.repeat(43);
 const SESSION = 'S'.repeat(43);
 const SECRET = 'x'.repeat(48);
