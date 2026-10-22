@@ -15,7 +15,7 @@ async function parseBoundedTicket(request) {
   if (media !== 'application/x-www-form-urlencoded') return null;
   const advertised = request.headers.get('content-length');
   if (advertised !== null &&
-      (!/^\\d+$/.test(advertised) || Number(advertised) > MAX_HANDOFF_BYTES)) return null;
+      (!/^\d+$/.test(advertised) || Number(advertised) > MAX_HANDOFF_BYTES)) return null;
   const reader = request.body?.getReader();
   if (!reader) return null;
   let bytes = 0;
