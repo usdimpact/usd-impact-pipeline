@@ -72,3 +72,22 @@ test('backend membership denial blocks premium content', async (t) => {
   assert.equal(response.status, 403);
   assert.equal(c.calls, 0);
 });
+
+
+test('invalid or stale Preview validation hosts are blocked before forwarding the shared secret', async (t) => {
+  const originalFetch = globalThis.fetch;
+  t.after(() => { globalThis.fetch = originalFetch; });
+  let calls = 0;
+  globalThis.fetch = async () => { calls++; throw Error('must not fetch attacker endpoint'); };
+  for (const url of [
+    'https://evil.example.test/api/score-edge-validate',
+    'https://usd-impact-site-8lvzao44t-usd-impact.vercel.app/api/score-edge-validate',
+    'https://www.usd-impact.com/api/score-edge-validate?next=evil',
+  ]) {
+    const c = ctx('/en/', { cookie: token });
+    c.env.SCORE_VALIDATION_BACKEND_URL = url;
+    assert.equal((await onRequest(c)).status, 403);
+    assert.equal(c.calls, 0);
+  }
+  assert.equal(calls, 0);
+});
