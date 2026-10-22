@@ -53,3 +53,23 @@ test('Production hostname remains accepted independently of Preview setting', as
   assert.equal((await onRequestPost(context('score.usd-impact.com'))).status, 403);
   assert.equal(calls, 1);
 });
+
+
+test('a changed Preview backend host cannot receive the private edge secret', async (t) => {
+  const originalFetch = globalThis.fetch;
+  t.after(() => { globalThis.fetch = originalFetch; });
+  let requests = 0;
+  globalThis.fetch = async () => { requests++; throw Error('backend must not be contacted'); };
+  for (const host of [
+    'https://attacker.example.test/api/score-edge-redeem',
+    'https://usd-impact-site-8lvzao44t-usd-impact.vercel.app/api/score-edge-redeem',
+    'https://usd-impact-site-qjfsh5lm7-usd-impact.vercel.app/api/score-edge-redeem?redirect=1',
+  ]) {
+    const ctx = context(preview, preview);
+    ctx.env.SCORE_BACKEND_URL = host;
+    const resp = await onRequestPost(ctx);
+    assert.equal(resp.status, 503);
+    assert.equal(resp.headers.get('Set-Cookie'), null);
+  }
+  assert.equal(requests, 0);
+});
