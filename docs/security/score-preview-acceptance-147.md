@@ -1,5 +1,47 @@
 # Score Research Membership — isolated Preview acceptance plan
 
+## 2026-10-22 — Development broker deployed and live disabled-state acceptance VERIFIED
+
+**Actual Development deployment:** project `usd-impact-development` (`ycstrcvshdluovtuasjc`),
+Supabase Edge Function `score-preview-broker`, version 1,
+ID `66136fed-7728-49be-94a5-a6568b787881`.
+The hosted bundle includes `index.ts`, `security/score-preview-broker-server.mjs` and
+`security/score-preview-dev-rpc.mjs`. The function uses `verify_jwt=false` because it
+performs explicit server-to-server shared-secret authentication; this does **not** mean
+membership validation is enabled. The operator saved the Development-only
+`SCORE_PREVIEW_BROKER_ENABLED` secret with the literal value `false`.
+
+**Live, anonymous checks:**
+- [GitHub Actions run 39706865346](https://github.com/usdimpact/usd-impact-pipeline/actions/runs/39706865346)
+  **PASS**, including one synthetic, credential-free JSON POST to the deployed
+  Development function, which returned `503` and exactly `{"allowed":false}`.
+  No real account, ticket, shared secret or API key was transmitted.
+- Anonymous GET to broker returned `405` (method denied).
+- Cloudflare branch Preview `GET /en/`, `/es/`, `/archive/en/`, `/archive/es/`,
+  `/en/index.html`, `/archive/en/index.html`, and `/index.html` returned `403`.
+- Public `/data/score_v2_methodology.json` and
+  `/data/research/score_v2_point_in_time_latest.json` remained accessible.
+- Protected Vercel branch Preview API still required Vercel login.
+- Read-only Development database check: 0 ticket rows and 0 Score-session rows.
+
+**What this does NOT prove:** authenticated one-use ticket redemption, simultaneous
+replay resistance in the hosted environment, ongoing Research Membership revocation,
+Browser normal/Incognito and iframe behavior, or per-client inbound rate limiting.
+Supabase's published recursive/nested-function rate limit applies to outbound Edge-to-Edge
+calls, **not inbound** calls; it is not an abuse-control substitute for this endpoint.
+Cloudflare Pages Preview environment secrets are not branch-scoped: do **not** assume
+the existing Cloudflare Preview shared secret is isolated to this PR.
+
+**Remaining activation gates (HOLD):** provider-reviewed isolation or a separate
+Preview-only Pages deployment/credential boundary; dedicated Development
+shared-secret provisioned securely to both providers (never in chat, source or logs);
+an independent inbound throttling/abuse-control solution; live authenticated
+and denied entitlement fixtures; replay/expiry/revocation and direct-object bypass
+evidence; standalone and embedded-browser acceptance. Neither draft PR may merge
+or change Production until separately approved for release.
+
+Historical design and staging checkpoints below predate this deployment.
+
 ## 2026-10-22 — SUPERCEDING IMPLEMENTATION: Development Edge broker staged, not deployed
 
 **Preferred candidate after security correction.** No privileged `sb_secret_` key is to be provisioned in Cloudflare Pages Preview, which has environment-scoped secrets. The earlier direct-Cloudflare-to-Development-RPC approach is not an activation option. Its database RPC adapter is now imported only by the isolated Development Edge broker; Cloudflare imports a **broker client** that has no access to the database key.
