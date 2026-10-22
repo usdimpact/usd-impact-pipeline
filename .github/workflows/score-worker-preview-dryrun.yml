@@ -1,4 +1,4 @@
-name: Score isolated Worker Preview dry-run (no deployment)
+name: Score isolated Worker Preview static preflight (no deployment)
 
 on:
   pull_request:
@@ -18,7 +18,7 @@ permissions:
 jobs:
   bundle-only:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 3
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -27,10 +27,17 @@ jobs:
           node-version: '22'
       - name: Test isolated Worker security contracts
         run: node --test security/score-preview-worker.test.mjs
-      - name: Bundle with pinned Wrangler (offline from Cloudflare management; NO deploy)
+      - name: Validate Worker entrypoint and config without provider or npm access
         run: |
           set -euo pipefail
-          npx --yes wrangler@4.135.0 deploy --dry-run \
-            --config workers/score-preview/wrangler.jsonc \
-            --outdir "$RUNNER_TEMP/score-worker-bundle"
-          echo "Workers Preview bundle generated; no Cloudflare deployment or secret accessed."
+          node --check workers/score-preview/index.mjs
+          node --input-type=module -e '
+          import fs from "node:fs";
+          const x=JSON.parse(fs.readFileSync("workers/score-preview/wrangler.jsonc","utf8"));
+          if(x.workers_dev!==false || x.assets?.run_worker_first!==true ||
+             !x.preview_urls || x.previews?.vars?.SCORE_WORKER_PREVIEW_ENABLED!=="false" ||
+             x.previews?.ratelimits?.length!==2 || x.routes!==undefined){
+            throw Error("Worker static Preview security config rejected");
+          }
+          '
+          echo "Static Worker and configuration preflight passed; Wrangler packaging NOT yet verified."

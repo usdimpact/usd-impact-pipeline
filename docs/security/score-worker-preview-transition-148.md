@@ -20,7 +20,7 @@ Primary sources:
 - `security/score-public-paths.mjs` and `security/score-ticket-form.mjs`: shared, audited allowlist and bounded form parser used by existing Pages and the candidate Worker. Future changes must pass security contract tests.
 - `public/.assetsignore`: exclude Pages-specific `_headers`, `_redirects`, and `_worker.js` from Workers static asset uploads. The Worker applies explicit security headers to served assets instead.
 - `security/score-preview-worker.test.mjs`: checks default OFF, exact Preview origin, public-vs-premium gate, branch-isolated secret requirement, rate-limit denial, mocked redemption/validation/revocation, asset gate, and key-free dependency graph.
-- `.github/workflows/score-worker-preview-dryrun.yml`: credential-free `wrangler@4.135.0 deploy --dry-run` **only**, with no Cloudflare account secrets and no network deployment.
+- `.github/workflows/score-worker-preview-dryrun.yml`: credential-free, npm-free **static preflight** only (Node source, Wrangler JSON config, security tests). **Wrangler packaging verification is outstanding.** The earlier `npx wrangler@4.135.0 deploy --dry-run` attempt stalled during npm execution and was cancelled by GitHub after the job timeout, with no bundle result. Do not confuse the static preflight with a compiled or hosted Worker.
 
 ## Trust boundaries
 
