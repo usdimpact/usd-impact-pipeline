@@ -73,3 +73,64 @@ test('a changed Preview backend host cannot receive the private edge secret', as
   }
   assert.equal(requests, 0);
 });
+
+
+function bodyContext(body, { mediaType = 'application/x-www-form-urlencoded', length = null, stream = false } = {}) {
+  const ctx = context(preview, preview);
+  const headers = { 'Content-Type': mediaType };
+  if (length !== null) headers['Content-Length'] = String(length);
+  const options = { method: 'POST', headers };
+  if (stream) {
+    const data = new TextEncoder().encode(body);
+    options.body = new ReadableStream({
+      start(controller) {
+        controller.enqueue(data.slice(0, 12));
+        controller.enqueue(data.slice(12));
+        controller.close();
+      },
+    });
+    options.duplex = 'half';
+  } else {
+    options.body = body;
+  }
+  ctx.request = new Request('https://' + preview + '/score-redeem', options);
+  return ctx;
+}
+
+test('untrusted streamed POST bodies are byte-bounded and ambiguous tickets are rejected', async (t) => {
+  const originalFetch = globalThis.fetch;
+  t.after(() => { globalThis.fetch = originalFetch; });
+  let calls = 0;
+  globalThis.fetch = async () => { calls++; throw Error('Invalid form must never reach backend'); };
+
+  for (const ctx of [
+    bodyContext('ticket=' + ticket + '&ticket=' + ticket),
+    bodyContext('ticket=' + ticket + '&account_id=other'),
+    bodyContext('ticket=' + ticket, { mediaType: 'application/x-www-form-urlencoded-evil' }),
+    bodyContext('ticket=' + ticket, { length: 99999 }),
+    bodyContext('ticket=' + ticket, { length: 'not-a-length' }),
+    bodyContext('ticket=' + ticket + '&padding=' + 'x'.repeat(3000), { stream: true }),
+  ]) {
+    const response = await onRequestPost(ctx);
+    assert.equal(response.status, 400);
+    assert.equal(response.headers.get('Set-Cookie'), null);
+  }
+  assert.equal(calls, 0);
+});
+
+test('one valid streamed form ticket remains accepted and forwarded without alteration', async (t) => {
+  const originalFetch = globalThis.fetch;
+  t.after(() => { globalThis.fetch = originalFetch; });
+  let calls = 0;
+  globalThis.fetch = async (url, options) => {
+    calls++;
+    assert.equal(url, backend);
+    assert.deepEqual(JSON.parse(options.body), { ticket });
+    return Response.json({ allowed: false }, { status: 403 });
+  };
+  const ctx = bodyContext('ticket=' + ticket, {
+    mediaType: 'application/x-www-form-urlencoded; charset=UTF-8', stream: true,
+  });
+  assert.equal((await onRequestPost(ctx)).status, 403);
+  assert.equal(calls, 1);
+});
