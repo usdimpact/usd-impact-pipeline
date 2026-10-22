@@ -37,10 +37,26 @@ export async function handleScorePreviewBroker(request, config, fetchImpl = fetc
   }
   if (!(request.headers.get('content-type') || '').startsWith('application/json') ||
       Number(request.headers.get('content-length') || 0) > 512) return json(415, { allowed: false });
+  // Bound streamed bodies by actual UTF-8 bytes, even if Content-Length is
+  // absent or incorrect. Never buffer an unbounded unauthenticated payload.
   let data;
   try {
-    const body = await request.text();
-    if (body.length > 512) return json(400, { allowed: false });
+    const reader = request.body?.getReader();
+    if (!reader) return json(400, { allowed: false });
+    const decoder = new TextDecoder('utf-8', { fatal: true });
+    let body = '';
+    let byteCount = 0;
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      byteCount += value.byteLength;
+      if (byteCount > 512) {
+        await reader.cancel().catch(() => {});
+        return json(400, { allowed: false });
+      }
+      body += decoder.decode(value, { stream: true });
+    }
+    body += decoder.decode();
     data = JSON.parse(body);
   } catch { return json(400, { allowed: false }); }
   if (!data || typeof data !== 'object' || Array.isArray(data) ||
