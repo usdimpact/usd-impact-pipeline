@@ -77,7 +77,7 @@ test('direct Development mode is isolated to one exact HTTPS Cloudflare Preview 
     'https://' + SCORE_DIRECT_PREVIEW_HOST + '.attacker.test/en/',
   ]) assert.equal(scoreDirectDevEnabled(req(url), env), false);
   assert.equal(scoreDirectDevEnabled(req('https://' + SCORE_DIRECT_PREVIEW_HOST), {...env,SCORE_DIRECT_DEV_BACKEND_ENABLED:'false'}),false);
-  assert.equal(SCORE_DIRECT_WEBSITE_ORIGIN, 'https://usd-impact-site-qjfsh5lm7-usd-impact.vercel.app');
+  assert.equal(SCORE_DIRECT_WEBSITE_ORIGIN, 'https://usd-impact-site-git-feat-score-membership-han-fb189b-usd-impact.vercel.app');
 });
 
 test('SHA-256 digests match existing Vercel ticket/session contract', async () => {
