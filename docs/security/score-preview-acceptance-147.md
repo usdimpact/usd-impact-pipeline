@@ -1,5 +1,12 @@
 # Score Research Membership — isolated Preview acceptance plan
 
+## 2026-10-22 — operator Preview URL update observed (read-only)
+
+- Authenticated Cloudflare Pages UI screenshot shows **Preview** selected, both `SCORE_BACKEND_URL` and `SCORE_VALIDATION_BACKEND_URL` changed to current Vercel Preview hostname `usd-impact-site-qjfsh5lm7-usd-impact.vercel.app`. The input boxes truncate the URL tails, so the required exact suffixes `/api/score-edge-redeem` and `/api/score-edge-validate` remain **manual visual confirmation pending**; screenshot also does not independently prove config save/redeployment.
+- Encrypted Cloudflare `SCORE_EDGE_SHARED_SECRET` remains listed, `SCORE_EDGE_GATE_ENABLED=false`, `SCORE_EDGE_REDEMPTION_ENABLED=false`; previous Runtime **Fail closed** screenshot confirmed. Secrets must not be compared or displayed in screenshots. Verified Vercel Preview deployment `dpl_AwvQzAyJobkAQo9oYfjZ4o1sieAQ` remains READY on exact website commit `4163aadbd86093e25fc8e27f392c97a3df291c80`. Score pipeline quality passed prior PR commit; next doc-only CI is pending after this change.
+- Read-only test: current Vercel Preview validation GET route returned **405** via authenticated Vercel tool; Cloudflare Preview member `/en/` remained **403** (correct anonymous denial), approved methodology remained publicly available. These are **NOT** authenticated cross-service POST tests or successful membership access.
+- **RELEASE HOLD**: Cloudflare-to-Vercel call still cannot pass Vercel Preview Deployment Protection unauthenticated. Vercel Trusted Sources can accept approved short-lived external-service OIDC identities, but Cloudflare Pages must first have a verified trusted OIDC issuer/token acquisition path. Do not disable Vercel protection, deploy a project-wide bypass, or enable either gate. Require separate security approval for any access-control rule and Preview-only positive member tests.
+
 ## 2026-10-22 — Cloudflare Preview secret checkpoint and remaining provider-auth gate
 
 - User's authenticated Cloudflare Pages UI screenshot confirms the **Preview** environment, `SCORE_EDGE_SHARED_SECRET` displayed as encrypted Secret, `SCORE_EDGE_GATE_ENABLED=false`, `SCORE_EDGE_REDEMPTION_ENABLED=false`, and preview host pin. Prior Preview Runtime screenshot independently showed **Fail closed**. **Matching secret bytes to Vercel have not been verified**; screenshots of encrypted secrets cannot establish equality.
