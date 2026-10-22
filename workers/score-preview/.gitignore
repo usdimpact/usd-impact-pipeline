@@ -1,0 +1,8 @@
+# Never commit locally stored Cloudflare Preview credentials.
+.dev.vars
+.dev.vars.*
+.env
+.env.*
+.wrangler/
+!.env.example
+!.dev.vars.example

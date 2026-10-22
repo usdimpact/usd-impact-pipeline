@@ -176,6 +176,10 @@ test('preview-only rate limiting configuration and asset-first bypass are static
   const ignore=readFileSync(new URL('../public/.assetsignore',import.meta.url),'utf8');
   assert.ok(ignore.includes('_headers'));
   assert.ok(ignore.includes('_redirects'));
+  const localIgnore=readFileSync(new URL('../workers/score-preview/.gitignore',import.meta.url),'utf8');
+  assert.ok(localIgnore.includes('.dev.vars'));
+  assert.ok(localIgnore.includes('.env'));
+  assert.ok(localIgnore.includes('.wrangler/'));
 });
 
 test('Worker Preview dependency graph excludes private Supabase RPC modules',()=>{
