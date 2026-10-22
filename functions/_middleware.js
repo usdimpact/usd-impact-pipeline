@@ -2,7 +2,8 @@
 // on EVERY premium request. No client-controlled identity or access claims.
 import { readScoreSessionCookie } from '../security/score-session-cookie.mjs';
 import { scoreBackendEndpoint } from '../security/score-backend-endpoints.mjs';
-import { scoreDirectDevEnabled, scoreDevSessionAllowed } from '../security/score-preview-dev-rpc.mjs';
+import { scoreDevBrokerPreviewEnabled } from '../security/score-preview-dev-rpc.mjs';
+import { scoreBrokerSessionAllowed } from '../security/score-preview-broker-client.mjs';
 
 // Only artifacts already published as public methodology/reproducibility data
 // bypass the membership gate. Never open a directory prefix: archive HTML,
@@ -68,13 +69,13 @@ export async function onRequest(context) {
   if (env?.SCORE_EDGE_GATE_ENABLED !== 'true') return deny();
   const token = readScoreSessionCookie(request.headers.get('cookie'));
   if (!token) return deny();
-  if (env?.SCORE_DIRECT_DEV_BACKEND_ENABLED === 'true') {
+  if (env?.SCORE_DEV_BROKER_ENABLED === 'true') {
     // This route can be activated only on the exact isolated Pages Preview.
-    // Direct Development membership lookup avoids Vercel Deployment Protection
+    // An isolated Development Edge broker avoids Vercel Deployment Protection
     // without weakening or bypassing it.
-    if (!scoreDirectDevEnabled(request, env)) return deny();
+    if (!scoreDevBrokerPreviewEnabled(request, env)) return deny();
     try {
-      if (await scoreDevSessionAllowed(token, env) !== true) return deny();
+      if (await scoreBrokerSessionAllowed(token, env) !== true) return deny();
     } catch { return deny(); }
   } else {
     const endpoint = scoreBackendEndpoint(env?.SCORE_VALIDATION_BACKEND_URL, '/api/score-edge-validate');
