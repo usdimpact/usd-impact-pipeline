@@ -151,7 +151,7 @@ test('mock authenticated redemption, cookie validation, revocation and replay st
   assert.equal(calls,4);
   assert.ok(f.rateCalls.some(([k])=>k==='redeem'));
   assert.ok(f.rateCalls.some(([k])=>k==='validate'));
-  assert.ok(f.rateCalls.every(([k,v])=>k==='validate'?v.startsWith('session:')&&!v.includes(SESSION):true));
+  assert.ok(f.rateCalls.every(([k,v])=>k==='validate'?v.startsWith('validate:')&&!v.includes(SESSION):true));
 });
 
 test('preview-only rate limiting configuration and asset-first bypass are statically forbidden',()=>{
@@ -208,4 +208,34 @@ test('Worker Preview dependency graph excludes private Supabase RPC modules',()=
     }
   }
   assert.deepEqual([...seen].sort(),[...allowed].sort());
+});
+
+
+test('validation throttling is source-bound even when arbitrary cookie tokens rotate', async t => {
+  const f=setup({SCORE_DEV_BROKER_ENABLED:'true', SCORE_EDGE_GATE_ENABLED:'true'});
+  const original=globalThis.fetch;
+  t.after(()=>{globalThis.fetch=original;});
+  let network=0, counter=0;
+  globalThis.fetch=async()=>{network++;return Response.json({allowed:false},{status:403});};
+  const env={...f.env,SCORE_PREVIEW_VALIDATE_LIMIT:{
+    async limit({key}) {
+      assert.match(key,/^validate:[a-f0-9]{64}$/);
+      assert.ok(!key.includes('203.0.113.7'));
+      f.rateCalls.push(['validate',key]);
+      counter++;
+      return {success:counter<=2};
+    },
+  }};
+  const request=token=>new Request(HOST+'/en/',{
+    headers:{Cookie:'__Host-score_session='+token,'CF-Connecting-IP':'203.0.113.7'},
+  });
+  const first=await handleScoreWorkerPreview(request('A'.repeat(43)),env);
+  const second=await handleScoreWorkerPreview(request('B'.repeat(43)),env);
+  const third=await handleScoreWorkerPreview(request('C'.repeat(43)),env);
+  assert.equal(first.status,403);
+  assert.equal(second.status,403);
+  assert.equal(third.status,429);
+  assert.equal(network,2,'third token rotation must not reach broker');
+  assert.equal(f.assetReads,0);
+  assert.equal(new Set(f.rateCalls.map(([kind,key])=>key)).size,1);
 });

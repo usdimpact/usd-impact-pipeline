@@ -69,16 +69,14 @@ async function rateCheck(binding, key) {
   } catch { return null; }
 }
 async function requestActor(request, scope) {
-  // Token-free requester classification for POST. IP addresses can be shared by
-  // legitimate users: the configured Preview limit is deliberately forgiving.
+  // Rate-limit per *source* even when attackers rotate invalid session tokens.
+  // Avoid storing client IP addresses or bearer tokens as raw limiter keys.
+  // CF-Connecting-IP is set by Cloudflare in the hosted Worker environment.
   const ip = request.headers.get('cf-connecting-ip') || '';
-  const actor = /^[0-9a-fA-F:.]{2,64}$/.test(ip) ? ip : 'unidentified';
-  return scope + ':' + actor;
-}
-async function sessionActor(token) {
-  // Never write raw session cookies or token values into limiter state.
-  const buffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(token));
-  return 'session:' + Array.from(new Uint8Array(buffer), x => x.toString(16).padStart(2, '0')).join('');
+  const actor = /^[0-9a-fA-F:.]{2,64}$/.test(ip) ? ip.toLowerCase() : 'unidentified';
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(actor));
+  return scope + ':' + Array.from(new Uint8Array(digest),
+    x => x.toString(16).padStart(2, '0')).join('');
 }
 async function asset(request, env, restricted) {
   if (typeof env?.ASSETS?.fetch !== 'function') return unavailable();
@@ -125,7 +123,7 @@ export async function handleScoreWorkerPreview(request, env) {
   if (!token) return denied();
 
   let key;
-  try { key = await sessionActor(token); } catch { return unavailable(); }
+  try { key = await requestActor(request, 'validate'); } catch { return unavailable(); }
   const limited = await rateCheck(env.SCORE_PREVIEW_VALIDATE_LIMIT, key);
   if (limited === null) return unavailable();
   if (!limited) return throttled();
