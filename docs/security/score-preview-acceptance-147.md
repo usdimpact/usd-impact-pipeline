@@ -1,5 +1,20 @@
 # Score Research Membership — isolated Preview acceptance plan
 
+## Security decision — 2026-10-22: do not provision privileged Supabase key in shared Cloudflare Pages Preview
+
+**The direct Cloudflare -> Development Supabase RPC implementation is an INACTIVE EXPERIMENT ONLY, not an approved activation plan.** Its unit and integration-mock tests are useful for the ticket/session contract, but passing CI does not authorize provisioning `SCORE_PREVIEW_SUPABASE_SECRET_KEY` into the existing Cloudflare Pages Preview environment. Pages Preview variables and secrets are environment-scoped; no branch-specific binding isolation has been established for `fix-score-membership-handoff`. Any service-role-equivalent `sb_secret_` key bypasses all Development RLS, and storing it in a shared Preview environment could expose it to other preview branches. **Do not create/import that Cloudflare secret and do not set `SCORE_DIRECT_DEV_BACKEND_ENABLED=true`.**
+
+**Preferred security architecture for a separate follow-on, still no new PR or Production change:**
+1. Keep ticket issuance on the already protected Vercel website Preview using the existing Development Supabase RPCs. Keep `SCORE_HANDOFF_ISSUANCE_ENABLED=false` until full acceptance.
+2. Author an isolated **Development Supabase Edge Function broker** with `verify_jwt=false` only when its own fail-closed server-to-server authentication is demonstrably verified. It must check a dedicated random `SCORE_EDGE_SHARED_SECRET` using constant-time comparison and reject every other request/action. No direct public membership lookup by account ID or arbitrary RPC proxy. The broker can use Supabase's own automatically injected Development `SUPABASE_SECRET_KEYS` server-side instead of copying a service-role key to Cloudflare.
+3. Cloudflare Preview uses its existing encrypted `SCORE_EDGE_SHARED_SECRET` to call the exact allowlisted Development broker endpoint. Both initial redemption and every subsequent session validation must execute the existing Development RPCs inside the broker, enforcing atomic ticket use and current entitlement. Treat any DB or broker failure as 403/503 and never serve premium HTML.
+4. Do not deploy or enable the broker until exact-host code tests, independent review of service-to-service authentication, rate limits, body-size bounds, log redaction and negative routes have passed. An additional **Development-only Edge Function secret** would need controlled provider entry; do not transmit it in GitHub or chat.
+5. Retain Vercel Standard Deployment Protection and its existing Trusted Source entry unchanged; never add an unverified external OIDC issuer or project-wide bypass. Keep Cloudflare Preview edge flags `false` and Runtime Fail closed; no Production changes. Verify standalone and iframe separately, since `.vercel.app` / `.pages.dev` cookies are cross-site during Preview.
+6. Once broker design passes review, supersede and remove the dormant direct-Database Preview experiment before merge; do not keep competing privileged credential paths in release code.
+
+**Live status:** Score PR #148 mock CI passed; website PR #836 13/13 GitHub checks passed, latest Preview READY. No live authenticated POST ticket exchange, Production merge, direct database secret, broker Edge Function deployment or activation has occurred. **HOLD**.
+
+
 ## 2026-10-22 — narrower Development-only candidate: direct Cloudflare -> Development Supabase RPC
 
 **Status: CODED AND UNIT/INTEGRATION-MOCKED; NOT ACTIVATED OR HOSTED-ACCEPTED.**
