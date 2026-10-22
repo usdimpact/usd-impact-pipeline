@@ -50,6 +50,8 @@ test('the complete Pages module graph stays credential-free (not only direct imp
     'security/score-backend-endpoints.mjs',
     'security/score-preview-host-policy.mjs',
     'security/score-preview-broker-client.mjs',
+    'security/score-public-paths.mjs',
+    'security/score-ticket-form.mjs',
   ]);
   const queue = ['functions/_middleware.js', 'functions/score-redeem.js'];
   const visited = new Set();

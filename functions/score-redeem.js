@@ -5,47 +5,7 @@ import { scoreSessionCookie } from '../security/score-session-cookie.mjs';
 import { scoreBackendEndpoint } from '../security/score-backend-endpoints.mjs';
 import { SCORE_DIRECT_WEBSITE_ORIGIN, scoreDevBrokerPreviewEnabled } from '../security/score-preview-host-policy.mjs';
 import { redeemScoreBrokerTicket } from '../security/score-preview-broker-client.mjs';
-
-// A hostile client can omit or falsify Content-Length. Cap the streamed bytes
-// before building a form body, rather than buffering an unbounded Request.text().
-const MAX_HANDOFF_BYTES = 2048;
-const OPAQUE_TICKET = /^[A-Za-z0-9_-]{43}$/;
-async function parseBoundedTicket(request) {
-  const media = (request.headers.get('content-type') || '').split(';', 1)[0].trim().toLowerCase();
-  if (media !== 'application/x-www-form-urlencoded') return null;
-  const advertised = request.headers.get('content-length');
-  if (advertised !== null &&
-      (!/^\d+$/.test(advertised) || Number(advertised) > MAX_HANDOFF_BYTES)) return null;
-  const reader = request.body?.getReader();
-  if (!reader) return null;
-  let bytes = 0;
-  const chunks = [];
-  try {
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      bytes += value.byteLength;
-      if (bytes > MAX_HANDOFF_BYTES) {
-        await reader.cancel().catch(() => {});
-        return null;
-      }
-      chunks.push(value);
-    }
-    const payload = new Uint8Array(bytes);
-    let offset = 0;
-    for (const chunk of chunks) {
-      payload.set(chunk, offset);
-      offset += chunk.byteLength;
-    }
-    const body = new TextDecoder('utf-8', { fatal: true }).decode(payload);
-    const fields = new URLSearchParams(body);
-    if ([...fields.keys()].length !== 1 || !fields.has('ticket')) return null;
-    const ticket = fields.get('ticket');
-    return OPAQUE_TICKET.test(ticket || '') ? ticket : null;
-  } catch {
-    return null;
-  }
-}
+import { parseBoundedScoreTicket } from '../security/score-ticket-form.mjs';
 
 export async function onRequestPost({ request, env }) {
   const headers = { 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer' };
@@ -63,7 +23,7 @@ export async function onRequestPost({ request, env }) {
   if (origin.hostname !== 'score.usd-impact.com' && !previewAllowed) {
     return new Response('Invalid Score host', { status: 403, headers });
   }
-  const ticket = await parseBoundedTicket(request);
+  const ticket = await parseBoundedScoreTicket(request);
   if (!ticket) return new Response('Invalid handoff', { status: 400, headers });
   if (useDevBroker) {
     // Preview handoff is explicitly pinned to the Vercel Preview origin.
