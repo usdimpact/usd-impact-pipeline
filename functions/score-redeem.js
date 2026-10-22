@@ -1,13 +1,15 @@
 // Cloudflare Pages ticket redemption. Browser navigates via POST form so the
 // single-use ticket is not placed in URL, referrer or browser history.
-// Disabled until private Vercel endpoint and database migrations are verified.
+// Direct Development RPC mode remains disabled until isolated Preview acceptance.
 import { scoreSessionCookie } from '../security/score-session-cookie.mjs';
 import { scoreBackendEndpoint } from '../security/score-backend-endpoints.mjs';
+import { SCORE_DIRECT_WEBSITE_ORIGIN, scoreDirectDevEnabled, redeemScoreDevTicket } from '../security/score-preview-dev-rpc.mjs';
 
 export async function onRequestPost({ request, env }) {
   const headers = { 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer' };
+  const useDirectDev = env?.SCORE_DIRECT_DEV_BACKEND_ENABLED === 'true';
   if (env?.SCORE_EDGE_REDEMPTION_ENABLED !== 'true' ||
-      !env?.SCORE_BACKEND_URL || !env?.SCORE_EDGE_SHARED_SECRET) {
+      (!useDirectDev && (!env?.SCORE_BACKEND_URL || !env?.SCORE_EDGE_SHARED_SECRET))) {
     return new Response('Score handoff unavailable', { status: 503, headers });
   }
   const origin = new URL(request.url);
@@ -35,6 +37,28 @@ export async function onRequestPost({ request, env }) {
   if (!/^[A-Za-z0-9_-]{43}$/.test(ticket || '')) {
     return new Response('Invalid ticket', { status: 400, headers });
   }
+  if (useDirectDev) {
+    // Preview handoff is explicitly pinned to the Vercel Preview origin.
+    // Cross-origin ticket injection (login CSRF) must fail closed.
+    if (!scoreDirectDevEnabled(request, env) ||
+        request.headers.get('origin') !== SCORE_DIRECT_WEBSITE_ORIGIN) {
+      return new Response('Invalid Preview handoff origin', { status: 403, headers });
+    }
+    try {
+      const payload = await redeemScoreDevTicket(ticket, env);
+      if (!payload) return new Response('Score membership required', { status: 403, headers });
+      const cookie = scoreSessionCookie(payload.token, payload.expiresAtMs);
+      return new Response(null, {
+        status: 303,
+        headers: { ...headers, Location: payload.path, 'Set-Cookie': cookie },
+      });
+    } catch {
+      return new Response('Score handoff unavailable', { status: 503, headers });
+    }
+  }
+
+  // Legacy server-to-server mode is retained disabled by default, not used by
+  // the isolated direct-Development Preview pathway.
   // Never forward the Cloudflare shared secret to arbitrary HTTPS endpoints.
   const backend = scoreBackendEndpoint(env.SCORE_BACKEND_URL, '/api/score-edge-redeem');
   if (!backend) {
