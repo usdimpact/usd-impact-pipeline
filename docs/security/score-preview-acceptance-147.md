@@ -1,5 +1,20 @@
 # Score Research Membership — isolated Preview acceptance plan
 
+## 2026-10-22 — Development broker v2 hardening checkpoint
+
+**Implementation commit:** `6737d07621465fa2c7ec504f29ca726eaf48a76c` in draft Score PR #148. The full [source-commit CI](https://github.com/usdimpact/usd-impact-pipeline/actions/runs/39711365461) passed. The broker now accepts only exactly `application/json` (optional UTF-8 charset), rejects invalid or oversized `Content-Length`, still limits streamed body data to 512 bytes, and caps each private Development RPC fetch at five seconds (fail closed on timeout).
+
+**Deployed after the source-commit CI pass:** Supabase `usd-impact-development` (`ycstrcvshdluovtuasjc`) Edge Function `score-preview-broker` **version 2**, same isolated function ID `66136fed-7728-49be-94a5-a6568b787881`, bundle digest `d084d1b87a6ef9d451d123f09bbfe7cf2712fbf245eddd6d6fd5ab1530a878bf`. Re-fetched the deployed bundle and verified source files and default-off gate. JWT gateway setting remains `verify_jwt=false` specifically because the disabled server-to-server function uses its own shared-secret checks if authorized in the future.
+
+**Post-deployment live acceptance:** A new latest-head draft quality run must complete successfully and demonstrate that the *deployed v2* broker returns HTTP `503` with `{"allowed":false}` to the credential-free POST; Cloudflare Preview redemption must continue returning HTTP `503` to synthetic POST. The earlier successful source-commit CI occurred before this v2 deployment and does not independently verify v2. Until the latest-head result is recorded, mark the v2 live denial as pending.
+
+**Development data:** read-only query confirmed 0 ticket rows and 0 Score-session rows. No DB migration, entitlement update, key provisioning, Cloudflare setting, PR merge or Production change.
+
+**Provider isolation decision:** Cloudflare *Pages* Preview settings are shared across preview branches; do not place any privileged Supabase key or shared broker credential there for activation without an independently reviewed security boundary. Cloudflare *Workers Previews* provides branch-specific secrets and bindings (see https://developers.cloudflare.com/workers/previews/), potentially supporting a separate isolated migration later; this has **not** been implemented or deployed. Owner's Cloudflare login was blocked in TinyFish; Opera Browser Connector was disconnected. Neither is needed for disabled-stage QA, but private provider configuration and actual Research Membership end-to-end acceptance remain blocked.
+
+**Release remains HOLD:** pending isolated Preview credential topology, inbound request throttling, authorized live member/denied/replay/revocation testing, cross-site iframe/standalone browser behavior, and separate Production release signoff.
+
+
 ## 2026-10-22 — Development broker deployed and live disabled-state acceptance VERIFIED
 
 **Actual Development deployment:** project `usd-impact-development` (`ycstrcvshdluovtuasjc`),
