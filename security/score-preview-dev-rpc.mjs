@@ -4,7 +4,7 @@
 // Do not provide a Production secret or enable flags without security approval.
 
 export const SCORE_DIRECT_PREVIEW_HOST = 'fix-score-membership-handoff.usd-impact-pipeline.pages.dev';
-export const SCORE_DIRECT_WEBSITE_ORIGIN = 'https://usd-impact-site-qjfsh5lm7-usd-impact.vercel.app';
+export const SCORE_DIRECT_WEBSITE_ORIGIN = 'https://usd-impact-site-git-feat-score-membership-han-fb189b-usd-impact.vercel.app';
 const DEV_SUPABASE_ORIGIN = 'https://ycstrcvshdluovtuasjc.supabase.co';
 const KEY_RE = /^sb_secret_[A-Za-z0-9_-]{16,}$/;
 const TICKET_RE = /^[A-Za-z0-9_-]{43}$/;
