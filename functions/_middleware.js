@@ -2,6 +2,7 @@
 // on EVERY premium request. No client-controlled identity or access claims.
 import { readScoreSessionCookie } from '../security/score-session-cookie.mjs';
 import { scoreBackendEndpoint } from '../security/score-backend-endpoints.mjs';
+import { scoreDirectDevEnabled, scoreDevSessionAllowed } from '../security/score-preview-dev-rpc.mjs';
 
 // Only artifacts already published as public methodology/reproducibility data
 // bypass the membership gate. Never open a directory prefix: archive HTML,
@@ -66,20 +67,31 @@ export async function onRequest(context) {
 
   if (env?.SCORE_EDGE_GATE_ENABLED !== 'true') return deny();
   const token = readScoreSessionCookie(request.headers.get('cookie'));
-  const endpoint = scoreBackendEndpoint(env?.SCORE_VALIDATION_BACKEND_URL, '/api/score-edge-validate');
-  if (!token || !endpoint || typeof env?.SCORE_EDGE_SHARED_SECRET !== 'string' ||
-      env.SCORE_EDGE_SHARED_SECRET.length < 32) return deny();
-  try {
-    const result = await fetch(endpoint, {
-      method: 'POST', redirect: 'manual',
-      headers: { 'Content-Type': 'application/json',
-        'X-Score-Edge-Secret': env.SCORE_EDGE_SHARED_SECRET },
-      body: JSON.stringify({ token }),
-    });
-    if (result.status !== 200) return deny();
-    const data = await result.json();
-    if (data?.allowed !== true) return deny();
-  } catch { return deny(); }
+  if (!token) return deny();
+  if (env?.SCORE_DIRECT_DEV_BACKEND_ENABLED === 'true') {
+    // This route can be activated only on the exact isolated Pages Preview.
+    // Direct Development membership lookup avoids Vercel Deployment Protection
+    // without weakening or bypassing it.
+    if (!scoreDirectDevEnabled(request, env)) return deny();
+    try {
+      if (await scoreDevSessionAllowed(token, env) !== true) return deny();
+    } catch { return deny(); }
+  } else {
+    const endpoint = scoreBackendEndpoint(env?.SCORE_VALIDATION_BACKEND_URL, '/api/score-edge-validate');
+    if (!endpoint || typeof env?.SCORE_EDGE_SHARED_SECRET !== 'string' ||
+        env.SCORE_EDGE_SHARED_SECRET.length < 32) return deny();
+    try {
+      const result = await fetch(endpoint, {
+        method: 'POST', redirect: 'manual',
+        headers: { 'Content-Type': 'application/json',
+          'X-Score-Edge-Secret': env.SCORE_EDGE_SHARED_SECRET },
+        body: JSON.stringify({ token }),
+      });
+      if (result.status !== 200) return deny();
+      const data = await result.json();
+      if (data?.allowed !== true) return deny();
+    } catch { return deny(); }
+  }
 
   const response = await context.next();
   const headers = new Headers(response.headers);
