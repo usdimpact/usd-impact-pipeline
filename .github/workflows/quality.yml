@@ -85,6 +85,48 @@ jobs:
           node -e 'const fs=require("node:fs"); if(fs.readFileSync(process.argv[1],"utf8")!=="Score handoff unavailable") process.exit(1)' "$reply"
           echo 'Cloudflare Score Preview handoff route remains disabled.'
 
+
+      # Source-locked CI for the dedicated isolated Worker Preview. The Worker and
+      # its ASSETS binding must stay fail-closed pending independent membership acceptance.
+      # No Cloudflare API tokens, cookies or real entitlement tickets are required.
+      - name: Confirm isolated Score Worker Preview stays disabled (GET and POST)
+        if: github.event_name == 'pull_request' && github.head_ref == 'fix/score-membership-handoff-147'
+        env:
+          SCORE_WORKER_PREVIEW_ORIGIN: https://pr-148-usd-impact-score-isolated-dev.michael-w-d0b.workers.dev
+        run: |
+          set -euo pipefail
+          reply="$RUNNER_TEMP/score-worker-preview-denial.txt"
+          hdr="$RUNNER_TEMP/score-worker-preview-headers.txt"
+          check_denial() {
+            local status="$1" path="$2"
+            if [ "$status" != '503' ]; then
+              echo "::error::Isolated Worker Preview $path returned HTTP $status (expected disabled 503)."
+              exit 1
+            fi
+            if [ "$(cat "$reply")" != 'Score Preview unavailable' ]; then
+              echo "::error::Isolated Worker Preview $path returned unexpected disabled response body."
+              exit 1
+            fi
+            if grep -Eiq '^(set-cookie|location):' "$hdr"; then
+              echo "::error::Isolated Worker Preview $path set a cookie or redirect while disabled."
+              exit 1
+            fi
+          }
+          for path in /en/ /archive/es/ /data/score_v2_methodology.json /data/research/score_v2_point_in_time_latest.json; do
+            status="$(curl --silent --show-error --connect-timeout 8 --max-time 20 --retry 0 \
+              --dump-header "$hdr" --output "$reply" --write-out '%{http_code}' \
+              "$SCORE_WORKER_PREVIEW_ORIGIN$path")"
+            check_denial "$status" "GET $path"
+          done
+          status="$(curl --silent --show-error --connect-timeout 8 --max-time 20 --retry 0 \
+            --dump-header "$hdr" --output "$reply" --write-out '%{http_code}' \
+            --request POST --header 'Content-Type: application/x-www-form-urlencoded' \
+            --header 'Origin: https://usd-impact-site-git-feat-score-membership-han-fb189b-usd-impact.vercel.app' \
+            --data-raw 'ticket=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' \
+            "$SCORE_WORKER_PREVIEW_ORIGIN/score-redeem")"
+          check_denial "$status" 'POST /score-redeem'
+          echo 'Isolated Worker Preview (including ASSETS perimeter) remains disabled.'
+
       - name: Check Python syntax
         run: python -m compileall -q usd_impact_score_v2.py scripts tests
 

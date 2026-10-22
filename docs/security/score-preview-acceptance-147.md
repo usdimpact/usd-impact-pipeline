@@ -1,3 +1,16 @@
+## Current live infrastructure checkpoint — 22 October 2026: Preview assets attached, access OFF
+
+**Provider-verified after GitHub Codespaces authenticated Wrangler Preview upload:** isolated Cloudflare Worker `usd-impact-score-isolated-dev`, Preview `pr-148`, at [actual provider-issued URL](https://pr-148-usd-impact-score-isolated-dev.michael-w-d0b.workers.dev). Latest Preview deployment **`d39e2b76-785d-4674-bb6c-83c372b2bac8`** created at **2026-10-22T19:01:59Z**. The Cloudflare deployment API returns the **`ASSETS` binding** plus `assets.config.run_worker_first=true`, `not_found_handling=none`, `base_path="/"`, `html_handling=auto-trailing-slash`. The Wrangler command completed and returned configured assets metadata. **Per-file content checks are not yet possible while access stays disabled**; do not claim all asset bytes individually verified.
+
+The same live Preview deployment has **four activation flags exactly `false`** (`SCORE_WORKER_PREVIEW_ENABLED`, `SCORE_DEV_BROKER_ENABLED`, `SCORE_EDGE_GATE_ENABLED`, `SCORE_EDGE_REDEMPTION_ENABLED`), a verified exact `SCORE_WORKER_PREVIEW_ORIGIN`, and two `ratelimit` bindings `SCORE_PREVIEW_REDEEM_LIMIT` (30/60s, namespace `817420621`) and `SCORE_PREVIEW_VALIDATE_LIMIT` (180/60s, namespace `817420622`). Limits are Cloudflare approximate, per location, not global distributed quotas. Worker Production subdomain is **disabled**, Production Worker version/deployment counts are **zero**; existing Pages Production was untouched.
+
+**Independent public HTTP check:** anonymous `GET /en/`, `GET /archive/es/`, `GET /data/score_v2_methodology.json` and `GET /data/research/score_v2_point_in_time_latest.json` all return **HTTP 503** on the isolated Worker Preview while disabled (via an external browser-accessible HTTP source). No premium/private assets were returned. The development Supabase tables `score_handoff_tickets` and `score_member_sessions` still hold **0** rows each. A GitHub Actions branch-scoped synthetic `POST /score-redeem` and repeatable GET denial check were added to `.github/workflows/quality.yml`, without credentials; their exact-head CI result must be checked separately.
+
+**Supersedes stale source-only/asset-pending statements below** (retained as historical progression, not today's deployment state). The user does **not** need to upload files again. No entitlement, ticket, active membership session, Preview broker shared secret, or production route was created. Remaining activation gates: isolated per-Preview shared secret matching the Development Supabase broker via secure provider controls, direct inbound abuse control for Supabase URL, authenticated positive/negative member E2E, expiry/replay/revocation, direct URL bypass, cookies and normal/Incognito cross-origin iframe tests. Do not enable any Preview or Development broker flag until all conditions are independently reviewed.
+
+**RELEASE HOLD:** Keep both PRs draft and unmerged, Preview activation OFF, Development Supabase broker OFF, and Production unchanged.
+
+
 # Score Research Membership — isolated Preview acceptance plan
 
 ## 22 October 2026 — verified same-day checkpoint (supersedes earlier package blocker)
