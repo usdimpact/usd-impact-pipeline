@@ -1,5 +1,14 @@
 # Score Research Membership — isolated Preview acceptance plan
 
+## 2026-10-22 — Cloudflare Preview secret checkpoint and remaining provider-auth gate
+
+- User's authenticated Cloudflare Pages UI screenshot confirms the **Preview** environment, `SCORE_EDGE_SHARED_SECRET` displayed as encrypted Secret, `SCORE_EDGE_GATE_ENABLED=false`, `SCORE_EDGE_REDEMPTION_ENABLED=false`, and preview host pin. Prior Preview Runtime screenshot independently showed **Fail closed**. **Matching secret bytes to Vercel have not been verified**; screenshots of encrypted secrets cannot establish equality.
+- Cloudflare Preview `SCORE_BACKEND_URL` and `SCORE_VALIDATION_BACKEND_URL` still visibly refer to older Vercel Preview deployment `usd-impact-site-8lvzao44t-usd-impact.vercel.app`. Correct reviewed current exact deployment is `dpl_AwvQzAyJobkAQo9oYfjZ4o1sieAQ`, commit `4163aadbd86093e25fc8e27f392c97a3df291c80`, host `usd-impact-site-qjfsh5lm7-usd-impact.vercel.app`; **manually update only the two Preview backend URLs** to exact `/api/score-edge-redeem` and `/api/score-edge-validate`, respectively, keep flags OFF. New Cloudflare Preview deployment required after environment changes.
+- Latest website PR #836 exact-head CI: **13/13 PASS**. Score pipeline PR #148 exact-head weekly Score quality: **PASS** at [run 39695029466](https://github.com/usdimpact/usd-impact-pipeline/actions/runs/39695029466).
+- Read-only external request to the exact current Vercel Preview API reported **login_required** from Vercel Deployment Protection. Authorized Vercel connector GET against the same private API reached application and returned **405** as expected for POST-only endpoint. Therefore Cloudflare-to-Vercel *server-to-server* authorization is **not proven** and will not succeed unauthenticated: establish an independently reviewed, narrow Trusted Sources/OIDC or equivalent approved provider access pattern before activating either Score gate. Do **not** disable deployment protection, create a project-wide bypass, expose keys in logs, or change Production as a shortcut.
+- Cloudflare Preview anonymous `/en/` remained **403**; public `/data/score_v2_methodology.json` remained available. All active-member redemption, membership revocation, replay, and standalone/iframe live browser scenarios remain **NOT RUN**. Release remains HOLD.
+
+
 Status: **PARTIAL ACCEPTANCE EVIDENCE — REAL AUTHENTICATED PREVIEW HANDOFF STILL NOT RUN**. No Production configuration, database migrations, secrets, or feature flags are changed by this document.
 
 ## Alternative verification checkpoint — 2026-10-22
