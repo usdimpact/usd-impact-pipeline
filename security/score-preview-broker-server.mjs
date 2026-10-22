@@ -35,8 +35,17 @@ export async function handleScorePreviewBroker(request, config, fetchImpl = fetc
   if (!SHARED.test(supplied || '') || !opaqueEqual(supplied, config.sharedSecret)) {
     return json(403, { allowed: false });
   }
-  if (!(request.headers.get('content-type') || '').startsWith('application/json') ||
-      Number(request.headers.get('content-length') || 0) > 512) return json(415, { allowed: false });
+  // Reject ambiguous media types and malformed lengths before parsing.
+  // A missing length is permitted only because streamed bytes are capped below.
+  const mediaType = (request.headers.get('content-type') || '').trim();
+  if (!/^application\/json(?:\s*;\s*charset=utf-8)?$/i.test(mediaType)) {
+    return json(415, { allowed: false });
+  }
+  const announcedLength = request.headers.get('content-length');
+  if (announcedLength !== null &&
+      (!/^\d+$/.test(announcedLength) || Number(announcedLength) > 512)) {
+    return json(400, { allowed: false });
+  }
   // Bound streamed bodies by actual UTF-8 bytes, even if Content-Length is
   // absent or incorrect. Never buffer an unbounded unauthenticated payload.
   let data;

@@ -27,6 +27,8 @@ function buildRpcFixture() {
     assert.equal(options.method, 'POST');
     assert.equal(options.redirect, 'error');
     assert.equal(options.cache, 'no-store');
+    assert.ok(options.signal instanceof AbortSignal, 'every privileged RPC has a timeout');
+    assert.equal(options.signal.aborted, false);
     assert.equal(options.headers.apikey, KEY);
     assert.equal(options.headers.Authorization, undefined);
     assert.equal(options.headers['Content-Type'], 'application/json');

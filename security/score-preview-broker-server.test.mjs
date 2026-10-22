@@ -101,3 +101,40 @@ test('streamed broker payload is bounded by actual UTF-8 byte size', async () =>
   assert.equal(rejected.status, 400);
   assert.deepEqual(await rejected.json(), { allowed: false });
 });
+
+
+test('strict media and declared size validation does not reach privileged RPC', async () => {
+  const cases = [
+    ['application/jsonx', null, 415],
+    ['application/json; charset=utf-16', null, 415],
+    ['text/plain;application/json', null, 415],
+    ['application/json', 'invalid', 400],
+    ['application/json', '513', 400],
+    ['application/json', '-1', 400],
+    ['application/json', '2.5', 400],
+  ];
+  for (const [media, length, status] of cases) {
+    const request = new Request(BROKER, {
+      method: 'POST',
+      headers: {
+        'Content-Type': media,
+        'X-Score-Edge-Secret': SECRET,
+        ...(length === null ? {} : {'Content-Length': length}),
+      },
+      body: JSON.stringify({ action: 'validate', token: 'T'.repeat(43) }),
+    });
+    const response = await handleScorePreviewBroker(request, config, failFetch);
+    assert.equal(response.status, status, media + '/' + length);
+    assert.deepEqual(await response.json(), { allowed: false });
+  }
+  const valid = request({contentType: 'application/json; charset=UTF-8'});
+  const allowedToParse = await handleScorePreviewBroker(valid, config, async () => Response.json(null));
+  assert.equal(allowedToParse.status, 403);
+});
+
+test('RPC timeout errors are sanitized and deny, without leaking configuration', async () => {
+  const error = async () => { throw new DOMException('timed out: private backend detail', 'TimeoutError'); };
+  const result = await handleScorePreviewBroker(request(), config, error);
+  assert.equal(result.status, 503);
+  assert.deepEqual(await result.json(), { allowed: false });
+});

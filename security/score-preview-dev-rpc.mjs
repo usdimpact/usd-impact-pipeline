@@ -51,6 +51,8 @@ function privateRpc(env, fetchImpl) {
     if (!RPC_NAMES.has(name)) throw new Error('Unknown Score RPC');
     const response = await fetchImpl(`${DEV_SUPABASE_ORIGIN}/rest/v1/rpc/${name}`, {
       method: 'POST', redirect: 'error', cache: 'no-store',
+      // Fail closed if a Development RPC hangs. Keep requests individually bounded.
+      signal: AbortSignal.timeout(5000),
       headers: {
         apikey: key,
         'Content-Type': 'application/json',

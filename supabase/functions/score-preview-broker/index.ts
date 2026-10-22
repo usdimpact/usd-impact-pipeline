@@ -1,4 +1,5 @@
-// DRAFT ONLY — no function has been deployed. Development project only.
+// Development-only broker, deployed with activation disabled. NEVER deploy to Production.
+// Source edits require independent CI review before staging a replacement.
 // Deployment MUST use verify_jwt=false because this is a server-to-server
 // shared-secret protocol, not a user JWT flow. The handler validates its own
 // high-entropy secret and is disabled unless explicitly enabled.
