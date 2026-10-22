@@ -1,5 +1,19 @@
 # Score Research Membership — isolated Workers Preview transition
 
+## 22 October 2026 — verified same-day checkpoint (supersedes earlier package blocker)
+
+**Actual source commit:** `fcd223cfee232aba4398d91b2baedde851cfd792` on the existing draft Score PR #148. The broker client now has an 18-second abort deadline for its Development Edge HTTP request; new credential-isolation regression tests passed.
+
+- [Full Score quality CI #39826795072](https://github.com/usdimpact/usd-impact-pipeline/actions/runs/39826795072): **COMPLETED SUCCESS**, including live anonymous Development broker and Cloudflare Pages disabled-state POST checks.
+- [Isolated Worker static preflight #39826795059](https://github.com/usdimpact/usd-impact-pipeline/actions/runs/39826795059): **COMPLETED SUCCESS**.
+- [Pinned Wrangler package verification #39826795079](https://github.com/usdimpact/usd-impact-pipeline/actions/runs/39826795079): **COMPLETED SUCCESS** using genuine **Wrangler 4.135.0**, reading **156** static asset files and producing a 12.04 KiB (4.12 KiB gzip) Worker JS bundle via `wrangler deploy --dry-run`. Logs explicitly show `--dry-run: exiting now`, with **no Cloudflare deployment or credentials**. Earlier npm registry failures are resolved **for this GitHub Actions runner**.
+- **Boundary:** This Wrangler dry-run validates the *top-level* bundle and assets. It does **not** create a Workers Preview, prove that `previews.ratelimits` bindings exist, set a Preview-only secret, establish a Preview URL, or run authenticated member browser tests.
+- Independently verified Pages premium `/en/` and `/archive/es/` still return HTTP **403**; public methodology JSON remains accessible. The Development broker is hosted at version 2 but activation remains `SCORE_PREVIEW_BROKER_ENABLED=false`; Development ticket and session tables contain **zero** rows.
+- **No login bypass:** Opera is still disconnected, and the headless Cloudflare login previously failed. The next provider action requires secure Cloudflare management access. Do not put credentials in a PR workflow or chat; the Dev Worker remains source-only. The existing Pages Preview and Production are unchanged.
+
+**Release HOLD:** Both PRs must stay draft/unmerged. The next controlled step is one *disabled* isolated Workers Preview, its genuine provider URL, exact isolation and rate-limit verification, then separate entitlement, replay, revocation and iframe acceptance. No membership activation based on successful package build alone.
+
+
 **Status: SOURCE-ONLY CANDIDATE, NOT HOSTED. Release HOLD.** This document and code belong exclusively to the draft [Score PR #148](https://github.com/usdimpact/usd-impact-pipeline/pull/148). The existing Cloudflare **Pages** Preview remains disabled and intact. The Supabase Development broker v2 remains deployed **with its activation flag set to false**. No new Cloudflare Worker, Preview, routes, aliases, secrets, or production environment has been deployed or configured.
 
 ## Why migrate

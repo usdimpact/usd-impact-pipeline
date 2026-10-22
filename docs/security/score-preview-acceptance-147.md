@@ -1,5 +1,19 @@
 # Score Research Membership — isolated Preview acceptance plan
 
+## 22 October 2026 — verified same-day checkpoint (supersedes earlier package blocker)
+
+**Actual source commit:** `fcd223cfee232aba4398d91b2baedde851cfd792` on the existing draft Score PR #148. The broker client now has an 18-second abort deadline for its Development Edge HTTP request; new credential-isolation regression tests passed.
+
+- [Full Score quality CI #39826795072](https://github.com/usdimpact/usd-impact-pipeline/actions/runs/39826795072): **COMPLETED SUCCESS**, including live anonymous Development broker and Cloudflare Pages disabled-state POST checks.
+- [Isolated Worker static preflight #39826795059](https://github.com/usdimpact/usd-impact-pipeline/actions/runs/39826795059): **COMPLETED SUCCESS**.
+- [Pinned Wrangler package verification #39826795079](https://github.com/usdimpact/usd-impact-pipeline/actions/runs/39826795079): **COMPLETED SUCCESS** using genuine **Wrangler 4.135.0**, reading **156** static asset files and producing a 12.04 KiB (4.12 KiB gzip) Worker JS bundle via `wrangler deploy --dry-run`. Logs explicitly show `--dry-run: exiting now`, with **no Cloudflare deployment or credentials**. Earlier npm registry failures are resolved **for this GitHub Actions runner**.
+- **Boundary:** This Wrangler dry-run validates the *top-level* bundle and assets. It does **not** create a Workers Preview, prove that `previews.ratelimits` bindings exist, set a Preview-only secret, establish a Preview URL, or run authenticated member browser tests.
+- Independently verified Pages premium `/en/` and `/archive/es/` still return HTTP **403**; public methodology JSON remains accessible. The Development broker is hosted at version 2 but activation remains `SCORE_PREVIEW_BROKER_ENABLED=false`; Development ticket and session tables contain **zero** rows.
+- **No login bypass:** Opera is still disconnected, and the headless Cloudflare login previously failed. The next provider action requires secure Cloudflare management access. Do not put credentials in a PR workflow or chat; the Dev Worker remains source-only. The existing Pages Preview and Production are unchanged.
+
+**Release HOLD:** Both PRs must stay draft/unmerged. The next controlled step is one *disabled* isolated Workers Preview, its genuine provider URL, exact isolation and rate-limit verification, then separate entitlement, replay, revocation and iframe acceptance. No membership activation based on successful package build alone.
+
+
 ## 2026-10-22 — Development broker v2 hardening checkpoint
 
 **Implementation commit:** `6737d07621465fa2c7ec504f29ca726eaf48a76c` in draft Score PR #148. The full [source-commit CI](https://github.com/usdimpact/usd-impact-pipeline/actions/runs/39711365461) passed. The broker now accepts only exactly `application/json` (optional UTF-8 charset), rejects invalid or oversized `Content-Length`, still limits streamed body data to 512 bytes, and caps each private Development RPC fetch at five seconds (fail closed on timeout).
