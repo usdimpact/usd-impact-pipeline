@@ -65,3 +65,39 @@ test('Dev key must remain inside the broker and errors never disclose it',async(
   assert.equal(text.includes(SECRET),false);
   assert.equal(text.includes('database error'),false);
 });
+
+
+test('streamed broker payload is bounded by actual UTF-8 byte size', async () => {
+  const data = { action: 'validate', token: 'T'.repeat(43) };
+  const bytes = new TextEncoder();
+  const valid = bytes.encode(JSON.stringify(data));
+  const good = new Request(BROKER, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Score-Edge-Secret': SECRET },
+    body: new ReadableStream({
+      start(controller) {
+        controller.enqueue(valid.slice(0, 9));
+        controller.enqueue(valid.slice(9));
+        controller.close();
+      },
+    }),
+    duplex: 'half',
+  });
+  const result = await handleScorePreviewBroker(good, config, async () => Response.json(null));
+  assert.equal(result.status, 403); // valid body reaches RPC, then fails closed
+
+  const tooLarge = new Request(BROKER, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Score-Edge-Secret': SECRET },
+    body: new ReadableStream({
+      start(controller) {
+        controller.enqueue(bytes.encode(JSON.stringify({ action: 'validate', token: 'T'.repeat(43), padding: 'x'.repeat(600) })));
+        controller.close();
+      },
+    }),
+    duplex: 'half',
+  });
+  const rejected = await handleScorePreviewBroker(tooLarge, config, failFetch);
+  assert.equal(rejected.status, 400);
+  assert.deepEqual(await rejected.json(), { allowed: false });
+});
