@@ -1,0 +1,19 @@
+// DRAFT ONLY — no function has been deployed. Development project only.
+// Deployment MUST use verify_jwt=false because this is a server-to-server
+// shared-secret protocol, not a user JWT flow. The handler validates its own
+// high-entropy secret and is disabled unless explicitly enabled.
+import { handleScorePreviewBroker } from '../../../security/score-preview-broker-server.mjs';
+
+Deno.serve((request: Request) => {
+  let secretKey = '';
+  try {
+    const keys = JSON.parse(Deno.env.get('SUPABASE_SECRET_KEYS') || '{}');
+    if (typeof keys.default === 'string') secretKey = keys.default;
+  } catch { /* fail closed below */ }
+  return handleScorePreviewBroker(request, {
+    enabled: Deno.env.get('SCORE_PREVIEW_BROKER_ENABLED') || 'false',
+    supabaseUrl: Deno.env.get('SUPABASE_URL') || '',
+    supabaseSecretKey: secretKey,
+    sharedSecret: Deno.env.get('SCORE_EDGE_SHARED_SECRET') || '',
+  });
+});
