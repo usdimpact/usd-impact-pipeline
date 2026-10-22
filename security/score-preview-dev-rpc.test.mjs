@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import {
   SCORE_DIRECT_PREVIEW_HOST, SCORE_DIRECT_WEBSITE_ORIGIN,
-  scoreDirectDevEnabled, scoreDigest, redeemScoreDevTicket,
+  scoreDevBrokerPreviewEnabled, scoreDigest, redeemScoreDevTicket,
   scoreDevSessionAllowed,
 } from './score-preview-dev-rpc.mjs';
 
@@ -11,7 +11,7 @@ const ticket = 'T'.repeat(43);
 const ACCOUNT = '11111111-1111-4111-8111-111111111111';
 const KEY = 'sb_secret_' + 'A'.repeat(36);
 const env = Object.freeze({
-  SCORE_DIRECT_DEV_BACKEND_ENABLED: 'true',
+  SCORE_DEV_BROKER_ENABLED: 'true',
   SCORE_PREVIEW_SUPABASE_SECRET_KEY: KEY,
 });
 const sha = s => createHash('sha256').update(s).digest('hex');
@@ -68,15 +68,15 @@ function buildRpcFixture() {
 
 test('direct Development mode is isolated to one exact HTTPS Cloudflare Preview host', () => {
   const req = url => new Request(url);
-  assert.equal(scoreDirectDevEnabled(req('https://' + SCORE_DIRECT_PREVIEW_HOST + '/en/'), env), true);
+  assert.equal(scoreDevBrokerPreviewEnabled(req('https://' + SCORE_DIRECT_PREVIEW_HOST + '/en/'), env), true);
   for (const url of [
     'https://score.usd-impact.com/en/',
     'https://usd-impact-pipeline.pages.dev/en/',
     'https://evil.usd-impact-pipeline.pages.dev/en/',
     'http://' + SCORE_DIRECT_PREVIEW_HOST + '/en/',
     'https://' + SCORE_DIRECT_PREVIEW_HOST + '.attacker.test/en/',
-  ]) assert.equal(scoreDirectDevEnabled(req(url), env), false);
-  assert.equal(scoreDirectDevEnabled(req('https://' + SCORE_DIRECT_PREVIEW_HOST), {...env,SCORE_DIRECT_DEV_BACKEND_ENABLED:'false'}),false);
+  ]) assert.equal(scoreDevBrokerPreviewEnabled(req(url), env), false);
+  assert.equal(scoreDevBrokerPreviewEnabled(req('https://' + SCORE_DIRECT_PREVIEW_HOST), {...env,SCORE_DEV_BROKER_ENABLED:'false'}),false);
   assert.equal(SCORE_DIRECT_WEBSITE_ORIGIN, 'https://usd-impact-site-git-feat-score-membership-han-fb189b-usd-impact.vercel.app');
 });
 
