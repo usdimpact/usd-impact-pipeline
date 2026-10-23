@@ -14,7 +14,7 @@ function decodeJwtPart(value) {
   const padded = normalized + '='.repeat((4 - normalized.length % 4) % 4);
   return JSON.parse(atob(padded));
 }
-function isLeastPrivilegeMachineJwt(jwt) {
+function isLeastPrivilegeMachineJwt(jwt, expectedSub) {
   if (!JWT.test(jwt || '')) return false;
   try {
     const payload = decodeJwtPart(jwt.split('.')[1]);
@@ -23,7 +23,7 @@ function isLeastPrivilegeMachineJwt(jwt) {
       payload?.role === 'authenticated' &&
       payload?.is_anonymous === false &&
       UUID.test(payload?.sub || '') &&
-      payload.sub === env?.SCORE_PREVIEW_MACHINE_SUB &&
+      payload.sub === expectedSub &&
       Number.isFinite(payload?.exp) &&
       payload.exp > Math.floor(Date.now()/1000) + 30;
   } catch {
@@ -34,7 +34,7 @@ function isLeastPrivilegeMachineJwt(jwt) {
 async function invoke(action, token, env, fetchImpl) {
   if (env?.SCORE_DEV_BROKER_ENABLED !== 'true' ||
       !SECRET.test(env?.SCORE_EDGE_SHARED_SECRET || '') ||
-      !isLeastPrivilegeMachineJwt(env?.SCORE_PREVIEW_MACHINE_JWT || '') ||
+      !isLeastPrivilegeMachineJwt(env?.SCORE_PREVIEW_MACHINE_JWT || '', env?.SCORE_PREVIEW_MACHINE_SUB || '') ||
       !TOKEN.test(token || '')) throw new Error('Score Preview broker unavailable');
   const name = action === 'redeem' ? 'ticket' : action === 'validate' ? 'token' : null;
   if (!name) throw new Error('Unsupported broker operation');
