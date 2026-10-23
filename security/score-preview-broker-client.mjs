@@ -44,7 +44,7 @@ async function mintMachineJwt(env, fetchImpl) {
   }
   const response = await fetchImpl(AUTH_URL, {
     method: 'POST',
-    redirect: 'error',
+    redirect: 'manual',
     cache: 'no-store',
     signal: AbortSignal.timeout(8_000),
     headers: {
@@ -75,7 +75,7 @@ async function invoke(action, token, env, fetchImpl) {
   if (!name) fail('broker-config');
   const machineJwt = await mintMachineJwt(env, fetchImpl);
   const result = await fetchImpl(SCORE_PREVIEW_BROKER_URL, {
-    method: 'POST', redirect: 'error', cache: 'no-store',
+    method: 'POST', redirect: 'manual', cache: 'no-store',
     // Bound the entire Cloudflare-to-Development broker request, including response body.
     signal: AbortSignal.timeout(18_000),
     headers: {
