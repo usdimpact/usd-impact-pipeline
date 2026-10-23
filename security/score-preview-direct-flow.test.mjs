@@ -21,7 +21,6 @@ function machineJwt(overrides={}) {
     role:'authenticated',
     sub:'11111111-1111-4111-8111-111111111111',
     is_anonymous:false,
-    app_metadata:{score_preview_machine:true},
     exp:Math.floor(Date.now()/1000)+600,
     ...overrides,
   };
@@ -39,6 +38,7 @@ function fixture() {
     SCORE_PREVIEW_REDEMPTION_HOST: SCORE_DIRECT_PREVIEW_HOST,
     SCORE_EDGE_SHARED_SECRET: SHARED,
     SCORE_PREVIEW_MACHINE_JWT: MACHINE_JWT,
+    SCORE_PREVIEW_MACHINE_SUB: '11111111-1111-4111-8111-111111111111',
     SCORE_BACKEND_URL: 'https://invalid-preview.example.test/api/score-edge-redeem',
     SCORE_VALIDATION_BACKEND_URL: 'https://invalid-preview.example.test/api/score-edge-validate',
   };
