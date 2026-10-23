@@ -23,7 +23,6 @@ Required properties:
 - non-anonymous;
 - no Research Membership, Library Pass, subscription, or commercial entitlement;
 - no direct grants on Score tables or RPCs;
-- signed `app_metadata.score_preview_machine=true`;
 - no user-editable metadata is used for authorization;
 - identity exists only in the Development project.
 
@@ -34,7 +33,7 @@ The Worker additionally rejects JWTs unless the payload has:
 - role exactly `authenticated`;
 - `is_anonymous=false`;
 - UUID subject;
-- `app_metadata.score_preview_machine=true`;
+- subject exactly matches the pinned Development machine user UUID from `SCORE_PREVIEW_MACHINE_SUB`;
 - expiry more than 30 seconds in the future.
 
 The Worker-side claim check is only a fail-closed policy guard. Supabase remains responsible for cryptographic JWT verification before handler execution.
@@ -99,7 +98,7 @@ A long-lived refresh token must not be installed in the Worker during this phase
 Do not redeploy `score-preview-broker` with `verify_jwt=true` until all are true:
 
 - exact-head CI/package/static checks pass;
-- dedicated Development machine identity exists with the required signed app metadata;
+- dedicated Development machine identity exists and its exact UUID is pinned in Worker Preview configuration;
 - read-only database privilege audit still passes;
 - isolated Worker Preview secret boundary is verified;
 - anonymous request test is defined to prove rejection happens before handler execution;
