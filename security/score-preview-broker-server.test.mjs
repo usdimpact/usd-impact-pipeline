@@ -7,6 +7,7 @@ const SECRET='S'.repeat(64);
 const config={
   enabled:'true',supabaseUrl:'https://ycstrcvshdluovtuasjc.supabase.co',
   supabaseSecretKey:'sb_secret_'+'B'.repeat(32),sharedSecret:SECRET,
+  rateBudget: async () => true,
 };
 function request({ url=BROKER,method='POST',secret=SECRET,contentType='application/json',
   data={action:'validate',token:'T'.repeat(43)} }={}) {
@@ -137,4 +138,29 @@ test('RPC timeout errors are sanitized and deny, without leaking configuration',
   const result = await handleScorePreviewBroker(request(), config, error);
   assert.equal(result.status, 503);
   assert.deepEqual(await result.json(), { allowed: false });
+});
+
+test('an authenticated broker request cannot reach privileged RPC without a global budget', async () => {
+  assert.equal((await handleScorePreviewBroker(request(),{...config,rateBudget:undefined},failFetch)).status,503);
+  let claims=0;
+  const over=await handleScorePreviewBroker(request(),{...config,rateBudget:async(action)=>{
+    assert.equal(action,'validate');claims++;return false;
+  }},failFetch);
+  assert.equal(over.status,429);
+  assert.equal(over.headers.get('Retry-After'),'60');
+  assert.deepEqual(await over.json(),{allowed:false});
+  assert.equal(claims,1);
+  const down=await handleScorePreviewBroker(request(),{...config,rateBudget:async()=>{throw Error('private database detail');}},failFetch);
+  assert.equal(down.status,503);
+  assert.deepEqual(await down.json(),{allowed:false});
+  assert.equal(down.headers.get('Set-Cookie'),null);
+});
+test('invalid secrets and malformed requests never consume database budget', async () => {
+  let claims=0;
+  const cfg={...config,rateBudget:async()=>{claims++;return true}};
+  assert.equal((await handleScorePreviewBroker(request({secret:'A'.repeat(64)}),cfg,failFetch)).status,403);
+  assert.equal((await handleScorePreviewBroker(request({data:{action:'unknown'}}),cfg,failFetch)).status,400);
+  assert.equal((await handleScorePreviewBroker(request({contentType:'text/plain'}),cfg,failFetch)).status,415);
+  assert.equal((await handleScorePreviewBroker(request({method:'GET'}),cfg,failFetch)).status,405);
+  assert.equal(claims,0);
 });

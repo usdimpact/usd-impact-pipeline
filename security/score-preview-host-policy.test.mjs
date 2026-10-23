@@ -21,6 +21,8 @@ test('Pages preview imports cannot bring privileged Supabase RPC code into the b
   }
   assert.equal(PAGES_HOST, RPC_HOST);
   assert.equal(PAGES_ISSUER, RPC_ISSUER);
+  assert.equal(PAGES_ISSUER,'https://usd-impact-site-balw49o36-usd-impact.vercel.app');
+  assert.notEqual(PAGES_ISSUER,'https://usd-impact-site-git-feat-score-membership-han-fb189b-usd-impact.vercel.app');
 });
 
 test('credential-free Pages policy selects one exact isolated HTTPS Preview host', () => {

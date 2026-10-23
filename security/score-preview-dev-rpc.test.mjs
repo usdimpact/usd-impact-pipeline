@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import {
   SCORE_DIRECT_PREVIEW_HOST, SCORE_DIRECT_WEBSITE_ORIGIN,
+  claimScoreDevBrokerBudget,
   scoreDevBrokerPreviewEnabled, scoreDigest, redeemScoreDevTicket,
   scoreDevSessionAllowed,
 } from './score-preview-dev-rpc.mjs';
@@ -79,7 +80,7 @@ test('direct Development mode is isolated to one exact HTTPS Cloudflare Preview 
     'https://' + SCORE_DIRECT_PREVIEW_HOST + '.attacker.test/en/',
   ]) assert.equal(scoreDevBrokerPreviewEnabled(req(url), env), false);
   assert.equal(scoreDevBrokerPreviewEnabled(req('https://' + SCORE_DIRECT_PREVIEW_HOST), {...env,SCORE_DEV_BROKER_ENABLED:'false'}),false);
-  assert.equal(SCORE_DIRECT_WEBSITE_ORIGIN, 'https://usd-impact-site-git-feat-score-membership-han-fb189b-usd-impact.vercel.app');
+  assert.equal(SCORE_DIRECT_WEBSITE_ORIGIN, 'https://usd-impact-site-balw49o36-usd-impact.vercel.app');
 });
 
 test('SHA-256 digests match existing Vercel ticket/session contract', async () => {
@@ -137,4 +138,25 @@ test('a ticket that is not an active Research member cannot mint a session', asy
   };
   assert.equal(await redeemScoreDevTicket(ticket,env,fake),null);
   assert.equal(calls,2);
+});
+
+test('global Development budget is a service-role-only RPC with exact action schema', async () => {
+  const actions=[];
+  const stub=async(url,opts)=>{
+    assert.equal(url,'https://ycstrcvshdluovtuasjc.supabase.co/rest/v1/rpc/score_preview_broker_claim_budget');
+    assert.equal(opts.method,'POST');
+    assert.equal(opts.headers.apikey,KEY);
+    assert.equal(opts.headers.Authorization,undefined);
+    assert.equal(opts.redirect,'error');
+    assert.ok(opts.signal instanceof AbortSignal);
+    const body=JSON.parse(opts.body);
+    assert.deepEqual(Object.keys(body),['p_action']);
+    actions.push(body.p_action);
+    return Response.json(body.p_action==='validate');
+  };
+  assert.equal(await claimScoreDevBrokerBudget('validate',env,stub),true);
+  assert.equal(await claimScoreDevBrokerBudget('redeem',env,stub),false);
+  assert.equal(await claimScoreDevBrokerBudget('wrong',env,stub),false);
+  assert.deepEqual(actions,['validate','redeem']);
+  await assert.rejects(()=>claimScoreDevBrokerBudget('validate',env,async()=>new Response('outage',{status:503})));
 });

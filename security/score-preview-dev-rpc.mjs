@@ -4,7 +4,7 @@
 // Never copy its privileged key to Cloudflare Pages or Production.
 
 export const SCORE_DIRECT_PREVIEW_HOST = 'fix-score-membership-handoff.usd-impact-pipeline.pages.dev';
-export const SCORE_DIRECT_WEBSITE_ORIGIN = 'https://usd-impact-site-git-feat-score-membership-han-fb189b-usd-impact.vercel.app';
+export const SCORE_DIRECT_WEBSITE_ORIGIN = 'https://usd-impact-site-balw49o36-usd-impact.vercel.app';
 const DEV_SUPABASE_ORIGIN = 'https://ycstrcvshdluovtuasjc.supabase.co';
 const KEY_RE = /^sb_secret_[A-Za-z0-9_-]{16,}$/;
 const TICKET_RE = /^[A-Za-z0-9_-]{43}$/;
@@ -12,6 +12,7 @@ const DIGEST_RE = /^[a-f0-9]{64}$/;
 const ACCOUNT_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const SCORE_PATHS = new Set(['/en/', '/es/', '/archive/en/', '/archive/es/']);
 const RPC_NAMES = new Set([
+  'score_preview_broker_claim_budget',
   'score_ticket_consume_atomic', 'score_membership_active',
   'score_session_create', 'score_session_lookup',
 ]);
@@ -66,6 +67,14 @@ function privateRpc(env, fetchImpl) {
     if (!response.ok) throw new Error('Score Development RPC unavailable');
     return response.json();
   };
+}
+
+// Global Development budget, applied AFTER the broker's shared-secret check.
+// It does not replace upstream pre-Edge-function denial-of-service controls.
+export async function claimScoreDevBrokerBudget(action, env, fetchImpl = fetch) {
+  if (action !== 'redeem' && action !== 'validate') return false;
+  const rpc = privateRpc(env, fetchImpl);
+  return (await rpc('score_preview_broker_claim_budget', {p_action: action})) === true;
 }
 
 export async function redeemScoreDevTicket(ticket, env, fetchImpl = fetch) {

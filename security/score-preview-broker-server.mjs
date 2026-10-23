@@ -12,7 +12,7 @@ const HEADERS = {
   'Referrer-Policy': 'no-referrer',
   'X-Content-Type-Options': 'nosniff',
 };
-const json = (status, data) => Response.json(data, { status, headers: HEADERS });
+const json = (status, data, extra = {}) => Response.json(data, { status, headers: { ...HEADERS, ...extra } });
 function opaqueEqual(a, b) {
   if (typeof a !== 'string' || typeof b !== 'string' ||
       a.length > 128 || b.length > 128) return false;
@@ -72,6 +72,16 @@ export async function handleScorePreviewBroker(request, config, fetchImpl = fetc
       !['redeem', 'validate'].includes(data.action) ||
       Object.keys(data).some(key => !['action', 'ticket', 'token'].includes(key))) {
     return json(400, { allowed: false });
+  }
+  // Requests from the public Supabase URL are authenticated and schema-checked
+  // before touching the global service-role rate budget. Missing limiter fails
+  // closed, including when the underlying Development database is unavailable.
+  if (typeof config?.rateBudget !== 'function') return json(503, { allowed: false });
+  try {
+    const permitted = await config.rateBudget(data.action);
+    if (permitted !== true) return json(429, { allowed: false }, { 'Retry-After': '60' });
+  } catch {
+    return json(503, { allowed: false });
   }
   const dbEnv = { SCORE_PREVIEW_SUPABASE_SECRET_KEY: config.supabaseSecretKey };
   try {

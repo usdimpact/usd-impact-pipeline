@@ -59,6 +59,7 @@ function fixture() {
     return handleScorePreviewBroker(req,{
       enabled:'true',supabaseUrl:'https://ycstrcvshdluovtuasjc.supabase.co',
       sharedSecret:SHARED,supabaseSecretKey:DB_KEY,
+      rateBudget:async()=>true,
     },dbFetch);
   }
   async function request(path, params={}) {
