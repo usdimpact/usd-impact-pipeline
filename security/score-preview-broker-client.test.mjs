@@ -9,7 +9,21 @@ import {
 const TICKET='T'.repeat(43);
 const SESSION='S'.repeat(43);
 const SECRET='s'.repeat(64);
-const MACHINE_JWT='aaaaaaaa.bbbbbbbb.cccccccccccccccccc';
+function machineJwt(overrides={}) {
+  const encode=value=>Buffer.from(JSON.stringify(value)).toString('base64url');
+  const payload={
+    iss:'https://ycstrcvshdluovtuasjc.supabase.co/auth/v1',
+    aud:'authenticated',
+    role:'authenticated',
+    sub:'11111111-1111-4111-8111-111111111111',
+    is_anonymous:false,
+    app_metadata:{score_preview_machine:true},
+    exp:Math.floor(Date.now()/1000)+600,
+    ...overrides,
+  };
+  return encode({alg:'ES256',typ:'JWT'})+'.'+encode(payload)+'.'+'c'.repeat(64);
+}
+const MACHINE_JWT = machineJwt();
 
 test('a disabled or malformed broker call cannot send any credential to the network',async()=>{
   let called=0;
@@ -20,10 +34,19 @@ test('a disabled or malformed broker call cannot send any credential to the netw
     SCORE_DEV_BROKER_ENABLED:'true',SCORE_EDGE_SHARED_SECRET:SECRET,
     SCORE_PREVIEW_MACHINE_JWT:MACHINE_JWT,
   },stub));
-  await assert.rejects(()=>redeemScoreBrokerTicket(TICKET,{
-    SCORE_DEV_BROKER_ENABLED:'true',SCORE_EDGE_SHARED_SECRET:SECRET,
-    SCORE_PREVIEW_MACHINE_JWT:'not-a-jwt',
-  },stub));
+  for (const badJwt of [
+    'not-a-jwt',
+    machineJwt({role:'service_role'}),
+    machineJwt({aud:'anon'}),
+    machineJwt({is_anonymous:true}),
+    machineJwt({app_metadata:{score_preview_machine:false}}),
+    machineJwt({exp:Math.floor(Date.now()/1000)-1}),
+  ]) {
+    await assert.rejects(()=>redeemScoreBrokerTicket(TICKET,{
+      SCORE_DEV_BROKER_ENABLED:'true',SCORE_EDGE_SHARED_SECRET:SECRET,
+      SCORE_PREVIEW_MACHINE_JWT:badJwt,
+    },stub));
+  }
   assert.equal(called,0);
 });
 
