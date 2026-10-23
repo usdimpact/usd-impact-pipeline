@@ -82,7 +82,7 @@ test('only the pinned Development broker receives a bounded POST with an interna
     if(url===AUTH_URL){
       authCalls++;
       assert.equal(opts.method,'POST');
-      assert.equal(opts.redirect,'error');
+      assert.equal(opts.redirect,'manual');
       assert.equal(opts.cache,'no-store');
       assert.ok(opts.signal instanceof AbortSignal);
       assert.equal(opts.headers.apikey,PUBLISHABLE);
@@ -96,7 +96,7 @@ test('only the pinned Development broker receives a bounded POST with an interna
     brokerCalls++;
     assert.equal(url,SCORE_PREVIEW_BROKER_URL);
     assert.equal(opts.method,'POST');
-    assert.equal(opts.redirect,'error');
+    assert.equal(opts.redirect,'manual');
     assert.equal(opts.cache,'no-store');
     assert.ok(opts.signal instanceof AbortSignal);
     assert.equal(opts.headers['X-Score-Edge-Secret'],SECRET);
