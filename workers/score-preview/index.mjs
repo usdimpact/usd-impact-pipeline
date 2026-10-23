@@ -109,7 +109,9 @@ async function redeem(request, env) {
     if (!payload) return denied();
     const cookie = scoreSessionCookie(payload.token, payload.expiresAtMs);
     return response(303, null, {Location:payload.path,'Set-Cookie':cookie});
-  } catch { return unavailable(); }
+  } catch (error) {
+    return unavailable(env?.SCORE_PREVIEW_DIAGNOSTICS_ENABLED === 'true' ? (error?.code || 'unknown') : null);
+  }
 }
 export async function handleScoreWorkerPreview(request, env) {
   if (env?.SCORE_WORKER_PREVIEW_ENABLED !== 'true') return unavailable();
