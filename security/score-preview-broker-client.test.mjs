@@ -63,7 +63,7 @@ test('minted JWT must match the pinned least-privilege Development identity befo
         assert.equal(opts.headers.apikey,PUBLISHABLE);
         assert.equal(opts.headers.Authorization,undefined);
         assert.deepEqual(JSON.parse(opts.body),{
-          email:'score-preview-machine@usd-impact.com',
+          email:'score-preview-machine3@usd-impact.com',
           password:PASSWORD,
         });
         return Response.json({access_token:badJwt,refresh_token:'must-not-be-used'});
@@ -88,7 +88,7 @@ test('only the pinned Development broker receives a bounded POST with an interna
       assert.equal(opts.headers.apikey,PUBLISHABLE);
       assert.equal(opts.headers.Authorization,undefined);
       assert.deepEqual(JSON.parse(opts.body),{
-        email:'score-preview-machine@usd-impact.com',
+        email:'score-preview-machine3@usd-impact.com',
         password:PASSWORD,
       });
       return Response.json({access_token:MACHINE_JWT,refresh_token:'ignored'});
