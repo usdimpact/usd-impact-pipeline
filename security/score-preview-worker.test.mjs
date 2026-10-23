@@ -133,6 +133,23 @@ test('rate limit binding absence and exhaustion deny before any ticket/network o
   assert.equal(f.assetReads,0);
 });
 
+test('Preview diagnostics expose only a non-secret failure stage when explicitly enabled',async()=>{
+  const f=setup({
+    SCORE_EDGE_REDEMPTION_ENABLED:'true',
+    SCORE_DEV_BROKER_ENABLED:'true',
+    SCORE_PREVIEW_MACHINE_PASSWORD:'short',
+  });
+  const normal=await handleScoreWorkerPreview(
+    f.request('/score-redeem',{method:'POST',origin:SCORE_DIRECT_WEBSITE_ORIGIN}),f.env);
+  assert.equal(normal.status,503);
+  assert.equal(normal.headers.get('X-Score-Preview-Stage'),null);
+  const diagnostic=await handleScoreWorkerPreview(
+    f.request('/score-redeem',{method:'POST',origin:SCORE_DIRECT_WEBSITE_ORIGIN}),
+    {...f.env,SCORE_PREVIEW_DIAGNOSTICS_ENABLED:'true'});
+  assert.equal(diagnostic.status,503);
+  assert.equal(diagnostic.headers.get('X-Score-Preview-Stage'),'machine-config');
+});
+
 test('mock authenticated redemption, cookie validation, revocation and replay stay server-side',async t=>{
   const f=setup({SCORE_EDGE_REDEMPTION_ENABLED:'true',SCORE_DEV_BROKER_ENABLED:'true',SCORE_EDGE_GATE_ENABLED:'true'});
   const original=globalThis.fetch;
