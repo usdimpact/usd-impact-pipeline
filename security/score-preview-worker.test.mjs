@@ -10,7 +10,21 @@ const HOST = 'https://pr-148-usd-impact-score-isolated-dev.example.workers.dev';
 const TOKEN = 'T'.repeat(43);
 const SESSION = 'S'.repeat(43);
 const SECRET = 's'.repeat(64);
-const MACHINE_JWT = 'aaaaaaaa.bbbbbbbb.cccccccccccccccccc';
+function machineJwt(overrides={}) {
+  const encode=value=>Buffer.from(JSON.stringify(value)).toString('base64url');
+  const payload={
+    iss:'https://ycstrcvshdluovtuasjc.supabase.co/auth/v1',
+    aud:'authenticated',
+    role:'authenticated',
+    sub:'11111111-1111-4111-8111-111111111111',
+    is_anonymous:false,
+    app_metadata:{score_preview_machine:true},
+    exp:Math.floor(Date.now()/1000)+600,
+    ...overrides,
+  };
+  return encode({alg:'ES256',typ:'JWT'})+'.'+encode(payload)+'.'+'c'.repeat(64);
+}
+const MACHINE_JWT = machineJwt();
 const PREMIUM = 'PRIVATE_SCORE_DASHBOARD_DATA';
 
 function setup(overrides = {}) {
