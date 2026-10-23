@@ -1,7 +1,7 @@
-// Private Development Supabase RPC adapter for isolated server-side Preview runtimes.
-// Deliberately uses Web Crypto only (Cloudflare Workers/Pages runtime, not Node).
-// The public Supabase Edge broker is not required by the isolated Worker path.
-// Never expose its privileged Development credential to a browser or Production.
+// Private Development Supabase RPC adapter used exclusively inside the Edge broker.
+// Deliberately uses Web Crypto only (Cloudflare Pages runtime, not Node).
+// All RPCs are server-side and restricted to the existing service_role grants.
+// Never copy its privileged key to Cloudflare Pages or Production.
 
 export const SCORE_DIRECT_PREVIEW_HOST = 'fix-score-membership-handoff.usd-impact-pipeline.pages.dev';
 export const SCORE_DIRECT_WEBSITE_ORIGIN = 'https://usd-impact-site-55p15tktn-usd-impact.vercel.app';
@@ -42,8 +42,8 @@ function newScoreSessionToken() {
 }
 
 function privateRpc(env, fetchImpl) {
-  // Hardcoded Development database; only an isolated server-side Preview runtime
-  // may pass this encrypted secret binding. Never expose it to browser code.
+  // Hardcoded Development database; only the isolated Supabase Edge broker
+  // passes a server-only secret key. Never expose the key in Pages Preview.
   const key = env?.SCORE_PREVIEW_SUPABASE_SECRET_KEY;
   if (typeof key !== 'string' || !KEY_RE.test(key)) {
     throw new Error('Score Development credential unavailable');
