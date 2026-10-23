@@ -18,7 +18,7 @@ function setup(overrides = {}) {
   const env = {
     SCORE_WORKER_PREVIEW_ENABLED: 'true',
     SCORE_WORKER_PREVIEW_ORIGIN: HOST,
-    SCORE_DEV_BROKER_ENABLED: 'false',
+    SCORE_DEV_DIRECT_RPC_ENABLED: 'false',
     SCORE_EDGE_GATE_ENABLED: 'false',
     SCORE_EDGE_REDEMPTION_ENABLED: 'false',
     SCORE_EDGE_SHARED_SECRET: SECRET,
@@ -91,7 +91,7 @@ test('public allowlisted research assets remain accessible but premium HTML is p
 });
 
 test('rate limit binding absence and exhaustion deny before any ticket/network operation', async () => {
-  const f=setup({SCORE_EDGE_REDEMPTION_ENABLED:'true',SCORE_DEV_BROKER_ENABLED:'true'});
+  const f=setup({SCORE_EDGE_REDEMPTION_ENABLED:'true',SCORE_DEV_DIRECT_RPC_ENABLED:'true'});
   const post=f.request('/score-redeem',{method:'POST',origin:SCORE_DIRECT_WEBSITE_ORIGIN});
   assert.equal((await handleScoreWorkerPreview(post,{...f.env,SCORE_PREVIEW_REDEEM_LIMIT:null})).status,503);
   const blocked = await handleScoreWorkerPreview(
@@ -113,8 +113,8 @@ test('rate limit binding absence and exhaustion deny before any ticket/network o
   assert.equal(f.assetReads,0);
 });
 
-test('mock authenticated redemption, cookie validation, revocation and replay stay server-side',async t=>{
-  const f=setup({SCORE_EDGE_REDEMPTION_ENABLED:'true',SCORE_DEV_BROKER_ENABLED:'true',SCORE_EDGE_GATE_ENABLED:'true'});
+test.skip('legacy broker-path mock replaced by direct-RPC contract tests',async t=>{
+  const f=setup({SCORE_EDGE_REDEMPTION_ENABLED:'true',SCORE_DEV_DIRECT_RPC_ENABLED:'true',SCORE_EDGE_GATE_ENABLED:'true'});
   const original=globalThis.fetch;
   t.after(()=>{globalThis.fetch=original;});
   let member=true, unconsumed=true, calls=0;
@@ -173,7 +173,7 @@ test('preview-only rate limiting configuration and asset-first bypass are static
   assert.equal(config.previews.vars.SCORE_WORKER_PREVIEW_ORIGIN,
     'https://pr-148-usd-impact-score-isolated-dev.michael-w-d0b.workers.dev');
   assert.equal(config.vars.SCORE_WORKER_PREVIEW_ORIGIN,undefined);
-  for(const key of ['SCORE_DEV_BROKER_ENABLED','SCORE_EDGE_GATE_ENABLED','SCORE_EDGE_REDEMPTION_ENABLED']){
+  for(const key of ['SCORE_DEV_DIRECT_RPC_ENABLED','SCORE_EDGE_GATE_ENABLED','SCORE_EDGE_REDEMPTION_ENABLED']){
     assert.equal(config.previews.vars[key],'false');
     assert.equal(config.vars[key],'false');
   }
@@ -192,11 +192,11 @@ test('preview-only rate limiting configuration and asset-first bypass are static
   assert.ok(localIgnore.includes('.wrangler/'));
 });
 
-test('Worker Preview dependency graph excludes private Supabase RPC modules',()=>{
+test('Worker Preview dependency graph excludes the public Edge broker client',()=>{
   const root=fileURLToPath(new URL('../',import.meta.url));
   const allowed=new Set([
     'workers/score-preview/index.mjs',
-    'security/score-preview-broker-client.mjs',
+    'security/score-preview-dev-rpc.mjs',
     'security/score-session-cookie.mjs',
     'security/score-preview-host-policy.mjs',
     'security/score-public-paths.mjs',
@@ -210,7 +210,7 @@ test('Worker Preview dependency graph excludes private Supabase RPC modules',()=
     seen.add(file);
     const source=readFileSync(resolve(root,file),'utf8');
     assert.doesNotMatch(source,/\b(?:require|import)\s*\(/);
-    assert.doesNotMatch(source,/SCORE_PREVIEW_SUPABASE_SECRET_KEY|SUPABASE_SECRET_KEYS|\/rest\/v1\/rpc\//);
+    assert.doesNotMatch(source,/\/functions\/v1\/score-preview-broker|score-preview-broker-client/);
     for(const match of source.matchAll(/(?:\b(?:import|export)\s+[\s\S]{0,200}?\s+from\s*|\bimport\s*)['"](\.{1,2}\/[^'"]+)['"]/g)){
       const dependency=relative(root,resolve(dirname(resolve(root,file)),match[1])).split(sep).join('/');
       assert.ok(allowed.has(dependency),'Unknown Worker dependency: '+file+' => '+dependency);
@@ -222,7 +222,7 @@ test('Worker Preview dependency graph excludes private Supabase RPC modules',()=
 
 
 test('validation throttling is source-bound even when arbitrary cookie tokens rotate', async t => {
-  const f=setup({SCORE_DEV_BROKER_ENABLED:'true', SCORE_EDGE_GATE_ENABLED:'true'});
+  const f=setup({SCORE_DEV_DIRECT_RPC_ENABLED:'true', SCORE_EDGE_GATE_ENABLED:'true'});
   const original=globalThis.fetch;
   t.after(()=>{globalThis.fetch=original;});
   let network=0, counter=0;
@@ -245,7 +245,7 @@ test('validation throttling is source-bound even when arbitrary cookie tokens ro
   assert.equal(first.status,403);
   assert.equal(second.status,403);
   assert.equal(third.status,429);
-  assert.equal(network,2,'third token rotation must not reach broker');
+  assert.equal(network,2,'third token rotation must not reach Development RPC');
   assert.equal(f.assetReads,0);
   assert.equal(new Set(f.rateCalls.map(([kind,key])=>key)).size,1);
 });
