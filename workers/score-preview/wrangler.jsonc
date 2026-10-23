@@ -11,14 +11,14 @@
   },
   "vars": {
     "SCORE_WORKER_PREVIEW_ENABLED": "false",
-    "SCORE_DEV_DIRECT_RPC_ENABLED": "false",
+    "SCORE_DEV_BROKER_ENABLED": "false",
     "SCORE_EDGE_GATE_ENABLED": "false",
     "SCORE_EDGE_REDEMPTION_ENABLED": "false"
   },
   "previews": {
     "vars": {
       "SCORE_WORKER_PREVIEW_ENABLED": "false",
-      "SCORE_DEV_DIRECT_RPC_ENABLED": "false",
+      "SCORE_DEV_BROKER_ENABLED": "false",
       "SCORE_EDGE_GATE_ENABLED": "false",
       "SCORE_EDGE_REDEMPTION_ENABLED": "false",
       "SCORE_WORKER_PREVIEW_ORIGIN": "https://pr-148-usd-impact-score-isolated-dev.michael-w-d0b.workers.dev"
