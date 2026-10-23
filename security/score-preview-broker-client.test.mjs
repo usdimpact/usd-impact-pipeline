@@ -71,7 +71,7 @@ test('minted JWT must match the pinned least-privilege Development identity befo
       brokerCalls++;
       throw new Error('broker must not run');
     };
-    await assert.rejects(()=>redeemScoreBrokerTicket(TICKET,ENV,fake),/authentication/i);
+    await assert.rejects(()=>redeemScoreBrokerTicket(TICKET,ENV,fake),error=>error?.code==='machine-claims');
     assert.equal(brokerCalls,0);
   }
 });
@@ -120,7 +120,7 @@ test('only the pinned Development broker receives a bounded POST with an interna
 
 test('auth failure, broker denials, malformed grants and broker outages all fail closed',async()=>{
   const authFail=async(url)=>url===AUTH_URL?new Response('denied',{status:400}):Response.json({allowed:true});
-  await assert.rejects(()=>redeemScoreBrokerTicket(TICKET,ENV,authFail),/authentication/i);
+  await assert.rejects(()=>redeemScoreBrokerTicket(TICKET,ENV,authFail),error=>error?.code==='machine-auth-http');
 
   const makeFake=brokerResponse=>async(url)=>{
     if(url===AUTH_URL)return Response.json({access_token:MACHINE_JWT});
@@ -136,5 +136,5 @@ test('auth failure, broker denials, malformed grants and broker outages all fail
   assert.equal(await redeemScoreBrokerTicket(TICKET,ENV,malformed),null);
 
   const upstreamError=makeFake(()=>new Response('unavailable',{status:503}));
-  await assert.rejects(()=>scoreBrokerSessionAllowed(SESSION,ENV,upstreamError),/unavailable/i);
+  await assert.rejects(()=>scoreBrokerSessionAllowed(SESSION,ENV,upstreamError),error=>error?.code==='broker-http');
 });
