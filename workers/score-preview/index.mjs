@@ -2,7 +2,7 @@
 // Production and new Preview environments are configured OFF in wrangler.jsonc.
 // Every static asset request runs through this script: never serve before auth.
 import { readScoreSessionCookie, scoreSessionCookie } from '../../security/score-session-cookie.mjs';
-import { redeemScoreBrokerTicket, scoreBrokerSessionAllowed } from '../../security/score-preview-broker-client.mjs';
+import { redeemScoreDevTicket, scoreDevSessionAllowed } from '../../security/score-preview-dev-rpc.mjs';
 import { SCORE_DIRECT_WEBSITE_ORIGIN } from '../../security/score-preview-host-policy.mjs';
 import { isPublicScorePath } from '../../security/score-public-paths.mjs';
 import { parseBoundedScoreTicket } from '../../security/score-ticket-form.mjs';
@@ -91,7 +91,7 @@ async function asset(request, env, restricted) {
 }
 async function redeem(request, env) {
   if (env?.SCORE_EDGE_REDEMPTION_ENABLED !== 'true' ||
-      env?.SCORE_DEV_BROKER_ENABLED !== 'true') return unavailable();
+      env?.SCORE_DEV_DIRECT_RPC_ENABLED !== 'true') return unavailable();
   if (request.headers.get('origin') !== SCORE_DIRECT_WEBSITE_ORIGIN) return denied();
   const limited = await rateCheck(env.SCORE_PREVIEW_REDEEM_LIMIT, await requestActor(request, 'redeem'));
   if (limited === null) return unavailable();
@@ -99,7 +99,9 @@ async function redeem(request, env) {
   const ticket = await parseBoundedScoreTicket(request);
   if (!ticket) return response(400, 'Invalid Score handoff');
   try {
-    const payload = await redeemScoreBrokerTicket(ticket, env);
+    const payload = await redeemScoreDevTicket(ticket, {
+      SCORE_PREVIEW_SUPABASE_SECRET_KEY: env?.SCORE_PREVIEW_SUPABASE_SECRET_KEY,
+    });
     if (!payload) return denied();
     const cookie = scoreSessionCookie(payload.token, payload.expiresAtMs);
     return response(303, null, {Location:payload.path,'Set-Cookie':cookie});
@@ -118,7 +120,7 @@ export async function handleScoreWorkerPreview(request, env) {
   if (isPublicScorePath(url.pathname)) return asset(request, env, false);
 
   if (env?.SCORE_EDGE_GATE_ENABLED !== 'true' ||
-      env?.SCORE_DEV_BROKER_ENABLED !== 'true') return denied();
+      env?.SCORE_DEV_DIRECT_RPC_ENABLED !== 'true') return denied();
   const token = readScoreSessionCookie(request.headers.get('cookie'));
   if (!token) return denied();
 
@@ -128,7 +130,9 @@ export async function handleScoreWorkerPreview(request, env) {
   if (limited === null) return unavailable();
   if (!limited) return throttled();
   try {
-    if (await scoreBrokerSessionAllowed(token, env) !== true) return denied();
+    if (await scoreDevSessionAllowed(token, {
+      SCORE_PREVIEW_SUPABASE_SECRET_KEY: env?.SCORE_PREVIEW_SUPABASE_SECRET_KEY,
+    }) !== true) return denied();
   } catch { return denied(); }
   return asset(request, env, true);
 }
