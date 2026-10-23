@@ -23,7 +23,7 @@ function isLeastPrivilegeMachineJwt(jwt) {
       payload?.role === 'authenticated' &&
       payload?.is_anonymous === false &&
       UUID.test(payload?.sub || '') &&
-      payload?.app_metadata?.score_preview_machine === true &&
+      payload.sub === env?.SCORE_PREVIEW_MACHINE_SUB &&
       Number.isFinite(payload?.exp) &&
       payload.exp > Math.floor(Date.now()/1000) + 30;
   } catch {
