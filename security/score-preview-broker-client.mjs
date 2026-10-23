@@ -5,10 +5,12 @@ export const SCORE_PREVIEW_BROKER_URL =
 const TOKEN = /^[A-Za-z0-9_-]{43}$/;
 const SECRET = /^[A-Za-z0-9_-]{43,128}$/;
 const PATHS = new Set(['/en/', '/es/', '/archive/en/', '/archive/es/']);
+const JWT = /^[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{16,}$/;
 
 async function invoke(action, token, env, fetchImpl) {
   if (env?.SCORE_DEV_BROKER_ENABLED !== 'true' ||
       !SECRET.test(env?.SCORE_EDGE_SHARED_SECRET || '') ||
+      !JWT.test(env?.SCORE_PREVIEW_MACHINE_JWT || '') ||
       !TOKEN.test(token || '')) throw new Error('Score Preview broker unavailable');
   const name = action === 'redeem' ? 'ticket' : action === 'validate' ? 'token' : null;
   if (!name) throw new Error('Unsupported broker operation');
@@ -20,6 +22,7 @@ async function invoke(action, token, env, fetchImpl) {
       'Content-Type': 'application/json',
       Accept: 'application/json',
       'X-Score-Edge-Secret': env.SCORE_EDGE_SHARED_SECRET,
+      Authorization: `Bearer ${env.SCORE_PREVIEW_MACHINE_JWT}`,
       'Cache-Control': 'no-store',
     },
     body: JSON.stringify({ action, [name]: token }),
