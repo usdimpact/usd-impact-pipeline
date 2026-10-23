@@ -39,8 +39,12 @@ function denied() {
     'Content-Security-Policy': "default-src 'none'; base-uri 'none'; object-src 'none'; form-action 'none'",
   });
 }
-function unavailable() {
-  return response(503, 'Score Preview unavailable');
+function unavailable(stage) {
+  const extra = {};
+  if (/^(machine-config|machine-auth-http|machine-claims|broker-config|broker-http|unknown)$/.test(stage || '')) {
+    extra['X-Score-Preview-Stage'] = stage;
+  }
+  return response(503, 'Score Preview unavailable', extra);
 }
 function throttled() {
   return response(429, 'Score Preview throttled', { 'Retry-After': '60' });
@@ -87,7 +91,9 @@ async function asset(request, env, restricted) {
     headers.set('Content-Security-Policy', PUBLIC_CSP);
     if (!restricted) headers.set('Cache-Control', 'public, max-age=300');
     return new Response(result.body, {status:result.status,statusText:result.statusText,headers});
-  } catch { return unavailable(); }
+  } catch (error) {
+    return unavailable(env?.SCORE_PREVIEW_DIAGNOSTICS_ENABLED === 'true' ? (error?.code || 'unknown') : null);
+  }
 }
 async function redeem(request, env) {
   if (env?.SCORE_EDGE_REDEMPTION_ENABLED !== 'true' ||
@@ -129,7 +135,12 @@ export async function handleScoreWorkerPreview(request, env) {
   if (!limited) return throttled();
   try {
     if (await scoreBrokerSessionAllowed(token, env) !== true) return denied();
-  } catch { return denied(); }
+  } catch (error) {
+    if (env?.SCORE_PREVIEW_DIAGNOSTICS_ENABLED === 'true') {
+      return unavailable(error?.code || 'unknown');
+    }
+    return denied();
+  }
   return asset(request, env, true);
 }
 
