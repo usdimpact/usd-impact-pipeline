@@ -54,16 +54,21 @@ Current Supabase documentation confirms opaque publishable/secret API keys are n
 
 ## Preview secret handling
 
-For controlled Development acceptance:
+The isolated Worker now mints the short-lived Development Auth access JWT internally on demand. It never returns, logs, commits, or persists the access token or refresh token.
 
-- place only a **short-lived access JWT** in the isolated Worker Preview secret `SCORE_PREVIEW_MACHINE_JWT`;
-- keep `SCORE_EDGE_SHARED_SECRET` as a separate Preview secret;
-- do not persist the machine user's password or refresh token in Cloudflare;
-- do not commit either credential;
-- do not expose either credential through Pages, Vercel, browser JavaScript, logs, URLs, or CI output;
-- leave all access flags OFF while secrets are installed and verified.
+Required encrypted Worker Preview secrets:
 
-For the initial acceptance cycle, mint a fresh short-lived access JWT immediately before testing and replace/remove it after the test window. Automated refresh is out of scope until a separate least-privilege token broker design is approved.
+- `SCORE_PREVIEW_MACHINE_PASSWORD` — dedicated Development machine user's password;
+- `SCORE_EDGE_SHARED_SECRET` — independent broker application secret.
+
+Required non-secret Preview configuration:
+
+- `SCORE_PREVIEW_SUPABASE_PUBLISHABLE_KEY` — Development publishable key;
+- `SCORE_PREVIEW_MACHINE_SUB` — exact dedicated machine Auth user UUID.
+
+The Worker POSTs the machine email/password to the fixed Development Auth password-grant endpoint, validates the returned access JWT claims locally, immediately uses that JWT only in the broker Authorization header, and ignores any refresh token returned by Auth.
+
+Do not commit the password/shared secret, expose either to browser JavaScript, logs, URLs, CI output, Pages, Vercel, or Production. Leave all Score access flags OFF while secrets are installed and verified.
 
 ## Database boundary
 
@@ -82,16 +87,16 @@ The broker continues using its own server-side Development database credential a
 
 Initial controlled acceptance:
 
-1. Mint a fresh Development access JWT for the dedicated machine user.
-2. Install it only in the isolated Worker Preview secret.
+1. Install the machine password and independent broker secret only as encrypted isolated Worker Preview secrets.
+2. Keep the publishable key and pinned machine UUID as non-secret Preview configuration.
 3. Run anonymous denial before enabling any broker/application flag.
-4. Enable only the minimum Development flags required for the controlled test.
-5. Complete ticket/replay/expiry/revocation/direct-bypass tests.
-6. Disable flags again.
-7. Remove/replace the Preview JWT after the acceptance window.
-8. Revoke the machine Auth session if any credential handling anomaly occurs.
+4. Verify a disabled authenticated broker request reaches the handler only after a freshly minted machine JWT passes the Supabase gateway.
+5. Enable only the minimum Development flags required for the controlled positive test.
+6. Complete ticket/replay/expiry/revocation/direct-bypass tests.
+7. Disable flags again.
+8. Rotate the machine password and broker shared secret if any credential-handling anomaly occurs.
 
-A long-lived refresh token must not be installed in the Worker during this phase.
+No refresh token is stored or used by the Worker.
 
 ## Runtime staging gate
 
@@ -100,8 +105,9 @@ Do not redeploy `score-preview-broker` with `verify_jwt=true` until all are true
 - exact-head CI/package/static checks pass;
 - dedicated Development machine identity exists and its exact UUID is pinned in Worker Preview configuration;
 - read-only database privilege audit still passes;
-- isolated Worker Preview secret boundary is verified;
-- anonymous request test is defined to prove rejection happens before handler execution;
+- isolated Worker Preview encrypted-secret boundary is verified;
+- internal password-to-access-JWT mint path is source/test verified;
+- anonymous request test proves rejection happens before handler execution;
 - rollback procedure is recorded;
 - Production remains untouched.
 
