@@ -6,6 +6,7 @@ const TOKEN = /^[A-Za-z0-9_-]{43}$/;
 const PUBLISHABLE = /^sb_publishable_[A-Za-z0-9_-]{16,}$/;
 const PASSWORD = /^.{8,256}$/s;
 const MACHINE_EMAIL = 'score-preview-machine3@usd-impact.com';
+function fail(code) { const error = new Error('Score Preview unavailable'); error.code = code; throw error; }
 const AUTH_URL = 'https://ycstrcvshdluovtuasjc.supabase.co/auth/v1/token?grant_type=password';
 const SECRET = /^[A-Za-z0-9_-]{43,128}$/;
 const PATHS = new Set(['/en/', '/es/', '/archive/en/', '/archive/es/']);
@@ -39,7 +40,7 @@ async function mintMachineJwt(env, fetchImpl) {
   if (!PUBLISHABLE.test(env?.SCORE_PREVIEW_SUPABASE_PUBLISHABLE_KEY || '') ||
       !PASSWORD.test(env?.SCORE_PREVIEW_MACHINE_PASSWORD || '') ||
       !UUID.test(env?.SCORE_PREVIEW_MACHINE_SUB || '')) {
-    throw new Error('Score Preview machine identity unavailable');
+    fail('machine-config');
   }
   const response = await fetchImpl(AUTH_URL, {
     method: 'POST',
@@ -57,11 +58,11 @@ async function mintMachineJwt(env, fetchImpl) {
       password: env.SCORE_PREVIEW_MACHINE_PASSWORD,
     }),
   });
-  if (response.status !== 200) throw new Error('Score Preview machine authentication unavailable');
+  if (response.status !== 200) fail('machine-auth-http');
   const payload = await response.json();
   const jwt = payload?.access_token;
   if (!isLeastPrivilegeMachineJwt(jwt || '', env.SCORE_PREVIEW_MACHINE_SUB)) {
-    throw new Error('Score Preview machine authentication invalid');
+    fail('machine-claims');
   }
   return jwt;
 }
@@ -69,9 +70,9 @@ async function mintMachineJwt(env, fetchImpl) {
 async function invoke(action, token, env, fetchImpl) {
   if (env?.SCORE_DEV_BROKER_ENABLED !== 'true' ||
       !SECRET.test(env?.SCORE_EDGE_SHARED_SECRET || '') ||
-      !TOKEN.test(token || '')) throw new Error('Score Preview broker unavailable');
+      !TOKEN.test(token || '')) fail('broker-config');
   const name = action === 'redeem' ? 'ticket' : action === 'validate' ? 'token' : null;
-  if (!name) throw new Error('Unsupported broker operation');
+  if (!name) fail('broker-config');
   const machineJwt = await mintMachineJwt(env, fetchImpl);
   const result = await fetchImpl(SCORE_PREVIEW_BROKER_URL, {
     method: 'POST', redirect: 'error', cache: 'no-store',
@@ -87,7 +88,7 @@ async function invoke(action, token, env, fetchImpl) {
     body: JSON.stringify({ action, [name]: token }),
   });
   if (result.status === 403) return null; // revoked/replayed or denied
-  if (result.status !== 200) throw new Error('Score broker unavailable');
+  if (result.status !== 200) fail('broker-http');
   return result.json();
 }
 export async function redeemScoreBrokerTicket(ticket, env, fetchImpl = fetch) {
