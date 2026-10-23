@@ -13,6 +13,7 @@ const ACCOUNT = '11111111-1111-4111-8111-111111111111';
 const SHARED = 's'.repeat(64);
 const DB_KEY = 'sb_secret_' + 'd'.repeat(32);
 const PREMIUM = 'ONLY_RESEARCH_MEMBERS_MAY_READ';
+const MACHINE_JWT = 'aaaaaaaa.bbbbbbbb.cccccccccccccccccc';
 
 function fixture() {
   let unused = true, member = true, sessionDigest = null, premiumReads = 0;
@@ -23,6 +24,7 @@ function fixture() {
     SCORE_EDGE_REDEMPTION_ENABLED: 'true',
     SCORE_PREVIEW_REDEMPTION_HOST: SCORE_DIRECT_PREVIEW_HOST,
     SCORE_EDGE_SHARED_SECRET: SHARED,
+    SCORE_PREVIEW_MACHINE_JWT: MACHINE_JWT,
     SCORE_BACKEND_URL: 'https://invalid-preview.example.test/api/score-edge-redeem',
     SCORE_VALIDATION_BACKEND_URL: 'https://invalid-preview.example.test/api/score-edge-validate',
   };
@@ -54,6 +56,7 @@ function fixture() {
     assert.equal(url,SCORE_PREVIEW_BROKER_URL);
     assert.equal(options.headers['X-Score-Edge-Secret'],SHARED);
     assert.equal(options.headers.apikey,undefined,'Cloudflare must never hold the database key');
+    assert.equal(options.headers.Authorization,'Bearer '+MACHINE_JWT);
     if (!brokerUp) throw new Error('Broker unreachable');
     const req=new Request(url,{method:'POST',headers:options.headers,body:options.body});
     return handleScorePreviewBroker(req,{
