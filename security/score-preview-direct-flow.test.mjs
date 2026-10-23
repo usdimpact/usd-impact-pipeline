@@ -11,6 +11,9 @@ import { SCORE_DIRECT_PREVIEW_HOST, SCORE_DIRECT_WEBSITE_ORIGIN } from './score-
 const TICKET = 'T'.repeat(43);
 const ACCOUNT = '11111111-1111-4111-8111-111111111111';
 const SHARED = 's'.repeat(64);
+const PUBLISHABLE = 'sb_publishable_'+'p'.repeat(32);
+const MACHINE_PASSWORD = 'P'.repeat(48);
+const AUTH_URL = 'https://ycstrcvshdluovtuasjc.supabase.co/auth/v1/token?grant_type=password';
 const DB_KEY = 'sb_secret_' + 'd'.repeat(32);
 const PREMIUM = 'ONLY_RESEARCH_MEMBERS_MAY_READ';
 function machineJwt(overrides={}) {
@@ -37,7 +40,8 @@ function fixture() {
     SCORE_EDGE_REDEMPTION_ENABLED: 'true',
     SCORE_PREVIEW_REDEMPTION_HOST: SCORE_DIRECT_PREVIEW_HOST,
     SCORE_EDGE_SHARED_SECRET: SHARED,
-    SCORE_PREVIEW_MACHINE_JWT: MACHINE_JWT,
+    SCORE_PREVIEW_SUPABASE_PUBLISHABLE_KEY: PUBLISHABLE,
+    SCORE_PREVIEW_MACHINE_PASSWORD: MACHINE_PASSWORD,
     SCORE_PREVIEW_MACHINE_SUB: '11111111-1111-4111-8111-111111111111',
     SCORE_BACKEND_URL: 'https://invalid-preview.example.test/api/score-edge-redeem',
     SCORE_VALIDATION_BACKEND_URL: 'https://invalid-preview.example.test/api/score-edge-validate',
@@ -66,6 +70,14 @@ function fixture() {
     throw new Error('Unexpected database RPC: '+name);
   }
   async function cloudflareFetch(url, options) {
+    if(url===AUTH_URL){
+      assert.equal(options.headers.apikey,PUBLISHABLE);
+      assert.deepEqual(JSON.parse(options.body),{
+        email:'score-preview-machine@usd-impact.com',
+        password:MACHINE_PASSWORD,
+      });
+      return Response.json({access_token:MACHINE_JWT,refresh_token:'ignored'});
+    }
     brokerCalls++;
     assert.equal(url,SCORE_PREVIEW_BROKER_URL);
     assert.equal(options.headers['X-Score-Edge-Secret'],SHARED);
