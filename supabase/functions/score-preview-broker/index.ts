@@ -1,8 +1,9 @@
 // Development-only broker, deployed with activation disabled. NEVER deploy to Production.
 // Source edits require independent CI review before staging a replacement.
-// Deployment MUST use verify_jwt=false because this is a server-to-server
-// shared-secret protocol, not a user JWT flow. The handler validates its own
-// high-entropy secret and is disabled unless explicitly enabled.
+// Deployment MUST use verify_jwt=true so anonymous traffic is rejected by the
+// Supabase gateway before handler execution. The isolated Worker must present a
+// dedicated Supabase-valid machine JWT; the handler independently validates the
+// high-entropy shared secret and remains disabled unless explicitly enabled.
 import { handleScorePreviewBroker } from '../../../security/score-preview-broker-server.mjs';
 import { claimScoreDevBrokerBudget } from '../../../security/score-preview-dev-rpc.mjs';
 
