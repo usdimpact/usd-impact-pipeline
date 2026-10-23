@@ -10,6 +10,7 @@ const HOST = 'https://pr-148-usd-impact-score-isolated-dev.example.workers.dev';
 const TOKEN = 'T'.repeat(43);
 const SESSION = 'S'.repeat(43);
 const SECRET = 's'.repeat(64);
+const MACHINE_JWT = 'aaaaaaaa.bbbbbbbb.cccccccccccccccccc';
 const PREMIUM = 'PRIVATE_SCORE_DASHBOARD_DATA';
 
 function setup(overrides = {}) {
@@ -22,6 +23,7 @@ function setup(overrides = {}) {
     SCORE_EDGE_GATE_ENABLED: 'false',
     SCORE_EDGE_REDEMPTION_ENABLED: 'false',
     SCORE_EDGE_SHARED_SECRET: SECRET,
+    SCORE_PREVIEW_MACHINE_JWT: MACHINE_JWT,
     ASSETS: {
       async fetch() {
         assetReads++;
@@ -123,6 +125,7 @@ test('mock authenticated redemption, cookie validation, revocation and replay st
     assert.equal(url,'https://ycstrcvshdluovtuasjc.supabase.co/functions/v1/score-preview-broker');
     assert.equal(opts.headers['X-Score-Edge-Secret'],SECRET);
     assert.equal(opts.headers.apikey,undefined);
+    assert.equal(opts.headers.Authorization,'Bearer '+MACHINE_JWT);
     const body=JSON.parse(opts.body);
     if(body.action==='redeem'){
       if(!unconsumed)return Response.json({allowed:false},{status:403});
