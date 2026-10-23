@@ -21,7 +21,8 @@
       "SCORE_DEV_BROKER_ENABLED": "false",
       "SCORE_EDGE_GATE_ENABLED": "false",
       "SCORE_EDGE_REDEMPTION_ENABLED": "false",
-      "SCORE_WORKER_PREVIEW_ORIGIN": "https://pr-148-usd-impact-score-isolated-dev.michael-w-d0b.workers.dev"
+      "SCORE_WORKER_PREVIEW_ORIGIN": "https://pr-148-usd-impact-score-isolated-dev.michael-w-d0b.workers.dev",
+      "SCORE_PREVIEW_MACHINE_SUB": "16edb1d5-b56e-435d-91d6-94bb10e69659"
     },
     "ratelimits": [
       {
