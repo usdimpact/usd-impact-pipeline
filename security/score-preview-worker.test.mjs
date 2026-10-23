@@ -10,6 +10,9 @@ const HOST = 'https://pr-148-usd-impact-score-isolated-dev.example.workers.dev';
 const TOKEN = 'T'.repeat(43);
 const SESSION = 'S'.repeat(43);
 const SECRET = 's'.repeat(64);
+const PUBLISHABLE = 'sb_publishable_'+'p'.repeat(32);
+const MACHINE_PASSWORD = 'P'.repeat(48);
+const AUTH_URL = 'https://ycstrcvshdluovtuasjc.supabase.co/auth/v1/token?grant_type=password';
 function machineJwt(overrides={}) {
   const encode=value=>Buffer.from(JSON.stringify(value)).toString('base64url');
   const payload={
@@ -36,7 +39,8 @@ function setup(overrides = {}) {
     SCORE_EDGE_GATE_ENABLED: 'false',
     SCORE_EDGE_REDEMPTION_ENABLED: 'false',
     SCORE_EDGE_SHARED_SECRET: SECRET,
-    SCORE_PREVIEW_MACHINE_JWT: MACHINE_JWT,
+    SCORE_PREVIEW_SUPABASE_PUBLISHABLE_KEY: PUBLISHABLE,
+    SCORE_PREVIEW_MACHINE_PASSWORD: MACHINE_PASSWORD,
     SCORE_PREVIEW_MACHINE_SUB: '11111111-1111-4111-8111-111111111111',
     ASSETS: {
       async fetch() {
@@ -136,6 +140,14 @@ test('mock authenticated redemption, cookie validation, revocation and replay st
   let member=true, unconsumed=true, calls=0;
   globalThis.fetch=async(url,opts)=>{
     calls++;
+    if(url===AUTH_URL){
+      assert.equal(opts.headers.apikey,PUBLISHABLE);
+      assert.deepEqual(JSON.parse(opts.body),{
+        email:'score-preview-machine@usd-impact.com',
+        password:MACHINE_PASSWORD,
+      });
+      return Response.json({access_token:MACHINE_JWT,refresh_token:'ignored'});
+    }
     assert.equal(url,'https://ycstrcvshdluovtuasjc.supabase.co/functions/v1/score-preview-broker');
     assert.equal(opts.headers['X-Score-Edge-Secret'],SECRET);
     assert.equal(opts.headers.apikey,undefined);
@@ -172,7 +184,7 @@ test('mock authenticated redemption, cookie validation, revocation and replay st
   const revoked=await handleScoreWorkerPreview(f.request('/en/',{token:SESSION}),f.env);
   assert.equal(revoked.status,403);
   assert.equal(f.assetReads,1);
-  assert.equal(calls,4);
+  assert.equal(calls,8);
   assert.ok(f.rateCalls.some(([k])=>k==='redeem'));
   assert.ok(f.rateCalls.some(([k])=>k==='validate'));
   assert.ok(f.rateCalls.every(([k,v])=>k==='validate'?v.startsWith('validate:')&&!v.includes(SESSION):true));
@@ -243,7 +255,7 @@ test('validation throttling is source-bound even when arbitrary cookie tokens ro
   const original=globalThis.fetch;
   t.after(()=>{globalThis.fetch=original;});
   let network=0, counter=0;
-  globalThis.fetch=async()=>{network++;return Response.json({allowed:false},{status:403});};
+  globalThis.fetch=async(url)=>{network++;if(url===AUTH_URL)return Response.json({access_token:MACHINE_JWT});return Response.json({allowed:false},{status:403});};
   const env={...f.env,SCORE_PREVIEW_VALIDATE_LIMIT:{
     async limit({key}) {
       assert.match(key,/^validate:[a-f0-9]{64}$/);
@@ -262,7 +274,7 @@ test('validation throttling is source-bound even when arbitrary cookie tokens ro
   assert.equal(first.status,403);
   assert.equal(second.status,403);
   assert.equal(third.status,429);
-  assert.equal(network,2,'third token rotation must not reach broker');
+  assert.equal(network,4,'third token rotation must not reach auth or broker');
   assert.equal(f.assetReads,0);
   assert.equal(new Set(f.rateCalls.map(([kind,key])=>key)).size,1);
 });
