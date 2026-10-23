@@ -4,7 +4,7 @@
 // Never copy its privileged key to Cloudflare Pages or Production.
 
 export const SCORE_DIRECT_PREVIEW_HOST = 'fix-score-membership-handoff.usd-impact-pipeline.pages.dev';
-export const SCORE_DIRECT_WEBSITE_ORIGIN = 'https://usd-impact-site-55p15tktn-usd-impact.vercel.app';
+export const SCORE_DIRECT_WEBSITE_ORIGIN = 'https://usd-impact-site-l9bu3f8j0-usd-impact.vercel.app';
 const DEV_SUPABASE_ORIGIN = 'https://ycstrcvshdluovtuasjc.supabase.co';
 const KEY_RE = /^sb_secret_[A-Za-z0-9_-]{16,}$/;
 const TICKET_RE = /^[A-Za-z0-9_-]{43}$/;
