@@ -17,7 +17,6 @@ function machineJwt(overrides={}) {
     role:'authenticated',
     sub:'11111111-1111-4111-8111-111111111111',
     is_anonymous:false,
-    app_metadata:{score_preview_machine:true},
     exp:Math.floor(Date.now()/1000)+600,
     ...overrides,
   };
@@ -39,7 +38,7 @@ test('a disabled or malformed broker call cannot send any credential to the netw
     machineJwt({role:'service_role'}),
     machineJwt({aud:'anon'}),
     machineJwt({is_anonymous:true}),
-    machineJwt({app_metadata:{score_preview_machine:false}}),
+    machineJwt({sub:'22222222-2222-4222-8222-222222222222'}),
     machineJwt({exp:Math.floor(Date.now()/1000)-1}),
   ]) {
     await assert.rejects(()=>redeemScoreBrokerTicket(TICKET,{
@@ -52,7 +51,7 @@ test('a disabled or malformed broker call cannot send any credential to the netw
 
 test('only the pinned Development broker receives a bounded authenticated POST',async()=>{
   let calls=0;
-  const env={SCORE_DEV_BROKER_ENABLED:'true',SCORE_EDGE_SHARED_SECRET:SECRET,SCORE_PREVIEW_MACHINE_JWT:MACHINE_JWT};
+  const env={SCORE_DEV_BROKER_ENABLED:'true',SCORE_EDGE_SHARED_SECRET:SECRET,SCORE_PREVIEW_MACHINE_JWT:MACHINE_JWT,SCORE_PREVIEW_MACHINE_SUB:'11111111-1111-4111-8111-111111111111'};
   const fake=async(url,opts)=>{
     calls++;
     assert.equal(url,SCORE_PREVIEW_BROKER_URL);
@@ -81,7 +80,7 @@ test('only the pinned Development broker receives a bounded authenticated POST',
 });
 
 test('broker denials, invalid grants and outages all deny member access',async()=>{
-  const env={SCORE_DEV_BROKER_ENABLED:'true',SCORE_EDGE_SHARED_SECRET:SECRET,SCORE_PREVIEW_MACHINE_JWT:MACHINE_JWT};
+  const env={SCORE_DEV_BROKER_ENABLED:'true',SCORE_EDGE_SHARED_SECRET:SECRET,SCORE_PREVIEW_MACHINE_JWT:MACHINE_JWT,SCORE_PREVIEW_MACHINE_SUB:'11111111-1111-4111-8111-111111111111'};
   const forbidden=async()=>new Response('denied',{status:403});
   assert.equal(await redeemScoreBrokerTicket(TICKET,env,forbidden),null);
   assert.equal(await scoreBrokerSessionAllowed(SESSION,env,forbidden),false);
