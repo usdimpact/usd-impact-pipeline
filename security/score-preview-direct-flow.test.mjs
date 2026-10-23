@@ -73,7 +73,7 @@ function fixture() {
     if(url===AUTH_URL){
       assert.equal(options.headers.apikey,PUBLISHABLE);
       assert.deepEqual(JSON.parse(options.body),{
-        email:'score-preview-machine@usd-impact.com',
+        email:'score-preview-machine3@usd-impact.com',
         password:MACHINE_PASSWORD,
       });
       return Response.json({access_token:MACHINE_JWT,refresh_token:'ignored'});
