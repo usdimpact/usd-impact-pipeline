@@ -3,7 +3,7 @@
 export const SCORE_DIRECT_PREVIEW_HOST =
   'fix-score-membership-handoff.usd-impact-pipeline.pages.dev';
 export const SCORE_DIRECT_WEBSITE_ORIGIN =
-  'https://usd-impact-site-balw49o36-usd-impact.vercel.app';
+  'https://usd-impact-site-55p15tktn-usd-impact.vercel.app';
 
 export function scoreDevBrokerPreviewEnabled(request, env) {
   if (env?.SCORE_DEV_BROKER_ENABLED !== 'true') return false;

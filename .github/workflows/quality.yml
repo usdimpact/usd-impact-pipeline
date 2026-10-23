@@ -121,7 +121,7 @@ jobs:
           status="$(curl --silent --show-error --connect-timeout 8 --max-time 20 --retry 0 \
             --dump-header "$hdr" --output "$reply" --write-out '%{http_code}' \
             --request POST --header 'Content-Type: application/x-www-form-urlencoded' \
-            --header 'Origin: https://usd-impact-site-balw49o36-usd-impact.vercel.app' \
+            --header 'Origin: https://usd-impact-site-55p15tktn-usd-impact.vercel.app' \
             --data-raw 'ticket=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' \
             "$SCORE_WORKER_PREVIEW_ORIGIN/score-redeem")"
           check_denial "$status" 'POST /score-redeem'
