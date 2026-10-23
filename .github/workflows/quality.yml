@@ -51,18 +51,24 @@ jobs:
         run: |
           set -euo pipefail
           reply="$RUNNER_TEMP/score-dev-broker-disabled.json"
+          headers="$RUNNER_TEMP/score-dev-broker-disabled.headers"
           # No API key, auth cookie, or actual Score token in the request.
+          # verify_jwt=true must reject this at the Supabase gateway BEFORE the
+          # disabled handler can return its own 503 response.
           status="$(curl --silent --show-error --connect-timeout 8 --max-time 20 --retry 0 \
-            --output "$reply" --write-out '%{http_code}' --request POST \
+            --dump-header "$headers" --output "$reply" --write-out '%{http_code}' --request POST \
             --header 'Content-Type: application/json' \
             --data '{"action":"validate","token":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"}' \
             "$SCORE_DEV_BROKER_URL")"
-          if [ "$status" != '503' ]; then
-            echo "::error::Development Score broker returned unexpected HTTP $status; expected disabled 503."
+          if [ "$status" != '401' ]; then
+            echo "::error::Development Score broker returned HTTP $status; expected pre-handler JWT rejection 401."
             exit 1
           fi
-          node -e 'const fs=require("node:fs"); const data=JSON.parse(fs.readFileSync(process.argv[1],"utf8")); if(data.allowed!==false || Object.keys(data).length!==1)process.exit(1)' "$reply"
-          echo 'Isolated Development broker rejects unauthenticated POST while disabled.'
+          if ! grep -qi '^sb-error-code:[[:space:]]*UNAUTHORIZED_NO_AUTH_HEADER' "$headers"; then
+            echo "::error::Development Score broker 401 did not prove missing-auth rejection at the Supabase gateway."
+            exit 1
+          fi
+          echo 'Isolated Development broker rejects anonymous POST at the Supabase JWT gateway.'
 
       # The published branch Preview must not redeem even synthetic tickets.
       # Intentional Preview activation requires a separate reviewed test plan.
