@@ -18,7 +18,6 @@ function machineJwt(overrides={}) {
     role:'authenticated',
     sub:'11111111-1111-4111-8111-111111111111',
     is_anonymous:false,
-    app_metadata:{score_preview_machine:true},
     exp:Math.floor(Date.now()/1000)+600,
     ...overrides,
   };
@@ -38,6 +37,7 @@ function setup(overrides = {}) {
     SCORE_EDGE_REDEMPTION_ENABLED: 'false',
     SCORE_EDGE_SHARED_SECRET: SECRET,
     SCORE_PREVIEW_MACHINE_JWT: MACHINE_JWT,
+    SCORE_PREVIEW_MACHINE_SUB: '11111111-1111-4111-8111-111111111111',
     ASSETS: {
       async fetch() {
         assetReads++;
