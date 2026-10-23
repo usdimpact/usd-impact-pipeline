@@ -4,7 +4,7 @@ export const SCORE_PREVIEW_BROKER_URL =
   'https://ycstrcvshdluovtuasjc.supabase.co/functions/v1/score-preview-broker';
 const TOKEN = /^[A-Za-z0-9_-]{43}$/;
 const PUBLISHABLE = /^sb_publishable_[A-Za-z0-9_-]{16,}$/;
-const PASSWORD = /^.{32,256}$/s;
+const PASSWORD = /^.{8,256}$/s;
 const MACHINE_EMAIL = 'score-preview-machine3@usd-impact.com';
 const AUTH_URL = 'https://ycstrcvshdluovtuasjc.supabase.co/auth/v1/token?grant_type=password';
 const SECRET = /^[A-Za-z0-9_-]{43,128}$/;
