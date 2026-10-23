@@ -13,7 +13,21 @@ const ACCOUNT = '11111111-1111-4111-8111-111111111111';
 const SHARED = 's'.repeat(64);
 const DB_KEY = 'sb_secret_' + 'd'.repeat(32);
 const PREMIUM = 'ONLY_RESEARCH_MEMBERS_MAY_READ';
-const MACHINE_JWT = 'aaaaaaaa.bbbbbbbb.cccccccccccccccccc';
+function machineJwt(overrides={}) {
+  const encode=value=>Buffer.from(JSON.stringify(value)).toString('base64url');
+  const payload={
+    iss:'https://ycstrcvshdluovtuasjc.supabase.co/auth/v1',
+    aud:'authenticated',
+    role:'authenticated',
+    sub:'11111111-1111-4111-8111-111111111111',
+    is_anonymous:false,
+    app_metadata:{score_preview_machine:true},
+    exp:Math.floor(Date.now()/1000)+600,
+    ...overrides,
+  };
+  return encode({alg:'ES256',typ:'JWT'})+'.'+encode(payload)+'.'+'c'.repeat(64);
+}
+const MACHINE_JWT = machineJwt();
 
 function fixture() {
   let unused = true, member = true, sessionDigest = null, premiumReads = 0;
