@@ -143,7 +143,7 @@ test('mock authenticated redemption, cookie validation, revocation and replay st
     if(url===AUTH_URL){
       assert.equal(opts.headers.apikey,PUBLISHABLE);
       assert.deepEqual(JSON.parse(opts.body),{
-        email:'score-preview-machine@usd-impact.com',
+        email:'score-preview-machine3@usd-impact.com',
         password:MACHINE_PASSWORD,
       });
       return Response.json({access_token:MACHINE_JWT,refresh_token:'ignored'});
