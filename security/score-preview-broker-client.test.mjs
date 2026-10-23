@@ -9,6 +9,7 @@ import {
 const TICKET='T'.repeat(43);
 const SESSION='S'.repeat(43);
 const SECRET='s'.repeat(64);
+const MACHINE_JWT='aaaaaaaa.bbbbbbbb.cccccccccccccccccc';
 
 test('a disabled or malformed broker call cannot send any credential to the network',async()=>{
   let called=0;
@@ -17,13 +18,18 @@ test('a disabled or malformed broker call cannot send any credential to the netw
   await assert.rejects(()=>redeemScoreBrokerTicket(TICKET,{SCORE_DEV_BROKER_ENABLED:'true'},stub));
   await assert.rejects(()=>redeemScoreBrokerTicket('invalid',{
     SCORE_DEV_BROKER_ENABLED:'true',SCORE_EDGE_SHARED_SECRET:SECRET,
+    SCORE_PREVIEW_MACHINE_JWT:MACHINE_JWT,
+  },stub));
+  await assert.rejects(()=>redeemScoreBrokerTicket(TICKET,{
+    SCORE_DEV_BROKER_ENABLED:'true',SCORE_EDGE_SHARED_SECRET:SECRET,
+    SCORE_PREVIEW_MACHINE_JWT:'not-a-jwt',
   },stub));
   assert.equal(called,0);
 });
 
 test('only the pinned Development broker receives a bounded authenticated POST',async()=>{
   let calls=0;
-  const env={SCORE_DEV_BROKER_ENABLED:'true',SCORE_EDGE_SHARED_SECRET:SECRET};
+  const env={SCORE_DEV_BROKER_ENABLED:'true',SCORE_EDGE_SHARED_SECRET:SECRET,SCORE_PREVIEW_MACHINE_JWT:MACHINE_JWT};
   const fake=async(url,opts)=>{
     calls++;
     assert.equal(url,SCORE_PREVIEW_BROKER_URL);
@@ -34,7 +40,7 @@ test('only the pinned Development broker receives a bounded authenticated POST',
     assert.equal(opts.signal.aborted,false);
     assert.equal(opts.headers['X-Score-Edge-Secret'],SECRET);
     assert.equal(opts.headers.apikey,undefined);
-    assert.equal(opts.headers.Authorization,undefined);
+    assert.equal(opts.headers.Authorization,'Bearer '+MACHINE_JWT);
     assert.equal(opts.headers['Content-Type'],'application/json');
     const body=JSON.parse(opts.body);
     assert.ok(['redeem','validate'].includes(body.action));
@@ -52,7 +58,7 @@ test('only the pinned Development broker receives a bounded authenticated POST',
 });
 
 test('broker denials, invalid grants and outages all deny member access',async()=>{
-  const env={SCORE_DEV_BROKER_ENABLED:'true',SCORE_EDGE_SHARED_SECRET:SECRET};
+  const env={SCORE_DEV_BROKER_ENABLED:'true',SCORE_EDGE_SHARED_SECRET:SECRET,SCORE_PREVIEW_MACHINE_JWT:MACHINE_JWT};
   const forbidden=async()=>new Response('denied',{status:403});
   assert.equal(await redeemScoreBrokerTicket(TICKET,env,forbidden),null);
   assert.equal(await scoreBrokerSessionAllowed(SESSION,env,forbidden),false);
