@@ -10,9 +10,11 @@ const config={
   rateBudget: async () => true,
 };
 function request({ url=BROKER,method='POST',secret=SECRET,contentType='application/json',
-  data={action:'validate',token:'T'.repeat(43)} }={}) {
+  host=null,forwardedProto=null,data={action:'validate',token:'T'.repeat(43)} }={}) {
   const headers={'Content-Type':contentType};
   if(secret!==null)headers['X-Score-Edge-Secret']=secret;
+  if(host!==null)headers.Host=host;
+  if(forwardedProto!==null)headers['X-Forwarded-Proto']=forwardedProto;
   return new Request(url,{method,headers,...(method==='POST'?{body:JSON.stringify(data)}:{})});
 }
 const failFetch=async()=>{throw Error('A failed authorization must never access Supabase RPC')};
@@ -33,6 +35,30 @@ test('one exact Development hostname and function path only; no cross-project co
   }
   assert.equal((await handleScorePreviewBroker(request(),{...config,supabaseUrl:'https://other.supabase.co'},failFetch)).status,503);
 });
+test('Supabase Edge internal URL rewrite is accepted only with exact gateway host and https',async()=>{
+  const internal='https://edge-runtime.supabase.internal/functions/v1/score-preview-broker';
+  const diagnosticConfig={...config,diagnostics:'true'};
+  const accepted=await handleScorePreviewBroker(request({
+    url:internal,
+    host:'ycstrcvshdluovtuasjc.supabase.co',
+    forwardedProto:'https',
+  }),diagnosticConfig,async()=>Response.json(null));
+  assert.equal(accepted.status,403);
+  assert.equal(accepted.headers.get('X-Score-Preview-Broker-Stage'),'broker-validate-denied');
+
+  for(const [host,proto] of [
+    ['other.supabase.co','https'],
+    ['ycstrcvshdluovtuasjc.supabase.co','http'],
+    [null,'https'],
+  ]){
+    const denied=await handleScorePreviewBroker(request({
+      url:internal,host,forwardedProto:proto,
+    }),diagnosticConfig,failFetch);
+    assert.equal(denied.status,403);
+    assert.equal(denied.headers.get('X-Score-Preview-Broker-Stage'),'broker-origin');
+  }
+});
+
 test('external callers with no/malformed/incorrect shared secret have no database access',async()=>{
   for(const secret of [null,'','wrong', 'A'.repeat(64),SECRET+'A']){
     const res=await handleScorePreviewBroker(request({secret}),config,failFetch);
