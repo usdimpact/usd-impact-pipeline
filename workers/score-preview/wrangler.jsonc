@@ -1,0 +1,49 @@
+{
+  "name": "usd-impact-score-isolated-dev",
+  "main": "./index.mjs",
+  "compatibility_date": "2026-10-22",
+  "workers_dev": false,
+  "preview_urls": true,
+  "assets": {
+    "directory": "../../public",
+    "binding": "ASSETS",
+    "run_worker_first": true
+  },
+  "vars": {
+    "SCORE_WORKER_PREVIEW_ENABLED": "false",
+    "SCORE_DEV_BROKER_ENABLED": "false",
+    "SCORE_EDGE_GATE_ENABLED": "false",
+    "SCORE_EDGE_REDEMPTION_ENABLED": "false",
+    "SCORE_PREVIEW_DIAGNOSTICS_ENABLED": "false"
+  },
+  "previews": {
+    "vars": {
+      "SCORE_WORKER_PREVIEW_ENABLED": "false",
+      "SCORE_DEV_BROKER_ENABLED": "false",
+      "SCORE_EDGE_GATE_ENABLED": "false",
+      "SCORE_EDGE_REDEMPTION_ENABLED": "false",
+      "SCORE_PREVIEW_DIAGNOSTICS_ENABLED": "false",
+      "SCORE_WORKER_PREVIEW_ORIGIN": "https://pr-148-usd-impact-score-isolated-dev.michael-w-d0b.workers.dev",
+      "SCORE_PREVIEW_SUPABASE_PUBLISHABLE_KEY": "sb_publishable_NljbvFOS8oq_Fzxviju4VA_CZNVHKJ9",
+      "SCORE_PREVIEW_MACHINE_SUB": "33e86eb8-fd57-46bb-9010-42b9e71a1446"
+    },
+    "ratelimits": [
+      {
+        "name": "SCORE_PREVIEW_REDEEM_LIMIT",
+        "namespace_id": "817420621",
+        "simple": {
+          "limit": 30,
+          "period": 60
+        }
+      },
+      {
+        "name": "SCORE_PREVIEW_VALIDATE_LIMIT",
+        "namespace_id": "817420622",
+        "simple": {
+          "limit": 180,
+          "period": 60
+        }
+      }
+    ]
+  }
+}

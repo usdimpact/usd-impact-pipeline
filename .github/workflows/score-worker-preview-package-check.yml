@@ -1,0 +1,55 @@
+name: Score Worker Preview package verification (no deployment)
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'workers/score-preview/**'
+      - 'security/score-preview-broker-client.mjs'
+      - 'security/score-public-paths.mjs'
+      - 'security/score-ticket-form.mjs'
+      - '.github/workflows/score-worker-preview-package-check.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+
+      - name: Check pinned public Wrangler package availability
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --head \
+            --connect-timeout 5 --max-time 12 --retry 0 \
+            https://registry.npmjs.org/wrangler/4.135.0 > /dev/null
+          echo 'Public npm registry reachable; proceeding with pinned Wrangler.'
+
+      - name: Verify bundled Worker without Cloudflare credentials or deployment
+        env:
+          npm_config_fetch_timeout: '15000'
+          npm_config_fetch_retries: '0'
+          npm_config_progress: 'false'
+          npm_config_audit: 'false'
+          npm_config_fund: 'false'
+        run: |
+          set -euo pipefail
+          timeout --signal=TERM --kill-after=5s 110s \
+            npm exec --yes --package=wrangler@4.135.0 -- \
+            wrangler deploy --dry-run \
+              --config workers/score-preview/wrangler.jsonc \
+              --outdir "$RUNNER_TEMP/score-worker-package"
+          test -d "$RUNNER_TEMP/score-worker-package"
+          echo 'Exact Wrangler package/bundle verification PASS. NO deployment.'
