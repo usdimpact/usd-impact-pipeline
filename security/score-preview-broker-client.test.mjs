@@ -118,6 +118,35 @@ test('only the pinned Development broker receives a bounded POST with an interna
   assert.equal(brokerCalls,2);
 });
 
+
+test('allowlisted broker diagnostic stage propagates only when explicitly enabled',async()=>{
+  const diagnosticEnv={...ENV,SCORE_PREVIEW_DIAGNOSTICS_ENABLED:'true'};
+  const fakeStage=async(url)=>{
+    if(url===AUTH_URL)return Response.json({access_token:MACHINE_JWT});
+    return new Response(JSON.stringify({allowed:false,stage:'broker-shared-secret'}),{
+      status:403,
+      headers:{
+        'Content-Type':'application/json',
+        'X-Score-Preview-Broker-Stage':'broker-shared-secret',
+      },
+    });
+  };
+  await assert.rejects(
+    ()=>redeemScoreBrokerTicket(TICKET,diagnosticEnv,fakeStage),
+    error=>error?.code==='broker-shared-secret'
+  );
+
+  const fakeUnknown=async(url)=>{
+    if(url===AUTH_URL)return Response.json({access_token:MACHINE_JWT});
+    return new Response(JSON.stringify({allowed:false}),{
+      status:403,
+      headers:{'X-Score-Preview-Broker-Stage':'secret='+SECRET},
+    });
+  };
+  assert.equal(await redeemScoreBrokerTicket(TICKET,diagnosticEnv,fakeUnknown),null);
+  assert.equal(await redeemScoreBrokerTicket(TICKET,ENV,fakeStage),null);
+});
+
 test('auth failure, broker denials, malformed grants and broker outages all fail closed',async()=>{
   const authFail=async(url)=>url===AUTH_URL?new Response('denied',{status:400}):Response.json({allowed:true});
   await assert.rejects(()=>redeemScoreBrokerTicket(TICKET,ENV,authFail),error=>error?.code==='machine-auth-http');
