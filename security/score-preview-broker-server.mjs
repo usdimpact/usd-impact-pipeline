@@ -35,9 +35,10 @@ export async function handleScorePreviewBroker(request, config, fetchImpl = fetc
       !KEY.test(config?.supabaseSecretKey || '') ||
       !SHARED.test(config?.sharedSecret || '')) return json(503, { allowed: false });
   let url;
-  try { url = new URL(request.url); } catch { return diagnostic(config, 'broker-url'); }
-  if (url.origin !== DEV_ORIGIN || url.pathname !== BROKER_PATH ||
-      url.search || url.hash) return diagnostic(config, 'broker-url');
+  try { url = new URL(request.url); } catch { return diagnostic(config, 'broker-url-parse'); }
+  if (url.origin !== DEV_ORIGIN) return diagnostic(config, 'broker-origin');
+  if (url.pathname !== BROKER_PATH) return diagnostic(config, 'broker-path');
+  if (url.search || url.hash) return diagnostic(config, 'broker-query');
   const supplied = request.headers.get('x-score-edge-secret');
   if (!SHARED.test(supplied || '') || !opaqueEqual(supplied, config.sharedSecret)) {
     return diagnostic(config, 'broker-shared-secret');
