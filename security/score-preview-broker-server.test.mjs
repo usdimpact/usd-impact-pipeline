@@ -187,7 +187,7 @@ test('Development diagnostics are opt-in, stage-only, and never leak secrets', a
     request({url:'https://other.supabase.co/functions/v1/score-preview-broker'}),
     diagnosticConfig, failFetch);
   assert.equal(wrongUrl.status, 403);
-  assert.equal(wrongUrl.headers.get('X-Score-Preview-Broker-Stage'), 'broker-url');
+  assert.equal(wrongUrl.headers.get('X-Score-Preview-Broker-Stage'), 'broker-origin');
 
   const media = await handleScorePreviewBroker(
     request({contentType:'text/plain'}), diagnosticConfig, failFetch);
