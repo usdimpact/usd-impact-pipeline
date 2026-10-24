@@ -13,10 +13,10 @@ const HEADERS = {
   'X-Content-Type-Options': 'nosniff',
 };
 const json = (status, data, extra = {}) => Response.json(data, { status, headers: { ...HEADERS, ...extra } });
-function diagnostic(config, stage, status = 403) {
-  const extra = config?.diagnostics === 'true' ? { 'X-Score-Preview-Broker-Stage': stage } : {};
+function diagnostic(config, stage, status = 403, extra = {}) {
+  const stageHeaders = config?.diagnostics === 'true' ? { 'X-Score-Preview-Broker-Stage': stage } : {};
   const data = config?.diagnostics === 'true' ? { allowed: false, stage } : { allowed: false };
-  return json(status, data, extra);
+  return json(status, data, { ...extra, ...stageHeaders });
 }
 function opaqueEqual(a, b) {
   if (typeof a !== 'string' || typeof b !== 'string' ||
@@ -84,7 +84,7 @@ export async function handleScorePreviewBroker(request, config, fetchImpl = fetc
   if (typeof config?.rateBudget !== 'function') return diagnostic(config, 'broker-budget-config', 503);
   try {
     const permitted = await config.rateBudget(data.action);
-    if (permitted !== true) return diagnostic(config, 'broker-budget-limit', 429);
+    if (permitted !== true) return diagnostic(config, 'broker-budget-limit', 429, { 'Retry-After': '60' });
   } catch {
     return diagnostic(config, 'broker-budget-error', 503);
   }
