@@ -4,7 +4,8 @@ import { redeemScoreDevTicket, scoreDevSessionAllowed } from './score-preview-de
 const DEV_ORIGIN = 'https://ycstrcvshdluovtuasjc.supabase.co';
 const DEV_HOST = 'ycstrcvshdluovtuasjc.supabase.co';
 const EDGE_RUNTIME_HOST = 'edge-runtime.supabase.com';
-const BROKER_PATH = '/functions/v1/score-preview-broker';
+const PUBLIC_BROKER_PATH = '/functions/v1/score-preview-broker';
+const RUNTIME_BROKER_PATH = '/score-preview-broker';
 const OPAQUE = /^[A-Za-z0-9_-]{43}$/;
 const KEY = /^sb_secret_[A-Za-z0-9_-]{16,}$/;
 const SHARED = /^[A-Za-z0-9_-]{43,128}$/;
@@ -48,7 +49,8 @@ export async function handleScorePreviewBroker(request, config, fetchImpl = fetc
   // the public gateway. Accept that form only when the platform-preserved Host
   // and forwarded protocol still identify this exact Development project.
   if (!publicUrl && !gatewayUrl) return diagnostic(config, 'broker-origin');
-  if (url.pathname !== BROKER_PATH) return diagnostic(config, 'broker-path');
+  const expectedPath = publicUrl ? PUBLIC_BROKER_PATH : RUNTIME_BROKER_PATH;
+  if (url.pathname !== expectedPath) return diagnostic(config, 'broker-path');
   if (url.search || url.hash) return diagnostic(config, 'broker-query');
   const supplied = request.headers.get('x-score-edge-secret');
   if (!SHARED.test(supplied || '') || !opaqueEqual(supplied, config.sharedSecret)) {
