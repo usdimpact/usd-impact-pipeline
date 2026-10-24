@@ -13,6 +13,7 @@ const PATHS = new Set(['/en/', '/es/', '/archive/en/', '/archive/es/']);
 const JWT = /^[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{16,}$/;
 const MACHINE_ISSUER = 'https://ycstrcvshdluovtuasjc.supabase.co/auth/v1';
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const BROKER_STAGE = /^broker-(?:origin|path|query|shared-secret|media-type|length|body|schema|budget-config|budget-limit|budget-error|redeem-denied|validate-denied|rpc-error)$/;
 
 function decodeJwtPart(value) {
   const normalized = value.replace(/-/g,'+').replace(/_/g,'/');
@@ -87,6 +88,10 @@ async function invoke(action, token, env, fetchImpl) {
     },
     body: JSON.stringify({ action, [name]: token }),
   });
+  if (env?.SCORE_PREVIEW_DIAGNOSTICS_ENABLED === 'true') {
+    const stage = result.headers.get('X-Score-Preview-Broker-Stage') || '';
+    if (BROKER_STAGE.test(stage)) fail(stage);
+  }
   if (result.status === 403) return null; // revoked/replayed or denied
   if (result.status !== 200) fail('broker-http');
   return result.json();
