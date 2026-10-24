@@ -164,3 +164,33 @@ test('invalid secrets and malformed requests never consume database budget', asy
   assert.equal((await handleScorePreviewBroker(request({method:'GET'}),cfg,failFetch)).status,405);
   assert.equal(claims,0);
 });
+
+
+test('Development diagnostics are opt-in, stage-only, and never leak secrets', async () => {
+  const silent = await handleScorePreviewBroker(request({secret:'A'.repeat(64)}), config, failFetch);
+  assert.equal(silent.status, 403);
+  assert.equal(silent.headers.get('X-Score-Preview-Broker-Stage'), null);
+  assert.deepEqual(await silent.json(), { allowed: false });
+
+  const diagnosticConfig = {...config, diagnostics:'true'};
+  const mismatch = await handleScorePreviewBroker(
+    request({secret:'A'.repeat(64)}), diagnosticConfig, failFetch);
+  assert.equal(mismatch.status, 403);
+  assert.equal(mismatch.headers.get('X-Score-Preview-Broker-Stage'), 'broker-shared-secret');
+  const body = await mismatch.json();
+  assert.deepEqual(body, { allowed:false, stage:'broker-shared-secret' });
+  const serialized = JSON.stringify(body);
+  assert.equal(serialized.includes(SECRET), false);
+  assert.equal(serialized.includes(config.supabaseSecretKey), false);
+
+  const wrongUrl = await handleScorePreviewBroker(
+    request({url:'https://other.supabase.co/functions/v1/score-preview-broker'}),
+    diagnosticConfig, failFetch);
+  assert.equal(wrongUrl.status, 403);
+  assert.equal(wrongUrl.headers.get('X-Score-Preview-Broker-Stage'), 'broker-url');
+
+  const media = await handleScorePreviewBroker(
+    request({contentType:'text/plain'}), diagnosticConfig, failFetch);
+  assert.equal(media.status, 415);
+  assert.equal(media.headers.get('X-Score-Preview-Broker-Stage'), 'broker-media-type');
+});
