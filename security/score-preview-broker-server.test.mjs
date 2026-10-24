@@ -57,13 +57,20 @@ test('Supabase Edge internal URL rewrite is accepted only with the documented ru
     {url:internal,host:'other.supabase.com',forwardedProto:'https'},
     {url:internal,forwardedHost:'other.supabase.com',forwardedProto:'https'},
     {url:internal,host:'edge-runtime.supabase.com',forwardedProto:'http'},
-    {url:'https://edge-runtime.supabase.internal/functions/v1/score-preview-broker',host:'edge-runtime.supabase.com',forwardedProto:'https'},
     {url:'https://other.supabase.co/functions/v1/score-preview-broker',host:'other.supabase.com',forwardedProto:'https'},
   ]){
     const denied=await handleScorePreviewBroker(request(opts),diagnosticConfig,failFetch);
     assert.equal(denied.status,403);
     assert.equal(denied.headers.get('X-Score-Preview-Broker-Stage'),'broker-origin');
   }
+
+  const wrongRuntimePath=await handleScorePreviewBroker(request({
+    url:'https://edge-runtime.supabase.internal/functions/v1/score-preview-broker',
+    host:'edge-runtime.supabase.com',
+    forwardedProto:'https',
+  }),diagnosticConfig,failFetch);
+  assert.equal(wrongRuntimePath.status,403);
+  assert.equal(wrongRuntimePath.headers.get('X-Score-Preview-Broker-Stage'),'broker-path');
 });
 
 test('external callers with no/malformed/incorrect shared secret have no database access',async()=>{
