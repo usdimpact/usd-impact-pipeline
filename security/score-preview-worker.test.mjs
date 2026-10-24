@@ -123,7 +123,7 @@ test('rate limit binding absence and exhaustion deny before any ticket/network o
   const staleOrigin = await handleScoreWorkerPreview(
     f.request('/score-redeem',{method:'POST',origin:'https://usd-impact-site-git-feat-score-membership-han-fb189b-usd-impact.vercel.app'}),f.env);
   assert.equal(staleOrigin.status,403);
-  assert.equal(SCORE_DIRECT_WEBSITE_ORIGIN,'https://usd-impact-site-pobc5814l-usd-impact.vercel.app');
+  assert.equal(SCORE_DIRECT_WEBSITE_ORIGIN,'https://usd-impact-site-jmrkc9u9p-usd-impact.vercel.app');
   const previousDeploymentOrigin = await handleScoreWorkerPreview(
     f.request('/score-redeem',{method:'POST',origin:'https://usd-impact-site-l9bu3f8j0-usd-impact.vercel.app'}),f.env);
   assert.equal(previousDeploymentOrigin.status,403);
