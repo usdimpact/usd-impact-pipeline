@@ -14,8 +14,10 @@ const HEADERS = {
 };
 const json = (status, data, extra = {}) => Response.json(data, { status, headers: { ...HEADERS, ...extra } });
 function diagnostic(config, stage, status = 403, extra = {}) {
-  const stageHeaders = config?.diagnostics === 'true' ? { 'X-Score-Preview-Broker-Stage': stage } : {};
-  const data = config?.diagnostics === 'true' ? { allowed: false, stage } : { allowed: false };
+  const enabled = config?.diagnostics === 'true';
+  if (enabled) console.info('score-preview-broker-stage', stage);
+  const stageHeaders = enabled ? { 'X-Score-Preview-Broker-Stage': stage } : {};
+  const data = enabled ? { allowed: false, stage } : { allowed: false };
   return json(status, data, { ...extra, ...stageHeaders });
 }
 function opaqueEqual(a, b) {
