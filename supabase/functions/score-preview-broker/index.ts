@@ -18,6 +18,7 @@ Deno.serve((request: Request) => {
     supabaseUrl: Deno.env.get('SUPABASE_URL') || '',
     supabaseSecretKey: secretKey,
     sharedSecret: Deno.env.get('SCORE_EDGE_SHARED_SECRET') || '',
+    diagnostics: Deno.env.get('SCORE_PREVIEW_DIAGNOSTICS_ENABLED') || 'false',
     rateBudget: (action: string) => claimScoreDevBrokerBudget(action, {
       SCORE_PREVIEW_SUPABASE_SECRET_KEY: secretKey,
     }),
