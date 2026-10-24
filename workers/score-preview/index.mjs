@@ -41,7 +41,7 @@ function denied() {
 }
 function unavailable(stage) {
   const extra = {};
-  if (/^(machine-config|machine-auth-http|machine-claims|broker-config|broker-http|unknown)$/.test(stage || '')) {
+  if (/^(machine-config|machine-auth-http|machine-claims|broker-config|broker-http|broker-(?:origin|path|query|shared-secret|media-type|length|body|schema|budget-config|budget-limit|budget-error|redeem-denied|validate-denied|rpc-error)|unknown)$/.test(stage || '')) {
     extra['X-Score-Preview-Stage'] = stage;
   }
   return response(503, 'Score Preview unavailable', extra);
