@@ -21,7 +21,7 @@ test('Pages preview imports cannot bring privileged Supabase RPC code into the b
   }
   assert.equal(PAGES_HOST, RPC_HOST);
   assert.equal(PAGES_ISSUER, RPC_ISSUER);
-  assert.equal(PAGES_ISSUER,'https://usd-impact-site-pobc5814l-usd-impact.vercel.app');
+  assert.equal(PAGES_ISSUER,'https://usd-impact-site-jmrkc9u9p-usd-impact.vercel.app');
   assert.notEqual(PAGES_ISSUER,'https://usd-impact-site-git-feat-score-membership-han-fb189b-usd-impact.vercel.app');
 });
 
