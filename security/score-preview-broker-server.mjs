@@ -49,8 +49,10 @@ export async function handleScorePreviewBroker(request, config, fetchImpl = fetc
   // the public gateway. Accept that form only when the platform-preserved Host
   // and forwarded protocol still identify this exact Development project.
   if (!publicUrl && !gatewayUrl) return diagnostic(config, 'broker-origin');
-  const expectedPath = publicUrl ? PUBLIC_BROKER_PATH : RUNTIME_BROKER_PATH;
-  if (url.pathname !== expectedPath) return diagnostic(config, 'broker-path');
+  const allowedPath =
+    (publicUrl && (url.pathname === PUBLIC_BROKER_PATH || url.pathname === RUNTIME_BROKER_PATH)) ||
+    (gatewayUrl && url.pathname === RUNTIME_BROKER_PATH);
+  if (!allowedPath) return diagnostic(config, 'broker-path');
   if (url.search || url.hash) return diagnostic(config, 'broker-query');
   const supplied = request.headers.get('x-score-edge-secret');
   if (!SHARED.test(supplied || '') || !opaqueEqual(supplied, config.sharedSecret)) {
