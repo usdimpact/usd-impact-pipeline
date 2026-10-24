@@ -3,6 +3,7 @@
 import { redeemScoreDevTicket, scoreDevSessionAllowed } from './score-preview-dev-rpc.mjs';
 const DEV_ORIGIN = 'https://ycstrcvshdluovtuasjc.supabase.co';
 const DEV_HOST = 'ycstrcvshdluovtuasjc.supabase.co';
+const EDGE_RUNTIME_ORIGIN = 'https://edge-runtime.supabase.com';
 const BROKER_PATH = '/functions/v1/score-preview-broker';
 const OPAQUE = /^[A-Za-z0-9_-]{43}$/;
 const KEY = /^sb_secret_[A-Za-z0-9_-]{16,}$/;
@@ -39,7 +40,7 @@ export async function handleScorePreviewBroker(request, config, fetchImpl = fetc
   try { url = new URL(request.url); } catch { return diagnostic(config, 'broker-url-parse'); }
   const publicUrl = url.origin === DEV_ORIGIN;
   const gatewayUrl =
-    request.headers.get('host') === DEV_HOST &&
+    url.origin === EDGE_RUNTIME_ORIGIN &&
     request.headers.get('x-forwarded-proto') === 'https';
   // Supabase Edge may rewrite request.url to an internal runtime origin after
   // the public gateway. Accept that form only when the platform-preserved Host
