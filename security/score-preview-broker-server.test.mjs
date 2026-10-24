@@ -40,6 +40,12 @@ test('Supabase Edge internal URL rewrite is accepted only with the documented ru
   const internal='https://edge-runtime.supabase.internal/score-preview-broker';
   const diagnosticConfig={...config,diagnostics:'true'};
 
+  const publicRuntimePath=await handleScorePreviewBroker(request({
+    url:'https://ycstrcvshdluovtuasjc.supabase.co/score-preview-broker',
+  }),diagnosticConfig,async()=>Response.json(null));
+  assert.equal(publicRuntimePath.status,403);
+  assert.equal(publicRuntimePath.headers.get('X-Score-Preview-Broker-Stage'),'broker-validate-denied');
+
   for(const headers of [
     {host:'edge-runtime.supabase.com'},
     {forwardedHost:'edge-runtime.supabase.com'},
