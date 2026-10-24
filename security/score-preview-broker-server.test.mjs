@@ -37,7 +37,7 @@ test('one exact Development hostname and function path only; no cross-project co
   assert.equal((await handleScorePreviewBroker(request(),{...config,supabaseUrl:'https://other.supabase.co'},failFetch)).status,503);
 });
 test('Supabase Edge internal URL rewrite is accepted only with the documented runtime host over https',async()=>{
-  const internal='https://edge-runtime.supabase.internal/functions/v1/score-preview-broker';
+  const internal='https://edge-runtime.supabase.internal/score-preview-broker';
   const diagnosticConfig={...config,diagnostics:'true'};
 
   for(const headers of [
@@ -57,6 +57,7 @@ test('Supabase Edge internal URL rewrite is accepted only with the documented ru
     {url:internal,host:'other.supabase.com',forwardedProto:'https'},
     {url:internal,forwardedHost:'other.supabase.com',forwardedProto:'https'},
     {url:internal,host:'edge-runtime.supabase.com',forwardedProto:'http'},
+    {url:'https://edge-runtime.supabase.internal/functions/v1/score-preview-broker',host:'edge-runtime.supabase.com',forwardedProto:'https'},
     {url:'https://other.supabase.co/functions/v1/score-preview-broker',host:'other.supabase.com',forwardedProto:'https'},
   ]){
     const denied=await handleScorePreviewBroker(request(opts),diagnosticConfig,failFetch);
