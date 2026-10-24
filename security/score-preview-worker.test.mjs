@@ -156,6 +156,40 @@ test('Preview diagnostics expose only a non-secret failure stage when explicitly
   assert.equal(diagnostic.headers.get('X-Score-Preview-Stage'),'machine-config');
 });
 
+
+test('Worker diagnostics expose allowlisted broker stage only when explicitly enabled',async t=>{
+  const f=setup({
+    SCORE_EDGE_REDEMPTION_ENABLED:'true',
+    SCORE_DEV_BROKER_ENABLED:'true',
+    SCORE_PREVIEW_DIAGNOSTICS_ENABLED:'true',
+  });
+  const original=globalThis.fetch;
+  t.after(()=>{globalThis.fetch=original;});
+  globalThis.fetch=async(url)=>{
+    if(url===AUTH_URL)return Response.json({access_token:MACHINE_JWT});
+    return new Response(JSON.stringify({allowed:false,stage:'broker-shared-secret'}),{
+      status:403,
+      headers:{
+        'Content-Type':'application/json',
+        'X-Score-Preview-Broker-Stage':'broker-shared-secret',
+      },
+    });
+  };
+  const diagnostic=await handleScoreWorkerPreview(
+    f.request('/score-redeem',{method:'POST',origin:SCORE_DIRECT_WEBSITE_ORIGIN}),f.env);
+  assert.equal(diagnostic.status,503);
+  assert.equal(diagnostic.headers.get('X-Score-Preview-Stage'),'broker-shared-secret');
+  const body=await diagnostic.text();
+  assert.equal(body.includes(SECRET),false);
+  assert.equal(body.includes(MACHINE_PASSWORD),false);
+
+  const silent=await handleScoreWorkerPreview(
+    f.request('/score-redeem',{method:'POST',origin:SCORE_DIRECT_WEBSITE_ORIGIN}),
+    {...f.env,SCORE_PREVIEW_DIAGNOSTICS_ENABLED:'false'});
+  assert.equal(silent.status,403);
+  assert.equal(silent.headers.get('X-Score-Preview-Stage'),null);
+});
+
 test('mock authenticated redemption, cookie validation, revocation and replay stay server-side',async t=>{
   const f=setup({SCORE_EDGE_REDEMPTION_ENABLED:'true',SCORE_DEV_BROKER_ENABLED:'true',SCORE_EDGE_GATE_ENABLED:'true'});
   const original=globalThis.fetch;
