@@ -98,3 +98,29 @@ test('denied premium requests provide safe recovery without granting access', as
     assert.doesNotMatch(html, /<script|javascript:|(?:ticket|access_token|refresh_token)=/i);
   }
 });
+
+
+test('Production hostname requires private Worker service binding and fails closed when missing', async () => {
+  const ctx = context('/data/score_v2_methodology.json');
+  const response = await onRequest(ctx);
+  assert.equal(response.status, 503);
+  assert.equal(ctx.nextCalls, 0);
+  assert.equal(await response.text(), 'Score unavailable');
+});
+
+test('Production hostname delegates every request to private Worker service binding', async () => {
+  let calls = 0;
+  const ctx = context('/data/score_v2_methodology.json');
+  ctx.env.SCORE_PRODUCTION_WORKER = {
+    fetch: async (request) => {
+      calls++;
+      assert.equal(new URL(request.url).origin, 'https://score.usd-impact.com');
+      return new Response('delegated', { status: 207 });
+    },
+  };
+  const response = await onRequest(ctx);
+  assert.equal(response.status, 207);
+  assert.equal(await response.text(), 'delegated');
+  assert.equal(calls, 1);
+  assert.equal(ctx.nextCalls, 0);
+});
