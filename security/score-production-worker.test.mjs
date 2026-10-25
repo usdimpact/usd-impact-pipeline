@@ -104,6 +104,42 @@ test('redeem requires flag, exact website Origin, limiter and valid ticket', asy
   )).status, 400);
 });
 
+
+test('Stage E redemption origin override is opt-in and limited to usd-impact-site Vercel deployment origins', async () => {
+  const qaOrigin = 'https://usd-impact-site-5olortwna-usd-impact.vercel.app';
+  const qaEnv = env({
+    SCORE_PRODUCTION_QA_BRIDGE_ENABLED: 'true',
+    SCORE_PRODUCTION_QA_WEBSITE_ORIGIN: qaOrigin,
+  });
+  const expiresAtMs = Date.now() + 60_000;
+  const allowed = await handleScoreWorkerProduction(
+    formRequest({ origin: qaOrigin }),
+    qaEnv,
+    {
+      redeemScoreEdgeTicket: async () => ({ token, path: '/en/', expiresAtMs }),
+    },
+  );
+  assert.equal(allowed.status, 303);
+
+  const deniedBadHost = await handleScoreWorkerProduction(
+    formRequest({ origin: 'https://attacker.vercel.app' }),
+    { ...qaEnv, SCORE_PRODUCTION_QA_WEBSITE_ORIGIN: 'https://attacker.vercel.app' },
+    {
+      redeemScoreEdgeTicket: async () => ({ token, path: '/en/', expiresAtMs }),
+    },
+  );
+  assert.equal(deniedBadHost.status, 403);
+
+  const deniedMismatch = await handleScoreWorkerProduction(
+    formRequest({ origin: SCORE_PRODUCTION_WEBSITE_ORIGIN }),
+    qaEnv,
+    {
+      redeemScoreEdgeTicket: async () => ({ token, path: '/en/', expiresAtMs }),
+    },
+  );
+  assert.equal(deniedMismatch.status, 403);
+});
+
 test('successful redemption sets only the host-only secure session cookie', async () => {
   const expiresAtMs = Date.now() + 60_000;
   const result = await handleScoreWorkerProduction(formRequest(), env(), {
