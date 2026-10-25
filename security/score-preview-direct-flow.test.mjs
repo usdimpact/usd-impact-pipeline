@@ -151,8 +151,10 @@ test('wrong host, wrong Origin, absent flags, broken broker all deny without ser
     assert.equal((await f.request('/score-redeem',{method:'POST',origin})).status,403);
   }
   assert.equal(f.brokerCalls,0);
+  // Production custom-domain traffic now requires the private Worker service binding.
+  // This Preview fixture intentionally has no Production binding, so it fails closed as unavailable.
   assert.equal((await f.request('/score-redeem',{
-    method:'POST',origin:SCORE_DIRECT_WEBSITE_ORIGIN,host:'score.usd-impact.com'})).status,403);
+    method:'POST',origin:SCORE_DIRECT_WEBSITE_ORIGIN,host:'score.usd-impact.com'})).status,503);
   assert.equal((await f.request('/score-redeem',{
     method:'POST',origin:SCORE_DIRECT_WEBSITE_ORIGIN,host:'other.usd-impact-pipeline.pages.dev'})).status,403);
   assert.equal((await f.request('/score-redeem',{
