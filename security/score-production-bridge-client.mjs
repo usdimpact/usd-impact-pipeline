@@ -4,6 +4,9 @@ export const SCORE_PRODUCTION_BRIDGE_ORIGIN = 'https://www.usd-impact.com';
 export const SCORE_PRODUCTION_BRIDGE_URL =
   SCORE_PRODUCTION_BRIDGE_ORIGIN + '/api/account?action=score-edge';
 
+const QA_VERCEL_ORIGIN_RE =
+  /^https:\/\/usd-impact-site-[a-z0-9]+-usd-impact\.vercel\.app$/;
+
 const TOKEN = /^[A-Za-z0-9_-]{43}$/;
 const SECRET = /^[A-Za-z0-9_-]{43,128}$/;
 const PATHS = new Set(['/en/', '/es/', '/archive/en/', '/archive/es/']);
@@ -43,14 +46,26 @@ async function boundedJson(response) {
   }
 }
 
+function resolveBridgeOrigin(env) {
+  if (env?.SCORE_PRODUCTION_QA_BRIDGE_ENABLED === 'true') {
+    const qaOrigin = String(env?.SCORE_PRODUCTION_QA_BRIDGE_ORIGIN || '');
+    if (!QA_VERCEL_ORIGIN_RE.test(qaOrigin)) fail();
+    return qaOrigin;
+  }
+  if (env?.SCORE_EDGE_BRIDGE_ORIGIN !== SCORE_PRODUCTION_BRIDGE_ORIGIN) fail();
+  return SCORE_PRODUCTION_BRIDGE_ORIGIN;
+}
+
 async function invoke(action, credential, env, fetchImpl) {
-  if (env?.SCORE_EDGE_BRIDGE_ORIGIN !== SCORE_PRODUCTION_BRIDGE_ORIGIN ||
-      !SECRET.test(env?.SCORE_EDGE_SHARED_SECRET || '') ||
+  const bridgeOrigin = resolveBridgeOrigin(env);
+  if (!SECRET.test(env?.SCORE_EDGE_SHARED_SECRET || '') ||
       !TOKEN.test(credential || '')) fail();
   const name = action === 'redeem' ? 'ticket' : action === 'validate' ? 'token' : null;
   if (!name) fail();
 
-  const result = await fetchImpl(SCORE_PRODUCTION_BRIDGE_URL, {
+  const result = await fetchImpl(
+    bridgeOrigin + '/api/account?action=score-edge',
+    {
     method: 'POST',
     redirect: 'error',
     cache: 'no-store',
@@ -61,8 +76,9 @@ async function invoke(action, credential, env, fetchImpl) {
       'X-Score-Edge-Secret': env.SCORE_EDGE_SHARED_SECRET,
       'Cache-Control': 'no-store',
     },
-    body: JSON.stringify({ action, [name]: credential }),
-  });
+      body: JSON.stringify({ action, [name]: credential }),
+    },
+  );
   if (result.status === 403) return null;
   if (result.status !== 200) fail();
   return boundedJson(result);
