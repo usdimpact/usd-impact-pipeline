@@ -345,12 +345,17 @@ Minimum Worker limits, matching the accepted Preview contract:
 
 These are application-layer fail-closed limits, not a replacement for zone-level controls.
 
-Preferred Production routing uses a Cloudflare Worker Route in front of the existing score.usd-impact.com Pages origin. Cloudflare documents Routes as an interception layer on an existing proxied hostname. This is preferred because removing the route restores the pre-release Pages origin without moving the custom domain.
+Production routing must not depend on a Cloudflare Worker Route. Live provider evidence on 2026-10-25 shows:
+- usd-impact.com uses external Virtono authoritative nameservers;
+- the connected Cloudflare account has no usd-impact.com zone;
+- the existing Cloudflare Pages project usd-impact-pipeline owns score.usd-impact.com as an active custom domain;
+- Workers Routes require an active Cloudflare zone/proxied hostname, so the prior Route cutover design is not deployable without an unrelated DNS migration.
 
-Provider reference:
-https://developers.cloudflare.com/workers/configuration/routing/routes/
+Use the existing Cloudflare Pages custom domain as the public ingress. Pages Functions delegate score.usd-impact.com requests to the private usd-impact-score-production Worker through a Cloudflare Service binding named SCORE_PRODUCTION_WORKER. The Worker remains workers_dev=false, has no public route/custom domain, owns the native ASSETS binding and both rate-limit bindings, and fails closed if the service binding is absent.
 
-Before GO, verify zone-level access and whether a WAF rate-limit rule is available for this hostname. If available, add a second independent layer for POST /score-redeem. Do not make WAF availability the only rate-control mechanism.
+For isolated Production-data QA, one explicitly pinned Pages Preview hostname may delegate to the same private Worker only when SCORE_PRODUCTION_SERVICE_PREVIEW_ENABLED=true. The request URL is rewritten internally to the canonical https://score.usd-impact.com origin before Worker evaluation. Arbitrary Pages Preview hosts remain denied.
+
+WAF is optional defense in depth, not a GO prerequisite for this topology. The native Worker rate-limit bindings remain mandatory.
 
 ## 10. Logging and privacy exclusions
 
@@ -440,8 +445,11 @@ Do not promote yet.
 - Production secret generated independently from Development;
 - assets from exact reviewed commit;
 - no workers.dev public subdomain for the final Production Worker;
+- no Worker Route or custom domain;
 - all activation flags OFF initially;
-- stage via a non-public Preview URL where possible.
+- bind the private Worker to the usd-impact-pipeline Pages project as SCORE_PRODUCTION_WORKER;
+- keep SCORE_PRODUCTION_SERVICE_PREVIEW_ENABLED=false in Production;
+- for isolated Stage E only, enable the service path on the exact pinned Pages Preview hostname.
 
 ### Stage E — isolated Production-data QA
 
@@ -471,7 +479,7 @@ Preferred sequence:
 2. ensure website Production code is present with handoff issuance still OFF;
 3. ensure Production Worker is fully configured and acceptance-tested;
 4. enable Worker internal gate/redemption/session validation;
-5. add the Worker Route in front of score.usd-impact.com/*;
+5. deploy the reviewed Pages Functions version that delegates score.usd-impact.com to the private SCORE_PRODUCTION_WORKER service binding;
 6. smoke-test anonymous/public/protected behavior;
 7. enable website handoff issuance;
 8. perform one eligible QA browser handoff;
@@ -484,9 +492,9 @@ Rollback must not depend on writing database fixes under pressure.
 
 Immediate rollback order:
 1. disable website SCORE_HANDOFF_ISSUANCE_ENABLED;
-2. remove the Cloudflare Worker Route from score.usd-impact.com/*;
-3. confirm traffic falls back to the pre-recorded Cloudflare Pages Production deployment;
-4. set Worker activation/gate/redemption flags OFF;
+2. set private Worker activation/gate/redemption flags OFF;
+3. roll the usd-impact-pipeline Pages project back to the pre-recorded Cloudflare Pages Production deployment that does not delegate to SCORE_PRODUCTION_WORKER;
+4. confirm score.usd-impact.com serves the pre-release Pages baseline;
 5. if website code itself regressed, roll Vercel back to the exact pre-release Production deployment;
 6. leave existing sessions/tickets to expire naturally unless a reviewed emergency cleanup is required;
 7. do not delete entitlements as part of rollback.
@@ -531,7 +539,7 @@ GO requires every item:
 - [ ] QA residue cleaned.
 - [ ] Exact-head CI/security checks green.
 - [ ] Current pre-release Vercel and Pages rollback IDs recorded.
-- [ ] Cloudflare zone Route permission and rollback path verified.
+- [ ] Cloudflare Pages custom-domain ownership, private Worker service binding, and Pages rollback path verified.
 - [ ] Explicit owner GO recorded for merge/deploy/domain steps.
 
 Automatic NO-GO:
@@ -543,7 +551,7 @@ Automatic NO-GO:
 - Any Preview/Development project reference remains in Production code/config.
 - Any protected asset is directly reachable without session validation.
 - Membership revocation does not affect an existing Score session immediately.
-- Worker route rollback cannot be proven.
+- Pages-to-private-Worker rollback cannot be proven.
 - Exact-head tests are not green.
 - Production env values are ambiguous or inherited without verification.
 - Public domain/routing ownership is unclear.
@@ -563,7 +571,7 @@ This section is a sequence, not authorization.
 8. Record fresh rollback IDs.
 9. Merge/promote website code with issuance OFF.
 10. Deploy Worker with all internals ready but no public route.
-11. Add score.usd-impact.com/* Worker Route.
+11. Deploy the reviewed Pages Functions version with the private SCORE_PRODUCTION_WORKER service binding.
 12. Smoke test.
 13. Enable website handoff issuance through a reviewed Production deployment.
 14. Run one final eligible QA handoff.
@@ -583,4 +591,6 @@ Reason:
 - Live Production inventory now proves the canonical Supabase project is gjzetjugmnwanvjkchux and that the required Score tables/RPCs are absent.
 - Production is therefore still NO-GO until the reviewed Score migrations are separately authorized, applied, and post-application security verification passes.
 
-The next safe engineering task is effective Production Vercel environment-name/scope verification and final migration review. Do not apply the Production Score migrations, stage Production Score secrets, deploy the Production Worker candidate, add a Worker Route, or enable any Production Score flag without separate authorization.
+The Production Supabase migrations have now been separately authorized, applied to gjzetjugmnwanvjkchux, and post-application grants/RLS/functions verified. Live Cloudflare evidence also confirms the usd-impact-pipeline Pages project owns active custom domain score.usd-impact.com while usd-impact.com remains on external Virtono authoritative DNS; therefore Worker Route/WAF zone access is not a valid prerequisite for this release topology.
+
+The next safe engineering task is to validate the Pages-to-private-Worker service-binding implementation on PR #148 and keep all Production activation flags OFF. Do not deploy the Production Worker candidate, mutate the Pages Production service binding, promote Vercel, or enable any Production Score flag without separate authorization.
