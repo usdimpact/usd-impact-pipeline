@@ -34,6 +34,7 @@ test('redeem calls only the exact first-party Production bridge', async () => {
   assert.equal(seen.options.redirect, 'error');
   assert.equal(seen.options.headers['X-Score-Edge-Secret'], secret);
   assert.equal(seen.options.headers.Authorization, undefined);
+  assert.equal(seen.options.headers['x-vercel-protection-bypass'], undefined);
   assert.deepEqual(JSON.parse(seen.options.body), { action: 'redeem', ticket });
   assert.equal(out.token, token);
   assert.equal(out.path, '/en/');
@@ -59,6 +60,7 @@ test('Stage E QA bridge override is opt-in and limited to usd-impact-site Vercel
     ...env,
     SCORE_PRODUCTION_QA_BRIDGE_ENABLED: 'true',
     SCORE_PRODUCTION_QA_BRIDGE_ORIGIN: 'https://usd-impact-site-q1t5jg69r-usd-impact.vercel.app',
+    SCORE_PRODUCTION_QA_VERCEL_BYPASS_SECRET: 'v'.repeat(32),
   };
   const allowed = await scoreEdgeSessionAllowed(token, qaEnv, async (url, options) => {
     seen = { url, options };
@@ -69,6 +71,10 @@ test('Stage E QA bridge override is opt-in and limited to usd-impact-site Vercel
     seen.url,
     'https://usd-impact-site-q1t5jg69r-usd-impact.vercel.app/api/account?action=score-edge',
   );
+  assert.equal(
+    seen.options.headers['x-vercel-protection-bypass'],
+    qaEnv.SCORE_PRODUCTION_QA_VERCEL_BYPASS_SECRET,
+  );
 
   let calls = 0;
   const probe = async () => { calls++; return jsonResponse(200, { allowed: true }); };
@@ -76,6 +82,13 @@ test('Stage E QA bridge override is opt-in and limited to usd-impact-site Vercel
     scoreEdgeSessionAllowed(token, {
       ...qaEnv,
       SCORE_PRODUCTION_QA_BRIDGE_ORIGIN: 'https://attacker.vercel.app',
+    }, probe),
+    /unavailable/,
+  );
+  await assert.rejects(
+    scoreEdgeSessionAllowed(token, {
+      ...qaEnv,
+      SCORE_PRODUCTION_QA_VERCEL_BYPASS_SECRET: 'short',
     }, probe),
     /unavailable/,
   );
