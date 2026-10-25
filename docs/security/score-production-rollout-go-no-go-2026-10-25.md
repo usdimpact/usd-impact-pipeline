@@ -73,7 +73,7 @@ Current Production deployment observed while preparing this package:
 Provider link:
 https://vercel.com/usd-impact/usd-impact-site/C3YDDfpVLNvdvSzvH7MEUuU6ZBvB
 
-Important env finding: the project env inventory returned no project-scoped Production variables whose names begin with SCORE, PUBLIC_SCORE, or SUPABASE. Current Score variables observed in this workstream are branch-specific Preview variables only. Shared/inherited environment variables may exist outside this project-scoped list and therefore remain a mandatory pre-GO verification item.
+Important env finding: the project-scoped Vercel environment inventory returned no Production variables whose names begin with SCORE, PUBLIC_SCORE, or SUPABASE. Current Score variables observed in this workstream are branch-specific Preview variables only. Existing Production features already use Supabase, so effective Supabase credentials may be inherited/shared rather than project-scoped. Their names/scope must be verified without decrypting values before staging Score. Do not interpret the project-scoped result as proof that Production Supabase credentials are absent.
 
 ### 3.2 Score static origin — Cloudflare Pages
 
@@ -107,14 +107,34 @@ Current gated Worker:
 
 An obsolete temporary probe Worker, score-preview-stage-probe-temp-20261024, was verified unreferenced and deleted during preparation of this package.
 
-### 3.4 Production Supabase evidence gap — blocking
+### 3.4 Production Supabase live inventory — blocking
 
-Production project reference of record:
-- zyhjtbjbmeeyhqunwvzr
+Canonical Production project:
+- name: usd-impact-production
+- project reference: gjzetjugmnwanvjkchux
+- origin: https://gjzetjugmnwanvjkchux.supabase.co
 
-The current connector is not authorized to read this Production project. Therefore this document does not claim that the required Score tables/RPCs already exist in Production.
+Live provider evidence corrected an earlier stale project reference. The canonical ref above already matches existing Production guards elsewhere in the website repository.
 
-GO is blocked until an owner-authenticated read-only inventory verifies the exact Production objects and grants listed in section 6.
+Observed read-only Production state:
+
+- public.profiles exists with RLS enabled.
+- public.entitlements exists with RLS enabled.
+- anon has no SELECT on profiles or entitlements.
+- authenticated SELECT is limited by existing ownership policies:
+  - profiles_select_own restricts profiles to account_id = auth.uid().
+  - entitlements_select_own restricts entitlements to the caller's account and requires a matching non-deleted profile.
+- public.score_handoff_tickets does not exist.
+- public.score_member_sessions does not exist.
+- none of the required Score RPCs currently exist:
+  - score_ticket_issue_atomic
+  - score_ticket_consume_atomic
+  - score_membership_active
+  - score_session_create
+  - score_session_lookup
+- no Score-specific Production Edge Function exists. This is expected under the recommended Vercel-bridge architecture.
+
+Therefore Production is currently NO-GO until the reviewed Score migrations are separately authorized, applied to gjzetjugmnwanvjkchux, and verified after application.
 
 ## 4. Production architecture decision
 
@@ -204,39 +224,55 @@ Do not create Production equivalents of the Preview machine password/subject bin
 
 ### 5.3 Supabase Production
 
+Canonical project:
+- gjzetjugmnwanvjkchux
+- https://gjzetjugmnwanvjkchux.supabase.co
+
 No Score-specific Edge Function secret is required by the recommended Production architecture because the privileged bridge remains on Vercel.
 
-The Production database must contain only the reviewed tables/RPCs/grants needed for one-time tickets and short-lived Score sessions.
+The Production database does not yet contain the Score ticket/session tables or RPCs. The existing draft migrations must remain unapplied until separately authorized.
 
-## 6. Mandatory Production Supabase read-only inventory — GO blocker
+## 6. Production Supabase inventory and migration gate
 
-Before any migration or Production release, verify all of the following with an owner-authenticated read-only session.
+The read-only Production inventory is now complete enough to prove the current blocker.
 
-Required tables:
-- public.entitlements
-- public.score_handoff_tickets
-- public.score_member_sessions
+Already verified on gjzetjugmnwanvjkchux:
+- profiles and entitlements exist with RLS enabled;
+- anon SELECT is denied on both;
+- authenticated SELECT is ownership-scoped by existing policies;
+- Score ticket/session tables are absent;
+- Score RPCs are absent;
+- no Score-specific Edge Function exists.
 
-Required RPCs:
-- public.score_ticket_issue_atomic
-- public.score_ticket_consume_atomic
-- public.score_membership_active
-- public.score_session_create
-- public.score_session_lookup
+Reviewed draft migrations:
+- 20261019010000_score_handoff_tickets.sql
+- 20261019020000_score_member_sessions.sql
+- 20261019030000_score_handoff_account_indexes.sql
 
-If a Production global broker budget is retained, its function must have a Production-specific name and contract; do not copy the Preview-only budget function blindly.
+The website PR includes an isolated PGlite integration contract that applies those three migrations exactly and verifies:
+- RLS on both Score tables;
+- anon/authenticated table access denied;
+- anon/authenticated function execution denied;
+- service_role execution allowed;
+- all expected expiry/account indexes;
+- one-time atomic ticket consume and replay denial;
+- session creation only with current Research Membership;
+- live membership revocation immediately invalidates an existing session;
+- new session creation while revoked fails.
 
-Required authorization review:
-- no direct browser client access;
-- no broad anon/authenticated table grants;
-- RLS state explicitly verified;
-- any SECURITY DEFINER function has EXECUTE revoked from PUBLIC, anon, and authenticated unless a specific reviewed exception exists;
-- fixed search_path where applicable;
-- RPC parameters are bounded and validated;
-- membership-active check cannot be bypassed by stale JWT metadata;
+Required post-application Production verification, after separate authorization:
+- exact table definitions and constraints match reviewed migrations;
+- RLS enabled on both Score tables;
+- no direct browser table access;
+- all five Score RPCs exist as SECURITY INVOKER;
+- fixed empty search_path remains present;
+- EXECUTE revoked from PUBLIC, anon, authenticated;
+- service_role grants are exact;
+- account/expiry indexes present;
+- no Preview-only broker budget function is copied into Production;
 - no authorization decision depends on user-editable user_metadata.
 
-NO-GO if this inventory cannot be proved.
+Production remains NO-GO until the migrations are separately authorized, applied, and this post-application verification passes.
 
 ## 7. Origin and request contract
 
@@ -471,7 +507,8 @@ These are historical baselines, not permanent rollback IDs. Refresh them immedia
 
 GO requires every item:
 
-- [ ] Production Supabase schema/RPC/grant inventory independently verified.
+- [x] Pre-migration Production Supabase schema/RPC/grant inventory independently verified; required Score objects confirmed absent.
+- [ ] Reviewed Score migrations separately authorized, applied to gjzetjugmnwanvjkchux, and post-application grants/RLS/functions re-verified.
 - [ ] Production implementation contains no Development project IDs or Preview machine credentials.
 - [ ] Vercel effective Production env inventory reviewed without exposing values.
 - [ ] Production shared secret exists only in Vercel + Cloudflare secret stores.
@@ -499,7 +536,8 @@ GO requires every item:
 
 Automatic NO-GO:
 
-- Production Supabase inventory cannot be read/verified.
+- Production Supabase canonical project cannot be verified.
+- Required Score migrations have not been applied and post-application grants/RLS/functions have not been verified.
 - Any secret is visible in source, logs, PR comments, screenshots, or artifacts.
 - Production Worker requires a user password or Supabase secret key.
 - Any Preview/Development project reference remains in Production code/config.
@@ -540,8 +578,9 @@ Reason:
 - Preview acceptance is complete and clean.
 - The Production architecture and rollback strategy are defined.
 - The live Production Supabase schema/functions/grants have not yet been independently verified.
-- Draft Production implementation now exists and is CI-green: website bridge head 94680a060896b684d2b6947b6299065ba85888f0 and pipeline Worker/security head 8e3ffc3433cf508aff824893904d8915558c948a.
-- The implementation remains draft/unmerged and has not been staged with Production environment values, Worker secrets, routes, domains, or Production database access.
-- Production Supabase live schema/RPC/grant inventory remains unverified and is still a blocking NO-GO item.
+- Draft Production implementation exists and has passed CI at reviewed candidate heads. The current website branch adds the canonical Production Supabase guard and isolated migration integration test; exact current heads must remain green before any staging decision.
+- The implementation remains draft/unmerged and has not been staged with Production environment values, Worker secrets, routes, domains, or Production database writes.
+- Live Production inventory now proves the canonical Supabase project is gjzetjugmnwanvjkchux and that the required Score tables/RPCs are absent.
+- Production is therefore still NO-GO until the reviewed Score migrations are separately authorized, applied, and post-application security verification passes.
 
-The next safe engineering task is read-only Production Supabase schema/RPC/grant verification plus effective Production Vercel environment-name verification. Until those inventories are proven, do not stage Production secrets, deploy the Production Worker candidate, add a Worker Route, or enable any Production Score flag.
+The next safe engineering task is effective Production Vercel environment-name/scope verification and final migration review. Do not apply the Production Score migrations, stage Production Score secrets, deploy the Production Worker candidate, add a Worker Route, or enable any Production Score flag without separate authorization.
