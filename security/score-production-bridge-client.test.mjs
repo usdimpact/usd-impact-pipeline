@@ -52,6 +52,36 @@ test('validate uses the same bridge and never sends Supabase credentials', async
   assert.equal('Authorization' in seen.options.headers, false);
 });
 
+
+test('Stage E QA bridge override is opt-in and limited to usd-impact-site Vercel deployment origins', async () => {
+  let seen;
+  const qaEnv = {
+    ...env,
+    SCORE_PRODUCTION_QA_BRIDGE_ENABLED: 'true',
+    SCORE_PRODUCTION_QA_BRIDGE_ORIGIN: 'https://usd-impact-site-q1t5jg69r-usd-impact.vercel.app',
+  };
+  const allowed = await scoreEdgeSessionAllowed(token, qaEnv, async (url, options) => {
+    seen = { url, options };
+    return jsonResponse(200, { allowed: true });
+  });
+  assert.equal(allowed, true);
+  assert.equal(
+    seen.url,
+    'https://usd-impact-site-q1t5jg69r-usd-impact.vercel.app/api/account?action=score-edge',
+  );
+
+  let calls = 0;
+  const probe = async () => { calls++; return jsonResponse(200, { allowed: true }); };
+  await assert.rejects(
+    scoreEdgeSessionAllowed(token, {
+      ...qaEnv,
+      SCORE_PRODUCTION_QA_BRIDGE_ORIGIN: 'https://attacker.vercel.app',
+    }, probe),
+    /unavailable/,
+  );
+  assert.equal(calls, 0);
+});
+
 test('403 is a generic deny for redeem and validate', async () => {
   const deny = async () => jsonResponse(403, { allowed: false });
   assert.equal(await redeemScoreEdgeTicket(ticket, env, deny), null);
