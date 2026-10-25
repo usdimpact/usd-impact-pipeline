@@ -8,11 +8,11 @@ Companion website PR: usdimpact/usd-impact-site#836
 ## STATUS
 
 - Scope: Production architecture, secrets/bindings inventory, routing, security controls, acceptance gates, rollback, and release order for the protected USD Impact Score.
-- Current decision: NO-GO for Production activation. Development/Preview acceptance passed, but Production prerequisites are intentionally incomplete.
-- Production changes performed by this package: none.
-- Main/DNS/Production DB mutations: none.
-- Conflicts: none with current release-hold policy. Production Supabase live inventory is an explicit evidence gap because the current connector cannot read that project.
-- Next action after this document: implement the Production-only server bridge and Worker configuration on draft branches, then run staged Production acceptance without assigning the public domain.
+- Current decision: NO-GO for public Production activation. Development/Preview acceptance passed; staged Production preparation is substantially complete, but no public cutover is authorized.
+- Production preparation performed under explicit owner authorization: reviewed Score migrations applied and verified on the canonical Production Supabase project; Production Vercel Score variables staged with activation flags OFF; an exact-head staged Vercel Production-environment deployment created with --skip-domain; a separate private Production Worker identity created; isolated Worker Preview deployed with native ASSETS, rate-limit bindings, and shared secret; Pages Preview service binding staged dormant.
+- Public main/DNS/custom-domain routing remains unchanged. No Production Score activation flag is enabled.
+- Conflicts: older sections of this document that described Production Supabase Score objects as absent are superseded by live provider evidence recorded below.
+- Next action: validate the dormant Pages Preview service-binding path on an exact-head Preview deployment, then perform isolated Production-data QA only after explicit Stage E authorization.
 
 ## 1. Hard constraints
 
@@ -73,7 +73,14 @@ Current Production deployment observed while preparing this package:
 Provider link:
 https://vercel.com/usd-impact/usd-impact-site/C3YDDfpVLNvdvSzvH7MEUuU6ZBvB
 
-Important env finding: the project-scoped Vercel environment inventory returned no Production variables whose names begin with SCORE, PUBLIC_SCORE, or SUPABASE. Current Score variables observed in this workstream are branch-specific Preview variables only. Existing Production features already use Supabase, so effective Supabase credentials may be inherited/shared rather than project-scoped. Their names/scope must be verified without decrypting values before staging Score. Do not interpret the project-scoped result as proof that Production Supabase credentials are absent.
+Current Vercel staging evidence:
+- Production SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, and SUPABASE_SECRET_KEY were verified present without exposing secret values.
+- SCORE_EDGE_SHARED_SECRET is stored as a sensitive Production variable.
+- SCORE_HANDOFF_ISSUANCE_ENABLED=false.
+- SCORE_EDGE_BRIDGE_ENABLED=false.
+- PUBLIC_SCORE_PIPELINE_ORIGIN is staged for https://score.usd-impact.com.
+- A staged Production-environment deployment from website PR #836 exact head 6903ef75d7fd0fca55eb83b515f2aff35522ffb4 is READY at https://usd-impact-site-qokn372st-usd-impact.vercel.app and was created with --skip-domain.
+- usd-impact.com and www.usd-impact.com remain mapped to the existing main Production deployment dpl_C3YDDfpVLNvdvSzvH7MEUuU6ZBvB.
 
 ### 3.2 Score static origin — Cloudflare Pages
 
@@ -94,47 +101,60 @@ This is the rollback origin of record until immediately before an authorized Pro
 
 ### 3.3 Cloudflare Worker baseline
 
-Current gated Worker:
-- Worker: usd-impact-score-isolated-dev
-- Tags: usd-impact, development-only
-- Production workers.dev subdomain: disabled
+Production Worker staging evidence:
+- Worker: usd-impact-score-production
+- Worker ID: da7b8cfa7a3d46dea6879ef09b5cccfa
+- Public workers.dev subdomain: disabled
 - Preview URLs: enabled
-- Activation flags: OFF
-- SCORE_EDGE_SHARED_SECRET: encrypted secret_text
-- Machine password: encrypted secret_text
-- Native ASSETS binding present on accepted Wrangler Preview builds
-- Worker observability/logs/traces: disabled
+- No Worker route or custom domain
+- No Production deployment is publicly reachable
+- Isolated Preview: score-production-candidate-148
+- Latest isolated Preview deployment: 085e1aa2-c0bf-497b-bd19-5c0d7c5c00ea
+- Native ASSETS binding present with run_worker_first=true
+- SCORE_EDGE_SHARED_SECRET present as secret_text
+- SCORE_WORKER_ENABLED=false
+- SCORE_EDGE_GATE_ENABLED=false
+- SCORE_EDGE_REDEMPTION_ENABLED=false
+- SCORE_REDEEM_LIMIT namespace 817420631 (30/60s)
+- SCORE_VALIDATE_LIMIT namespace 817420632 (180/60s)
+- Production origins pinned to https://score.usd-impact.com and https://www.usd-impact.com
+- Fail-closed smoke test PASS: disabled candidate returns Score unavailable
+- Worker observability/logs/traces remain disabled
 
-An obsolete temporary probe Worker, score-preview-stage-probe-temp-20261024, was verified unreferenced and deleted during preparation of this package.
+Pages Preview staging evidence:
+- exact pinned Preview alias: https://fix-score-membership-handoff.usd-impact-pipeline.pages.dev
+- exact PR #148 head at staged binding checkpoint: 1dd136602a86cbfce4ce22ea109c34a074ffcd2b
+- Preview-only service binding SCORE_PRODUCTION_WORKER -> usd-impact-score-production staged
+- SCORE_PRODUCTION_SERVICE_PREVIEW_ENABLED=false
+- Pages Production service binding/routing remains unchanged.
 
-### 3.4 Production Supabase live inventory — blocking
+### 3.4 Production Supabase live inventory — migration gate passed
 
 Canonical Production project:
 - name: usd-impact-production
 - project reference: gjzetjugmnwanvjkchux
 - origin: https://gjzetjugmnwanvjkchux.supabase.co
 
-Live provider evidence corrected an earlier stale project reference. The canonical ref above already matches existing Production guards elsewhere in the website repository.
-
-Observed read-only Production state:
-
+Live provider evidence now confirms:
 - public.profiles exists with RLS enabled.
 - public.entitlements exists with RLS enabled.
-- anon has no SELECT on profiles or entitlements.
-- authenticated SELECT is limited by existing ownership policies:
-  - profiles_select_own restricts profiles to account_id = auth.uid().
-  - entitlements_select_own restricts entitlements to the caller's account and requires a matching non-deleted profile.
-- public.score_handoff_tickets does not exist.
-- public.score_member_sessions does not exist.
-- none of the required Score RPCs currently exist:
+- public.score_handoff_tickets exists with RLS enabled.
+- public.score_member_sessions exists with RLS enabled.
+- migration history records 20261019010000, 20261019020000, and 20261019030000.
+- required Score RPCs exist:
   - score_ticket_issue_atomic
   - score_ticket_consume_atomic
   - score_membership_active
   - score_session_create
   - score_session_lookup
-- no Score-specific Production Edge Function exists. This is expected under the recommended Vercel-bridge architecture.
+- Score RPCs are SECURITY INVOKER and retain a fixed empty search_path.
+- EXECUTE remains unavailable to PUBLIC/anon/authenticated and available to service_role as reviewed.
+- expected account/expiry indexes and constraints match the reviewed migrations.
+- browser roles have no direct Score-table privileges.
+- latest verified Production Score residue: 0 ticket rows and 0 session rows.
+- no Score-specific Production Edge Function is required under the Vercel-bridge architecture.
 
-Therefore Production is currently NO-GO until the reviewed Score migrations are separately authorized, applied to gjzetjugmnwanvjkchux, and verified after application.
+This database gate is no longer blocking. Public Production activation remains NO-GO pending isolated service-binding acceptance and final release authorization.
 
 ## 4. Production architecture decision
 
@@ -230,21 +250,25 @@ Canonical project:
 
 No Score-specific Edge Function secret is required by the recommended Production architecture because the privileged bridge remains on Vercel.
 
-The Production database does not yet contain the Score ticket/session tables or RPCs. The existing draft migrations must remain unapplied until separately authorized.
+The reviewed Score migrations have been separately authorized, applied to the canonical Production project, and post-application RLS/grant/RPC/index verification has passed. No Score-specific Production Edge Function is required.
 
 ## 6. Production Supabase inventory and migration gate
 
-The read-only Production inventory is now complete enough to prove the current blocker.
+The Production migration gate has passed.
 
-Already verified on gjzetjugmnwanvjkchux:
+Verified on gjzetjugmnwanvjkchux:
 - profiles and entitlements exist with RLS enabled;
-- anon SELECT is denied on both;
-- authenticated SELECT is ownership-scoped by existing policies;
-- Score ticket/session tables are absent;
-- Score RPCs are absent;
-- no Score-specific Edge Function exists.
+- Score ticket/session tables exist with RLS enabled;
+- all five required Score RPCs exist;
+- browser roles retain no direct Score-table access;
+- RPCs remain SECURITY INVOKER with empty search_path;
+- service_role grants are exact;
+- expected constraints and account/expiry indexes are present;
+- migration history records all three reviewed migrations;
+- Production Score residue was 0 tickets / 0 sessions at the latest verification;
+- no Score-specific Edge Function exists or is required.
 
-Reviewed draft migrations:
+Applied reviewed migrations:
 - 20261019010000_score_handoff_tickets.sql
 - 20261019020000_score_member_sessions.sql
 - 20261019030000_score_handoff_account_indexes.sql
@@ -272,7 +296,7 @@ Required post-application Production verification, after separate authorization:
 - no Preview-only broker budget function is copied into Production;
 - no authorization decision depends on user-editable user_metadata.
 
-Production remains NO-GO until the migrations are separately authorized, applied, and this post-application verification passes.
+The migration gate has passed. Production remains NO-GO for public activation until the isolated Pages-to-private-Worker path and Production-data QA matrix pass and explicit release GO is recorded.
 
 ## 7. Origin and request contract
 
@@ -515,17 +539,17 @@ These are historical baselines, not permanent rollback IDs. Refresh them immedia
 
 GO requires every item:
 
-- [x] Pre-migration Production Supabase schema/RPC/grant inventory independently verified; required Score objects confirmed absent.
-- [ ] Reviewed Score migrations separately authorized, applied to gjzetjugmnwanvjkchux, and post-application grants/RLS/functions re-verified.
-- [ ] Production implementation contains no Development project IDs or Preview machine credentials.
-- [ ] Vercel effective Production env inventory reviewed without exposing values.
-- [ ] Production shared secret exists only in Vercel + Cloudflare secret stores.
-- [ ] Website issuance flag defaults OFF.
-- [ ] Worker gate/redemption flags default OFF.
-- [ ] Production Worker has native assets from exact reviewed commit.
-- [ ] Exact website origin allowlist reviewed.
-- [ ] Exact Worker/bridge origin reviewed.
-- [ ] Worker rate-limit bindings present.
+- [x] Pre-migration Production Supabase schema/RPC/grant inventory independently verified.
+- [x] Reviewed Score migrations separately authorized, applied to gjzetjugmnwanvjkchux, and post-application grants/RLS/functions re-verified.
+- [x] Production implementation contains no Development project IDs or Preview machine credentials.
+- [x] Vercel effective Production env inventory reviewed without exposing values.
+- [x] Production shared secret staged in Vercel and isolated Cloudflare Preview secret stores without disclosure.
+- [x] Website issuance flag defaults OFF.
+- [x] Worker gate/redemption flags default OFF.
+- [x] Isolated Production Worker Preview has native assets from exact reviewed branch state.
+- [x] Exact website origin allowlist reviewed.
+- [x] Exact Worker/bridge origin reviewed.
+- [x] Worker rate-limit bindings present.
 - [ ] Logging/privacy exclusions verified.
 - [ ] Public methodology allowlist tests pass.
 - [ ] Anonymous premium denial tests pass.
@@ -583,14 +607,14 @@ This section is a sequence, not authorization.
 NO-GO.
 
 Reason:
-- Preview acceptance is complete and clean.
-- The Production architecture and rollback strategy are defined.
-- The live Production Supabase schema/functions/grants have not yet been independently verified.
-- Draft Production implementation exists and has passed CI at reviewed candidate heads. The current website branch adds the canonical Production Supabase guard and isolated migration integration test; exact current heads must remain green before any staging decision.
-- The implementation remains draft/unmerged and has not been staged with Production environment values, Worker secrets, routes, domains, or Production database writes.
-- Live Production inventory now proves the canonical Supabase project is gjzetjugmnwanvjkchux and that the required Score tables/RPCs are absent.
-- Production is therefore still NO-GO until the reviewed Score migrations are separately authorized, applied, and post-application security verification passes.
+- Development/Preview membership acceptance is complete and clean.
+- Production Supabase migrations are applied and post-application security verification passes.
+- Vercel Production environment prerequisites are staged; both Score activation flags remain OFF.
+- The exact-head staged Vercel Production-environment build is READY and was created with --skip-domain; public custom domains remain on the existing main deployment.
+- The separate Production Worker identity is unrouted and has no public workers.dev endpoint.
+- The isolated Production Worker Preview now has native ASSETS, shared secret, exact origins, rate-limit bindings, and all activation flags OFF; fail-closed smoke test passes.
+- Pages Preview now has a dormant SCORE_PRODUCTION_WORKER service binding with SCORE_PRODUCTION_SERVICE_PREVIEW_ENABLED=false.
+- No Pages Production service binding/routing cutover has occurred.
+- main remains unmerged and public Production routing remains unchanged.
 
-The Production Supabase migrations have now been separately authorized, applied to gjzetjugmnwanvjkchux, and post-application grants/RLS/functions verified. Live Cloudflare evidence also confirms the usd-impact-pipeline Pages project owns active custom domain score.usd-impact.com while usd-impact.com remains on external Virtono authoritative DNS; therefore Worker Route/WAF zone access is not a valid prerequisite for this release topology.
-
-The next safe engineering task is to validate the Pages-to-private-Worker service-binding implementation on PR #148 and keep all Production activation flags OFF. Do not deploy the Production Worker candidate, mutate the Pages Production service binding, promote Vercel, or enable any Production Score flag without separate authorization.
+The next safe engineering task is to obtain a fresh exact-head Pages Preview deployment carrying the dormant private service binding, verify it fails closed with the service-preview flag OFF, and only then consider explicit Stage E authorization for isolated Production-data QA. Public cutover remains NO-GO.
