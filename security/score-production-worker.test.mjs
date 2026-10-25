@@ -162,6 +162,16 @@ test('Production config is inert and contains no Development credential boundary
   assert.equal(config.vars.SCORE_WORKER_ENABLED, 'false');
   assert.equal(config.vars.SCORE_EDGE_GATE_ENABLED, 'false');
   assert.equal(config.vars.SCORE_EDGE_REDEMPTION_ENABLED, 'false');
+  assert.equal(config.previews.vars.SCORE_WORKER_ENABLED, 'false');
+  assert.equal(config.previews.vars.SCORE_EDGE_GATE_ENABLED, 'false');
+  assert.equal(config.previews.vars.SCORE_EDGE_REDEMPTION_ENABLED, 'false');
+  assert.equal(config.previews.vars.SCORE_WORKER_ORIGIN, 'https://score.usd-impact.com');
+  assert.equal(config.previews.vars.SCORE_WEBSITE_ORIGIN, 'https://www.usd-impact.com');
+  assert.equal(config.previews.vars.SCORE_EDGE_BRIDGE_ORIGIN, 'https://www.usd-impact.com');
+  assert.equal(config.previews.ratelimits.length, 2);
+  assert.equal(config.previews.ratelimits[0].namespace_id, config.ratelimits[0].namespace_id);
+  assert.equal(config.previews.ratelimits[1].namespace_id, config.ratelimits[1].namespace_id);
+  assert.notEqual(config.previews.ratelimits[0].namespace_id, config.previews.ratelimits[1].namespace_id);
   assert.equal(config.routes, undefined);
   assert.equal(config.route, undefined);
   assert.equal(raw.includes('ycstrcvshdluovtuasjc'), false);
