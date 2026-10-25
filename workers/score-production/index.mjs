@@ -7,6 +7,8 @@ import { parseBoundedScoreTicket } from '../../security/score-ticket-form.mjs';
 
 export const SCORE_PRODUCTION_ORIGIN = 'https://score.usd-impact.com';
 export const SCORE_PRODUCTION_WEBSITE_ORIGIN = 'https://www.usd-impact.com';
+const QA_VERCEL_ORIGIN_RE =
+  /^https:\/\/usd-impact-site-[a-z0-9]+-usd-impact\.vercel\.app$/;
 
 const SECURITY_HEADERS = {
   'Cache-Control': 'private, no-store',
@@ -94,9 +96,19 @@ async function asset(request, env, restricted) {
     return unavailable();
   }
 }
+function expectedWebsiteOrigin(env) {
+  if (env?.SCORE_PRODUCTION_QA_BRIDGE_ENABLED === 'true') {
+    const qaOrigin = String(env?.SCORE_PRODUCTION_QA_WEBSITE_ORIGIN || '');
+    if (!QA_VERCEL_ORIGIN_RE.test(qaOrigin)) return null;
+    return qaOrigin;
+  }
+  return SCORE_PRODUCTION_WEBSITE_ORIGIN;
+}
+
 async function redeem(request, env, dependencies) {
   if (env?.SCORE_EDGE_REDEMPTION_ENABLED !== 'true') return unavailable();
-  if (request.headers.get('origin') !== SCORE_PRODUCTION_WEBSITE_ORIGIN) return denied();
+  const websiteOrigin = expectedWebsiteOrigin(env);
+  if (!websiteOrigin || request.headers.get('origin') !== websiteOrigin) return denied();
 
   let actor;
   try { actor = await redeemActor(request); } catch { return unavailable(); }
