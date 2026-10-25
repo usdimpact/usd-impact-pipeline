@@ -128,9 +128,11 @@ browser -> www.usd-impact.com -> one-time ticket -> score.usd-impact.com Worker 
 
 ### 4.2 Recommended Production trust boundary
 
-Create a Production-only first-party server bridge inside usd-impact-site, for example:
+Create a Production-only first-party server bridge inside usd-impact-site. The implemented draft reuses the existing account serverless function to stay within the enforced 12-function Vercel limit:
 
-POST /api/score-edge
+POST /api/account?action=score-edge
+
+The fixed action query is a route selector only. Authentication material remains exclusively in the X-Score-Edge-Secret header; extra query parameters are rejected.
 
 Allowed actions:
 - redeem
@@ -194,7 +196,7 @@ Required bindings:
 | SCORE_EDGE_GATE_ENABLED | plain config | false until final staged acceptance |
 | SCORE_EDGE_REDEMPTION_ENABLED | plain config | false until final staged acceptance |
 | SCORE_EDGE_SHARED_SECRET | encrypted secret | Same Production value as Vercel |
-| SCORE_EDGE_BROKER_ORIGIN | plain config | Exact first-party Vercel origin, normally https://www.usd-impact.com |
+| SCORE_EDGE_BRIDGE_ORIGIN | plain config | Exact first-party Vercel origin, normally https://www.usd-impact.com |
 | SCORE_REDEEM_LIMIT | rate-limit binding | 30 requests / 60 seconds |
 | SCORE_VALIDATE_LIMIT | rate-limit binding | 180 requests / 60 seconds |
 
@@ -256,8 +258,8 @@ Required checks:
 
 ### Worker -> Vercel bridge
 
-Recommended endpoint:
-- POST https://www.usd-impact.com/api/score-edge
+Implemented draft endpoint:
+- POST https://www.usd-impact.com/api/account?action=score-edge
 
 Required headers:
 - Content-Type: application/json
@@ -267,7 +269,7 @@ Required request body:
 - redeem action with ticket
 - validate action with token
 
-No query-string authentication.
+No query-string authentication. The only accepted query component is the exact fixed route selector action=score-edge; no secret, ticket, token, account identifier, or other authentication material may appear in the query string.
 
 ### Score session cookie
 
@@ -538,7 +540,8 @@ Reason:
 - Preview acceptance is complete and clean.
 - The Production architecture and rollback strategy are defined.
 - The live Production Supabase schema/functions/grants have not yet been independently verified.
-- Production implementation for the Vercel server bridge and Production-specific Worker does not yet exist at reviewed exact heads.
-- Production Score env/bindings are not yet staged.
+- Draft Production implementation now exists and is CI-green: website bridge head 94680a060896b684d2b6947b6299065ba85888f0 and pipeline Worker/security head 8e3ffc3433cf508aff824893904d8915558c948a.
+- The implementation remains draft/unmerged and has not been staged with Production environment values, Worker secrets, routes, domains, or Production database access.
+- Production Supabase live schema/RPC/grant inventory remains unverified and is still a blocking NO-GO item.
 
-The next safe engineering task is to implement the Production bridge plus Production-specific Worker configuration on draft branches only, with all Production activation flags defaulting OFF.
+The next safe engineering task is read-only Production Supabase schema/RPC/grant verification plus effective Production Vercel environment-name verification. Until those inventories are proven, do not stage Production secrets, deploy the Production Worker candidate, add a Worker Route, or enable any Production Score flag.
