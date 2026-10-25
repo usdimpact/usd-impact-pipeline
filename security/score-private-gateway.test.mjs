@@ -91,3 +91,44 @@ test('invalid or stale Preview validation hosts are blocked before forwarding th
   }
   assert.equal(calls, 0);
 });
+
+
+test('isolated Production-service Preview requires exact pinned Pages host', async () => {
+  const exact = 'fix-score-membership-handoff-147.usd-impact-pipeline.pages.dev';
+  let calls = 0;
+  const make = (host) => ({
+    request: new Request('https://' + host + '/en/'),
+    env: {
+      SCORE_PRODUCTION_SERVICE_PREVIEW_ENABLED: 'true',
+      SCORE_PREVIEW_REDEMPTION_HOST: exact,
+      SCORE_PRODUCTION_WORKER: {
+        fetch: async (request) => {
+          calls++;
+          assert.equal(new URL(request.url).origin, 'https://score.usd-impact.com');
+          return new Response('production-worker-preview');
+        },
+      },
+    },
+    next: async () => new Response('must not reach Pages asset'),
+  });
+  assert.equal((await onRequest(make('other.usd-impact-pipeline.pages.dev'))).status, 403);
+  const response = await onRequest(make(exact));
+  assert.equal(response.status, 200);
+  assert.equal(await response.text(), 'production-worker-preview');
+  assert.equal(calls, 1);
+});
+
+test('isolated Production-service Preview fails closed when service binding is absent', async () => {
+  const exact = 'fix-score-membership-handoff-147.usd-impact-pipeline.pages.dev';
+  const c = {
+    request: new Request('https://' + exact + '/en/'),
+    env: {
+      SCORE_PRODUCTION_SERVICE_PREVIEW_ENABLED: 'true',
+      SCORE_PREVIEW_REDEMPTION_HOST: exact,
+    },
+    next: async () => new Response('must not reach Pages asset'),
+  };
+  const response = await onRequest(c);
+  assert.equal(response.status, 503);
+  assert.equal(await response.text(), 'Score unavailable');
+});
