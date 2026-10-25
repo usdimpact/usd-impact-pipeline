@@ -6,7 +6,7 @@ const token = 'a'.repeat(43);
 function ctx(path = '/en/', options = {}) {
   let calls = 0;
   return {
-    request: new Request('https://score.usd-impact.com' + path, {
+    request: new Request('https://usd-impact-pipeline.pages.dev' + path, {
       method: options.method || 'GET',
       headers: options.cookie ? { cookie: '__Host-score_session=' + options.cookie } : {},
     }),
