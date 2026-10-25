@@ -5,7 +5,7 @@ import { onRequest } from '../functions/_middleware.js';
 function context(path, method = 'GET') {
   let nextCalls = 0;
   return {
-    request: new Request('https://score.usd-impact.com' + path, { method }),
+    request: new Request('https://usd-impact-pipeline.pages.dev' + path, { method }),
     env: {},
     next: async () => { nextCalls++; return new Response('public'); },
     get nextCalls() { return nextCalls; },
@@ -102,6 +102,7 @@ test('denied premium requests provide safe recovery without granting access', as
 
 test('Production hostname requires private Worker service binding and fails closed when missing', async () => {
   const ctx = context('/data/score_v2_methodology.json');
+  ctx.request = new Request('https://score.usd-impact.com/data/score_v2_methodology.json');
   const response = await onRequest(ctx);
   assert.equal(response.status, 503);
   assert.equal(ctx.nextCalls, 0);
@@ -111,6 +112,7 @@ test('Production hostname requires private Worker service binding and fails clos
 test('Production hostname delegates every request to private Worker service binding', async () => {
   let calls = 0;
   const ctx = context('/data/score_v2_methodology.json');
+  ctx.request = new Request('https://score.usd-impact.com/data/score_v2_methodology.json');
   ctx.env.SCORE_PRODUCTION_WORKER = {
     fetch: async (request) => {
       calls++;
