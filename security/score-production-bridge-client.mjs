@@ -9,6 +9,7 @@ const QA_VERCEL_ORIGIN_RE =
 
 const TOKEN = /^[A-Za-z0-9_-]{43}$/;
 const SECRET = /^[A-Za-z0-9_-]{43,128}$/;
+const VERCEL_BYPASS = /^[A-Za-z0-9_-]{16,256}$/;
 const PATHS = new Set(['/en/', '/es/', '/archive/en/', '/archive/es/']);
 const MAX_RESPONSE_BYTES = 2048;
 
@@ -46,36 +47,42 @@ async function boundedJson(response) {
   }
 }
 
-function resolveBridgeOrigin(env) {
+function resolveBridgeTarget(env) {
   if (env?.SCORE_PRODUCTION_QA_BRIDGE_ENABLED === 'true') {
     const qaOrigin = String(env?.SCORE_PRODUCTION_QA_BRIDGE_ORIGIN || '');
-    if (!QA_VERCEL_ORIGIN_RE.test(qaOrigin)) fail();
-    return qaOrigin;
+    const bypassSecret = String(env?.SCORE_PRODUCTION_QA_VERCEL_BYPASS_SECRET || '');
+    if (!QA_VERCEL_ORIGIN_RE.test(qaOrigin) ||
+        !VERCEL_BYPASS.test(bypassSecret) ||
+        /[\r\n]/.test(bypassSecret)) fail();
+    return { origin: qaOrigin, bypassSecret };
   }
   if (env?.SCORE_EDGE_BRIDGE_ORIGIN !== SCORE_PRODUCTION_BRIDGE_ORIGIN) fail();
-  return SCORE_PRODUCTION_BRIDGE_ORIGIN;
+  return { origin: SCORE_PRODUCTION_BRIDGE_ORIGIN, bypassSecret: null };
 }
 
 async function invoke(action, credential, env, fetchImpl) {
-  const bridgeOrigin = resolveBridgeOrigin(env);
+  const { origin: bridgeOrigin, bypassSecret } = resolveBridgeTarget(env);
   if (!SECRET.test(env?.SCORE_EDGE_SHARED_SECRET || '') ||
       !TOKEN.test(credential || '')) fail();
   const name = action === 'redeem' ? 'ticket' : action === 'validate' ? 'token' : null;
   if (!name) fail();
 
+  const headers = {
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+    'X-Score-Edge-Secret': env.SCORE_EDGE_SHARED_SECRET,
+    'Cache-Control': 'no-store',
+  };
+  if (bypassSecret) headers['x-vercel-protection-bypass'] = bypassSecret;
+
   const result = await fetchImpl(
     bridgeOrigin + '/api/account?action=score-edge',
     {
-    method: 'POST',
-    redirect: 'error',
-    cache: 'no-store',
-    signal: AbortSignal.timeout(10_000),
-    headers: {
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-      'X-Score-Edge-Secret': env.SCORE_EDGE_SHARED_SECRET,
-      'Cache-Control': 'no-store',
-    },
+      method: 'POST',
+      redirect: 'error',
+      cache: 'no-store',
+      signal: AbortSignal.timeout(10_000),
+      headers,
       body: JSON.stringify({ action, [name]: credential }),
     },
   );
