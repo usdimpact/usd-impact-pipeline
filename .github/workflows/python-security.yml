@@ -166,9 +166,51 @@ jobs:
               ("urllib3", "2.7.0", "PYSEC-2026-4175"),
               ("urllib3", "2.7.0", "PYSEC-2026-4176"),
               ("urllib3", "2.7.0", "PYSEC-2026-4177"),
+              ("certifi", "2026.7.22", "PYSEC-2026-4320"),
+              ("pillow", "12.3.0", "CVE-2026-112390"),
+              ("pillow", "12.3.0", "CVE-2026-112391"),
+              ("pillow", "12.3.0", "CVE-2026-112392"),
+              ("pillow", "12.3.0", "CVE-2026-112393"),
+              ("pillow", "12.3.0", "CVE-2026-112395"),
+              ("pillow", "12.3.0", "CVE-2026-112396"),
+              ("pillow", "12.3.0", "CVE-2026-112397"),
+              ("pillow", "12.3.0", "CVE-2026-112398"),
+              ("pillow", "12.3.0", "CVE-2026-112399"),
+              ("pillow", "12.3.0", "CVE-2026-112400"),
+              ("pillow", "12.3.0", "CVE-2026-112401"),
+              ("pillow", "12.3.0", "CVE-2026-112402"),
+              ("pillow", "12.3.0", "CVE-2026-112404"),
+              ("pillow", "12.3.0", "CVE-2026-112405"),
+              ("pillow", "12.3.0", "CVE-2026-112406"),
+              ("pillow", "12.3.0", "CVE-2026-112891"),
+              ("pillow", "12.3.0", "CVE-2026-112892"),
+              ("pillow", "12.3.0", "CVE-2026-112893"),
+              ("pillow", "12.3.0", "CVE-2026-112894"),
+              ("pillow", "12.3.0", "CVE-2026-112895"),
+              ("pillow", "12.3.0", "CVE-2026-112896"),
+              ("pillow", "12.3.0", "CVE-2026-112897"),
+              ("pillow", "12.3.0", "CVE-2026-112899"),
+              ("pillow", "12.3.0", "CVE-2026-112900"),
+              ("pillow", "12.3.0", "CVE-2026-112901"),
+              ("pillow", "12.3.0", "CVE-2026-114501"),
+              ("pillow", "12.3.0", "CVE-2026-96636"),
+              ("pillow", "12.3.0", "CVE-2026-96637"),
+              ("pillow", "12.3.0", "CVE-2026-96638"),
+              ("pillow", "12.3.0", "CVE-2026-96639"),
+              ("pillow", "12.3.0", "CVE-2026-96640"),
+              ("pillow", "12.3.0", "CVE-2026-96641"),
+              ("pillow", "12.3.0", "CVE-2026-96642"),
+              ("pillow", "12.3.0", "CVE-2026-96643"),
+              ("pillow", "12.3.0", "CVE-2026-96644"),
+              ("pillow", "12.3.0", "CVE-2026-96778"),
+              ("pillow", "12.3.0", "GHSA-78g4-xqwv-q3g8"),
           }
           found = set()
-          reviewed_fix = "2.8.0"
+          reviewed_fixes = {
+              "urllib3": {"2.8.0"},
+              "certifi": {"2026.10.18", "2026.10.19", "2026.10.23"},
+              "pillow": {"13.0.0"},
+          }
 
           for dependency in dependencies:
               if not isinstance(dependency, dict):
@@ -184,10 +226,12 @@ jobs:
                   vuln_id = str(vuln.get("id", ""))
                   found.add((name, version, vuln_id))
                   fixes = vuln.get("fix_versions") or []
-                  if (name, version, vuln_id) in expected and reviewed_fix not in fixes:
-                      raise SystemExit(
-                          f"Reviewed finding {vuln_id} no longer reports expected fix {reviewed_fix}."
-                      )
+                  if (name, version, vuln_id) in expected:
+                      accepted_fixes = reviewed_fixes.get(name, set())
+                      if not accepted_fixes.intersection(str(item) for item in fixes):
+                          raise SystemExit(
+                              f"Reviewed finding {vuln_id} no longer reports an accepted fix for {name}: {sorted(accepted_fixes)}."
+                          )
 
           if found != expected:
               missing = sorted(expected - found)
