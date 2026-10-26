@@ -1,18 +1,18 @@
-# Comentario Automático de Régimen — Semana del 16 de octubre de 2026
+# Comentario Automático de Régimen — Semana del 23 de octubre de 2026
 
-**USD Impact Score: −0.47  |  Régimen de dólar suave**
+**USD Impact Score: −0.50  |  Régimen de dólar suave**
 
 Este comentario se genera automáticamente con los mismos datos semanales que utiliza el panel. No añade afirmaciones sobre eventos externos ni realiza previsiones.
 
 ## Qué indica el resultado
 
-El índice se sitúa en −0.47, con un cambio semanal de +0.03 y un cambio de cuatro semanas de +0.18. El régimen permanece en Régimen de dólar suave. Entre las ocho variables, 4 contribuyen hacia una lectura de dólar más firme y 4 hacia una lectura de dólar más suave.
+El índice se sitúa en −0.50, con un cambio semanal de −0.02 y un cambio de cuatro semanas de +0.05. El régimen permanece en Régimen de dólar suave. Entre las ocho variables, 4 contribuyen hacia una lectura de dólar más firme y 4 hacia una lectura de dólar más suave.
 
 ## Qué impulsa la lectura
 
-- **S&P 500:** puntuación z +2.40; contribución al índice −0.300, coherente con un dólar más suave.
-- **oro:** puntuación z +2.33; contribución al índice −0.291, coherente con un dólar más suave.
-- **petróleo WTI:** puntuación z +1.95; contribución al índice −0.244, coherente con un dólar más suave.
+- **S&P 500:** puntuación z +2.37; contribución al índice −0.296, coherente con un dólar más suave.
+- **petróleo WTI:** puntuación z +2.19; contribución al índice −0.273, coherente con un dólar más suave.
+- **oro:** puntuación z +2.14; contribución al índice −0.267, coherente con un dólar más suave.
 
 Estas son las tres mayores contribuciones absolutas del cálculo actual. Cada variable se estandariza y recibe el mismo peso fijo de transmisión cada semana.
 
