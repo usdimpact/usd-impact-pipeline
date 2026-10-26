@@ -1,7 +1,7 @@
 // Production Score Worker candidate. Draft-only until an explicit release GO.
 // No routes/custom domains are declared in source; all activation flags default OFF.
 import { readScoreSessionCookie, scoreSessionCookie } from '../../security/score-session-cookie.mjs';
-import { redeemScoreEdgeTicket, scoreEdgeQaPreflight, scoreEdgeSessionAllowed } from '../../security/score-production-bridge-client.mjs';
+import { redeemScoreEdgeTicket, scoreEdgeSessionAllowed } from '../../security/score-production-bridge-client.mjs';
 import { isPublicScorePath } from '../../security/score-public-paths.mjs';
 import { parseBoundedScoreTicket } from '../../security/score-ticket-form.mjs';
 
@@ -118,14 +118,6 @@ async function redeem(request, env, dependencies) {
 
   const ticket = await parseBoundedScoreTicket(request);
   if (!ticket) return response(400, 'Invalid Score handoff');
-
-  if (env?.SCORE_PRODUCTION_QA_BRIDGE_ENABLED === 'true' &&
-      request.headers.get('x-stage-e-diagnostic') === 'local-preflight') {
-    const inspect = dependencies.scoreEdgeQaPreflight || scoreEdgeQaPreflight;
-    return response(200, JSON.stringify(inspect(env, ticket)), {
-      'Content-Type': 'application/json; charset=utf-8',
-    });
-  }
 
   const redeemTicket = dependencies.redeemScoreEdgeTicket || redeemScoreEdgeTicket;
   try {
