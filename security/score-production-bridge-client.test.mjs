@@ -79,6 +79,8 @@ test('Stage E QA bridge override is opt-in and limited to usd-impact-site Vercel
     seen.options.headers['X-Score-Edge-Secret'],
     qaEnv.SCORE_PRODUCTION_QA_VERCEL_BYPASS_SECRET,
   );
+  assert.equal('Cookie' in seen.options.headers, false);
+  assert.equal('cookie' in seen.options.headers, false);
 
   let calls = 0;
   const probe = async () => { calls++; return jsonResponse(200, { allowed: true }); };
