@@ -47,28 +47,13 @@ async function boundedJson(response) {
   }
 }
 
-export function scoreEdgeQaPreflight(env, credential) {
-  const qaOrigin = String(env?.SCORE_PRODUCTION_QA_BRIDGE_ORIGIN || '');
-  const bypassSecret = String(env?.SCORE_PRODUCTION_QA_VERCEL_BYPASS_SECRET || '');
-  return Object.freeze({
-    qaEnabled: env?.SCORE_PRODUCTION_QA_BRIDGE_ENABLED === 'true',
-    originValid: QA_VERCEL_ORIGIN_RE.test(qaOrigin),
-    bypassValid: VERCEL_BYPASS.test(bypassSecret) && !/[\r\n]/.test(bypassSecret),
-    sharedSecretValid: SECRET.test(env?.SCORE_EDGE_SHARED_SECRET || ''),
-    credentialValid: TOKEN.test(credential || ''),
-  });
-}
-
 function resolveBridgeTarget(env) {
   if (env?.SCORE_PRODUCTION_QA_BRIDGE_ENABLED === 'true') {
     const qaOrigin = String(env?.SCORE_PRODUCTION_QA_BRIDGE_ORIGIN || '');
     const bypassSecret = String(env?.SCORE_PRODUCTION_QA_VERCEL_BYPASS_SECRET || '');
-    const originValid = QA_VERCEL_ORIGIN_RE.test(qaOrigin);
-    const bypassValid = VERCEL_BYPASS.test(bypassSecret) && !/[\r\n]/.test(bypassSecret);
-    if (!originValid || !bypassValid) {
-      console.warn('score-edge-qa-preflight', JSON.stringify({ originValid, bypassValid }));
-      fail();
-    }
+    if (!QA_VERCEL_ORIGIN_RE.test(qaOrigin) ||
+        !VERCEL_BYPASS.test(bypassSecret) ||
+        /[\r\n]/.test(bypassSecret)) fail();
     return { origin: qaOrigin, bypassSecret };
   }
   if (env?.SCORE_EDGE_BRIDGE_ORIGIN !== SCORE_PRODUCTION_BRIDGE_ORIGIN) fail();
@@ -77,12 +62,8 @@ function resolveBridgeTarget(env) {
 
 async function invoke(action, credential, env, fetchImpl) {
   const { origin: bridgeOrigin, bypassSecret } = resolveBridgeTarget(env);
-  const sharedSecretValid = SECRET.test(env?.SCORE_EDGE_SHARED_SECRET || '');
-  const credentialValid = TOKEN.test(credential || '');
-  if (env?.SCORE_PRODUCTION_QA_BRIDGE_ENABLED === 'true') {
-    console.warn('score-edge-local-preflight', JSON.stringify({ sharedSecretValid, credentialValid }));
-  }
-  if (!sharedSecretValid || !credentialValid) fail();
+  if (!SECRET.test(env?.SCORE_EDGE_SHARED_SECRET || '') ||
+      !TOKEN.test(credential || '')) fail();
   const name = action === 'redeem' ? 'ticket' : action === 'validate' ? 'token' : null;
   if (!name) fail();
 
@@ -106,10 +87,7 @@ async function invoke(action, credential, env, fetchImpl) {
     },
   );
   if (result.status === 403) return null;
-  if (result.status !== 200) {
-    console.warn('score-edge-upstream-status', result.status);
-    fail();
-  }
+  if (result.status !== 200) fail();
   return boundedJson(result);
 }
 
