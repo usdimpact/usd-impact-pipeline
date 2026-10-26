@@ -47,6 +47,18 @@ async function boundedJson(response) {
   }
 }
 
+export function scoreEdgeQaPreflight(env, credential) {
+  const qaOrigin = String(env?.SCORE_PRODUCTION_QA_BRIDGE_ORIGIN || '');
+  const bypassSecret = String(env?.SCORE_PRODUCTION_QA_VERCEL_BYPASS_SECRET || '');
+  return Object.freeze({
+    qaEnabled: env?.SCORE_PRODUCTION_QA_BRIDGE_ENABLED === 'true',
+    originValid: QA_VERCEL_ORIGIN_RE.test(qaOrigin),
+    bypassValid: VERCEL_BYPASS.test(bypassSecret) && !/[\r\n]/.test(bypassSecret),
+    sharedSecretValid: SECRET.test(env?.SCORE_EDGE_SHARED_SECRET || ''),
+    credentialValid: TOKEN.test(credential || ''),
+  });
+}
+
 function resolveBridgeTarget(env) {
   if (env?.SCORE_PRODUCTION_QA_BRIDGE_ENABLED === 'true') {
     const qaOrigin = String(env?.SCORE_PRODUCTION_QA_BRIDGE_ORIGIN || '');
