@@ -62,15 +62,18 @@ function resolveBridgeTarget(env) {
 
 async function invoke(action, credential, env, fetchImpl) {
   const { origin: bridgeOrigin, bypassSecret } = resolveBridgeTarget(env);
-  if (!SECRET.test(env?.SCORE_EDGE_SHARED_SECRET || '') ||
-      !TOKEN.test(credential || '')) fail();
+  const edgeSecret = bypassSecret || String(env?.SCORE_EDGE_SHARED_SECRET || '');
+  const edgeSecretValid = bypassSecret
+    ? VERCEL_BYPASS.test(edgeSecret) && !/[\r\n]/.test(edgeSecret)
+    : SECRET.test(edgeSecret);
+  if (!edgeSecretValid || !TOKEN.test(credential || '')) fail();
   const name = action === 'redeem' ? 'ticket' : action === 'validate' ? 'token' : null;
   if (!name) fail();
 
   const headers = {
     'Content-Type': 'application/json',
     Accept: 'application/json',
-    'X-Score-Edge-Secret': env.SCORE_EDGE_SHARED_SECRET,
+    'X-Score-Edge-Secret': edgeSecret,
     'Cache-Control': 'no-store',
   };
   if (bypassSecret) headers['x-vercel-protection-bypass'] = bypassSecret;
