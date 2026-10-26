@@ -87,7 +87,10 @@ async function invoke(action, credential, env, fetchImpl) {
     },
   );
   if (result.status === 403) return null;
-  if (result.status !== 200) fail();
+  if (result.status !== 200) {
+    console.warn('score-edge-upstream-status', result.status);
+    fail();
+  }
   return boundedJson(result);
 }
 
