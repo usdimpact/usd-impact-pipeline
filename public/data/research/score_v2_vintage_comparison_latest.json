@@ -1,6 +1,6 @@
 {
   "study": "usd_impact_score_v2_as_published_vs_current_vintage",
-  "generated_at_utc": "2026-10-17T10:44:31.357748+00:00",
+  "generated_at_utc": "2026-10-26T15:53:29.753234+00:00",
   "production_methodology_changed": false,
   "predictive_claim": false,
   "as_published_vintage": true,
@@ -8,63 +8,63 @@
   "purpose": "Measure how each valid as-published latest score differs from the same week in the current full-history recalculation.",
   "current_reference": {
     "path": "public/data/usd_impact_score_v2.json",
-    "sha256": "6903e6649ddf9317d0121e3215e7697fd30a169ac59e4d6a5c7abcac9d4da3d6",
-    "generated_at_utc": "2026-10-17T00:09:06.577476+00:00",
-    "latest_week": "2026-10-16"
+    "sha256": "6288b3b76b960a55da6d5e2acb91d6a98c13dd1508191d0889b98827b02a1495",
+    "generated_at_utc": "2026-10-24T00:15:36.833509+00:00",
+    "latest_week": "2026-10-23"
   },
   "summary": {
-    "archive_files_scanned": 26,
-    "valid_vintages": 23,
+    "archive_files_scanned": 27,
+    "valid_vintages": 24,
     "excluded_archives": 3,
     "first_published_at_utc": "2026-04-10T23:54:09.613066+00:00",
-    "latest_published_at_utc": "2026-10-17T00:09:06.577476+00:00",
-    "mean_signed_score_difference": 0.04626673641416838,
-    "mean_absolute_score_difference": 0.04694217964793878,
-    "maximum_absolute_score_difference": 0.10860060221441026,
+    "latest_published_at_utc": "2026-10-24T00:15:36.833509+00:00",
+    "mean_signed_score_difference": 0.04663658075848193,
+    "mean_absolute_score_difference": 0.04797742093931185,
+    "maximum_absolute_score_difference": 0.11196715608292285,
     "maximum_revision_archive_id": "2026-04-10",
     "maximum_revision_score_week": "2026-04-10",
     "regime_agreement_rate": 1.0,
     "score_sign_agreement_rate": 1.0,
     "component_zscore_revision_summary": {
       "DXY": {
-        "mean_signed_difference": -0.008666953128599114,
-        "mean_absolute_difference": 0.008899112106349109,
-        "maximum_absolute_difference": 0.04256276713574317
+        "mean_signed_difference": -0.008755369214561127,
+        "mean_absolute_difference": 0.009858245255099965,
+        "maximum_absolute_difference": 0.043759757881115885
       },
       "WTI": {
-        "mean_signed_difference": -0.033050899126391343,
-        "mean_absolute_difference": 0.05685258924307889,
-        "maximum_absolute_difference": 0.24498901555355967
+        "mean_signed_difference": -0.03413518911495432,
+        "mean_absolute_difference": 0.0652178119117144,
+        "maximum_absolute_difference": 0.23410085136011682
       },
       "SPX": {
-        "mean_signed_difference": -0.1706034812985457,
-        "mean_absolute_difference": 0.1706034812985457,
-        "maximum_absolute_difference": 0.3686108143015847
+        "mean_signed_difference": -0.17552911729784335,
+        "mean_absolute_difference": 0.17552911729784335,
+        "maximum_absolute_difference": 0.3801953714127424
       },
       "VIX": {
-        "mean_signed_difference": 0.004073342128564973,
-        "mean_absolute_difference": 0.008461782003374812,
-        "maximum_absolute_difference": 0.05492474373033962
+        "mean_signed_difference": 0.0034005367378079966,
+        "mean_absolute_difference": 0.007843878036468148,
+        "maximum_absolute_difference": 0.05437867835508908
       },
       "BTC": {
-        "mean_signed_difference": -0.040795416444960056,
-        "mean_absolute_difference": 0.042701875878793545,
-        "maximum_absolute_difference": 0.1040592983688573
+        "mean_signed_difference": -0.04357638621982263,
+        "mean_absolute_difference": 0.04505779571718416,
+        "maximum_absolute_difference": 0.1080538514419862
       },
       "GOLD": {
-        "mean_signed_difference": -0.21905044210343352,
-        "mean_absolute_difference": 0.21905044210343352,
-        "maximum_absolute_difference": 0.5515601243808641
+        "mean_signed_difference": -0.2204504549677734,
+        "mean_absolute_difference": 0.2204504549677734,
+        "maximum_absolute_difference": 0.5634056804655092
       },
       "UST_2Y": {
-        "mean_signed_difference": -0.027405546186148905,
-        "mean_absolute_difference": 0.04232161116260308,
-        "maximum_absolute_difference": 0.11181966710265911
+        "mean_signed_difference": -0.03033600908943623,
+        "mean_absolute_difference": 0.042958138457444804,
+        "maximum_absolute_difference": 0.11493999395681898
       },
       "UST_10Y": {
-        "mean_signed_difference": -0.06136719047380053,
-        "mean_absolute_difference": 0.06586911782431196,
-        "maximum_absolute_difference": 0.17706071637628296
+        "mean_signed_difference": -0.0649076599663488,
+        "mean_absolute_difference": 0.06743925227944526,
+        "maximum_absolute_difference": 0.18236443652877443
       }
     }
   },
@@ -76,57 +76,57 @@
       "published_at_utc": "2026-04-10T23:54:09.613066+00:00",
       "score_week": "2026-04-10",
       "as_published_score": -0.7938876463807357,
-      "current_recalculated_score": -0.6852870441663255,
-      "score_difference": 0.10860060221441026,
-      "absolute_score_difference": 0.10860060221441026,
+      "current_recalculated_score": -0.6819204902978129,
+      "score_difference": 0.11196715608292285,
+      "absolute_score_difference": 0.11196715608292285,
       "as_published_regime": "Soft dollar regime",
       "current_recalculated_regime": "Soft dollar regime",
       "regime_changed": false,
       "score_sign_changed": false,
       "largest_absolute_component_revision": {
         "driver": "GOLD",
-        "absolute_difference": 0.5405826220170482
+        "absolute_difference": 0.552568583205284
       },
       "component_zscore_revisions": {
         "DXY": {
           "as_published_zscore": 0.07699829208328546,
-          "current_recalculated_zscore": 0.05303141958461311,
-          "difference": -0.023966872498672347
+          "current_recalculated_zscore": 0.05187964807624726,
+          "difference": -0.0251186440070382
         },
         "WTI": {
           "as_published_zscore": 1.8798480808076576,
-          "current_recalculated_zscore": 1.81756369071399,
-          "difference": -0.062284390093667596
+          "current_recalculated_zscore": 1.8074041469574873,
+          "difference": -0.07244393385017034
         },
         "SPX": {
           "as_published_zscore": 2.226412053844096,
-          "current_recalculated_zscore": 1.8683249020177535,
-          "difference": -0.35808715182634265
+          "current_recalculated_zscore": 1.8574740847140048,
+          "difference": -0.36893796913009136
         },
         "VIX": {
           "as_published_zscore": 0.15222108854235705,
-          "current_recalculated_zscore": 0.165413101237967,
-          "difference": 0.013192012695609934
+          "current_recalculated_zscore": 0.16522139319843185,
+          "difference": 0.013000304656074796
         },
         "BTC": {
           "as_published_zscore": 1.3713675657761835,
-          "current_recalculated_zscore": 1.2886108316248204,
-          "difference": -0.08275673415136309
+          "current_recalculated_zscore": 1.2847734763220893,
+          "difference": -0.08659408945409419
         },
         "GOLD": {
           "as_published_zscore": 3.5,
-          "current_recalculated_zscore": 2.959417377982952,
-          "difference": -0.5405826220170482
+          "current_recalculated_zscore": 2.947431416794716,
+          "difference": -0.552568583205284
         },
         "UST_2Y": {
           "as_published_zscore": 0.9949535489463877,
-          "current_recalculated_zscore": 0.9435507528803964,
-          "difference": -0.051402796065991296
+          "current_recalculated_zscore": 0.940375621160802,
+          "difference": -0.05457792778558568
         },
         "UST_10Y": {
           "as_published_zscore": 1.402353599810021,
-          "current_recalculated_zscore": 1.2896251753059358,
-          "difference": -0.11272842450408516
+          "current_recalculated_zscore": 1.2842425399703123,
+          "difference": -0.1181110598397086
         }
       }
     },
@@ -137,57 +137,57 @@
       "published_at_utc": "2026-04-17T23:59:01.731288+00:00",
       "score_week": "2026-04-17",
       "as_published_score": -0.7931730361090563,
-      "current_recalculated_score": -0.7091194502252112,
-      "score_difference": 0.08405358588384515,
-      "absolute_score_difference": 0.08405358588384515,
+      "current_recalculated_score": -0.7059342750282951,
+      "score_difference": 0.08723876108076123,
+      "absolute_score_difference": 0.08723876108076123,
       "as_published_regime": "Soft dollar regime",
       "current_recalculated_regime": "Soft dollar regime",
       "regime_changed": false,
       "score_sign_changed": false,
       "largest_absolute_component_revision": {
         "driver": "GOLD",
-        "absolute_difference": 0.44398492575143633
+        "absolute_difference": 0.4562492821649191
       },
       "component_zscore_revisions": {
         "DXY": {
           "as_published_zscore": -0.020915253347568927,
-          "current_recalculated_zscore": -0.0634780204833121,
-          "difference": -0.04256276713574317
+          "current_recalculated_zscore": -0.06467501122868481,
+          "difference": -0.043759757881115885
         },
         "WTI": {
           "as_published_zscore": 1.212837706360029,
-          "current_recalculated_zscore": 1.1114377197650809,
-          "difference": -0.1013999865949482
+          "current_recalculated_zscore": 1.1037629064392025,
+          "difference": -0.10907479992082658
         },
         "SPX": {
           "as_published_zscore": 2.43249064947588,
-          "current_recalculated_zscore": 2.063879835174295,
-          "difference": -0.3686108143015847
+          "current_recalculated_zscore": 2.0522952780631374,
+          "difference": -0.3801953714127424
         },
         "VIX": {
           "as_published_zscore": -0.10050776899602462,
-          "current_recalculated_zscore": -0.09242087526943499,
-          "difference": 0.008086893726589633
+          "current_recalculated_zscore": -0.09281392270925033,
+          "difference": 0.007693846286774289
         },
         "BTC": {
           "as_published_zscore": 1.4966295530918203,
-          "current_recalculated_zscore": 1.4148403357809332,
-          "difference": -0.08178921731088717
+          "current_recalculated_zscore": 1.410868575864282,
+          "difference": -0.08576097722753828
         },
         "GOLD": {
           "as_published_zscore": 3.5,
-          "current_recalculated_zscore": 3.0560150742485637,
-          "difference": -0.44398492575143633
+          "current_recalculated_zscore": 3.043750717835081,
+          "difference": -0.4562492821649191
         },
         "UST_2Y": {
           "as_published_zscore": 0.99321305932533,
-          "current_recalculated_zscore": 0.8813933922226709,
-          "difference": -0.11181966710265911
+          "current_recalculated_zscore": 0.878273065368511,
+          "difference": -0.11493999395681898
         },
         "UST_10Y": {
           "as_published_zscore": 1.4247835830735422,
-          "current_recalculated_zscore": 1.2477228666972593,
-          "difference": -0.17706071637628296
+          "current_recalculated_zscore": 1.2424191465447678,
+          "difference": -0.18236443652877443
         }
       }
     },
@@ -198,57 +198,57 @@
       "published_at_utc": "2026-04-24T23:58:46.569802+00:00",
       "score_week": "2026-04-24",
       "as_published_score": -0.8325251891369173,
-      "current_recalculated_score": -0.7243116550027954,
-      "score_difference": 0.10821353413412194,
-      "absolute_score_difference": 0.10821353413412194,
+      "current_recalculated_score": -0.7209010758002292,
+      "score_difference": 0.11162411333668809,
+      "absolute_score_difference": 0.11162411333668809,
       "as_published_regime": "Soft dollar regime",
       "current_recalculated_regime": "Soft dollar regime",
       "regime_changed": false,
       "score_sign_changed": false,
       "largest_absolute_component_revision": {
         "driver": "GOLD",
-        "absolute_difference": 0.5515601243808641
+        "absolute_difference": 0.5634056804655092
       },
       "component_zscore_revisions": {
         "DXY": {
           "as_published_zscore": 0.03800038558780131,
-          "current_recalculated_zscore": 0.023374765052133886,
-          "difference": -0.014625620535667426
+          "current_recalculated_zscore": 0.02221148330657735,
+          "difference": -0.01578890228122396
         },
         "WTI": {
           "as_published_zscore": 1.8271052921843574,
-          "current_recalculated_zscore": 1.6971004896955892,
-          "difference": -0.1300048024887681
+          "current_recalculated_zscore": 1.6873648343012984,
+          "difference": -0.139740457883059
         },
         "SPX": {
           "as_published_zscore": 2.4456095324455744,
-          "current_recalculated_zscore": 2.0885606232177247,
-          "difference": -0.3570489092278497
+          "current_recalculated_zscore": 2.0768834615561556,
+          "difference": -0.3687260708894189
         },
         "VIX": {
           "as_published_zscore": 0.07726866812981753,
-          "current_recalculated_zscore": 0.08879950934603736,
-          "difference": 0.011530841216219834
+          "current_recalculated_zscore": 0.08854797468918132,
+          "difference": 0.011279306559363794
         },
         "BTC": {
           "as_published_zscore": 1.5023459658078369,
-          "current_recalculated_zscore": 1.4248355673869373,
-          "difference": -0.07751039842089957
+          "current_recalculated_zscore": 1.4208531649089133,
+          "difference": -0.08149280089892352
         },
         "GOLD": {
           "as_published_zscore": 3.4622596784901614,
-          "current_recalculated_zscore": 2.9106995541092973,
-          "difference": -0.5515601243808641
+          "current_recalculated_zscore": 2.898853998024652,
+          "difference": -0.5634056804655092
         },
         "UST_2Y": {
           "as_published_zscore": 1.0231051743099988,
-          "current_recalculated_zscore": 0.9249035446830786,
-          "difference": -0.09820162962692025
+          "current_recalculated_zscore": 0.9217448544231146,
+          "difference": -0.10136031988688421
         },
         "UST_10Y": {
           "as_published_zscore": 1.4387447278049745,
-          "current_recalculated_zscore": 1.2896251753059358,
-          "difference": -0.14911955249903874
+          "current_recalculated_zscore": 1.2842425399703123,
+          "difference": -0.15450218783466219
         }
       }
     },
@@ -259,57 +259,57 @@
       "published_at_utc": "2026-05-22T22:57:36.947288+00:00",
       "score_week": "2026-05-22",
       "as_published_score": -0.7788641951109072,
-      "current_recalculated_score": -0.6901537951410139,
-      "score_difference": 0.08871039996989327,
-      "absolute_score_difference": 0.08871039996989327,
+      "current_recalculated_score": -0.6867820271420384,
+      "score_difference": 0.09208216796886881,
+      "absolute_score_difference": 0.09208216796886881,
       "as_published_regime": "Soft dollar regime",
       "current_recalculated_regime": "Soft dollar regime",
       "regime_changed": false,
       "score_sign_changed": false,
       "largest_absolute_component_revision": {
         "driver": "GOLD",
-        "absolute_difference": 0.39676980267765494
+        "absolute_difference": 0.4079580222049355
       },
       "component_zscore_revisions": {
         "DXY": {
           "as_published_zscore": 0.20673931926872208,
-          "current_recalculated_zscore": 0.19495992572811507,
-          "difference": -0.011779393540607003
+          "current_recalculated_zscore": 0.1938632390159133,
+          "difference": -0.012876080252808786
         },
         "WTI": {
           "as_published_zscore": 1.9114692404489868,
-          "current_recalculated_zscore": 1.8192290142301397,
-          "difference": -0.09224022621884709
+          "current_recalculated_zscore": 1.809063610499372,
+          "difference": -0.10240562994961477
         },
         "SPX": {
           "as_published_zscore": 2.5968776533628533,
-          "current_recalculated_zscore": 2.2836223297590053,
-          "difference": -0.313255323603848
+          "current_recalculated_zscore": 2.2712132789209263,
+          "difference": -0.325664374441927
         },
         "VIX": {
           "as_published_zscore": -0.21347357328388009,
-          "current_recalculated_zscore": -0.20734098209059654,
-          "difference": 0.006132591193283549
+          "current_recalculated_zscore": -0.20782376923695067,
+          "difference": 0.005649804046929413
         },
         "BTC": {
           "as_published_zscore": 1.429770401174192,
-          "current_recalculated_zscore": 1.3649723563993594,
-          "difference": -0.06479804477483264
+          "current_recalculated_zscore": 1.3610536941048574,
+          "difference": -0.06871670706933464
         },
         "GOLD": {
           "as_published_zscore": 3.0793864323892177,
-          "current_recalculated_zscore": 2.682616629711563,
-          "difference": -0.39676980267765494
+          "current_recalculated_zscore": 2.6714284101842822,
+          "difference": -0.4079580222049355
         },
         "UST_2Y": {
           "as_published_zscore": 1.172268514551778,
-          "current_recalculated_zscore": 1.1424543069851176,
-          "difference": -0.02981420756666031
+          "current_recalculated_zscore": 1.1391037996961328,
+          "difference": -0.033164714855645094
         },
         "UST_10Y": {
           "as_published_zscore": 1.6210559059513732,
-          "current_recalculated_zscore": 1.4991367183493194,
-          "difference": -0.12191918760205378
+          "current_recalculated_zscore": 1.4933595070980359,
+          "difference": -0.12769639885333728
         }
       }
     },
@@ -320,57 +320,57 @@
       "published_at_utc": "2026-05-29T23:11:13.274455+00:00",
       "score_week": "2026-05-29",
       "as_published_score": -0.7719774387614525,
-      "current_recalculated_score": -0.6950055799684578,
-      "score_difference": 0.07697185879299473,
-      "absolute_score_difference": 0.07697185879299473,
+      "current_recalculated_score": -0.6918021166128874,
+      "score_difference": 0.08017532214856515,
+      "absolute_score_difference": 0.08017532214856515,
       "as_published_regime": "Soft dollar regime",
       "current_recalculated_regime": "Soft dollar regime",
       "regime_changed": false,
       "score_sign_changed": false,
       "largest_absolute_component_revision": {
         "driver": "GOLD",
-        "absolute_difference": 0.36430242529366774
+        "absolute_difference": 0.37570140285982534
       },
       "component_zscore_revisions": {
         "DXY": {
           "as_published_zscore": 0.12783750200167002,
-          "current_recalculated_zscore": 0.10810875635912863,
-          "difference": -0.019728745642541387
+          "current_recalculated_zscore": 0.10697836127437155,
+          "difference": -0.02085914072729847
         },
         "WTI": {
           "as_published_zscore": 1.3879063291453761,
-          "current_recalculated_zscore": 1.3062886182417621,
-          "difference": -0.08161771090361403
+          "current_recalculated_zscore": 1.2979281596106573,
+          "difference": -0.08997816953471882
         },
         "SPX": {
           "as_published_zscore": 2.652752671746562,
-          "current_recalculated_zscore": 2.3510421151096805,
-          "difference": -0.3017105566368814
+          "current_recalculated_zscore": 2.338380099135308,
+          "difference": -0.31437257261125406
         },
         "VIX": {
           "as_published_zscore": -0.4134255476151626,
-          "current_recalculated_zscore": -0.4106616466486611,
-          "difference": 0.0027639009665014758
+          "current_recalculated_zscore": -0.4113032044164097,
+          "difference": 0.002122343198752874
         },
         "BTC": {
           "as_published_zscore": 1.3556902534995143,
-          "current_recalculated_zscore": 1.3005853758645063,
-          "difference": -0.05510487763500804
+          "current_recalculated_zscore": 1.2967352704998454,
+          "difference": -0.05895498299966895
         },
         "GOLD": {
           "as_published_zscore": 3.1200479709446096,
-          "current_recalculated_zscore": 2.755745545650942,
-          "difference": -0.36430242529366774
+          "current_recalculated_zscore": 2.7443465680847843,
+          "difference": -0.37570140285982534
         },
         "UST_2Y": {
           "as_published_zscore": 1.1133568233287041,
-          "current_recalculated_zscore": 1.0492182659985296,
-          "difference": -0.06413855733017448
+          "current_recalculated_zscore": 1.0459499660076965,
+          "difference": -0.0674068573210076
         },
         "UST_10Y": {
           "as_published_zscore": 1.51280893752923,
-          "current_recalculated_zscore": 1.406951639410231,
-          "difference": -0.10585729811899891
+          "current_recalculated_zscore": 1.401348041561838,
+          "difference": -0.11146089596739195
         }
       }
     },
@@ -381,57 +381,57 @@
       "published_at_utc": "2026-06-19T22:55:54.713134+00:00",
       "score_week": "2026-06-19",
       "as_published_score": -0.48112031288835355,
-      "current_recalculated_score": -0.44257546143682214,
-      "score_difference": 0.038544851451531414,
-      "absolute_score_difference": 0.038544851451531414,
+      "current_recalculated_score": -0.4398100289931487,
+      "score_difference": 0.04131028389520486,
+      "absolute_score_difference": 0.04131028389520486,
       "as_published_regime": "Soft dollar regime",
       "current_recalculated_regime": "Soft dollar regime",
       "regime_changed": false,
       "score_sign_changed": false,
       "largest_absolute_component_revision": {
         "driver": "SPX",
-        "absolute_difference": 0.24939037448905754
+        "absolute_difference": 0.26186376401099754
       },
       "component_zscore_revisions": {
         "DXY": {
           "as_published_zscore": 0.5258604405787699,
-          "current_recalculated_zscore": 0.5190659475233949,
-          "difference": -0.0067944930553750504
+          "current_recalculated_zscore": 0.5180950517085346,
+          "difference": -0.007765388870235257
         },
         "WTI": {
           "as_published_zscore": 0.7498738796504076,
-          "current_recalculated_zscore": 0.7089681601673022,
-          "difference": -0.040905719483105396
+          "current_recalculated_zscore": 0.7027095649147925,
+          "difference": -0.04716431473561511
         },
         "SPX": {
           "as_published_zscore": 2.550160127482821,
-          "current_recalculated_zscore": 2.3007697529937636,
-          "difference": -0.24939037448905754
+          "current_recalculated_zscore": 2.2882963634718236,
+          "difference": -0.26186376401099754
         },
         "VIX": {
           "as_published_zscore": -0.2021218673188177,
-          "current_recalculated_zscore": -0.25154126095904805,
-          "difference": -0.04941939364023035
+          "current_recalculated_zscore": -0.25205856356283,
+          "difference": -0.04993669624401231
         },
         "BTC": {
           "as_published_zscore": 1.0407668890592008,
-          "current_recalculated_zscore": 1.0013808281488623,
-          "difference": -0.03938606091033847
+          "current_recalculated_zscore": 0.9978493049729512,
+          "difference": -0.04291758408624957
         },
         "GOLD": {
           "as_published_zscore": 2.60413094265544,
-          "current_recalculated_zscore": 2.392090461260716,
-          "difference": -0.2120404813947241
+          "current_recalculated_zscore": 2.381739540149781,
+          "difference": -0.22239140250565903
         },
         "UST_2Y": {
           "as_published_zscore": 1.2380660056803772,
-          "current_recalculated_zscore": 1.1797487233797532,
-          "difference": -0.05831728230062394
+          "current_recalculated_zscore": 1.1763653331715078,
+          "difference": -0.06170067250886935
         },
         "UST_10Y": {
           "as_published_zscore": 1.5341647568007124,
-          "current_recalculated_zscore": 1.4153321011319662,
-          "difference": -0.11883265566874623
+          "current_recalculated_zscore": 1.4097127202469466,
+          "difference": -0.1244520365537658
         }
       }
     },
@@ -442,57 +442,57 @@
       "published_at_utc": "2026-06-26T23:04:39.433206+00:00",
       "score_week": "2026-06-26",
       "as_published_score": -0.37376369618453065,
-      "current_recalculated_score": -0.31402934020255946,
-      "score_difference": 0.05973435598197119,
-      "absolute_score_difference": 0.05973435598197119,
+      "current_recalculated_score": -0.3114999308911135,
+      "score_difference": 0.06226376529341715,
+      "absolute_score_difference": 0.06226376529341715,
       "as_published_regime": "Soft dollar regime",
       "current_recalculated_regime": "Soft dollar regime",
       "regime_changed": false,
       "score_sign_changed": false,
       "largest_absolute_component_revision": {
         "driver": "GOLD",
-        "absolute_difference": 0.27284547274967164
+        "absolute_difference": 0.28274468166257094
       },
       "component_zscore_revisions": {
         "DXY": {
           "as_published_zscore": 0.6334884448317882,
-          "current_recalculated_zscore": 0.6271018268439746,
-          "difference": -0.006386617987813592
+          "current_recalculated_zscore": 0.6261728615373153,
+          "difference": -0.007315583294472905
         },
         "WTI": {
           "as_published_zscore": 0.3954090122671627,
-          "current_recalculated_zscore": 0.29983730650492546,
-          "difference": -0.09557170576223722
+          "current_recalculated_zscore": 0.2950183692228431,
+          "difference": -0.1003906430443196
         },
         "SPX": {
           "as_published_zscore": 2.4361234180110722,
-          "current_recalculated_zscore": 2.2080681658280263,
-          "difference": -0.2280552521830459
+          "current_recalculated_zscore": 2.195942601050855,
+          "difference": -0.2401808169602173
         },
         "VIX": {
           "as_published_zscore": 0.03530016220603752,
-          "current_recalculated_zscore": 0.04459951149431876,
-          "difference": 0.009299349288281238
+          "current_recalculated_zscore": 0.04431346159947741,
+          "difference": 0.009013299393439887
         },
         "BTC": {
           "as_published_zscore": 0.9385699516723697,
-          "current_recalculated_zscore": 0.894123719132995,
-          "difference": -0.04444623253937463
+          "current_recalculated_zscore": 0.8907063994503469,
+          "difference": -0.047863552222022765
         },
         "GOLD": {
           "as_published_zscore": 2.50820063919106,
-          "current_recalculated_zscore": 2.2353551664413884,
-          "difference": -0.27284547274967164
+          "current_recalculated_zscore": 2.225455957528489,
+          "difference": -0.28274468166257094
         },
         "UST_2Y": {
           "as_published_zscore": 1.1666004206452079,
-          "current_recalculated_zscore": 1.1051598905904827,
-          "difference": -0.06144053005472516
+          "current_recalculated_zscore": 1.1018422662207585,
+          "difference": -0.06475815442444932
         },
         "UST_10Y": {
           "as_published_zscore": 1.4528044239823863,
-          "current_recalculated_zscore": 1.3482884073580834,
-          "difference": -0.10451601662430288
+          "current_recalculated_zscore": 1.3427952907660752,
+          "difference": -0.11000913321631112
         }
       }
     },
@@ -503,57 +503,57 @@
       "published_at_utc": "2026-07-03T23:01:38.951131+00:00",
       "score_week": "2026-07-03",
       "as_published_score": -0.4384955675430301,
-      "current_recalculated_score": -0.3718646214079926,
-      "score_difference": 0.0666309461350375,
-      "absolute_score_difference": 0.0666309461350375,
+      "current_recalculated_score": -0.36935286576302523,
+      "score_difference": 0.06914270178000487,
+      "absolute_score_difference": 0.06914270178000487,
       "as_published_regime": "Soft dollar regime",
       "current_recalculated_regime": "Soft dollar regime",
       "regime_changed": false,
       "score_sign_changed": false,
       "largest_absolute_component_revision": {
         "driver": "GOLD",
-        "absolute_difference": 0.3214091207231764
+        "absolute_difference": 0.331397103074599
       },
       "component_zscore_revisions": {
         "DXY": {
           "as_published_zscore": 0.5261871721175029,
-          "current_recalculated_zscore": 0.5211847417518461,
-          "difference": -0.005002430365656729
+          "current_recalculated_zscore": 0.5202146682760027,
+          "difference": -0.005972503841500165
         },
         "WTI": {
           "as_published_zscore": 0.31311534425369214,
-          "current_recalculated_zscore": 0.2698602126215203,
-          "difference": -0.04325513163217182
+          "current_recalculated_zscore": 0.2651467593471904,
+          "difference": -0.04796858490650174
         },
         "SPX": {
           "as_published_zscore": 2.5083913471330224,
-          "current_recalculated_zscore": 2.289802023775761,
-          "difference": -0.21858932335726156
+          "current_recalculated_zscore": 2.277369786166453,
+          "difference": -0.23102156096656934
         },
         "VIX": {
           "as_published_zscore": -0.34329942990473084,
-          "current_recalculated_zscore": -0.2883746861743912,
-          "difference": 0.05492474373033962
+          "current_recalculated_zscore": -0.28892075154964175,
+          "difference": 0.05437867835508908
         },
         "BTC": {
           "as_published_zscore": 1.0139518510543846,
-          "current_recalculated_zscore": 0.9710505070650811,
-          "difference": -0.04290134398930345
+          "current_recalculated_zscore": 0.9675512785188812,
+          "difference": -0.04640057253550334
         },
         "GOLD": {
           "as_published_zscore": 2.5875669334502724,
-          "current_recalculated_zscore": 2.266157812727096,
-          "difference": -0.3214091207231764
+          "current_recalculated_zscore": 2.2561698303756734,
+          "difference": -0.331397103074599
         },
         "UST_2Y": {
           "as_published_zscore": 1.214446339879228,
-          "current_recalculated_zscore": 1.14867004305089,
-          "difference": -0.06577629682833797
+          "current_recalculated_zscore": 1.1453140552753618,
+          "difference": -0.06913228460386622
         },
         "UST_10Y": {
           "as_published_zscore": 1.5177268534551314,
-          "current_recalculated_zscore": 1.4404734862971724,
-          "difference": -0.07725336715795894
+          "current_recalculated_zscore": 1.4348067563022737,
+          "difference": -0.08292009715285764
         }
       }
     },
@@ -564,57 +564,57 @@
       "published_at_utc": "2026-07-10T22:58:09.183235+00:00",
       "score_week": "2026-07-10",
       "as_published_score": -0.46570703132108004,
-      "current_recalculated_score": -0.4074172576136933,
-      "score_difference": 0.05828977370738675,
-      "absolute_score_difference": 0.05828977370738675,
+      "current_recalculated_score": -0.4048434490866791,
+      "score_difference": 0.06086358223440097,
+      "absolute_score_difference": 0.06086358223440097,
       "as_published_regime": "Soft dollar regime",
       "current_recalculated_regime": "Soft dollar regime",
       "regime_changed": false,
       "score_sign_changed": false,
       "largest_absolute_component_revision": {
         "driver": "GOLD",
-        "absolute_difference": 0.25365774597946755
+        "absolute_difference": 0.2636094947557699
       },
       "component_zscore_revisions": {
         "DXY": {
           "as_published_zscore": 0.5482550020603758,
-          "current_recalculated_zscore": 0.5444866297654312,
-          "difference": -0.003768372294944644
+          "current_recalculated_zscore": 0.5435256001369891,
+          "difference": -0.004729401923386667
         },
         "WTI": {
           "as_published_zscore": 0.4663148960965521,
-          "current_recalculated_zscore": 0.4208557565390109,
-          "difference": -0.04545913955754116
+          "current_recalculated_zscore": 0.4156109770731853,
+          "difference": -0.050703919023366795
         },
         "SPX": {
           "as_published_zscore": 2.5544775887742577,
-          "current_recalculated_zscore": 2.3480883146410787,
-          "difference": -0.20638927413317898
+          "current_recalculated_zscore": 2.335437381593391,
+          "difference": -0.2190402071808668
         },
         "VIX": {
           "as_published_zscore": -0.45669480022244696,
-          "current_recalculated_zscore": -0.4533884142781245,
-          "difference": 0.0033063859443224763
+          "current_recalculated_zscore": -0.45406333685638783,
+          "difference": 0.002631463366059128
         },
         "BTC": {
           "as_published_zscore": 1.059837632531775,
-          "current_recalculated_zscore": 1.0192236479950993,
-          "difference": -0.04061398453667575
+          "current_recalculated_zscore": 1.0156731264294796,
+          "difference": -0.0441645061022955
         },
         "GOLD": {
           "as_published_zscore": 2.5072432170617494,
-          "current_recalculated_zscore": 2.253585471082282,
-          "difference": -0.25365774597946755
+          "current_recalculated_zscore": 2.2436337223059795,
+          "difference": -0.2636094947557699
         },
         "UST_2Y": {
           "as_published_zscore": 1.2057719802542899,
-          "current_recalculated_zscore": 1.192180195511298,
-          "difference": -0.01359178474299183
+          "current_recalculated_zscore": 1.1887858443299657,
+          "difference": -0.016986135924324186
         },
         "UST_10Y": {
           "as_published_zscore": 1.564884901803475,
-          "current_recalculated_zscore": 1.4991367183493194,
-          "difference": -0.06574818345415556
+          "current_recalculated_zscore": 1.4933595070980359,
+          "difference": -0.07152539470543906
         }
       }
     },
@@ -625,57 +625,57 @@
       "published_at_utc": "2026-07-17T22:48:18.005885+00:00",
       "score_week": "2026-07-17",
       "as_published_score": -0.4437221948347992,
-      "current_recalculated_score": -0.40202787067438295,
-      "score_difference": 0.04169432416041624,
-      "absolute_score_difference": 0.04169432416041624,
+      "current_recalculated_score": -0.39919961957569783,
+      "score_difference": 0.04452257525910136,
+      "absolute_score_difference": 0.04452257525910136,
       "as_published_regime": "Soft dollar regime",
       "current_recalculated_regime": "Soft dollar regime",
       "regime_changed": false,
       "score_sign_changed": false,
       "largest_absolute_component_revision": {
         "driver": "GOLD",
-        "absolute_difference": 0.22094387663631254
+        "absolute_difference": 0.23060907778040107
       },
       "component_zscore_revisions": {
         "DXY": {
           "as_published_zscore": 0.5036363817668013,
-          "current_recalculated_zscore": 0.4978828537382611,
-          "difference": -0.005753528028540178
+          "current_recalculated_zscore": 0.4969037364150163,
+          "difference": -0.006732645351784972
         },
         "WTI": {
           "as_published_zscore": 1.0423948132667027,
-          "current_recalculated_zscore": 1.0359399478063356,
-          "difference": -0.00645486546036711
+          "current_recalculated_zscore": 1.0285307975762052,
+          "difference": -0.013864015690497444
         },
         "SPX": {
           "as_published_zscore": 2.460826697187325,
-          "current_recalculated_zscore": 2.2736410537715246,
-          "difference": -0.18718564341580057
+          "current_recalculated_zscore": 2.2612694535842803,
+          "difference": -0.19955724360304483
         },
         "VIX": {
           "as_published_zscore": 0.08906621333365485,
-          "current_recalculated_zscore": 0.0976397337297674,
-          "difference": 0.00857352039611256
+          "current_recalculated_zscore": 0.09739510229606245,
+          "difference": 0.008328888962407605
         },
         "BTC": {
           "as_published_zscore": 1.0533105300256798,
-          "current_recalculated_zscore": 1.0122947461232206,
-          "difference": -0.04101578390245919
+          "current_recalculated_zscore": 1.008751602201894,
+          "difference": -0.04455892782378568
         },
         "GOLD": {
           "as_published_zscore": 2.375102925739889,
-          "current_recalculated_zscore": 2.1541590491035763,
-          "difference": -0.22094387663631254
+          "current_recalculated_zscore": 2.1444938479594877,
+          "difference": -0.23060907778040107
         },
         "UST_2Y": {
           "as_published_zscore": 1.2031926259285541,
-          "current_recalculated_zscore": 1.1735329873139804,
-          "difference": -0.02965963861457377
+          "current_recalculated_zscore": 1.1701550775922782,
+          "difference": -0.033037548336275924
         },
         "UST_10Y": {
           "as_published_zscore": 1.5859621865121931,
-          "current_recalculated_zscore": 1.4907562566275843,
-          "difference": -0.09520592988460885
+          "current_recalculated_zscore": 1.484994828412927,
+          "difference": -0.10096735809926605
         }
       }
     },
@@ -686,57 +686,57 @@
       "published_at_utc": "2026-07-24T22:59:21.607191+00:00",
       "score_week": "2026-07-24",
       "as_published_score": -0.45672531641739444,
-      "current_recalculated_score": -0.4114196314209742,
-      "score_difference": 0.04530568499642024,
-      "absolute_score_difference": 0.04530568499642024,
+      "current_recalculated_score": -0.40845120931851014,
+      "score_difference": 0.0482741070988843,
+      "absolute_score_difference": 0.0482741070988843,
       "as_published_regime": "Soft dollar regime",
       "current_recalculated_regime": "Soft dollar regime",
       "regime_changed": false,
       "score_sign_changed": false,
       "largest_absolute_component_revision": {
         "driver": "GOLD",
-        "absolute_difference": 0.18974393953741764
+        "absolute_difference": 0.19956615284036028
       },
       "component_zscore_revisions": {
         "DXY": {
           "as_published_zscore": 0.6520362340522894,
-          "current_recalculated_zscore": 0.6504037148575597,
-          "difference": -0.0016325191947297313
+          "current_recalculated_zscore": 0.6494837933983018,
+          "difference": -0.002552440653987631
         },
         "WTI": {
           "as_published_zscore": 1.527956682079786,
-          "current_recalculated_zscore": 1.414538882100527,
-          "difference": -0.11341779997925916
+          "current_recalculated_zscore": 1.4057975102389237,
+          "difference": -0.12215917184086234
         },
         "SPX": {
           "as_published_zscore": 2.4164196108000118,
-          "current_recalculated_zscore": 2.2447287705147625,
-          "difference": -0.17169084028524928
+          "current_recalculated_zscore": 2.2324656518309314,
+          "difference": -0.1839539589690804
         },
         "VIX": {
           "as_published_zscore": 0.06126277273061658,
-          "current_recalculated_zscore": 0.06964625188142141,
-          "difference": 0.008383479150804833
+          "current_recalculated_zscore": 0.06937976067995641,
+          "difference": 0.008116987949339828
         },
         "BTC": {
           "as_published_zscore": 1.0572150652994863,
-          "current_recalculated_zscore": 1.0183519182928298,
-          "difference": -0.038863147006656495
+          "current_recalculated_zscore": 1.0148023249134914,
+          "difference": -0.04241274038599485
         },
         "GOLD": {
           "as_published_zscore": 2.3983831357685217,
-          "current_recalculated_zscore": 2.208639196231104,
-          "difference": -0.18974393953741764
+          "current_recalculated_zscore": 2.1988169829281614,
+          "difference": -0.19956615284036028
         },
         "UST_2Y": {
           "as_published_zscore": 1.3319638230323412,
-          "current_recalculated_zscore": 1.2667690283005688,
-          "difference": -0.06519479473177237
+          "current_recalculated_zscore": 1.263308911280715,
+          "difference": -0.06865491175162619
         },
         "UST_10Y": {
           "as_published_zscore": 1.700909132793403,
-          "current_recalculated_zscore": 1.6080827207318795,
-          "difference": -0.09282641206152342
+          "current_recalculated_zscore": 1.6021003300044527,
+          "difference": -0.09880880278895021
         }
       }
     },
@@ -747,57 +747,57 @@
       "published_at_utc": "2026-08-02T20:27:47.504927+00:00",
       "score_week": "2026-07-31",
       "as_published_score": -0.5267951149033543,
-      "current_recalculated_score": -0.4747411924885967,
-      "score_difference": 0.05205392241475759,
-      "absolute_score_difference": 0.05205392241475759,
+      "current_recalculated_score": -0.47191736878388757,
+      "score_difference": 0.05487774611946672,
+      "absolute_score_difference": 0.05487774611946672,
       "as_published_regime": "Soft dollar regime",
       "current_recalculated_regime": "Soft dollar regime",
       "regime_changed": false,
       "score_sign_changed": false,
       "largest_absolute_component_revision": {
         "driver": "GOLD",
-        "absolute_difference": 0.194811443889932
+        "absolute_difference": 0.2047429616637193
       },
       "component_zscore_revisions": {
         "DXY": {
           "as_published_zscore": 0.3017873062352943,
-          "current_recalculated_zscore": 0.29664103852980067,
-          "difference": -0.005146267705493646
+          "current_recalculated_zscore": 0.2955838159360104,
+          "difference": -0.006203490299283909
         },
         "WTI": {
           "as_published_zscore": 1.1995685796285083,
-          "current_recalculated_zscore": 1.156958397840421,
-          "difference": -0.04261018178808729
+          "current_recalculated_zscore": 1.1491234054265473,
+          "difference": -0.05044517420196093
         },
         "SPX": {
           "as_published_zscore": 2.453858201314409,
-          "current_recalculated_zscore": 2.29390071532938,
-          "difference": -0.159957485985029
+          "current_recalculated_zscore": 2.2814530990584214,
+          "difference": -0.1724051022559876
         },
         "VIX": {
           "as_published_zscore": -0.3170718616696351,
-          "current_recalculated_zscore": -0.31194805583087215,
-          "difference": 0.005123805838762929
+          "current_recalculated_zscore": -0.3125125293623072,
+          "difference": 0.004559332307327857
         },
         "BTC": {
           "as_published_zscore": 1.0158664690412833,
-          "current_recalculated_zscore": 0.979253539435927,
-          "difference": -0.03661292960535634
+          "current_recalculated_zscore": 0.9757455765973273,
+          "difference": -0.040120892443956
         },
         "GOLD": {
           "as_published_zscore": 2.4413771529259027,
-          "current_recalculated_zscore": 2.2465657090359707,
-          "difference": -0.194811443889932
+          "current_recalculated_zscore": 2.2366341912621834,
+          "difference": -0.2047429616637193
         },
         "UST_2Y": {
           "as_published_zscore": 1.2415846566075246,
-          "current_recalculated_zscore": 1.235690347971706,
-          "difference": -0.005894308635818524
+          "current_recalculated_zscore": 1.2322576333845696,
+          "difference": -0.009327023222954978
         },
         "UST_10Y": {
           "as_published_zscore": 1.6700093825100848,
-          "current_recalculated_zscore": 1.6583654910622911,
-          "difference": -0.011643891447793653
+          "current_recalculated_zscore": 1.652288402115106,
+          "difference": -0.017720980394978714
         }
       }
     },
@@ -808,57 +808,57 @@
       "published_at_utc": "2026-08-07T22:32:31.108080+00:00",
       "score_week": "2026-08-07",
       "as_published_score": -0.5630728089150192,
-      "current_recalculated_score": -0.5399211861644206,
-      "score_difference": 0.023151622750598566,
-      "absolute_score_difference": 0.023151622750598566,
+      "current_recalculated_score": -0.5370493440129506,
+      "score_difference": 0.026023464902068638,
+      "absolute_score_difference": 0.026023464902068638,
       "as_published_regime": "Soft dollar regime",
       "current_recalculated_regime": "Soft dollar regime",
       "regime_changed": false,
       "score_sign_changed": false,
       "largest_absolute_component_revision": {
         "driver": "GOLD",
-        "absolute_difference": 0.19681883094459618
+        "absolute_difference": 0.2076341465945979
       },
       "component_zscore_revisions": {
         "DXY": {
           "as_published_zscore": 0.2603271835037872,
-          "current_recalculated_zscore": 0.2542732347930735,
-          "difference": -0.006053948710713686
+          "current_recalculated_zscore": 0.2531995685552531,
+          "difference": -0.007127614948534089
         },
         "WTI": {
           "as_published_zscore": 0.7716820850990674,
-          "current_recalculated_zscore": 0.7966788692856834,
-          "difference": 0.024996784186615995
+          "current_recalculated_zscore": 0.7901116358057123,
+          "difference": 0.01842955070664487
         },
         "SPX": {
           "as_published_zscore": 2.6146104300702113,
-          "current_recalculated_zscore": 2.463364362038048,
-          "difference": -0.15124606803216345
+          "current_recalculated_zscore": 2.450280902827759,
+          "difference": -0.1643295272424523
         },
         "VIX": {
           "as_published_zscore": -0.4760519053835379,
-          "current_recalculated_zscore": -0.4725418122511069,
-          "difference": 0.0035100931324310025
+          "current_recalculated_zscore": -0.4732316914837005,
+          "difference": 0.0028202138998374426
         },
         "BTC": {
           "as_published_zscore": 1.0767864461927672,
-          "current_recalculated_zscore": 1.042140997474608,
-          "difference": -0.03464544871815911
+          "current_recalculated_zscore": 1.0385660743435268,
+          "difference": -0.03822037184924043
         },
         "GOLD": {
           "as_published_zscore": 2.750045111228281,
-          "current_recalculated_zscore": 2.5532262802836847,
-          "difference": -0.19681883094459618
+          "current_recalculated_zscore": 2.542410964633683,
+          "difference": -0.2076341465945979
         },
         "UST_2Y": {
           "as_published_zscore": 1.2513405386154517,
-          "current_recalculated_zscore": 1.1797487233797532,
-          "difference": -0.07159181523569846
+          "current_recalculated_zscore": 1.1763653331715078,
+          "difference": -0.07497520544394387
         },
         "UST_10Y": {
           "as_published_zscore": 1.672925784534472,
-          "current_recalculated_zscore": 1.5745608738449381,
-          "difference": -0.0983649106895339
+          "current_recalculated_zscore": 1.5686416152640168,
+          "difference": -0.10428416927045525
         }
       }
     },
@@ -869,57 +869,57 @@
       "published_at_utc": "2026-08-14T22:20:17.687164+00:00",
       "score_week": "2026-08-14",
       "as_published_score": -0.6201496727347942,
-      "current_recalculated_score": -0.5776350311832242,
-      "score_difference": 0.04251464155156992,
-      "absolute_score_difference": 0.04251464155156992,
+      "current_recalculated_score": -0.5746585052054685,
+      "score_difference": 0.04549116752932569,
+      "absolute_score_difference": 0.04549116752932569,
       "as_published_regime": "Soft dollar regime",
       "current_recalculated_regime": "Soft dollar regime",
       "regime_changed": false,
       "score_sign_changed": false,
       "largest_absolute_component_revision": {
         "driver": "GOLD",
-        "absolute_difference": 0.17243290895182106
+        "absolute_difference": 0.18336175529105425
       },
       "component_zscore_revisions": {
         "DXY": {
           "as_published_zscore": 0.26683088748210093,
-          "current_recalculated_zscore": 0.2691015620593131,
-          "difference": 0.002270674577212195
+          "current_recalculated_zscore": 0.2680336509400881,
+          "difference": 0.0012027634579871438
         },
         "WTI": {
           "as_published_zscore": 1.0689024496007296,
-          "current_recalculated_zscore": 1.0309439772578868,
-          "difference": -0.037958472342842775
+          "current_recalculated_zscore": 1.0235524069505506,
+          "difference": -0.045350042650178946
         },
         "SPX": {
           "as_published_zscore": 2.616095452303988,
-          "current_recalculated_zscore": 2.4811504782223115,
-          "difference": -0.1349449740816766
+          "current_recalculated_zscore": 2.4680002838944115,
+          "difference": -0.1480951684095766
         },
         "VIX": {
           "as_published_zscore": -0.5705812122445671,
-          "current_recalculated_zscore": -0.5683086616076525,
-          "difference": 0.002272550636914672
+          "current_recalculated_zscore": -0.5690733240021759,
+          "difference": 0.001507888242391231
         },
         "BTC": {
           "as_published_zscore": 1.0107759724445424,
-          "current_recalculated_zscore": 0.9841789965140856,
-          "difference": -0.026596975930456845
+          "current_recalculated_zscore": 0.9806657892268017,
+          "difference": -0.030110183217740727
         },
         "GOLD": {
           "as_published_zscore": 2.7650521171333433,
-          "current_recalculated_zscore": 2.5926192081815223,
-          "difference": -0.17243290895182106
+          "current_recalculated_zscore": 2.581690361842289,
+          "difference": -0.18336175529105425
         },
         "UST_2Y": {
           "as_published_zscore": 1.1864259030795195,
-          "current_recalculated_zscore": 1.167317251248208,
-          "difference": -0.019108651831311496
+          "current_recalculated_zscore": 1.1639448220130493,
+          "difference": -0.022481081066470177
         },
         "UST_10Y": {
           "as_published_zscore": 1.616953031287196,
-          "current_recalculated_zscore": 1.5997022590101435,
-          "difference": -0.017250772277052517
+          "current_recalculated_zscore": 1.5937356513193432,
+          "difference": -0.02321737996785278
         }
       }
     },
@@ -930,57 +930,57 @@
       "published_at_utc": "2026-08-21T22:21:39.945186+00:00",
       "score_week": "2026-08-21",
       "as_published_score": -0.7231747772025738,
-      "current_recalculated_score": -0.6865626526361498,
-      "score_difference": 0.03661212456642404,
-      "absolute_score_difference": 0.03661212456642404,
+      "current_recalculated_score": -0.6833642606882002,
+      "score_difference": 0.03981051651437362,
+      "absolute_score_difference": 0.03981051651437362,
       "as_published_regime": "Soft dollar regime",
       "current_recalculated_regime": "Soft dollar regime",
       "regime_changed": false,
       "score_sign_changed": false,
       "largest_absolute_component_revision": {
         "driver": "GOLD",
-        "absolute_difference": 0.14638223194001698
+        "absolute_difference": 0.15804571489942232
       },
       "component_zscore_revisions": {
         "DXY": {
           "as_published_zscore": 0.09882553513756352,
-          "current_recalculated_zscore": 0.08480686834554359,
-          "difference": -0.014018666792019935
+          "current_recalculated_zscore": 0.08366742941338513,
+          "difference": -0.015158105724178389
         },
         "WTI": {
           "as_published_zscore": 1.3044865673907766,
-          "current_recalculated_zscore": 1.2896345360184578,
-          "difference": -0.01485203137231883
+          "current_recalculated_zscore": 1.2813326801106586,
+          "difference": -0.023153887280118024
         },
         "SPX": {
           "as_published_zscore": 2.5273566773161424,
-          "current_recalculated_zscore": 2.410694739441445,
-          "difference": -0.11666193787469759
+          "current_recalculated_zscore": 2.3978089014218695,
+          "difference": -0.1295477758942729
         },
         "VIX": {
           "as_published_zscore": -0.44125342980781135,
-          "current_recalculated_zscore": -0.43865498798864067,
-          "difference": 0.0025984418191706826
+          "current_recalculated_zscore": -0.43931840541442807,
+          "difference": 0.0019350243933832778
         },
         "BTC": {
           "as_published_zscore": 1.489008528572885,
-          "current_recalculated_zscore": 1.451612517063308,
-          "difference": -0.03739601150957683
+          "current_recalculated_zscore": 1.4476016034570238,
+          "difference": -0.04140692511586108
         },
         "GOLD": {
           "as_published_zscore": 2.99390597391208,
-          "current_recalculated_zscore": 2.847523741972063,
-          "difference": -0.14638223194001698
+          "current_recalculated_zscore": 2.835860259012658,
+          "difference": -0.15804571489942232
         },
         "UST_2Y": {
           "as_published_zscore": 1.208995957193695,
-          "current_recalculated_zscore": 1.210827403708616,
-          "difference": 0.0018314465149209536
+          "current_recalculated_zscore": 1.2074166110676532,
+          "difference": -0.0015793461260418251
         },
         "UST_10Y": {
           "as_published_zscore": 1.6627914670478463,
-          "current_recalculated_zscore": 1.649985029340556,
-          "difference": -0.012806437707290286
+          "current_recalculated_zscore": 1.6439237234299973,
+          "difference": -0.018867743617849042
         }
       }
     },
@@ -991,57 +991,57 @@
       "published_at_utc": "2026-08-29T21:45:17.732044+00:00",
       "score_week": "2026-08-28",
       "as_published_score": -0.6910878223615368,
-      "current_recalculated_score": -0.6248033986055799,
-      "score_difference": 0.06628442375595689,
-      "absolute_score_difference": 0.06628442375595689,
+      "current_recalculated_score": -0.621747902622353,
+      "score_difference": 0.06933991973918374,
+      "absolute_score_difference": 0.06933991973918374,
       "as_published_regime": "Soft dollar regime",
       "current_recalculated_regime": "Soft dollar regime",
       "regime_changed": false,
       "score_sign_changed": false,
       "largest_absolute_component_revision": {
         "driver": "GOLD",
-        "absolute_difference": 0.22511108395246326
+        "absolute_difference": 0.23631953300791064
       },
       "component_zscore_revisions": {
         "DXY": {
           "as_published_zscore": 0.28013255946203575,
-          "current_recalculated_zscore": 0.27545632857820734,
-          "difference": -0.004676230883828403
+          "current_recalculated_zscore": 0.2743908838487715,
+          "difference": -0.005741675613264219
         },
         "WTI": {
           "as_published_zscore": 1.1274502532753317,
-          "current_recalculated_zscore": 1.0864570199610288,
-          "difference": -0.040993233314302824
+          "current_recalculated_zscore": 1.0788701092297797,
+          "difference": -0.048580144045552
         },
         "SPX": {
           "as_published_zscore": 2.5361878562846805,
-          "current_recalculated_zscore": 2.434344291624914,
-          "difference": -0.10184356465976663
+          "current_recalculated_zscore": 2.421369718345203,
+          "difference": -0.11481813793947726
         },
         "VIX": {
           "as_published_zscore": -0.5432727729582089,
-          "current_recalculated_zscore": -0.5417885504899281,
-          "difference": 0.001484222468280727
+          "current_recalculated_zscore": -0.5425325036538834,
+          "difference": 0.0007402693043254693
         },
         "BTC": {
           "as_published_zscore": 1.5403064055130113,
-          "current_recalculated_zscore": 1.436247107144154,
-          "difference": -0.1040592983688573
+          "current_recalculated_zscore": 1.4322525540710251,
+          "difference": -0.1080538514419862
         },
         "GOLD": {
           "as_published_zscore": 2.914746964140446,
-          "current_recalculated_zscore": 2.689635880187983,
-          "difference": -0.22511108395246326
+          "current_recalculated_zscore": 2.6784274311325356,
+          "difference": -0.23631953300791064
         },
         "UST_2Y": {
           "as_published_zscore": 1.2126661074425162,
-          "current_recalculated_zscore": 1.272984764366341,
-          "difference": 0.060318656923824765
+          "current_recalculated_zscore": 1.269519166859944,
+          "difference": 0.05685305941742769
         },
         "UST_10Y": {
           "as_published_zscore": 1.6404630063748327,
-          "current_recalculated_zscore": 1.641604567618821,
-          "difference": 0.0011415612439882317
+          "current_recalculated_zscore": 1.6355590447448884,
+          "difference": -0.00490396162994422
         }
       }
     },
@@ -1052,57 +1052,57 @@
       "published_at_utc": "2026-09-04T23:43:36.642953+00:00",
       "score_week": "2026-09-04",
       "as_published_score": -0.712292630238848,
-      "current_recalculated_score": -0.68632635187747,
-      "score_difference": 0.025966278361377992,
-      "absolute_score_difference": 0.025966278361377992,
+      "current_recalculated_score": -0.6831002212464835,
+      "score_difference": 0.029192408992364527,
+      "absolute_score_difference": 0.029192408992364527,
       "as_published_regime": "Soft dollar regime",
       "current_recalculated_regime": "Soft dollar regime",
       "regime_changed": false,
       "score_sign_changed": false,
       "largest_absolute_component_revision": {
         "driver": "GOLD",
-        "absolute_difference": 0.11932866566843892
+        "absolute_difference": 0.13037617785079947
       },
       "component_zscore_revisions": {
         "DXY": {
           "as_published_zscore": 0.16541533880343604,
-          "current_recalculated_zscore": 0.1610672989051929,
-          "difference": -0.0043480398982431445
+          "current_recalculated_zscore": 0.15995745790502786,
+          "difference": -0.0054578808984081795
         },
         "WTI": {
           "as_published_zscore": 1.5552832619833317,
-          "current_recalculated_zscore": 1.535002506649832,
-          "difference": -0.0202807553334996
+          "current_recalculated_zscore": 1.5258372449356878,
+          "difference": -0.029446017047643824
         },
         "SPX": {
           "as_published_zscore": 2.525217050386818,
-          "current_recalculated_zscore": 2.4386709113200875,
-          "difference": -0.08654613906673037
+          "current_recalculated_zscore": 2.4256801041717106,
+          "difference": -0.09953694621510722
         },
         "VIX": {
           "as_published_zscore": -0.5280536958716217,
-          "current_recalculated_zscore": -0.5270552647088108,
-          "difference": 0.0009984311628108422
+          "current_recalculated_zscore": -0.5277877128300114,
+          "difference": 0.00026598304161029596
         },
         "BTC": {
           "as_published_zscore": 1.518921154865641,
-          "current_recalculated_zscore": 1.492294346027156,
-          "difference": -0.026626808838484894
+          "current_recalculated_zscore": 1.4882401158796876,
+          "difference": -0.030681038985953313
         },
         "GOLD": {
           "as_published_zscore": 2.753122599678662,
-          "current_recalculated_zscore": 2.633793934010223,
-          "difference": -0.11932866566843892
+          "current_recalculated_zscore": 2.6227464218278627,
+          "difference": -0.13037617785079947
         },
         "UST_2Y": {
           "as_published_zscore": 1.2971154526328892,
-          "current_recalculated_zscore": 1.291631972563659,
-          "difference": -0.005483480069230273
+          "current_recalculated_zscore": 1.2881499335976312,
+          "difference": -0.008965519035257996
         },
         "UST_10Y": {
           "as_published_zscore": 1.7197259294389644,
-          "current_recalculated_zscore": 1.6835068762274974,
-          "difference": -0.03621905321146701
+          "current_recalculated_zscore": 1.677382438170433,
+          "difference": -0.04234349126853143
         }
       }
     },
@@ -1113,57 +1113,57 @@
       "published_at_utc": "2026-09-11T23:52:55.616719+00:00",
       "score_week": "2026-09-11",
       "as_published_score": -0.6845764769658309,
-      "current_recalculated_score": -0.6604294433047996,
-      "score_difference": 0.024147033661031325,
-      "absolute_score_difference": 0.024147033661031325,
+      "current_recalculated_score": -0.6570829002024379,
+      "score_difference": 0.027493576763393035,
+      "absolute_score_difference": 0.027493576763393035,
       "as_published_regime": "Soft dollar regime",
       "current_recalculated_regime": "Soft dollar regime",
       "regime_changed": false,
       "score_sign_changed": false,
       "largest_absolute_component_revision": {
         "driver": "GOLD",
-        "absolute_difference": 0.07911062211943642
+        "absolute_difference": 0.08995371595908797
       },
       "component_zscore_revisions": {
         "DXY": {
           "as_published_zscore": 0.1521945844909347,
-          "current_recalculated_zscore": 0.15259373815784746,
-          "difference": 0.00039915366691276044
+          "current_recalculated_zscore": 0.1514806084288764,
+          "difference": -0.000713976062058308
         },
         "WTI": {
           "as_published_zscore": 2.0388206683797154,
-          "current_recalculated_zscore": 2.0107492656745216,
-          "difference": -0.028071402705193815
+          "current_recalculated_zscore": 1.9999099365870572,
+          "difference": -0.03891073179265825
         },
         "SPX": {
           "as_published_zscore": 2.4707417521400536,
-          "current_recalculated_zscore": 2.3996951991142548,
-          "difference": -0.07104655302579888
+          "current_recalculated_zscore": 2.3868506323654723,
+          "difference": -0.0838911197745813
         },
         "VIX": {
           "as_published_zscore": -0.33551912923536664,
-          "current_recalculated_zscore": -0.3340480547567315,
-          "difference": 0.0014710744786351482
+          "current_recalculated_zscore": -0.3346297859071592,
+          "difference": 0.0008893433282074481
         },
         "BTC": {
           "as_published_zscore": 1.4387583527024654,
-          "current_recalculated_zscore": 1.4162682939404398,
-          "difference": -0.02249005876202559
+          "current_recalculated_zscore": 1.4122950135855488,
+          "difference": -0.026463339116916673
         },
         "GOLD": {
           "as_published_zscore": 2.6419753907222105,
-          "current_recalculated_zscore": 2.562864768602774,
-          "difference": -0.07911062211943642
+          "current_recalculated_zscore": 2.5520216747631226,
+          "difference": -0.08995371595908797
         },
         "UST_2Y": {
           "as_published_zscore": 1.4311400557884173,
-          "current_recalculated_zscore": 1.453241110273745,
-          "difference": 0.02210105448532773
+          "current_recalculated_zscore": 1.4496165786575876,
+          "difference": 0.018476522869170342
         },
         "UST_10Y": {
           "as_published_zscore": 1.8658688371738132,
-          "current_recalculated_zscore": 1.8343551872187334,
-          "difference": -0.03151364995507988
+          "current_recalculated_zscore": 1.8279466545023937,
+          "difference": -0.03792218267141956
         }
       }
     },
@@ -1174,57 +1174,57 @@
       "published_at_utc": "2026-09-18T23:53:05.297841+00:00",
       "score_week": "2026-09-18",
       "as_published_score": -0.6446637224085193,
-      "current_recalculated_score": -0.6524313195968787,
-      "score_difference": -0.007767597188359399,
-      "absolute_score_difference": 0.007767597188359399,
+      "current_recalculated_score": -0.6490817350683623,
+      "score_difference": -0.004418012659842985,
+      "absolute_score_difference": 0.004418012659842985,
       "as_published_regime": "Soft dollar regime",
       "current_recalculated_regime": "Soft dollar regime",
       "regime_changed": false,
       "score_sign_changed": false,
       "largest_absolute_component_revision": {
         "driver": "WTI",
-        "absolute_difference": 0.24498901555355967
+        "absolute_difference": 0.23410085136011682
       },
       "component_zscore_revisions": {
         "DXY": {
           "as_published_zscore": 0.3885280408398194,
-          "current_recalculated_zscore": 0.38561100212723837,
-          "difference": -0.0029170387125810326
+          "current_recalculated_zscore": 0.3845883102450201,
+          "difference": -0.0039397305947992955
         },
         "WTI": {
           "as_published_zscore": 1.7796385107967474,
-          "current_recalculated_zscore": 2.024627526350307,
-          "difference": 0.24498901555355967
+          "current_recalculated_zscore": 2.013739362156864,
+          "difference": 0.23410085136011682
         },
         "SPX": {
           "as_published_zscore": 2.4523645888126318,
-          "current_recalculated_zscore": 2.3955965075606356,
-          "difference": -0.05676808125199617
+          "current_recalculated_zscore": 2.3827673194735044,
+          "difference": -0.06959726933912735
         },
         "VIX": {
           "as_published_zscore": -0.48627956336155126,
-          "current_recalculated_zscore": -0.4858017273016026,
-          "difference": 0.0004778360599486664
+          "current_recalculated_zscore": -0.486501961039759,
+          "difference": -0.00022239767820775302
         },
         "BTC": {
           "as_published_zscore": 1.5478713967228372,
-          "current_recalculated_zscore": 1.529711081850061,
-          "difference": -0.01816031487277625
+          "current_recalculated_zscore": 1.5256170117145798,
+          "difference": -0.022254385008257493
         },
         "GOLD": {
           "as_published_zscore": 2.6259956652048544,
-          "current_recalculated_zscore": 2.579627890795859,
-          "difference": -0.0463677744089952
+          "current_recalculated_zscore": 2.5687364855227144,
+          "difference": -0.057259179682140005
         },
         "UST_2Y": {
           "as_published_zscore": 1.495724944922853,
-          "current_recalculated_zscore": 1.534045679128788,
-          "difference": 0.03832073420593507
+          "current_recalculated_zscore": 1.5303499011875656,
+          "difference": 0.034624956264712736
         },
         "UST_10Y": {
           "as_published_zscore": 1.8505869598677958,
-          "current_recalculated_zscore": 1.87625749582741,
-          "difference": 0.025670535959614327
+          "current_recalculated_zscore": 1.8697700479279382,
+          "difference": 0.01918308806014246
         }
       }
     },
@@ -1235,57 +1235,57 @@
       "published_at_utc": "2026-09-26T00:22:11.823177+00:00",
       "score_week": "2026-09-25",
       "as_published_score": -0.5644141175572839,
-      "current_recalculated_score": -0.5617565159014686,
-      "score_difference": 0.0026576016558153004,
-      "absolute_score_difference": 0.0026576016558153004,
+      "current_recalculated_score": -0.5586248918743089,
+      "score_difference": 0.005789225682975019,
+      "absolute_score_difference": 0.005789225682975019,
       "as_published_regime": "Soft dollar regime",
       "current_recalculated_regime": "Soft dollar regime",
       "regime_changed": false,
       "score_sign_changed": false,
       "largest_absolute_component_revision": {
-        "driver": "UST_2Y",
-        "absolute_difference": 0.050426868773158606
+        "driver": "SPX",
+        "absolute_difference": 0.055922194291026184
       },
       "component_zscore_revisions": {
         "DXY": {
           "as_published_zscore": 0.5613500292339269,
-          "current_recalculated_zscore": 0.5444866297654312,
-          "difference": -0.016863399468495688
+          "current_recalculated_zscore": 0.5435256001369891,
+          "difference": -0.01782442909693771
         },
         "WTI": {
           "as_published_zscore": 1.6038041205655027,
-          "current_recalculated_zscore": 1.5866296533049902,
-          "difference": -0.017174467260512527
+          "current_recalculated_zscore": 1.5772827249369938,
+          "difference": -0.02652139562850886
         },
         "SPX": {
           "as_published_zscore": 2.497236177699704,
-          "current_recalculated_zscore": 2.454363671212404,
-          "difference": -0.04287250648729968
+          "current_recalculated_zscore": 2.4413139834086777,
+          "difference": -0.055922194291026184
         },
         "VIX": {
           "as_published_zscore": -0.47698553754689316,
-          "current_recalculated_zscore": -0.4769617839346055,
-          "difference": 2.3753612287680248e-05
+          "current_recalculated_zscore": -0.4776551146690533,
+          "difference": -0.0006695771221601476
         },
         "BTC": {
           "as_published_zscore": 1.649603339322361,
-          "current_recalculated_zscore": 1.6250706793341474,
-          "difference": -0.024532659988213634
+          "current_recalculated_zscore": 1.6208750737456903,
+          "difference": -0.028728265576670742
         },
         "GOLD": {
           "as_published_zscore": 2.509280992352043,
-          "current_recalculated_zscore": 2.4709822120238587,
-          "difference": -0.038298780328184456
+          "current_recalculated_zscore": 2.460403924344436,
+          "difference": -0.04887706800760716
         },
         "UST_2Y": {
           "as_published_zscore": 1.615551228230809,
-          "current_recalculated_zscore": 1.5651243594576505,
-          "difference": -0.050426868773158606
+          "current_recalculated_zscore": 1.561401179083711,
+          "difference": -0.05415004914709809
         },
         "UST_10Y": {
           "as_published_zscore": 2.0446959695634965,
-          "current_recalculated_zscore": 2.0103448833751756,
-          "difference": -0.034351086188320945
+          "current_recalculated_zscore": 2.0036049068896813,
+          "difference": -0.04109106267381524
         }
       }
     },
@@ -1296,57 +1296,57 @@
       "published_at_utc": "2026-10-03T00:56:19.217256+00:00",
       "score_week": "2026-10-02",
       "as_published_score": -0.5029776266134216,
-      "current_recalculated_score": -0.4854479676428444,
-      "score_difference": 0.017529658970577178,
-      "absolute_score_difference": 0.017529658970577178,
+      "current_recalculated_score": -0.48241920414055783,
+      "score_difference": 0.02055842247286377,
+      "absolute_score_difference": 0.02055842247286377,
       "as_published_regime": "Soft dollar regime",
       "current_recalculated_regime": "Soft dollar regime",
       "regime_changed": false,
       "score_sign_changed": false,
       "largest_absolute_component_revision": {
         "driver": "GOLD",
-        "absolute_difference": 0.03511474441264362
+        "absolute_difference": 0.04521323798870425
       },
       "component_zscore_revisions": {
         "DXY": {
           "as_published_zscore": 0.7485526775597837,
-          "current_recalculated_zscore": 0.7478472392023428,
-          "difference": -0.0007054383574409684
+          "current_recalculated_zscore": 0.7469651371834629,
+          "difference": -0.0015875403763208062
         },
         "WTI": {
           "as_published_zscore": 1.533800622336167,
-          "current_recalculated_zscore": 1.514462528378544,
-          "difference": -0.019338093957623093
+          "current_recalculated_zscore": 1.505369543157766,
+          "difference": -0.028431079178401042
         },
         "SPX": {
           "as_published_zscore": 2.4695674994450445,
-          "current_recalculated_zscore": 2.4412769515076724,
-          "difference": -0.028290547937372068
+          "current_recalculated_zscore": 2.4282763662606586,
+          "difference": -0.04129113318438593
         },
         "VIX": {
           "as_published_zscore": -0.4118992948138813,
-          "current_recalculated_zscore": -0.4121348768709163,
-          "difference": -0.0002355820570349998
+          "current_recalculated_zscore": -0.41277758506613554,
+          "difference": -0.0008782902522542213
         },
         "BTC": {
           "as_published_zscore": 1.6590519019550207,
-          "current_recalculated_zscore": 1.6391393720035596,
-          "difference": -0.01991252995146109
+          "current_recalculated_zscore": 1.6349287865796098,
+          "difference": -0.024123115375410897
         },
         "GOLD": {
           "as_published_zscore": 2.3396177899005095,
-          "current_recalculated_zscore": 2.304503045487866,
-          "difference": -0.03511474441264362
+          "current_recalculated_zscore": 2.2944045519118053,
+          "difference": -0.04521323798870425
         },
         "UST_2Y": {
           "as_published_zscore": 1.5552784192279456,
-          "current_recalculated_zscore": 1.577555831589196,
-          "difference": 0.02227741236125036
+          "current_recalculated_zscore": 1.5738216902421696,
+          "difference": 0.018543271014223928
         },
         "UST_10Y": {
           "as_published_zscore": 2.0862849987555205,
-          "current_recalculated_zscore": 2.102529962314265,
-          "difference": 0.016244963558744274
+          "current_recalculated_zscore": 2.09561637242588,
+          "difference": 0.009331373670359522
         }
       }
     },
@@ -1357,57 +1357,57 @@
       "published_at_utc": "2026-10-10T01:31:21.487482+00:00",
       "score_week": "2026-10-09",
       "as_published_score": -0.509254132042471,
-      "current_recalculated_score": -0.5050188224443761,
-      "score_difference": 0.004235309598094927,
-      "absolute_score_difference": 0.004235309598094927,
+      "current_recalculated_score": -0.5019270965637801,
+      "score_difference": 0.0073270354786909575,
+      "absolute_score_difference": 0.0073270354786909575,
       "as_published_regime": "Soft dollar regime",
       "current_recalculated_regime": "Soft dollar regime",
       "regime_changed": false,
       "score_sign_changed": false,
       "largest_absolute_component_revision": {
-        "driver": "UST_2Y",
-        "absolute_difference": 0.026685442737964138
+        "driver": "SPX",
+        "absolute_difference": 0.02690012555673471
       },
       "component_zscore_revisions": {
         "DXY": {
           "as_published_zscore": 0.812439907660098,
-          "current_recalculated_zscore": 0.8071605482673012,
-          "difference": -0.005279359392796779
+          "current_recalculated_zscore": 0.8063014667228027,
+          "difference": -0.00613844093729532
         },
         "WTI": {
           "as_published_zscore": 1.5518084247884847,
-          "current_recalculated_zscore": 1.5555420613902158,
-          "difference": 0.003733636601731094
+          "current_recalculated_zscore": 1.5463045246730345,
+          "difference": -0.005503900115450211
         },
         "SPX": {
           "as_published_zscore": 2.511145662564712,
-          "current_recalculated_zscore": 2.497456914560792,
-          "difference": -0.013688748003919837
+          "current_recalculated_zscore": 2.4842455370079772,
+          "difference": -0.02690012555673471
         },
         "VIX": {
           "as_published_zscore": -0.48056967275505624,
-          "current_recalculated_zscore": -0.48138175561810403,
-          "difference": -0.0008120828630477916
+          "current_recalculated_zscore": -0.48207853785440613,
+          "difference": -0.0015088650993498876
         },
         "BTC": {
           "as_published_zscore": 1.5578442686937861,
-          "current_recalculated_zscore": 1.5797685521828713,
-          "difference": 0.02192428348908515
+          "current_recalculated_zscore": 1.5756211826621245,
+          "difference": 0.01777691396833836
         },
         "GOLD": {
           "as_published_zscore": 2.3776211275105306,
-          "current_recalculated_zscore": 2.3610785828895295,
-          "difference": -0.01654254462100102
+          "current_recalculated_zscore": 2.3508170382254274,
+          "difference": -0.02680408928510314
         },
         "UST_2Y": {
           "as_published_zscore": 1.532223180653914,
-          "current_recalculated_zscore": 1.558908623391878,
-          "difference": 0.026685442737964138
+          "current_recalculated_zscore": 1.555190923504482,
+          "difference": 0.02296774285056813
         },
         "UST_10Y": {
           "as_published_zscore": 2.0602930116587888,
-          "current_recalculated_zscore": 2.0690081154273234,
-          "difference": 0.008715103768534682
+          "current_recalculated_zscore": 2.0621576576854443,
+          "difference": 0.001864646026655592
         }
       }
     },
@@ -1418,7 +1418,68 @@
       "published_at_utc": "2026-10-17T00:09:06.577476+00:00",
       "score_week": "2026-10-16",
       "as_published_score": -0.4710321332052917,
-      "current_recalculated_score": -0.4710321332052917,
+      "current_recalculated_score": -0.48270420271540787,
+      "score_difference": -0.011672069510116179,
+      "absolute_score_difference": 0.011672069510116179,
+      "as_published_regime": "Soft dollar regime",
+      "current_recalculated_regime": "Soft dollar regime",
+      "regime_changed": false,
+      "score_sign_changed": false,
+      "largest_absolute_component_revision": {
+        "driver": "WTI",
+        "absolute_difference": 0.12046107149435925
+      },
+      "component_zscore_revisions": {
+        "DXY": {
+          "as_published_zscore": 0.7158600726352131,
+          "current_recalculated_zscore": 0.727891821663692,
+          "difference": 0.012031749028478922
+        },
+        "WTI": {
+          "as_published_zscore": 1.9546809739556952,
+          "current_recalculated_zscore": 2.0751420454500544,
+          "difference": 0.12046107149435925
+        },
+        "SPX": {
+          "as_published_zscore": 2.401251163852943,
+          "current_recalculated_zscore": 2.3884007589836425,
+          "difference": -0.012850404869300558
+        },
+        "VIX": {
+          "as_published_zscore": 0.27738674761461807,
+          "current_recalculated_zscore": 0.2772824784266806,
+          "difference": -0.00010426918793748907
+        },
+        "BTC": {
+          "as_published_zscore": 1.567447598512882,
+          "current_recalculated_zscore": 1.5438372242062055,
+          "difference": -0.02361037430667645
+        },
+        "GOLD": {
+          "as_published_zscore": 2.330067216088234,
+          "current_recalculated_zscore": 2.3140447606116514,
+          "difference": -0.016022455476582653
+        },
+        "UST_2Y": {
+          "as_published_zscore": 1.5402614151945604,
+          "current_recalculated_zscore": 1.5179293900291078,
+          "difference": -0.02233202516545263
+        },
+        "UST_10Y": {
+          "as_published_zscore": 1.951681651323028,
+          "current_recalculated_zscore": 1.9366874774088099,
+          "difference": -0.01499417391421809
+        }
+      }
+    },
+    {
+      "archive_id": "2026-10-23",
+      "archive_path": "public/archive/2026-10-23/score.json",
+      "archive_sha256": "6288b3b76b960a55da6d5e2acb91d6a98c13dd1508191d0889b98827b02a1495",
+      "published_at_utc": "2026-10-24T00:15:36.833509+00:00",
+      "score_week": "2026-10-23",
+      "as_published_score": -0.5037263731481794,
+      "current_recalculated_score": -0.5037263731481794,
       "score_difference": 0.0,
       "absolute_score_difference": 0.0,
       "as_published_regime": "Soft dollar regime",
@@ -1431,43 +1492,43 @@
       },
       "component_zscore_revisions": {
         "DXY": {
-          "as_published_zscore": 0.7158600726352131,
-          "current_recalculated_zscore": 0.7158600726352131,
+          "as_published_zscore": 0.709243722892391,
+          "current_recalculated_zscore": 0.709243722892391,
           "difference": 0.0
         },
         "WTI": {
-          "as_published_zscore": 1.9546809739556952,
-          "current_recalculated_zscore": 1.9546809739556952,
+          "as_published_zscore": 2.1874369135503975,
+          "current_recalculated_zscore": 2.1874369135503975,
           "difference": 0.0
         },
         "SPX": {
-          "as_published_zscore": 2.401251163852943,
-          "current_recalculated_zscore": 2.401251163852943,
+          "as_published_zscore": 2.36586700094309,
+          "current_recalculated_zscore": 2.36586700094309,
           "difference": 0.0
         },
         "VIX": {
-          "as_published_zscore": 0.27738674761461807,
-          "current_recalculated_zscore": 0.27738674761461807,
+          "as_published_zscore": 0.19766029861797846,
+          "current_recalculated_zscore": 0.19766029861797846,
           "difference": 0.0
         },
         "BTC": {
-          "as_published_zscore": 1.567447598512882,
-          "current_recalculated_zscore": 1.567447598512882,
+          "as_published_zscore": 1.5380941854885977,
+          "current_recalculated_zscore": 1.5380941854885977,
           "difference": 0.0
         },
         "GOLD": {
-          "as_published_zscore": 2.330067216088234,
-          "current_recalculated_zscore": 2.330067216088234,
+          "as_published_zscore": 2.135300651032158,
+          "current_recalculated_zscore": 2.135300651032158,
           "difference": 0.0
         },
         "UST_2Y": {
-          "as_published_zscore": 1.5402614151945604,
-          "current_recalculated_zscore": 1.5402614151945604,
+          "as_published_zscore": 1.462037089816046,
+          "current_recalculated_zscore": 1.462037089816046,
           "difference": 0.0
         },
         "UST_10Y": {
-          "as_published_zscore": 1.951681651323028,
-          "current_recalculated_zscore": 1.951681651323028,
+          "as_published_zscore": 1.8279466545023937,
+          "current_recalculated_zscore": 1.8279466545023937,
           "difference": 0.0
         }
       }
