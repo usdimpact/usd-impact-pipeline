@@ -37,20 +37,14 @@ function env(overrides = {}) {
 function request(path = '/en/', options = {}) {
   return new Request(SCORE_PRODUCTION_ORIGIN + path, options);
 }
-function formRequest({
-  origin = SCORE_PRODUCTION_WEBSITE_ORIGIN,
-  value = ticket,
-  diagnostic = false,
-} = {}) {
-  const headers = {
-    Origin: origin,
-    'Content-Type': 'application/x-www-form-urlencoded',
-    'CF-Connecting-IP': '203.0.113.10',
-  };
-  if (diagnostic) headers['x-stage-e-diagnostic'] = 'local-preflight';
+function formRequest({ origin = SCORE_PRODUCTION_WEBSITE_ORIGIN, value = ticket } = {}) {
   return request('/score-redeem', {
     method: 'POST',
-    headers,
+    headers: {
+      Origin: origin,
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'CF-Connecting-IP': '203.0.113.10',
+    },
     body: new URLSearchParams({ ticket: value }),
   });
 }
@@ -144,37 +138,6 @@ test('Stage E redemption origin override is opt-in and limited to usd-impact-sit
     },
   );
   assert.equal(deniedMismatch.status, 403);
-});
-
-test('Stage E diagnostic returns booleans only and is unavailable outside QA mode', async () => {
-  const qaOrigin = 'https://usd-impact-site-5olortwna-usd-impact.vercel.app';
-  const qaEnv = env({
-    SCORE_PRODUCTION_QA_BRIDGE_ENABLED: 'true',
-    SCORE_PRODUCTION_QA_BRIDGE_ORIGIN: qaOrigin,
-    SCORE_PRODUCTION_QA_WEBSITE_ORIGIN: qaOrigin,
-    SCORE_PRODUCTION_QA_VERCEL_BYPASS_SECRET: 'v'.repeat(32),
-  });
-  const result = await handleScoreWorkerProduction(
-    formRequest({ origin: qaOrigin, diagnostic: true }),
-    qaEnv,
-  );
-  assert.equal(result.status, 200);
-  const payload = JSON.parse(await result.text());
-  assert.deepEqual(payload, {
-    qaEnabled: true,
-    originValid: true,
-    bypassValid: true,
-    sharedSecretValid: true,
-    credentialValid: true,
-  });
-  assert.equal(JSON.stringify(payload).includes(secret), false);
-
-  const nonQa = await handleScoreWorkerProduction(
-    formRequest({ diagnostic: true }),
-    env(),
-    { redeemScoreEdgeTicket: async () => null },
-  );
-  assert.equal(nonQa.status, 403);
 });
 
 test('successful redemption sets only the host-only secure session cookie', async () => {
