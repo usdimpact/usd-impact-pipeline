@@ -10,6 +10,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SCRIPT_PATH = REPO_ROOT / "scripts" / "build_score_public_safe_artifact.py"
 SCORE_PATH = REPO_ROOT / "public" / "data" / "usd_impact_score_v2.json"
+SCHEMA_PATH = REPO_ROOT / "schemas" / "score_public_safe.schema.json"
 
 spec = importlib.util.spec_from_file_location("score_public_safe", SCRIPT_PATH)
 module = importlib.util.module_from_spec(spec)
@@ -89,6 +90,24 @@ class ScorePublicSafeArtifactTests(unittest.TestCase):
             self.assertEqual(rows[-1]["date"], payload["latest"]["week_ending"])
             self.assertEqual(float(rows[-1]["score"]), payload["latest"]["score"])
             self.assertEqual(rows[-1]["regime"], payload["latest"]["regime"])
+
+    def test_schema_is_closed_and_matches_prototype_top_level(self) -> None:
+        schema = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
+        self.assertIs(schema["additionalProperties"], False)
+        self.assertEqual(
+            set(schema["properties"]),
+            {"schema_version", "metadata", "latest", "history", "release_evidence"},
+        )
+        self.assertEqual(
+            set(schema["properties"]["history"]["items"]["properties"]),
+            {"date", "score", "regime"},
+        )
+        self.assertIs(
+            schema["properties"]["history"]["items"]["additionalProperties"],
+            False,
+        )
+        payload = module.build_public_safe_payload(self.source)
+        self.assertEqual(set(payload), set(schema["properties"]))
 
     def test_rejects_forbidden_key_in_public_payload(self) -> None:
         payload = module.build_public_safe_payload(self.source)
