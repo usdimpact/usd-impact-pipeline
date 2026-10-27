@@ -68,6 +68,7 @@ The frozen lock and isolation boundary are unchanged, but the upstream vulnerabi
 
 - `PYSEC-2026-4328` is the PySec identifier for the already-reviewed `CVE-2026-112396` / `GHSA-4rr5-89j8-mwwm` TIFF encoder use-after-free. The underlying vulnerability and the fix in Pillow 13.0.0 are unchanged; only the audit identifier emitted by the current feed changed.
 - `PYSEC-2026-4327` aliases `CVE-2026-112394` / `GHSA-4558-3h8r-v8xp`, a raw-decoder over-read reachable through `Image.frombytes()` or `Image.frombuffer()` with the `P;2L` or `P;4L` raw modes. Repository search confirms the frozen research code contains none of those calls or raw modes.
+- `PYSEC-2026-4326` aliases the already-reviewed `CVE-2026-112392` / `GHSA-27h8-gf7j-v5hc` zero-size-image rank-filter crash. The current audit feed changed the emitted identifier; the underlying issue, fix in Pillow 13.0.0, and frozen-boundary assessment are unchanged.
 - The reviewed frozen execution modes still do not open or decode image inputs and do not render charts. The only repository `BytesIO` use in the active Score generator is Matplotlib PNG output, not TIFF encoding.
 - The active online runtime remains on Pillow 13.0.0, where both findings are fixed.
 - The root `requirements.lock` hash remains `a4c6fb90909a04eb267057d3e31049c7fc38b12e8a7d556e79c0141aa0d52db6`.
@@ -75,6 +76,7 @@ The frozen lock and isolation boundary are unchanged, but the upstream vulnerabi
 
 References:
 - https://github.com/python-pillow/Pillow/security/advisories/GHSA-4558-3h8r-v8xp
+- https://github.com/python-pillow/Pillow/security/advisories/GHSA-27h8-gf7j-v5hc
 - https://github.com/python-pillow/Pillow/security/advisories/GHSA-4rr5-89j8-mwwm
 - https://github.com/python-pillow/Pillow/blob/main/docs/releasenotes/13.0.0.rst
 
