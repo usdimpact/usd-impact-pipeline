@@ -20,6 +20,21 @@ Only workflow files inside `.github/workflows/` are executable GitHub Actions wo
 
 The root-level `weekly.yml` is a non-executable compatibility pointer. The canonical workflow is `.github/workflows/weekly.yml`.
 
+## Score member-delivery boundary
+
+Cloudflare Pages is a **public delivery surface only**. It may serve the explicit public methodology, research, reproduction, robots, favicon, and related allowlisted assets, but it must not authenticate users, redeem Score tickets, validate member sessions, or serve premium English/Spanish dashboard HTML.
+
+Research Membership authorization now belongs to the website application:
+
+1. `usd-impact.com` verifies the signed-in account and current Research Membership.
+2. The website issues and atomically consumes the existing short-lived Score handoff ticket.
+3. Vercel sets an opaque `__Host-score_session` cookie and rechecks membership on every protected member request.
+4. Premium HTML is read server-side from the private Supabase `score_member_assets` table.
+5. Cloudflare Pages permanently denies direct requests for the premium HTML paths, preventing a CDN-origin bypass.
+
+`scripts/publish_score_member_assets.py` mirrors only premium HTML into the private store. Its Development target is pinned to the isolated Development project. A Production write is impossible unless the command runs from `main` **and** `SCORE_MEMBER_ASSET_PRODUCTION_APPROVED=true`; the ordinary quality workflow uses dry-run mode and has no remote-write secret.
+
+
 ## Publication sequence
 
 1. Verify that the machine-readable v2 methodology contract still matches production constants.
@@ -35,8 +50,9 @@ The root-level `weekly.yml` is a non-executable compatibility pointer. The canon
 11. Open a publication PR and dispatch `Weekly score quality` against the exact head SHA.
 12. Run the read-only reproduction attestation on the PR. For strict releases it can prove the bundle and archive are internally reproducible, but a PR run is always pre-merge evidence and cannot mark production acceptance.
 13. Squash-merge only after the required quality/reproduction gates succeed.
-14. Allow Cloudflare Pages to deploy the validated `main` commit.
-15. Run the read-only push-to-`main` reproduction attestation and the Saturday health checks. Only the successful push-to-`main` attestation can identify a 2026-08-28-or-later strict release as a production acceptance candidate.
+14. Allow Cloudflare Pages to deploy only the validated public Score assets; premium HTML remains denied at the Pages perimeter.
+15. After a separately authorized member-asset publication step, mirror the validated premium HTML to private Supabase with exact commit/blob provenance.
+16. Run the read-only push-to-`main` reproduction attestation and the Saturday health checks. Only the successful push-to-`main` attestation can identify a 2026-08-28-or-later strict release as a production acceptance candidate.
 
 A generation, data-quality, test, validation, PR, merge, deployment, or attestation failure never authorizes weakening the methodology or publication contract.
 
