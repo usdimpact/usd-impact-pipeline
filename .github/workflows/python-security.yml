@@ -229,7 +229,8 @@ jobs:
               for vuln in vulns:
                   if not isinstance(vuln, dict):
                       raise SystemExit("Unexpected vulnerability entry in pip-audit JSON.")
-                  vuln_id = str(vuln.get("id", ""))
+                  raw_vuln_id = str(vuln.get("id", ""))
+                  vuln_id = advisory_aliases.get(raw_vuln_id, raw_vuln_id)
                   found.add((name, version, vuln_id))
                   fixes = vuln.get("fix_versions") or []
                   if (name, version, vuln_id) in expected:
