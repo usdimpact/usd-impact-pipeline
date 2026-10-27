@@ -32,6 +32,7 @@ Advantages:
 - small evidence volume.
 
 Current account evidence:
+- a fresh read-only project-environment metadata check on 2026-10-28 found no configured environment key matching Blob/R2/storage credentials on the USD Impact site project;
 - no `BLOB_READ_WRITE_TOKEN` is configured on the inspected USD Impact Vercel project;
 - no private Blob store was created or connected during this review.
 
@@ -54,8 +55,8 @@ Advantages:
 
 Current account evidence:
 - the connected Cloudflare identity has R2 read/write API scopes;
-- a read-only List Buckets call returned Cloudflare error 10042: **"Please enable R2 through the Cloudflare Dashboard."**
-- reconnecting will not fix that response according to the connector;
+- a fresh read-only List Buckets call on 2026-10-28 again returned Cloudflare error 10042: **"Please enable R2 through the Cloudflare Dashboard."**
+- the API explicitly reported that the existing connection already has the accepted R2 read/write permissions, so reconnecting will not fix this account-level refusal;
 - no bucket was created or changed.
 
 The known public-audio R2 context is therefore not available through the currently connected Cloudflare account/session and must not be assumed to be the same storage account.
