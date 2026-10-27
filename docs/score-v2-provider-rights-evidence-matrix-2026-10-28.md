@@ -79,7 +79,7 @@ Sources:
 - https://www.cboe.com/data/market-data-services/document-library
 - https://cdn.cboe.com/resources/membership/Market_Data_Policies_july2026.pdf
 
-Current Cboe policy materials state that usage depends on the selected data product and applicable policy/fees. The July 2026 policy states that delayed/end-of-day/historical subscribers who are exempt from a data agreement are not permitted to redistribute data externally other than to a named affiliate; index-data subscribers may require additional licensing depending on use/distribution.
+Current Cboe policy materials state that usage depends on the selected data product and applicable policy/fees. The July 2026 policy states that delayed/end-of-day/historical subscribers who are exempt from a data agreement are not permitted to redistribute data externally other than to a named affiliate; index-data subscribers may require additional licensing depending on use/distribution. Cboe's May 2026 amendment notice, effective July 1, 2026 for the North American Data Policies, also clarifies that Derived Data analogous to price data is treated as price data and is fee-liable at the underlying product rates.
 
 Relevant Score driver:
 - `^VIX`.
