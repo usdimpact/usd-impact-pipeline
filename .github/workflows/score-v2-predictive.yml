@@ -18,12 +18,35 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  rights-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      hold: ${{ steps.rights.outputs.hold }}
+    steps:
+      - name: Checkout current main
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: main
+
+      - name: Evaluate Score publication rights gate
+        id: rights
+        run: |
+          python -m scripts.score_publication_rights_gate --github-output "$GITHUB_OUTPUT"
+
+      - name: Record rights-review research hold
+        if: steps.rights.outputs.hold == 'true'
+        run: |
+          echo "Prospective research ingestion is HOLD under issue #155; no research record or PR will be written." >> "$GITHUB_STEP_SUMMARY"
+
   record:
+    needs: rights-gate
     if: >-
-      github.event_name == 'workflow_dispatch' ||
-      (github.event.workflow_run.conclusion == 'success' &&
-       github.event.workflow_run.event == 'push' &&
-       github.event.workflow_run.head_branch == 'main')
+      needs.rights-gate.outputs.hold != 'true' &&
+      (github.event_name == 'workflow_dispatch' ||
+       (github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.event == 'push' &&
+        github.event.workflow_run.head_branch == 'main'))
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
