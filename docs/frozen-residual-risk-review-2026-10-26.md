@@ -73,6 +73,7 @@ The frozen lock and isolation boundary are unchanged, but the upstream vulnerabi
 - The active online runtime remains on Pillow 13.0.0, where both findings are fixed.
 - The root `requirements.lock` hash remains `a4c6fb90909a04eb267057d3e31049c7fc38b12e8a7d556e79c0141aa0d52db6`.
 - The existing residual-risk acceptance expiry remains **2026-11-05**. This review does not extend it.
+- The CI exact-match gate now canonicalizes only these three verified PySec aliases before comparison: `PYSEC-2026-4326 -> CVE-2026-112392`, `PYSEC-2026-4327 -> CVE-2026-112394`, and `PYSEC-2026-4328 -> CVE-2026-112396`. No other advisory identifiers are normalized; any other added, removed, or changed finding still fails closed.
 
 References:
 - https://github.com/python-pillow/Pillow/security/advisories/GHSA-4558-3h8r-v8xp
