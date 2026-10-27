@@ -29,6 +29,7 @@ jobs:
     outputs:
       action: ${{ steps.decision.outputs.action }}
       week: ${{ steps.decision.outputs.week }}
+      rights_hold: ${{ steps.rights.outputs.hold }}
 
     steps:
       - name: Checkout repo
@@ -36,8 +37,26 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Evaluate Score publication rights gate
+        id: rights
+        run: |
+          python -m scripts.score_publication_rights_gate --github-output "$GITHUB_OUTPUT"
+
+      - name: Record rights-review publication hold
+        if: steps.rights.outputs.hold == 'true'
+        run: |
+          {
+            echo "### Weekly USD Impact publication HOLD"
+            echo
+            echo "- Rights gate: **HOLD**"
+            echo "- Issue: `${{ steps.rights.outputs.issue }}`"
+            echo "- Reason: `${{ steps.rights.outputs.reason }}`"
+            echo "- Result: no provider retrieval, generated write, branch push or publication PR."
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Decide whether the expected week is already immutable
         id: decision
+        if: steps.rights.outputs.hold != 'true'
         run: |
           python -m scripts.weekly_publication_preflight \
             --root . \
@@ -56,7 +75,7 @@ jobs:
 
   run-pipeline:
     needs: preflight
-    if: needs.preflight.outputs.action == 'generate'
+    if: needs.preflight.outputs.rights_hold != 'true' && needs.preflight.outputs.action == 'generate'
     runs-on: ubuntu-latest
     timeout-minutes: 30
 

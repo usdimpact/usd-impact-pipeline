@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "state": "hold",
+  "effective_date": "2026-10-28",
+  "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
+  "reason": "Public Score artifacts currently expose provider-derived component values and transformations whose redistribution rights are under review.",
+  "scope": [
+    "weekly_score_publication_generation",
+    "weekly_recovery_dispatch",
+    "scheduled_research_publication_generation"
+  ],
+  "resume_requires": [
+    "provider_or_counsel_disposition",
+    "approved_public_artifact_schema",
+    "approved_private_evidence_boundary_or_explicit_permission",
+    "separate_production_authorization"
+  ],
+  "decision_receipt": null,
+  "approved_by": null
+}
