@@ -13,15 +13,13 @@ from __future__ import annotations
 
 import hashlib
 import json
-from dataclasses import dataclass
+from typing import Any, NamedTuple
 from pathlib import Path
-from typing import Any
 
 from scripts import build_score_repro_bundle as repro
 
 
-@dataclass(frozen=True)
-class PrivateEvidenceBundle:
+class PrivateEvidenceBundle(NamedTuple):
     week: str
     bundle: dict[str, Any]
     sha256: str
