@@ -7,6 +7,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from scripts import materialize_private_score_evidence as private
+from scripts import build_synthetic_private_score_evidence as synthetic
 from usd_impact_score_v2 import WEIGHTS
 
 
@@ -249,6 +250,46 @@ class PrivateScoreEvidenceHandoffTests(unittest.TestCase):
         self._write_evidence()
         with self.assertRaisesRegex(RuntimeError, "outside the repository"):
             private._require_outside_repo(private.REPO_ROOT / "public", "test")
+
+
+    def test_synthetic_fixture_is_provider_free_and_handoff_compatible(self) -> None:
+        synthetic_root = self.root / "synthetic"
+        report = synthetic.build(synthetic_root)
+        self.assertIs(report["synthetic_rehearsal"], True)
+        self.assertIs(report["do_not_publish"], True)
+        self.assertIs(report["provider_derived_values"], False)
+        self.assertEqual(report["latest_week"], synthetic.LATEST_WEEK)
+
+        latest = json.loads(
+            (synthetic_root / "score_repro_bundle_latest.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        self.assertIs(latest["synthetic_rehearsal"], True)
+        self.assertIs(latest["do_not_publish"], True)
+        self.assertNotIn("source_provider", json.dumps(latest))
+        self.assertNotIn("source_url", json.dumps(latest))
+
+        staged_receipt = self.root / "synthetic-receipt.json"
+        staged = private.stage(synthetic_root, self.worktree, staged_receipt)
+        self.assertEqual(staged["latest_week"], synthetic.LATEST_WEEK)
+        cleanup = private.cleanup(self.worktree, staged_receipt)
+        self.assertEqual(cleanup["removed_files"], 3)
+
+    def test_synthetic_fixture_refuses_nonempty_output_root(self) -> None:
+        synthetic_root = self.root / "synthetic"
+        synthetic_root.mkdir()
+        (synthetic_root / "keep.txt").write_text("keep", encoding="utf-8")
+        with self.assertRaisesRegex(RuntimeError, "must be empty"):
+            synthetic.build(synthetic_root)
+        self.assertEqual(
+            (synthetic_root / "keep.txt").read_text(encoding="utf-8"),
+            "keep",
+        )
+
+    def test_synthetic_fixture_refuses_repository_output(self) -> None:
+        with self.assertRaisesRegex(RuntimeError, "outside the repository"):
+            synthetic.build(private.REPO_ROOT / "synthetic-private-evidence-test")
 
 
 if __name__ == "__main__":
