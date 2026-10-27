@@ -32,6 +32,11 @@ MARKER_NAME = ".private-score-evidence-worktree"
 MARKER_VALUE = "score-private-evidence-ephemeral-v1\n"
 RECEIPT_VERSION = "score-private-evidence-receipt-v1"
 WEEK_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+LATEST_DESTINATION = Path("public/data/score_repro_bundle_latest.json")
+ARCHIVE_DESTINATION_RE = re.compile(
+    r"^public/archive/(\d{4}-\d{2}-\d{2})/repro_bundle\.json$"
+)
 
 
 def sha256_bytes(raw: bytes) -> str:
