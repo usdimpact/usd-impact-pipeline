@@ -33,8 +33,8 @@ The safe engineering default is therefore:
 | VIX | Yahoo Finance via yfinance | `^VIX` | Yahoo terms + Cboe index-data rights apply | HOLD for public per-driver values/derivatives |
 | BTC | Yahoo Finance via yfinance | `BTC-USD` | Yahoo/service terms; underlying venue/provider chain still requires confirmation | HOLD for public per-driver values/derivatives |
 | GOLD | Yahoo Finance via yfinance | `GC=F` | Yahoo terms + CME/COMEX futures data rights may apply | HOLD for public per-driver values/derivatives |
-| UST 2Y | FRED | `DGS2` | Federal Reserve/Treasury public-source treatment differs from proprietary market-data inputs | review separately; not assumed to share Yahoo/market-data restrictions |
-| UST 10Y | FRED | `DGS10` | Federal Reserve/Treasury public-source treatment differs from proprietary market-data inputs | review separately; not assumed to share Yahoo/market-data restrictions |
+| UST 2Y | FRED | `DGS2` | FRED identifies Board of Governors / H.15 and tags the series `Public Domain: Citation Requested`; FRED still directs users to series copyright notes before sharing | lower rights risk than proprietary market-data inputs; retain source-specific citation/terms review |
+| UST 10Y | FRED | `DGS10` | FRED identifies Board of Governors / H.15 and tags the series `Public Domain: Citation Requested`; FRED still directs users to series copyright notes before sharing | lower rights risk than proprietary market-data inputs; retain source-specific citation/terms review |
 
 ## Current public evidence reviewed
 
@@ -112,6 +112,26 @@ Engineering implication:
 Open decision:
 - determine whether the Score calculation is non-display, derived-data or another licensed use category;
 - determine whether aggregate-only public Score output avoids the relevant redistribution/derived-data concerns or still needs a license.
+
+## FRED / Federal Reserve H.15 Treasury series
+
+Sources:
+- https://fred.stlouisfed.org/series/DGS2
+- https://fred.stlouisfed.org/series/DGS10
+- https://fred.stlouisfed.org/docs/api/terms_of_use.html
+
+The exact `DGS2` and `DGS10` FRED pages identify the **Board of Governors of the Federal Reserve System (US)** as source and **H.15 Selected Interest Rates** as the release. FRED currently tags these series **Public Domain: Citation Requested**.
+
+FRED also displays a general sharing notice directing users to review series copyright information, and its API terms explain that FRED access does not override restrictions that may attach to third-party-owned series.
+
+Engineering implication:
+- `DGS2` / `DGS10` should not be grouped mechanically with Yahoo-delivered proprietary index/futures inputs;
+- their exact series metadata supports a lower-risk, source-specific treatment;
+- retain appropriate source citation and do not generalize this conclusion to other FRED series without checking that series' own ownership/notes.
+
+Open decision:
+- confirm the intended public/member/internal treatment for these two exact H.15 series in the final rights disposition;
+- preserve the FRED/Federal Reserve attribution requested by the source metadata.
 
 ## Important chain-of-rights limitation
 
