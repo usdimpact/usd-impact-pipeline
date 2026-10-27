@@ -162,8 +162,14 @@ No predictive protocol, holdout definition or Score v3 frozen research rule may 
 
 - [x] Create governance issue #155.
 - [x] Inventory principal current public value surfaces.
-- [ ] Inventory every repository-visible research/prospective file that contains provider-derived weekly levels.
-- [ ] Record all code paths that read public per-driver fields.
+- [x] Inventory repository-visible research/prospective exposure at the current main:
+  - 8 `research/prospective/score_v3_shadow_*.json` records contain `source_weekly_levels` for all production drivers;
+  - 8 `research/predictive/score_v2_predictive_week_*.json` records contain `dxy_weekly_level`;
+  - dated public strict reproduction archives from the strict-release period expose provider/ticker/weekly-level evidence.
+- [x] Record principal code dependencies on public per-driver fields:
+  - Score v3 shadow ingestion and Score v2 predictive ingestion read strict reproduction bundles;
+  - predictive implementation contracts explicitly name `bundle.components.DXY.weekly_level`;
+  - weekly publication preflight, independent replication and post-merge attestation validate public strict bundles.
 - [ ] Provider/counsel decision record for Yahoo-delivered DXY/WTI/SPX/VIX/BTC/GOLD and underlying data owners.
 
 No Production change in Phase 0.
