@@ -83,8 +83,14 @@ class ScorePrivateEvidenceSourceTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             evidence = self._stage_private(root)
+            wrong_week = "2099-01-01"
+            wrong_archive = evidence / "archive" / wrong_week / "repro_bundle.json"
+            wrong_archive.parent.mkdir(parents=True)
+            shutil.copyfile(PUBLIC_BUNDLE, wrong_archive)
+            latest = evidence / "latest" / "repro_bundle.json"
+            self.assertEqual(latest.read_bytes(), wrong_archive.read_bytes())
             with self.assertRaisesRegex(RuntimeError, "week differs from requested week"):
-                module.load_private_strict_bundle(root, evidence, "2099-01-01")
+                module.load_private_strict_bundle(root, evidence, wrong_week)
 
 
 if __name__ == "__main__":
