@@ -228,13 +228,15 @@ def _validate_receipt(receipt: Any) -> dict[str, Any]:
 def _write_receipt(path: Path, receipt: dict[str, Any]) -> None:
     _validate_receipt(receipt)
     path.parent.mkdir(parents=True, exist_ok=True)
+    created = False
     try:
         with path.open("x", encoding="utf-8") as handle:
+            created = True
             json.dump(receipt, handle, indent=2, sort_keys=True)
             handle.write("\n")
             handle.flush()
     except Exception:
-        if path.exists():
+        if created and path.exists():
             path.unlink()
         raise
 
