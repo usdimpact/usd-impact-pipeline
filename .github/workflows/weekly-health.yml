@@ -25,8 +25,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
+      - name: Evaluate Score publication rights gate
+        id: rights
+        run: |
+          python -m scripts.score_publication_rights_gate --github-output "$GITHUB_OUTPUT"
+
+      - name: Record rights-review health hold
+        if: steps.rights.outputs.hold == 'true'
+        run: |
+          echo "Weekly freshness health is intentionally paused under issue #155; no stale-publication incident will be opened or closed while the rights hold is active." >> "$GITHUB_STEP_SUMMARY"
+
       - name: Check workflow, data, and dashboards
         id: health
+        if: steps.rights.outputs.hold != 'true'
         continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -39,7 +50,7 @@ jobs:
             --report weekly-health-report.md
 
       - name: Open or update health issue
-        if: steps.health.outcome == 'failure'
+        if: steps.rights.outputs.hold != 'true' && steps.health.outcome == 'failure'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_TITLE: Weekly USD Impact pipeline requires attention
@@ -64,7 +75,7 @@ jobs:
           fi
 
       - name: Close recovered health issue
-        if: steps.health.outcome == 'success'
+        if: steps.rights.outputs.hold != 'true' && steps.health.outcome == 'success'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_TITLE: Weekly USD Impact pipeline requires attention
