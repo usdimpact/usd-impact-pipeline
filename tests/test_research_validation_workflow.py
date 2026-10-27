@@ -24,9 +24,17 @@ class ResearchValidationWorkflowTests(unittest.TestCase):
         self.assertIn("- 'public/data/usd_impact_score_v2.json'", workflow)
         self.assertIn('Check upstream weekly release readiness', workflow)
         self.assertIn("ready = current_week == expected_week", workflow)
-        self.assertIn("if: steps.upstream.outputs.ready != 'true'", workflow)
+        self.assertIn(
+            "if: steps.rights.outputs.hold != 'true' && "
+            "steps.upstream.outputs.ready != 'true'",
+            workflow,
+        )
         self.assertIn('Research publication deferred:', workflow)
-        self.assertIn("if: steps.upstream.outputs.ready == 'true'", workflow)
+        self.assertIn(
+            "if: steps.rights.outputs.hold != 'true' && "
+            "steps.upstream.outputs.ready == 'true'",
+            workflow,
+        )
 
     def test_research_failure_remains_visible_and_fail_closed_once_upstream_is_ready(self):
         workflow = Path('.github/workflows/research-validation.yml').read_text(encoding='utf-8')
