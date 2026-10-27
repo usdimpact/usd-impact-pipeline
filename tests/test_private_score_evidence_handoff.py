@@ -200,6 +200,30 @@ class PrivateScoreEvidenceHandoffTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "invalid private evidence receipt"):
             private.cleanup(self.worktree, self.receipt)
 
+    def test_receipt_exclusive_create_never_deletes_existing_file(self) -> None:
+        existing = "owned by another process\n"
+        self.receipt.write_text(existing, encoding="utf-8")
+        receipt = {
+            "schema_version": private.RECEIPT_VERSION,
+            "latest_week": "2026-10-23",
+            "archive_count": 1,
+            "files": [
+                {
+                    "path": private.LATEST_DESTINATION.as_posix(),
+                    "sha256": "1" * 64,
+                },
+                {
+                    "path": "public/archive/2026-10-23/repro_bundle.json",
+                    "sha256": "2" * 64,
+                },
+            ],
+            "provider_derived_values_in_receipt": False,
+            "worktree_contract": "ephemeral-private-evidence-only",
+        }
+        with self.assertRaises(FileExistsError):
+            private._write_receipt(self.receipt, receipt)
+        self.assertEqual(self.receipt.read_text(encoding="utf-8"), existing)
+
     def test_receipt_schema_is_closed_and_hash_only(self) -> None:
         schema = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
         self.assertIs(schema["additionalProperties"], False)
