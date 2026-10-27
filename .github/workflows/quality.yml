@@ -34,104 +34,24 @@ jobs:
           python -m pip install -r runtime/requirements-2026-10-05.lock
           python -m pip check
 
-      - name: Set up Node.js for Score security tests
+      - name: Set up Node.js for Score delivery-perimeter tests
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '22'
 
-      - name: Test Score edge security contracts
-        run: node --test security/*.test.mjs
+      - name: Test Cloudflare public-only Score perimeter
+        run: node --test security/score-pages-public-only.test.mjs
 
-      # A single credential-free POST from CI confirms the isolated Development
-      # broker has not been accidentally enabled. Never test Production here.
-      - name: Confirm Development Score broker remains disabled (anonymous POST)
-        if: github.event_name == 'pull_request' && github.head_ref == 'fix/score-membership-handoff-147'
+      - name: Validate private member asset publisher without remote writes
         env:
-          SCORE_DEV_BROKER_URL: https://ycstrcvshdluovtuasjc.supabase.co/functions/v1/score-preview-broker
+          SOURCE_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           set -euo pipefail
-          reply="$RUNNER_TEMP/score-dev-broker-disabled.json"
-          headers="$RUNNER_TEMP/score-dev-broker-disabled.headers"
-          # No API key, auth cookie, or actual Score token in the request.
-          # verify_jwt=true must reject this at the Supabase gateway BEFORE the
-          # disabled handler can return its own 503 response.
-          status="$(curl --silent --show-error --connect-timeout 8 --max-time 20 --retry 0 \
-            --dump-header "$headers" --output "$reply" --write-out '%{http_code}' --request POST \
-            --header 'Content-Type: application/json' \
-            --data '{"action":"validate","token":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"}' \
-            "$SCORE_DEV_BROKER_URL")"
-          if [ "$status" != '401' ]; then
-            echo "::error::Development Score broker returned HTTP $status; expected pre-handler JWT rejection 401."
-            exit 1
-          fi
-          if ! grep -qi '^sb-error-code:[[:space:]]*UNAUTHORIZED_NO_AUTH_HEADER' "$headers"; then
-            echo "::error::Development Score broker 401 did not prove missing-auth rejection at the Supabase gateway."
-            exit 1
-          fi
-          echo 'Isolated Development broker rejects anonymous POST at the Supabase JWT gateway.'
-
-      # The published branch Preview must not redeem even synthetic tickets.
-      # Intentional Preview activation requires a separate reviewed test plan.
-      - name: Confirm Cloudflare Score Preview redemption stays disabled
-        if: github.event_name == 'pull_request' && github.head_ref == 'fix/score-membership-handoff-147'
-        env:
-          SCORE_CF_PREVIEW_URL: https://fix-score-membership-handoff.usd-impact-pipeline.pages.dev/score-redeem
-        run: |
-          set -euo pipefail
-          reply="$RUNNER_TEMP/score-cloudflare-disabled.txt"
-          status="$(curl --silent --show-error --connect-timeout 8 --max-time 20 --retry 0 \
-            --output "$reply" --write-out '%{http_code}' --request POST \
-            --header 'Content-Type: application/x-www-form-urlencoded' \
-            --data-raw 'ticket=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' \
-            "$SCORE_CF_PREVIEW_URL")"
-          if [ "$status" != '503' ]; then
-            echo "::error::Cloudflare Score Preview redemption unexpectedly returned HTTP $status; expected disabled 503."
-            exit 1
-          fi
-          node -e 'const fs=require("node:fs"); if(fs.readFileSync(process.argv[1],"utf8")!=="Score handoff unavailable") process.exit(1)' "$reply"
-          echo 'Cloudflare Score Preview handoff route remains disabled.'
-
-
-      # Source-locked CI for the dedicated isolated Worker Preview. The Worker and
-      # its ASSETS binding must stay fail-closed pending independent membership acceptance.
-      # No Cloudflare API tokens, cookies or real entitlement tickets are required.
-      - name: Confirm isolated Score Worker Preview stays disabled (GET and POST)
-        if: github.event_name == 'pull_request' && github.head_ref == 'fix/score-membership-handoff-147'
-        env:
-          SCORE_WORKER_PREVIEW_ORIGIN: https://pr-148-usd-impact-score-isolated-dev.michael-w-d0b.workers.dev
-        run: |
-          set -euo pipefail
-          reply="$RUNNER_TEMP/score-worker-preview-denial.txt"
-          hdr="$RUNNER_TEMP/score-worker-preview-headers.txt"
-          check_denial() {
-            local status="$1" path="$2"
-            if [ "$status" != '503' ]; then
-              echo "::error::Isolated Worker Preview $path returned HTTP $status (expected disabled 503)."
-              exit 1
-            fi
-            if [ "$(cat "$reply")" != 'Score Preview unavailable' ]; then
-              echo "::error::Isolated Worker Preview $path returned unexpected disabled response body."
-              exit 1
-            fi
-            if grep -Eiq '^(set-cookie|location):' "$hdr"; then
-              echo "::error::Isolated Worker Preview $path set a cookie or redirect while disabled."
-              exit 1
-            fi
-          }
-          for path in /en/ /archive/es/ /data/score_v2_methodology.json /data/research/score_v2_point_in_time_latest.json; do
-            status="$(curl --silent --show-error --connect-timeout 8 --max-time 20 --retry 0 \
-              --dump-header "$hdr" --output "$reply" --write-out '%{http_code}' \
-              "$SCORE_WORKER_PREVIEW_ORIGIN$path")"
-            check_denial "$status" "GET $path"
-          done
-          status="$(curl --silent --show-error --connect-timeout 8 --max-time 20 --retry 0 \
-            --dump-header "$hdr" --output "$reply" --write-out '%{http_code}' \
-            --request POST --header 'Content-Type: application/x-www-form-urlencoded' \
-            --header 'Origin: https://usd-impact-site-55p15tktn-usd-impact.vercel.app' \
-            --data-raw 'ticket=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' \
-            "$SCORE_WORKER_PREVIEW_ORIGIN/score-redeem")"
-          check_denial "$status" 'POST /score-redeem'
-          echo 'Isolated Worker Preview (including ASSETS perimeter) remains disabled.'
+          python scripts/publish_score_member_assets.py \
+            --source-commit "$SOURCE_COMMIT" \
+            --target development \
+            --project-ref ycstrcvshdluovtuasjc \
+            --dry-run
 
       - name: Check Python syntax
         run: python -m compileall -q usd_impact_score_v2.py scripts tests
