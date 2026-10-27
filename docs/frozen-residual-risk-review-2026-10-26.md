@@ -61,6 +61,26 @@ References:
 - https://pillow.readthedocs.io/en/stable/releasenotes/13.0.0.html
 - https://github.com/python-pillow/Pillow/security/advisories/GHSA-78g4-xqwv-q3g8
 
+
+### 27 October 2026 advisory-database refresh
+
+The frozen lock and isolation boundary are unchanged, but the upstream vulnerability database changed its Pillow finding identifiers. This triggered the intended fail-closed review gate.
+
+- `PYSEC-2026-4328` is the PySec identifier for the already-reviewed `CVE-2026-112396` / `GHSA-4rr5-89j8-mwwm` TIFF encoder use-after-free. The underlying vulnerability and the fix in Pillow 13.0.0 are unchanged; only the audit identifier emitted by the current feed changed.
+- `PYSEC-2026-4327` aliases `CVE-2026-112394` / `GHSA-4558-3h8r-v8xp`, a raw-decoder over-read reachable through `Image.frombytes()` or `Image.frombuffer()` with the `P;2L` or `P;4L` raw modes. Repository search confirms the frozen research code contains none of those calls or raw modes.
+- `PYSEC-2026-4326` aliases the already-reviewed `CVE-2026-112392` / `GHSA-27h8-gf7j-v5hc` zero-size-image rank-filter crash. The current audit feed changed the emitted identifier; the underlying issue, fix in Pillow 13.0.0, and frozen-boundary assessment are unchanged.
+- The reviewed frozen execution modes still do not open or decode image inputs and do not render charts. The only repository `BytesIO` use in the active Score generator is Matplotlib PNG output, not TIFF encoding.
+- The active online runtime remains on Pillow 13.0.0, where both findings are fixed.
+- The root `requirements.lock` hash remains `a4c6fb90909a04eb267057d3e31049c7fc38b12e8a7d556e79c0141aa0d52db6`.
+- The existing residual-risk acceptance expiry remains **2026-11-05**. This review does not extend it.
+- The CI exact-match gate now canonicalizes only these three verified PySec aliases before comparison: `PYSEC-2026-4326 -> CVE-2026-112392`, `PYSEC-2026-4327 -> CVE-2026-112394`, and `PYSEC-2026-4328 -> CVE-2026-112396`. No other advisory identifiers are normalized; any other added, removed, or changed finding still fails closed.
+
+References:
+- https://github.com/python-pillow/Pillow/security/advisories/GHSA-4558-3h8r-v8xp
+- https://github.com/python-pillow/Pillow/security/advisories/GHSA-27h8-gf7j-v5hc
+- https://github.com/python-pillow/Pillow/security/advisories/GHSA-4rr5-89j8-mwwm
+- https://github.com/python-pillow/Pillow/blob/main/docs/releasenotes/13.0.0.rst
+
 ## Acceptance boundary
 
 Residual acceptance applies only while all of these remain true:

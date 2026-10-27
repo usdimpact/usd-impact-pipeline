@@ -172,6 +172,7 @@ jobs:
               ("pillow", "12.3.0", "CVE-2026-112392"),
               ("pillow", "12.3.0", "CVE-2026-112393"),
               ("pillow", "12.3.0", "CVE-2026-112395"),
+              ("pillow", "12.3.0", "CVE-2026-112394"),
               ("pillow", "12.3.0", "CVE-2026-112396"),
               ("pillow", "12.3.0", "CVE-2026-112397"),
               ("pillow", "12.3.0", "CVE-2026-112398"),
@@ -205,6 +206,11 @@ jobs:
               ("pillow", "12.3.0", "CVE-2026-96778"),
               ("pillow", "12.3.0", "GHSA-78g4-xqwv-q3g8"),
           }
+          advisory_aliases = {
+              "PYSEC-2026-4326": "CVE-2026-112392",
+              "PYSEC-2026-4327": "CVE-2026-112394",
+              "PYSEC-2026-4328": "CVE-2026-112396",
+          }
           found = set()
           reviewed_fixes = {
               "urllib3": {"2.8.0"},
@@ -223,7 +229,8 @@ jobs:
               for vuln in vulns:
                   if not isinstance(vuln, dict):
                       raise SystemExit("Unexpected vulnerability entry in pip-audit JSON.")
-                  vuln_id = str(vuln.get("id", ""))
+                  raw_vuln_id = str(vuln.get("id", ""))
+                  vuln_id = advisory_aliases.get(raw_vuln_id, raw_vuln_id)
                   found.add((name, version, vuln_id))
                   fixes = vuln.get("fix_versions") or []
                   if (name, version, vuln_id) in expected:
