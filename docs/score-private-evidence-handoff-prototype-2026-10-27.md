@@ -40,9 +40,12 @@ The helper fails closed when:
 - any bundle has the wrong driver set/week;
 - a destination evidence file already exists;
 - a staged file changes before cleanup;
-- the receipt is placed inside repository/worktree/evidence paths.
+- the receipt is placed inside repository/worktree/evidence paths;
+- receipt writing fails after staging — staged evidence is hash-guard rolled back;
+- receipt structure, file hashes, archive count, latest-week archive, or approved destination paths are tampered;
+- cleanup is given an arbitrary `public/data/*` path rather than the exact reviewed latest/archive bundle paths.
 
-The receipt contains only paths, SHA-256 hashes, latest week, archive count and contract metadata. It intentionally contains no component values.
+The receipt contains only paths, SHA-256 hashes, latest week, archive count and contract metadata. It intentionally contains no component values. Cleanup validates the full closed receipt contract before considering any deletion, so a modified receipt cannot expand the deletion surface beyond the exact reviewed Score evidence paths.
 
 ## Why archive history is staged
 
