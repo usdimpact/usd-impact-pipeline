@@ -4,6 +4,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from scripts import materialize_private_score_evidence as private
 from usd_impact_score_v2 import WEIGHTS
@@ -137,6 +138,67 @@ class PrivateScoreEvidenceHandoffTests(unittest.TestCase):
         self.assertFalse(
             (self.worktree / "public/archive/2026-10-23/repro_bundle.json").exists()
         )
+
+    def test_receipt_write_failure_rolls_back_all_staged_evidence(self) -> None:
+        self._write_evidence()
+        with patch.object(
+            private,
+            "_write_receipt",
+            side_effect=OSError("synthetic receipt write failure"),
+        ):
+            with self.assertRaisesRegex(OSError, "synthetic receipt write failure"):
+                private.stage(self.evidence, self.worktree, self.receipt)
+
+        self.assertFalse(self.receipt.exists())
+        self.assertFalse(
+            (self.worktree / "public/data/score_repro_bundle_latest.json").exists()
+        )
+        self.assertFalse(
+            (self.worktree / "public/archive/2026-10-16/repro_bundle.json").exists()
+        )
+        self.assertFalse(
+            (self.worktree / "public/archive/2026-10-23/repro_bundle.json").exists()
+        )
+
+    def test_cleanup_rejects_tampered_receipt_path_before_deletion(self) -> None:
+        self._write_evidence()
+        private.stage(self.evidence, self.worktree, self.receipt)
+        latest = self.worktree / "public/data/score_repro_bundle_latest.json"
+        unrelated = self.worktree / "public/data/unrelated.json"
+        unrelated.write_bytes(latest.read_bytes())
+
+        receipt = json.loads(self.receipt.read_text(encoding="utf-8"))
+        receipt["files"][0]["path"] = "public/data/unrelated.json"
+        receipt["files"][0]["sha256"] = private.sha256_bytes(unrelated.read_bytes())
+        self.receipt.write_text(
+            json.dumps(receipt, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+
+        with self.assertRaisesRegex(RuntimeError, "unapproved path"):
+            private.cleanup(self.worktree, self.receipt)
+        self.assertTrue(unrelated.exists())
+        self.assertTrue(latest.exists())
+
+    def test_cleanup_rejects_receipt_archive_count_mismatch(self) -> None:
+        self._write_evidence()
+        private.stage(self.evidence, self.worktree, self.receipt)
+        receipt = json.loads(self.receipt.read_text(encoding="utf-8"))
+        receipt["archive_count"] = 99
+        self.receipt.write_text(
+            json.dumps(receipt, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+
+        with self.assertRaisesRegex(RuntimeError, "archive_count does not match"):
+            private.cleanup(self.worktree, self.receipt)
+
+    def test_cleanup_wraps_malformed_receipt_as_runtime_error(self) -> None:
+        self._write_evidence()
+        private.stage(self.evidence, self.worktree, self.receipt)
+        self.receipt.write_text("{", encoding="utf-8")
+        with self.assertRaisesRegex(RuntimeError, "invalid private evidence receipt"):
+            private.cleanup(self.worktree, self.receipt)
 
     def test_receipt_schema_is_closed_and_hash_only(self) -> None:
         schema = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
