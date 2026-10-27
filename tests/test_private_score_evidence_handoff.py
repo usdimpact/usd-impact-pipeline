@@ -9,6 +9,9 @@ from scripts import materialize_private_score_evidence as private
 from usd_impact_score_v2 import WEIGHTS
 
 
+REPO_ROOT = Path(__file__).resolve().parents[1]
+SCHEMA_PATH = REPO_ROOT / "schemas" / "score_private_evidence_receipt.schema.json"
+
 BANDS = [
     {"low": 1.0, "high": None, "label": "Strong dollar regime"},
     {"low": 0.3, "high": 1.0, "label": "Firm dollar regime"},
@@ -133,6 +136,27 @@ class PrivateScoreEvidenceHandoffTests(unittest.TestCase):
         )
         self.assertFalse(
             (self.worktree / "public/archive/2026-10-23/repro_bundle.json").exists()
+        )
+
+    def test_receipt_schema_is_closed_and_hash_only(self) -> None:
+        schema = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
+        self.assertIs(schema["additionalProperties"], False)
+        self.assertEqual(
+            set(schema["properties"]),
+            {
+                "schema_version",
+                "latest_week",
+                "archive_count",
+                "files",
+                "provider_derived_values_in_receipt",
+                "worktree_contract",
+            },
+        )
+        file_properties = schema["properties"]["files"]["items"]["properties"]
+        self.assertEqual(set(file_properties), {"path", "sha256"})
+        self.assertIs(
+            schema["properties"]["files"]["items"]["additionalProperties"],
+            False,
         )
 
     def test_rejects_repo_paths_for_private_material(self) -> None:
