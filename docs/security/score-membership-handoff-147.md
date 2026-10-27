@@ -96,6 +96,30 @@ Its draft member route:
 - Anonymous member-route acceptance is expected to fail closed.
 - An authenticated browser test must use an explicitly approved Development QA account/session; do not impersonate or mutate a customer account merely to complete QA.
 
+## Final Preview acceptance — 2026-10-27
+
+Operator browser acceptance: **PASS**.
+
+Evidence set:
+
+- Website PR #836 head: `da50045cb3cc686aa27905a41a31f7fbef65259e`.
+- Pipeline PR #148 acceptance head before this evidence-only documentation commit: `2340085c290b517802d1bd38f96fd4178750e36b`.
+- Vercel feature Preview served the protected member routes under the USD Impact hostname, with Deployment Protection left enabled.
+- Authenticated Development QA fixture opened `/score/member/en` successfully and rendered the Weekly Score dashboard.
+- Refresh did not create an authentication loop.
+- Authenticated Development QA fixture opened `/score/member/archive/en` successfully and rendered the protected weekly archive.
+- Protected member navigation remained on the Vercel USD Impact Preview origin; no `workers.dev`, `pages.dev`, `score.usd-impact.com`, or Cloudflare redemption route was used.
+- The operator reported the full manual sequence PASS, including denial after sign-out.
+- Independent anonymous HTTP acceptance returned `401` for `/score/member/en` with the membership/sign-in denial page, `Cache-Control: private, no-store`, `X-Robots-Tag: noindex, nofollow`, and `Vary: Cookie`.
+- Development `score_member_assets` contained 56 private HTML assets from one reviewed source commit, with valid source blob SHAs.
+- The retired Development Supabase `score-preview-broker` was replaced by a JWT-protected tombstone that always returns `410 SCORE_PREVIEW_BROKER_RETIRED`.
+- Cloudflare Pages remains public-only and denies premium Score HTML.
+- No Production merge, promotion, DNS/domain change, Production entitlement mutation, or Production authorization activation was part of this acceptance.
+
+Preview decision: **GO** for the Vercel + Supabase authorization architecture.
+
+Production decision: **HOLD** pending a separate release review and explicit Production authorization.
+
 ## Release and rollback
 
 - Both companion PRs stay draft/unmerged until a separate release decision.
