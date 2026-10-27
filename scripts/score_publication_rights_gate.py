@@ -42,12 +42,19 @@ def _https_github_url(value: Any) -> bool:
         parsed = urlparse(value)
     except ValueError:
         return False
+    fragment_ok = (
+        not parsed.fragment
+        or (
+            bool(COMMENTABLE_PATH_RE.fullmatch(parsed.path))
+            and bool(ISSUE_COMMENT_RE.fullmatch(parsed.fragment))
+        )
+    )
     return (
         parsed.scheme == "https"
         and parsed.hostname == "github.com"
         and not parsed.username
         and not parsed.password
-        and not parsed.fragment
+        and fragment_ok
         and parsed.path.startswith("/usdimpact/usd-impact-pipeline/")
     )
 
