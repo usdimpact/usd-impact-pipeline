@@ -33,6 +33,8 @@ REQUIRED_RESUME = {
 }
 ISSUE_URL = "https://github.com/usdimpact/usd-impact-pipeline/issues/155"
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+ISSUE_COMMENT_RE = re.compile(r"^issuecomment-\d+$")
+COMMENTABLE_PATH_RE = re.compile(r"^/usdimpact/usd-impact-pipeline/(?:issues|pull)/\d+$")
 
 
 def _https_github_url(value: Any) -> bool:
