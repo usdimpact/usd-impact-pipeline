@@ -51,6 +51,21 @@ The receipt contains only paths, SHA-256 hashes, latest week, archive count and 
 
 Score v2 predictive validation rechecks prior immutable bundle hashes, not just the latest bundle. Therefore a safe private evidence boundary must preserve every archived strict bundle required by the frozen study, byte-for-byte.
 
+## Synthetic rehearsal fixture
+
+The draft now includes `scripts/build_synthetic_private_score_evidence.py` for future storage/handoff rehearsals while issue #155 remains unresolved.
+
+The fixture:
+- performs no network/provider retrieval;
+- uses fixed far-future synthetic Friday weeks;
+- contains explicit `synthetic_rehearsal: true` and `do_not_publish: true` markers;
+- contains no provider/source fields;
+- must be written outside the repository to an empty target;
+- produces the same latest/archive byte relationship required by this handoff;
+- can be staged and hash-cleaned by this prototype without using real provider-derived evidence.
+
+It is intentionally **not** a production release bundle and must never be substituted for a weekly publication artifact.
+
 ## Non-goals
 
 This prototype does not:
