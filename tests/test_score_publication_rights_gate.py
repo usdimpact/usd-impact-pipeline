@@ -86,6 +86,15 @@ class ScorePublicationRightsGateTests(unittest.TestCase):
         self.assertFalse(result["hold"])
         self.assertEqual(result["state"], "allow")
 
+        policy["decision_receipt"] = (
+            "https://github.com/usdimpact/usd-impact-pipeline/issues/155#not-a-comment"
+        )
+        result = evaluate_policy(policy)
+        self.assertTrue(result["hold"])
+        self.assertEqual(
+            result["reason"], "allow-policy-missing-valid-decision-receipt"
+        )
+
     def test_github_output_is_boolean_and_bounded(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "output"
