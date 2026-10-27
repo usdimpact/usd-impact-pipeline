@@ -158,6 +158,87 @@ def _require_receipt_path(path: Path, worktree_root: Path, evidence_root: Path) 
     return receipt
 
 
+def _validate_receipt(receipt: Any) -> dict[str, Any]:
+    if not isinstance(receipt, dict):
+        raise RuntimeError("private evidence receipt must be an object")
+    expected_keys = {
+        "schema_version",
+        "latest_week",
+        "archive_count",
+        "files",
+        "provider_derived_values_in_receipt",
+        "worktree_contract",
+    }
+    if set(receipt) != expected_keys:
+        raise RuntimeError("private evidence receipt has unexpected fields")
+    if receipt.get("schema_version") != RECEIPT_VERSION:
+        raise RuntimeError("unsupported private evidence receipt")
+    latest_week = receipt.get("latest_week")
+    if not isinstance(latest_week, str) or not WEEK_RE.fullmatch(latest_week):
+        raise RuntimeError("private evidence receipt has invalid latest_week")
+    archive_count = receipt.get("archive_count")
+    if (
+        not isinstance(archive_count, int)
+        or isinstance(archive_count, bool)
+        or archive_count < 1
+    ):
+        raise RuntimeError("private evidence receipt has invalid archive_count")
+    if receipt.get("provider_derived_values_in_receipt") is not False:
+        raise RuntimeError("private evidence receipt value boundary is invalid")
+    if receipt.get("worktree_contract") != "ephemeral-private-evidence-only":
+        raise RuntimeError("private evidence receipt worktree contract is invalid")
+
+    files = receipt.get("files")
+    if not isinstance(files, list) or not files:
+        raise RuntimeError("private evidence receipt has no staged files")
+
+    seen: set[str] = set()
+    archive_weeks: list[str] = []
+    latest_seen = 0
+    for item in files:
+        if not isinstance(item, dict) or set(item) != {"path", "sha256"}:
+            raise RuntimeError("private evidence receipt file entry is invalid")
+        path = item.get("path")
+        expected_hash = item.get("sha256")
+        if not isinstance(path, str) or path in seen:
+            raise RuntimeError("private evidence receipt file path is invalid or duplicated")
+        if not isinstance(expected_hash, str) or not SHA256_RE.fullmatch(expected_hash):
+            raise RuntimeError("private evidence receipt file hash is invalid")
+        seen.add(path)
+
+        if path == LATEST_DESTINATION.as_posix():
+            latest_seen += 1
+            continue
+        match = ARCHIVE_DESTINATION_RE.fullmatch(path)
+        if match is None:
+            raise RuntimeError("private evidence receipt contains an unapproved path")
+        archive_weeks.append(match.group(1))
+
+    if latest_seen != 1:
+        raise RuntimeError("private evidence receipt must contain exactly one latest bundle")
+    if len(archive_weeks) != archive_count:
+        raise RuntimeError("private evidence receipt archive_count does not match files")
+    if archive_weeks.count(latest_week) != 1:
+        raise RuntimeError(
+            "private evidence receipt must contain exactly one archive for latest_week"
+        )
+    return receipt
+
+
+def _write_receipt(path: Path, receipt: dict[str, Any]) -> None:
+    _validate_receipt(receipt)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        with path.open("x", encoding="utf-8") as handle:
+            json.dump(receipt, handle, indent=2, sort_keys=True)
+            handle.write("\n")
+            handle.flush()
+    except Exception:
+        if path.exists():
+            path.unlink()
+        raise
+
+
 def stage(
     evidence_root_arg: Path,
     worktree_root_arg: Path,
@@ -171,7 +252,7 @@ def stage(
 
     latest, latest_week, archives = discover_evidence(evidence_root)
     plan: list[tuple[Path, Path]] = [
-        (latest, Path("public/data/score_repro_bundle_latest.json"))
+        (latest, LATEST_DESTINATION)
     ]
     plan.extend(
         (
@@ -216,11 +297,14 @@ def stage(
         "provider_derived_values_in_receipt": False,
         "worktree_contract": "ephemeral-private-evidence-only",
     }
-    receipt_path.parent.mkdir(parents=True, exist_ok=True)
-    receipt_path.write_text(
-        json.dumps(receipt, indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
-    )
+    try:
+        _write_receipt(receipt_path, receipt)
+    except Exception:
+        for item in reversed(staged):
+            target = _safe_destination(worktree_root, Path(item["path"]))
+            if target.exists() and sha256_bytes(target.read_bytes()) == item["sha256"]:
+                target.unlink()
+        raise
     return receipt
 
 
@@ -229,13 +313,12 @@ def cleanup(worktree_root_arg: Path, receipt_arg: Path) -> dict[str, Any]:
     receipt_path = _require_outside_repo(receipt_arg, "receipt path")
     if receipt_path == worktree_root or _is_relative_to(receipt_path, worktree_root):
         raise RuntimeError("receipt must remain outside the ephemeral worktree")
-    receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
-    if receipt.get("schema_version") != RECEIPT_VERSION:
-        raise RuntimeError("unsupported private evidence receipt")
-
-    files = receipt.get("files")
-    if not isinstance(files, list) or not files:
-        raise RuntimeError("private evidence receipt has no staged files")
+    try:
+        receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise RuntimeError(f"invalid private evidence receipt: {exc}") from exc
+    receipt = _validate_receipt(receipt)
+    files = receipt["files"]
 
     targets: list[Path] = []
     for item in files:
