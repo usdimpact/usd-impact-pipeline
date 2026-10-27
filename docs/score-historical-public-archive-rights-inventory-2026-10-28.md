@@ -86,16 +86,23 @@ No strict reproduction bundle was found in the indexed archive for 2026-08-21 or
 
 ### 4. Rendered HTML
 
-Each indexed prior edition has English and Spanish archive pages. The current edition also has dated English/Spanish pages plus current English/Spanish dashboard paths.
+Each indexed prior edition has English and Spanish archive HTML files in the repository. The current edition also has dated English/Spanish HTML plus current English/Spanish dashboard files.
 
-Representative read-only checks confirm the rendered pages contain driver labels and component-level analytical presentation; English pages explicitly include z-score/contribution presentation.
+Repository-file inspection confirms those HTML files contain driver-level analytical presentation.
+
+However, a fresh read-only origin check on 2026-10-28 found that both approved public Score origins currently return **HTTP 403** for:
+- current `/en/` and `/es/` dashboard paths;
+- dated `/archive/2026-10-23/en.html` and `/archive/2026-10-23/es.html`;
+- archive index HTML paths.
+
+Therefore these HTML files are **present in the public Git repository but are not currently served anonymously by the Score Pages perimeter**.
 
 Inventory:
-- **24 dated weekly vintages × 2 languages = 48 archive HTML pages**;
-- plus the two current public language pages;
-- **50 served HTML paths** in scope for a component-level public-surface review.
+- **24 dated weekly vintages × 2 languages = 48 archive HTML files in the public repository tree**;
+- plus the two current language HTML files;
+- **50 repository HTML files**, but the tested current/archive HTML routes are currently denied with 403 at both branded and legacy origins.
 
-A JSON-only cleanup would therefore be incomplete.
+This distinction matters: HTML remains part of repository/history rights review, but the verified live anonymous serving exposure is currently the machine-readable JSON surface, not the protected dashboard HTML.
 
 ### 5. Git history
 
@@ -112,15 +119,40 @@ Historical Git treatment is a separate decision from current-tree/site treatment
 
 ## Exposure summary
 
-| Surface | Unique vintages | Current served paths | Component/provenance exposure |
-| --- | ---: | ---: | --- |
-| Score JSON | 24 | 25 | per-driver z fields; recent provenance |
-| Weekly input JSON | 14 | 15 | driver z/weight/contribution; recent provenance |
-| Strict reproduction bundle | 9 | 10 | weekly levels, normalization, fingerprints/provenance |
-| EN/ES HTML | 24 | 50 | rendered component analysis |
-| Git history | historical | repository-wide | prior versions remain reachable unless rewritten |
+| Surface | Unique vintages | Current anonymous serving state | Component/provenance exposure |
+| --- | ---: | --- | --- |
+| Score JSON | 24 | public; current + dated paths verified live | per-driver z fields; recent provenance |
+| Weekly input JSON | 14 | public; current + dated paths verified live | driver z/weight/contribution; recent provenance |
+| Strict reproduction bundle | 9 | public; current + dated paths verified live | weekly levels, normalization, fingerprints/provenance |
+| EN/ES HTML | 24 | repository files exist; tested current/archive routes return 403 | rendered component analysis exists in Git tree |
+| Git history | historical | public repository history | prior versions remain reachable unless rewritten |
 
 Counts are a current-tree inventory, not a legal conclusion.
+
+## Live-origin verification — 2026-10-28
+
+A fresh anonymous, read-only fetch verified that the following machine-readable paths are currently reachable at the branded Score origin:
+
+- current Score JSON;
+- current weekly-input JSON;
+- current strict reproduction bundle;
+- dated 2026-10-23 Score JSON;
+- dated 2026-10-23 weekly-input JSON;
+- dated 2026-10-23 strict reproduction bundle.
+
+The legacy `pages.dev` origin also returned the current Score JSON directly.
+
+Structural inspection of those live responses confirmed:
+- component/driver names are present;
+- source-provenance metadata is present in current Score/weekly-input/reproduction responses;
+- weekly-input responses contain z/contribution fields;
+- strict reproduction responses contain component and contribution-level evidence.
+
+No provider-derived numeric values are reproduced in this inventory.
+
+By contrast, current/archive EN/ES HTML requests returned HTTP 403 at both origins, consistent with the protected dashboard perimeter.
+
+This live check changes the risk priority: **machine-readable JSON is the verified anonymous serving surface that requires first treatment if aggregate-only containment is approved**.
 
 ## Treatment options
 
@@ -146,7 +178,7 @@ After approved private-evidence migration:
 - replace dated archive `score.json` with aggregate-only date/score/regime history appropriate to each vintage;
 - replace/remove public `weekly_input.json` driver/provenance fields;
 - remove public strict `repro_bundle.json` files after exact private copies are verified;
-- re-render EN/ES pages without component values/provenance;
+- decide whether protected EN/ES repository HTML also needs source-tree redaction even though anonymous serving is currently denied;
 - update independent-replication claims and tests.
 
 Advantages:
@@ -158,7 +190,7 @@ Limitation:
 
 ### H2 — current-tree redaction plus serving/cache verification
 
-Perform H1, then explicitly verify every formerly public sensitive path returns no component data from the deployed origin/CDN.
+Perform H1, then explicitly verify every formerly public **machine-readable** sensitive path returns no component data from the deployed origin/CDN, while confirming protected HTML remains denied.
 
 If stale CDN/provider cache entries remain, perform only the narrowly required purge after separate Production authorization.
 
