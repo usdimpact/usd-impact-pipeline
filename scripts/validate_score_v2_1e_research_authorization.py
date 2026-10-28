@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the approved, fail-closed Score v2.1E one-off research authorization."""
+"""Validate consumed/fail-closed state for the Score v2.1E one-off research authorization."""
 
 from __future__ import annotations
 
@@ -7,30 +7,13 @@ import json
 from pathlib import Path
 from typing import Any
 
-EXPECTED_SERIES = [
-    "H10/H10/JRXWTFB_N.B",
-    "WPU0561",
-    "H8/H8/B1001NCBA",
-    "H41/H41/RESPPALDP_N.WW",
-    "H41/H41/RESPPA_N.WW",
-    "H15/H15/RIFLGFCY10_XII_N.B",
-    "H15/H15/RIFLGFCY02_N.B",
-    "H15/H15/RIFLGFCY10_N.B",
-]
-EXPECTED_WINDOW = {"start": "2013-01-01", "end": "2026-10-23"}
-DESIGN_COMMIT = "65e71695a3d99ed6a5584548652a61dc0e66006f"
-PREREG_COMMIT = "b93ab1b4514e828561e74963b1a830421a104e29"
 ACTIVE_RECEIPT = "governance/score-v2-1e-real-data-research-authorization.json"
-APPROVED_BY = "usdimpact owner via Issue #209 approval comment 6477834394"
+CONSUMPTION = "governance/score-v2-1e-real-data-research-consumption-2026-10-28.json"
+EXPECTED_WINDOW = {"start": "2013-01-01", "end": "2026-10-23"}
+APPROVAL_COMMENT = 6477834394
 APPROVED_AT = "2026-10-28T18:55:48Z"
-ALLOWED_OUTPUTS = [
-    "aggregate_diagnostics",
-    "pass_fail_gate_results",
-    "non_value_bearing_hashes",
-    "release_vintage_identifiers",
-    "coverage_statistics",
-    "correlation_and_redundancy_statistics",
-]
+FAILED_RUN = "https://github.com/usdimpact/usd-impact-pipeline/actions/runs/40755916179"
+BLOCKER_ISSUE = "https://github.com/usdimpact/usd-impact-pipeline/issues/218"
 
 
 def _load(path: Path) -> dict[str, Any]:
@@ -42,139 +25,74 @@ def _load(path: Path) -> dict[str, Any]:
 
 def validate(repo_root: Path) -> dict[str, Any]:
     repo_root = repo_root.resolve()
-    schema = _load(repo_root / "governance/score-v2-1e-real-data-research-authorization.schema.json")
-    template = _load(repo_root / "governance/score-v2-1e-real-data-research-authorization.template.json")
-    receipt = _load(repo_root / ACTIVE_RECEIPT)
     contract = _load(repo_root / "governance/score-v2-1e-real-data-execution-contract.json")
-    prereg = _load(repo_root / "governance/score-v2-1e-preregistration.json")
+    consumption = _load(repo_root / CONSUMPTION)
+    template = _load(repo_root / "governance/score-v2-1e-real-data-research-authorization.template.json")
     hold = _load(repo_root / "governance/score-publication-rights-gate.json")
 
+    if (repo_root / ACTIVE_RECEIPT).exists():
+        raise RuntimeError("consumed one-off authorization must not retain an active receipt")
     if hold.get("state") != "hold":
         raise RuntimeError("Score rights gate must remain HOLD")
-    if prereg.get("state") != "preregistered_design_only":
-        raise RuntimeError("v2.1E preregistration boundary changed")
-    if prereg.get("production_authorized") is not False:
-        raise RuntimeError("preregistration may not authorize Production")
-
     if template.get("decision_status") != "hold":
         raise RuntimeError("HOLD template must remain unchanged")
-    if template.get("approved_by") is not None or template.get("approved_at") is not None:
-        raise RuntimeError("HOLD template may not contain approval identity/time")
-    if template.get("data_window") != {"start": None, "end": None}:
-        raise RuntimeError("HOLD template may not preselect a data window")
     if any(template.get("authorizations", {}).values()):
         raise RuntimeError("HOLD template authorizations must remain false")
 
-    if receipt.get("decision_status") != "approved":
-        raise RuntimeError("active receipt is not approved")
-    if receipt.get("methodology_version") != "2.1E-design-candidate":
-        raise RuntimeError("methodology version changed")
-    if receipt.get("design_merge_commit") != DESIGN_COMMIT:
-        raise RuntimeError("design merge pin changed")
-    if receipt.get("preregistration_merge_commit") != PREREG_COMMIT:
-        raise RuntimeError("preregistration merge pin changed")
-    if receipt.get("execution_scope") != "one_off_private_research_only":
-        raise RuntimeError("execution scope changed")
-    if receipt.get("exact_series") != EXPECTED_SERIES:
-        raise RuntimeError("exact-series inventory changed")
-    if receipt.get("data_window") != EXPECTED_WINDOW:
-        raise RuntimeError("approved data window changed")
-    if receipt.get("approved_by") != APPROVED_BY:
-        raise RuntimeError("approval identity/evidence changed")
-    if receipt.get("approved_at") != APPROVED_AT:
-        raise RuntimeError("approval timestamp changed")
-
-    storage = receipt.get("storage_policy", {})
-    if storage != {
-        "source_values": "ephemeral_only",
-        "raw_responses": "ephemeral_only",
-        "temporary_workspace": "isolated_non_public",
-        "durable_private_storage": False,
-    }:
-        raise RuntimeError("storage policy changed")
-
-    output = receipt.get("output_policy", {})
-    if output.get("public_repo_source_values") is not False:
-        raise RuntimeError("public source values must remain forbidden")
-    if output.get("public_repo_component_values") is not False:
-        raise RuntimeError("public component values must remain forbidden")
-    if output.get("allowed_persistent_outputs") != ALLOWED_OUTPUTS:
-        raise RuntimeError("persistent output allowlist changed")
-
-    auth = receipt.get("authorizations", {})
-    if auth.get("real_data_fetch") is not True or auth.get("real_data_research") is not True:
-        raise RuntimeError("approved research flags are not active")
+    if consumption.get("state") != "consumed_fail_closed":
+        raise RuntimeError("consumption record state changed")
+    if consumption.get("owner_approval_comment_id") != APPROVAL_COMMENT:
+        raise RuntimeError("owner approval evidence changed")
+    if consumption.get("owner_approval_timestamp") != APPROVED_AT:
+        raise RuntimeError("owner approval timestamp changed")
+    if consumption.get("authorized_data_window") != EXPECTED_WINDOW:
+        raise RuntimeError("consumed authorization window changed")
+    if consumption.get("failed_run") != FAILED_RUN:
+        raise RuntimeError("failed preflight run changed")
+    if consumption.get("blocker_issue") != BLOCKER_ISSUE:
+        raise RuntimeError("blocker issue changed")
+    result = consumption.get("research_result", {})
     for field in (
-        "paid_data",
-        "source_contract_acceptance",
-        "research_ledger_mutation",
-        "public_artifact_replacement",
-        "production",
+        "candidate_score_computed",
+        "source_or_component_values_persisted",
+        "public_artifacts_modified",
+        "research_ledgers_modified",
+        "production_modified",
     ):
-        if auth.get(field) is not False:
+        if result.get(field) is not False:
             raise RuntimeError(f"{field} must remain false")
+    post = consumption.get("post_consumption_authorizations", {})
+    if not isinstance(post, dict) or any(post.values()):
+        raise RuntimeError("all post-consumption authorizations must be false")
+    if consumption.get("new_owner_authorization_required_for_any_future_real_data_run") is not True:
+        raise RuntimeError("future real-data work must require a new owner authorization")
 
-    if contract.get("state") != "one_off_private_research_authorized":
-        raise RuntimeError("execution contract is not in one-off authorized state")
-    if contract.get("active_authorization_receipt_path") != ACTIVE_RECEIPT:
-        raise RuntimeError("active receipt path changed")
-    if contract.get("active_authorization_receipt_expected_now") is not True:
-        raise RuntimeError("active receipt must now be expected")
+    if contract.get("state") != "one_off_private_research_consumed_fail_closed":
+        raise RuntimeError("execution contract is not consumed/fail-closed")
+    if contract.get("active_authorization_receipt_expected_now") is not False:
+        raise RuntimeError("active receipt must not be expected after consumption")
     if contract.get("authorized_data_window") != EXPECTED_WINDOW:
-        raise RuntimeError("contract data window changed")
-
+        raise RuntimeError("contract audit window changed")
+    if contract.get("failed_preflight_run") != FAILED_RUN:
+        raise RuntimeError("contract failed-run evidence changed")
+    if contract.get("blocker_issue") != BLOCKER_ISSUE:
+        raise RuntimeError("contract blocker evidence changed")
     current = contract.get("current_state", {})
-    for field in ("real_data_fetch_authorized", "real_data_research_authorized", "active_receipt_present"):
-        if current.get(field) is not True:
-            raise RuntimeError(f"{field} must be true")
-    for field in (
-        "paid_data_authorized",
-        "source_contract_acceptance_authorized",
-        "durable_private_storage_authorized",
-        "public_artifact_replacement_authorized",
-        "research_ledger_mutation_authorized",
-        "production_authorized",
-    ):
-        if current.get(field) is not False:
-            raise RuntimeError(f"{field} must remain false")
-
-    network = contract.get("network_policy", {})
-    if network.get("credentials_required") is not False:
-        raise RuntimeError("credentials must not be required")
-    allowed_hosts = set(network.get("allowed_hosts", []))
-    required_hosts = {"www.federalreserve.gov", "www.bls.gov", "data.bls.gov"}
-    if not required_hosts.issubset(allowed_hosts):
-        raise RuntimeError("official Board/BLS host allowlist is incomplete")
-
-    schema_props = schema.get("properties", {})
-    if schema_props.get("design_merge_commit", {}).get("const") != DESIGN_COMMIT:
-        raise RuntimeError("schema design pin changed")
-    if schema_props.get("preregistration_merge_commit", {}).get("const") != PREREG_COMMIT:
-        raise RuntimeError("schema preregistration pin changed")
-    auth_schema = schema_props.get("authorizations", {}).get("properties", {})
-    for field in (
-        "paid_data",
-        "source_contract_acceptance",
-        "research_ledger_mutation",
-        "public_artifact_replacement",
-        "production",
-    ):
-        if auth_schema.get(field, {}).get("const") is not False:
-            raise RuntimeError(f"schema must hard-code {field}=false")
+    if not isinstance(current, dict) or any(current.values()):
+        raise RuntimeError("all execution authorizations must be false after consumption")
 
     return {
         "status": "passed",
-        "state": "one_off_private_research_authorized",
-        "decision_status": "approved",
-        "active_authorization_receipt_present": True,
-        "exact_series_count": len(EXPECTED_SERIES),
+        "state": "one_off_private_research_consumed_fail_closed",
+        "active_authorization_receipt_present": False,
         "data_window": EXPECTED_WINDOW,
-        "real_data_fetch_authorized": True,
-        "real_data_research_authorized": True,
-        "durable_private_storage_authorized": False,
-        "public_artifact_replacement_authorized": False,
+        "real_data_fetch_authorized": False,
+        "real_data_research_authorized": False,
+        "candidate_score_computed": False,
         "production_authorized": False,
         "rights_hold": True,
+        "blocker_issue": BLOCKER_ISSUE,
+        "failed_preflight_run": FAILED_RUN,
     }
 
 
