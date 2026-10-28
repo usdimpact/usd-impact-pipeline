@@ -221,6 +221,33 @@ test('bearer parser accepts only one compact token', () => {
   assert.throws(() => parseBearerToken('Bearer abc def'), /Bearer token/);
 });
 
+test('workflow examples are manual, secretless and least-privilege only', async () => {
+  const examples = [
+    {
+      file: '../prototypes/score-private-evidence-broker/write-rehearsal.workflow.example.yml',
+      audience: 'urn:usd-impact:score-private-evidence:write:development',
+    },
+    {
+      file: '../prototypes/score-private-evidence-broker/read-rehearsal.workflow.example.yml',
+      audience: 'urn:usd-impact:score-private-evidence:read:development',
+    },
+  ];
+
+  for (const example of examples) {
+    const source = await readFile(new URL(example.file, import.meta.url), 'utf8');
+    assert.match(source, /workflow_dispatch:/);
+    assert.match(source, /contents:\s*read/);
+    assert.match(source, /id-token:\s*write/);
+    assert.match(source, /persist-credentials:\s*false/);
+    assert.ok(source.includes(example.audience));
+    assert.match(source, /xakayexlzyrazuunqlxe\.supabase\.co/);
+    assert.doesNotMatch(source, /\bschedule:/);
+    assert.doesNotMatch(source, /\bpull_request(?:_target)?:/);
+    assert.doesNotMatch(source, /\bpush:/);
+    assert.doesNotMatch(source, /secrets\./);
+    assert.doesNotMatch(source, /SUPABASE_(?:SERVICE_ROLE|SECRET|ACCESS)_KEY/);
+  }
+});
 test('edge wrapper has no list/delete/signed-url or legacy service-role escape hatch', async () => {
   const source = await readFile(
     new URL('../prototypes/score-private-evidence-broker/index.ts', import.meta.url),
