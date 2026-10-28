@@ -22,7 +22,11 @@ class ScoreV21FWpu0561RepresentativeIndexRunnerTests(unittest.TestCase):
             ["Commodity", "Commodity code", "Index", "Percent change"],
             ["Crude petroleum", "05-61", "252.4", "3.2"],
         ]
-        report = preflight._classify_rows(rows, container="table 1")
+        report = preflight._classify_rows(
+            rows,
+            container="table 1",
+            source_context="archived_original_release",
+        )
         self.assertEqual(report["identifier_columns"], [2])
         self.assertEqual(report["index_level_columns"], [3])
         self.assertEqual(report["percent_change_columns"], [4])
@@ -35,6 +39,7 @@ class ScoreV21FWpu0561RepresentativeIndexRunnerTests(unittest.TestCase):
                 "column": 3,
                 "normalized_identifier": "0561",
                 "semantic": "original_release_index_level",
+                "revision_context": "archived_release_path",
                 "value": "252.4",
             },
         )
@@ -44,7 +49,11 @@ class ScoreV21FWpu0561RepresentativeIndexRunnerTests(unittest.TestCase):
             ["Commodity", "Commodity code", "Index", "Index value"],
             ["Crude petroleum", "05-61", "252.4", "252.5"],
         ]
-        report = preflight._classify_rows(rows, container="table 1")
+        report = preflight._classify_rows(
+            rows,
+            container="table 1",
+            source_context="archived_original_release",
+        )
         self.assertIsNone(report["observation"])
         self.assertEqual(report["ambiguity"], "index_level_column_count_not_one")
 
@@ -53,7 +62,11 @@ class ScoreV21FWpu0561RepresentativeIndexRunnerTests(unittest.TestCase):
             ["Commodity", "Commodity code", "Percent change"],
             ["Crude petroleum", "05-61", "3.2"],
         ]
-        report = preflight._classify_rows(rows, container="table 1")
+        report = preflight._classify_rows(
+            rows,
+            container="table 1",
+            source_context="archived_original_release",
+        )
         self.assertEqual(report["index_level_columns"], [])
         self.assertEqual(report["percent_change_columns"], [3])
         self.assertIsNone(report["observation"])
@@ -63,9 +76,57 @@ class ScoreV21FWpu0561RepresentativeIndexRunnerTests(unittest.TestCase):
             ["Commodity", "Index"],
             ["Crude petroleum", "252.4"],
         ]
-        report = preflight._classify_rows(rows, container="table 1")
+        report = preflight._classify_rows(
+            rows,
+            container="table 1",
+            source_context="archived_original_release",
+        )
         self.assertEqual(report["mapped_row_count"], 0)
         self.assertIsNone(report["observation"])
+
+    def test_detailed_report_without_revision_context_fails_closed(self) -> None:
+        rows = [
+            ["Commodity", "Commodity code", "Index"],
+            ["Crude petroleum", "05-61", "252.4"],
+        ]
+        report = preflight._classify_rows(
+            rows,
+            container="sheet Table 6",
+            source_context="detailed_report",
+        )
+        self.assertIsNone(report["observation"])
+        self.assertEqual(report["revision_context_status"], "missing")
+        self.assertEqual(report["ambiguity"], "ambiguous_revision_context")
+
+    def test_detailed_report_single_preliminary_context_allows_candidate(self) -> None:
+        rows = [
+            ["Preliminary"],
+            ["Commodity", "Commodity code", "Index"],
+            ["Crude petroleum", "05-61", "252.4"],
+        ]
+        report = preflight._classify_rows(
+            rows,
+            container="sheet Table 6",
+            source_context="detailed_report",
+        )
+        self.assertEqual(report["revision_context_status"], "preliminary")
+        self.assertIsNotNone(report["observation"])
+        self.assertEqual(report["observation"]["revision_context"], "preliminary")
+
+    def test_conflicting_revision_context_fails_closed(self) -> None:
+        rows = [
+            ["Preliminary", "Revised"],
+            ["Commodity", "Commodity code", "Index"],
+            ["Crude petroleum", "05-61", "252.4"],
+        ]
+        report = preflight._classify_rows(
+            rows,
+            container="sheet Table 6",
+            source_context="detailed_report",
+        )
+        self.assertIsNone(report["observation"])
+        self.assertEqual(report["revision_context_status"], "conflicting")
+        self.assertEqual(report["ambiguity"], "ambiguous_revision_context")
 
     def test_request_budget_is_hard_capped_at_two(self) -> None:
         budget = preflight.RequestBudget()
