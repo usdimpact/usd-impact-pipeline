@@ -1,16 +1,17 @@
 {
   "version": 1,
-  "state": "column_semantics_preflight_authorized_pending_dispatch",
+  "state": "column_semantics_preflight_authorized",
   "methodology_version": "2.1F-design-candidate",
   "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/244",
   "controlling_rights_hold": "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
   "owner_approval_comment_id": 6482193778,
   "owner_approval_timestamp": "2026-10-28T22:23:21Z",
+  "authorization_activation_merge_commit": "474770a01b5493537731697f804e88b4e849d41d",
   "design_path": "governance/score-v2-1f-bls-wpu0561-column-semantics-preflight-design.json",
   "active_authorization_receipt_path": "governance/score-v2-1f-bls-wpu0561-column-semantics-preflight-authorization.json",
   "active_authorization_receipt_expected_now": true,
   "dispatch_marker_path": "governance/score-v2-1f-bls-wpu0561-column-semantics-preflight-dispatch.json",
-  "dispatch_marker_expected_now": false,
+  "dispatch_marker_expected_now": true,
   "request_budget": 2,
   "contact_user_agent": "USD-Impact-Score-v2.1F-WPU0561-column-semantics/1.0 (contact: support@usd-impact.com)",
   "fixed_resources": [
@@ -29,17 +30,18 @@
     "public_artifact_replacement_authorized": false,
     "production_authorized": false
   },
-  "activation_preconditions": [
-    "explicit owner authorization is recorded under Issue #244 comment 6482193778",
-    "owner approval acknowledges the identifier-only numeric-cell exception",
-    "active receipt pins the exact 2013 HTML and 2026 XLSX resources",
-    "contactable project User-Agent is pinned",
-    "economic value extraction remains false",
-    "dispatch is merged separately after activation",
-    "workflow remains inert until dispatch"
+  "execution_preconditions": [
+    "owner approval is recorded under Issue #244 comment 6482193778",
+    "dispatch is pinned to activation merge 474770a01b5493537731697f804e88b4e849d41d",
+    "request budget is exactly two serialized GET requests",
+    "identifier-only numeric reads occur only under proven identifier headers",
+    "conflicting economic-plus-identifier headers remain ambiguous",
+    "row-wide identifier fallback remains disabled",
+    "economic value extraction remains false"
   ],
   "stop_conditions": [
-    "no dispatch marker",
+    "active authorization receipt is absent or invalid",
+    "dispatch marker is absent or invalid",
     "request budget would exceed two",
     "request leaves www.bls.gov",
     "request path differs from the two fixed resources",
@@ -52,6 +54,6 @@
     "candidate Score, z-score or contribution would be computed",
     "public artifact, research ledger or Production would change"
   ],
-  "next_allowed_action": "separate_dispatch_review_after_activation_merge",
+  "next_allowed_action": "execute_one_off_column_semantics_preflight_then_consume_authorization_fail_closed",
   "production_authorized": false
 }

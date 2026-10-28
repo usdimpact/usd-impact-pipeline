@@ -1,18 +1,100 @@
-name: Score v2.1F BLS WPU0561 column-semantics preflight (HOLD)
+name: Score v2.1F BLS WPU0561 column-semantics preflight
 
 on:
-  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'governance/score-v2-1f-bls-wpu0561-column-semantics-preflight-dispatch.json'
 
 permissions:
   contents: read
+  issues: write
+
+concurrency:
+  group: score-v2-1f-bls-wpu0561-column-semantics-preflight
+  cancel-in-progress: false
 
 jobs:
-  design-only-hold:
-    if: ${{ false }}
+  column-semantics-preflight:
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
+
     steps:
-      - name: Explicit owner authorization guard
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Run owner-authorized column-semantics preflight
+        env:
+          PYTHONUNBUFFERED: "1"
         run: |
-          echo "The WPU0561 column-semantics preflight is design-only/HOLD."
-          echo "Issue #244 requires a new explicit owner authorization."
-          echo "No BLS request is authorized by this workflow definition."
+          python -m scripts.run_score_v2_1f_bls_wpu0561_column_semantics_preflight \
+            > "$RUNNER_TEMP/column-semantics.json"
+
+      - name: Record sanitized PASS metadata
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - "$RUNNER_TEMP/column-semantics.json" > "$RUNNER_TEMP/comment.md" <<'PY'
+          import json
+          import os
+          import sys
+          from pathlib import Path
+
+          report = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+          run_url = (
+              f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/actions/runs/"
+              f"{os.environ['GITHUB_RUN_ID']}"
+          )
+          html_matches = [
+              m for item in report.get("html_semantics", [])
+              for m in item.get("matches", [])
+          ]
+          xlsx_matches = [
+              m for item in report.get("xlsx_semantics", [])
+              for m in item.get("matches", [])
+          ]
+          identifiers = sorted({
+              ident
+              for match in html_matches + xlsx_matches
+              for ident in match.get("identifiers", [])
+          })
+
+          print("### v2.1F WPU0561 column-semantics preflight — PASS")
+          print()
+          print("<!-- V2_1F_WPU0561_COLUMN_SEMANTICS_COMPLETED -->")
+          print(f"- Run: {run_url}")
+          print(f"- Request count: {report['request_count']}/2")
+          print(f"- WPU0561 mapping proven: {report['wpu0561_mapping_proven']}")
+          print(f"- HTML Crude petroleum matches: {len(html_matches)}")
+          print(f"- XLSX Crude petroleum matches: {len(xlsx_matches)}")
+          print("- Identifier tokens: " + (", ".join(identifiers) or "none"))
+          print("- Economic values extracted: no")
+          print("- Economic values logged/persisted: no")
+          print("- Full historical reconstruction: no")
+          print("- Candidate Score computed: no")
+          print("- Production modified: no")
+          print()
+          print("This schema/identifier result does not authorize economic-value extraction or full historical reconstruction.")
+          PY
+          gh issue comment 244 --repo "$GITHUB_REPOSITORY" --body-file "$RUNNER_TEMP/comment.md"
+
+      - name: Record fail-closed result
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cat > "$RUNNER_TEMP/failure.md" <<EOF
+          ### v2.1F WPU0561 column-semantics preflight — FAIL CLOSED
+
+          <!-- V2_1F_WPU0561_COLUMN_SEMANTICS_FAILED -->
+
+          - Run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
+          - The run stopped under the exact two-request schema/identifier policy.
+          - No economic index level or percent-change value is attached to this comment.
+          - No full historical reconstruction or Score calculation occurred.
+          - No public artifact, research ledger, or Production state was modified.
+
+          Do not retry or broaden the request boundary under this authorization.
+          EOF
+          gh issue comment 244 --repo "$GITHUB_REPOSITORY" --body-file "$RUNNER_TEMP/failure.md"
