@@ -1,17 +1,108 @@
-name: Score v2.1F BLS WPU0561 ambiguity diagnostics preflight (HOLD)
+name: Score v2.1F BLS WPU0561 ambiguity diagnostics preflight
 
 on:
-  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'governance/score-v2-1f-bls-wpu0561-ambiguity-diagnostics-preflight-dispatch.json'
 
 permissions:
   contents: read
+  issues: write
+
+concurrency:
+  group: score-v2-1f-bls-wpu0561-ambiguity-diagnostics-preflight
+  cancel-in-progress: false
 
 jobs:
-  design-only-hold:
-    if: ${{ false }}
+  ambiguity-diagnostics:
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
+
     steps:
-      - name: Explicit owner authorization guard
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Run owner-authorized zero-value diagnostics
+        id: diagnostic
+        env:
+          PYTHONUNBUFFERED: "1"
         run: |
-          echo "Issue #258 is design-only/HOLD."
-          echo "No BLS request or economic-value read is authorized."
+          set +e
+          python -m scripts.run_score_v2_1f_bls_wpu0561_ambiguity_diagnostics_preflight \
+            > "$RUNNER_TEMP/ambiguity-diagnostics.json"
+          code=$?
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Record sanitized diagnostic result
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - "$RUNNER_TEMP/ambiguity-diagnostics.json" > "$RUNNER_TEMP/comment.md" <<'PY'
+          import json
+          import os
+          import sys
+          from pathlib import Path
+
+          result_path = Path(sys.argv[1])
+          run_url = (
+              f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/actions/runs/"
+              f"{os.environ['GITHUB_RUN_ID']}"
+          )
+          try:
+              report = json.loads(result_path.read_text(encoding="utf-8"))
+          except Exception:
+              report = {
+                  "status": "fail_closed",
+                  "global_stop_reason": "runner_result_unavailable",
+                  "economic_observation_count": 0,
+              }
+
+          print(f"### v2.1F WPU0561 ambiguity diagnostics — {str(report.get('status', 'unknown')).upper()}")
+          print()
+          print("<!-- V2_1F_WPU0561_AMBIGUITY_DIAGNOSTICS_COMPLETED -->")
+          print(f"- Run: {run_url}")
+          print(f"- Request attempts: {report.get('request_attempt_count', 'stopped')}/2")
+          print(f"- Economic observations retained: {report.get('economic_observation_count', 0)}/0")
+          if report.get("global_stop_reason"):
+              print(f"- Global stop reason: `{report['global_stop_reason']}`")
+
+          for resource in report.get("resources", []):
+              print()
+              print(f"#### `{resource.get('resource_path')}`")
+              print(f"- Transport: `{resource.get('transport_status')}`")
+              print(f"- Semantics: `{resource.get('semantic_status')}`")
+              print(f"- Reason summary: `{json.dumps(resource.get('reason_summary', {}), sort_keys=True)}`")
+              candidate_blocks = []
+              for container in resource.get("containers", []):
+                  for block in container.get("blocks", []):
+                      if block.get("candidate_count", 0) > 0 or block.get("identity_status") == "proven":
+                          candidate_blocks.append(block)
+              print(f"- Candidate-bearing/proven blocks: {len(candidate_blocks)}")
+              for block in candidate_blocks:
+                  hs = block.get("header_stack", {})
+                  cb = block.get("candidate_block", {})
+                  print(
+                      "  - "
+                      f"{block.get('container')}: header {hs.get('start_row')}-{hs.get('end_row')}; "
+                      f"block {cb.get('start_row')}-{cb.get('end_row')}; "
+                      f"candidates={block.get('candidate_count')}; "
+                      f"identity={block.get('identity_status')}; "
+                      f"block_status={block.get('block_status')}; "
+                      f"field={block.get('field_status')}; "
+                      f"release={block.get('release_context_status')}; "
+                      f"reasons={','.join(block.get('reason_codes', []))}"
+                  )
+                  print(f"    - Header paths: `{json.dumps(block.get('header_paths', {}), sort_keys=True)}`")
+
+          print()
+          print("Safeguards: zero economic values retained; no alternate sources, reconstruction, scoring, public/research-ledger mutation, or Production change.")
+          print("This one-off authorization is consumed by this run regardless of result.")
+          PY
+          gh issue comment 258 --repo "$GITHUB_REPOSITORY" --body-file "$RUNNER_TEMP/comment.md"
+
+      - name: Preserve fail-closed workflow conclusion
+        if: steps.diagnostic.outputs.exit_code != '0'
+        run: exit 1
