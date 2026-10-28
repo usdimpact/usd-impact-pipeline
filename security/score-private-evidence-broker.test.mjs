@@ -18,6 +18,23 @@ import {
 
 const NOW = 1_800_000_000;
 const KID = 'review-test-key';
+const TEST_WEEK = '2099-01-02';
+const TEST_WRITE_SHA = 'b'.repeat(64);
+
+function writePolicy(overrides = {}) {
+  return buildOidcPolicy('write', {
+    week: TEST_WEEK,
+    sha256: TEST_WRITE_SHA,
+    ...overrides,
+  });
+}
+
+function readPolicy(overrides = {}) {
+  return buildOidcPolicy('read', {
+    week: TEST_WEEK,
+    ...overrides,
+  });
+}
 
 function jsonB64(value) {
   return Buffer.from(JSON.stringify(value)).toString('base64url');
@@ -106,7 +123,7 @@ function syntheticBundle(week = '2099-01-02') {
 }
 
 test('verifies a correctly signed write token with immutable repository claims', async () => {
-  const policy = buildOidcPolicy('write');
+  const policy = writePolicy();
   const { privateKey, jwks } = await generateSigningKey();
   const token = await signJwt(privateKey, validClaims(policy));
   const result = await verifyGithubOidcJwt(token, policy, { jwks, nowSeconds: NOW });
@@ -117,8 +134,8 @@ test('verifies a correctly signed write token with immutable repository claims',
 });
 
 test('read and write identities cannot reuse the same OIDC token', async () => {
-  const writePolicy = buildOidcPolicy('write');
-  const readPolicy = buildOidcPolicy('read');
+  const writePolicy = writePolicy();
+  const readPolicy = readPolicy();
   const { privateKey, jwks } = await generateSigningKey();
   const token = await signJwt(privateKey, validClaims(writePolicy));
 
@@ -128,8 +145,49 @@ test('read and write identities cannot reuse the same OIDC token', async () => {
   );
 });
 
+test('OIDC audience binds token to exact week and write content hash', async () => {
+  const policy = writePolicy();
+  const { privateKey, jwks } = await generateSigningKey();
+  const token = await signJwt(privateKey, validClaims(policy));
+
+  await assert.rejects(
+    verifyGithubOidcJwt(
+      token,
+      buildOidcPolicy('write', {
+        week: '2099-01-09',
+        sha256: TEST_WRITE_SHA,
+      }),
+      { jwks, nowSeconds: NOW },
+    ),
+    /audience/,
+  );
+
+  await assert.rejects(
+    verifyGithubOidcJwt(
+      token,
+      buildOidcPolicy('write', {
+        week: TEST_WEEK,
+        sha256: 'c'.repeat(64),
+      }),
+      { jwks, nowSeconds: NOW },
+    ),
+    /audience/,
+  );
+
+  const read = readPolicy();
+  const readToken = await signJwt(privateKey, validClaims(read));
+  await assert.rejects(
+    verifyGithubOidcJwt(
+      readToken,
+      buildOidcPolicy('read', { week: '2099-01-09' }),
+      { jwks, nowSeconds: NOW },
+    ),
+    /audience/,
+  );
+});
+
 test('rejects wrong immutable repository identity', async () => {
-  const policy = buildOidcPolicy('write');
+  const policy = writePolicy();
   const { privateKey, jwks } = await generateSigningKey();
   const token = await signJwt(
     privateKey,
@@ -143,7 +201,7 @@ test('rejects wrong immutable repository identity', async () => {
 });
 
 test('rejects wrong workflow ref even with valid signature', async () => {
-  const policy = buildOidcPolicy('write');
+  const policy = writePolicy();
   const { privateKey, jwks } = await generateSigningKey();
   const token = await signJwt(
     privateKey,
@@ -159,7 +217,7 @@ test('rejects wrong workflow ref even with valid signature', async () => {
 });
 
 test('rejects expired OIDC token', async () => {
-  const policy = buildOidcPolicy('write');
+  const policy = writePolicy();
   const { privateKey, jwks } = await generateSigningKey();
   const token = await signJwt(
     privateKey,
@@ -173,7 +231,7 @@ test('rejects expired OIDC token', async () => {
 });
 
 test('rejects tampered JWT payload even when claims look acceptable', async () => {
-  const policy = buildOidcPolicy('write');
+  const policy = writePolicy();
   const { privateKey, jwks } = await generateSigningKey();
   const token = await signJwt(privateKey, validClaims(policy));
   const [header, _claims, signature] = token.split('.');
@@ -271,6 +329,11 @@ test('workflow examples are manual, secretless and least-privilege only', async 
     assert.doesNotMatch(source, /inputs\.synthetic_week/);
     assert.match(source, /persist-credentials:\s*false/);
     assert.ok(source.includes(example.audience));
+    if (example.audience.includes(':write:')) {
+      assert.match(source, /write:development:\$\{SYNTHETIC_WEEK\}:\$\{sha256\}/);
+    } else {
+      assert.match(source, /read:development:\$\{SYNTHETIC_WEEK\}/);
+    }
     assert.match(source, /xakayexlzyrazuunqlxe\.supabase\.co/);
     assert.doesNotMatch(source, /\bschedule:/);
     assert.doesNotMatch(source, /\bpull_request(?:_target)?:/);
@@ -290,6 +353,7 @@ test('edge wrapper has no list/delete/signed-url or legacy service-role escape h
   assert.match(source, /SCORE_BROKER_MODE/);
   assert.match(source, /synthetic_bundle_rejected/);
   assert.match(source, /stored_bundle_rejected/);
+  assert.match(source, /buildOidcPolicy\(operation, \{ week, sha256: declaredSha \}\)/);
   assert.doesNotMatch(source, /\.remove\s*\(/);
   assert.doesNotMatch(source, /\.list\s*\(/);
   assert.doesNotMatch(source, /\.listBuckets\s*\(/);
