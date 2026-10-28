@@ -1,0 +1,174 @@
+{
+  "version": 1,
+  "methodology_version": "2.1C-design-candidate",
+  "state": "design_only",
+  "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/193",
+  "controlling_rights_hold": "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
+  "source_replacement_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/179",
+  "budget_constraint": "zero_paid_market_data_budget",
+  "candidate_class": "rights_minimized_federal_source_architecture",
+  "legal_conclusion": false,
+  "authorizations": {
+    "real_data_fetch": false,
+    "real_data_research": false,
+    "methodology_activation": false,
+    "public_artifact_replacement": false,
+    "research_ledger_mutation": false,
+    "production": false
+  },
+  "rights_evidence": [
+    {
+      "authority": "Board of Governors of the Federal Reserve System",
+      "official_url": "https://www.federalreserve.gov/disclaimer.htm",
+      "evidence_summary": "Unless otherwise indicated, information on the Board website is in the public domain and may be copied and distributed without permission; citation is requested.",
+      "engineering_disposition": "strong_zero_cost_source_family_candidate",
+      "caveat": "Series-specific third-party notices must still be checked."
+    },
+    {
+      "authority": "U.S. Energy Information Administration",
+      "official_url": "https://www.eia.gov/about/copyrights_reuse.php",
+      "evidence_summary": "EIA states U.S. government publications are public domain and its data/files/databases may be used and distributed, with acknowledgment requested.",
+      "engineering_disposition": "strong_zero_cost_source_family_candidate",
+      "caveat": "Third-party protected materials on EIA pages remain excluded."
+    },
+    {
+      "authority": "Office of Financial Research",
+      "official_url": "https://www.financialresearch.gov/legal-notices/",
+      "evidence_summary": "OFR states no copyright may be claimed for works created by federal employees in the course of duty; credit is requested.",
+      "engineering_disposition": "strong_zero_cost_source_family_candidate",
+      "caveat": "Any separately identified third-party copyrighted material remains subject to its owner."
+    }
+  ],
+  "proposed_slots": [
+    {
+      "slot": "USD",
+      "concept": "broad USD strength",
+      "source_family": "Federal Reserve Board",
+      "product": "H.10 Foreign Exchange Rates",
+      "series": "Nominal Broad U.S. Dollar Index",
+      "canonical_id": "DTWEXBGS",
+      "frequency": "daily observations / weekly Monday release",
+      "transform_candidate": "level",
+      "weight": 0.125,
+      "direction": "positive",
+      "rights_status": "source_family_public_domain_candidate_series_check_required"
+    },
+    {
+      "slot": "ENERGY",
+      "concept": "energy/commodity transmission",
+      "source_family": "EIA",
+      "product": "WTI Cushing spot",
+      "series": "Crude Oil Prices: West Texas Intermediate - Cushing, Oklahoma",
+      "canonical_id": "DCOILWTICO",
+      "frequency": "daily",
+      "transform_candidate": "natural_log_level",
+      "weight": -0.125,
+      "direction": "negative",
+      "rights_status": "public_domain_candidate_attribution_required"
+    },
+    {
+      "slot": "FIN_CONDITIONS",
+      "concept": "broad financial-conditions impulse",
+      "source_family": "Federal Reserve Board",
+      "product": "Financial Conditions Impulse on Growth",
+      "series": "FCI-G baseline monthly",
+      "canonical_id": "FCI_G_BASELINE_MONTHLY",
+      "frequency": "monthly",
+      "transform_candidate": "level",
+      "weight": 0.125,
+      "direction": "positive",
+      "interpretation": "positive values indicate headwinds/tighter financial conditions",
+      "rights_status": "board_output_candidate_third_party_input_scope_review_required"
+    },
+    {
+      "slot": "FIN_STRESS",
+      "concept": "systemic financial-market stress",
+      "source_family": "Office of Financial Research",
+      "product": "OFR Financial Stress Index",
+      "series": "OFR FSI",
+      "canonical_id": "OFR_FSI",
+      "frequency": "daily with two-business-day publication lag",
+      "transform_candidate": "level",
+      "weight": 0.125,
+      "direction": "positive",
+      "interpretation": "positive values indicate above-average financial stress",
+      "rights_status": "federal_output_candidate_third_party_input_scope_review_required"
+    },
+    {
+      "slot": "LIQUIDITY",
+      "concept": "central-bank balance-sheet liquidity impulse",
+      "source_family": "Federal Reserve Board",
+      "product": "H.4.1 Factors Affecting Reserve Balances",
+      "series": "Total Assets: Wednesday Level",
+      "canonical_id": "WALCL",
+      "frequency": "weekly Wednesday level",
+      "transform_candidate": "log_change_13_weeks",
+      "weight": -0.125,
+      "direction": "negative",
+      "rights_status": "source_family_public_domain_candidate_series_check_required"
+    },
+    {
+      "slot": "REAL_YIELD",
+      "concept": "real-rate pressure",
+      "source_family": "Federal Reserve Board",
+      "product": "H.15 Selected Interest Rates",
+      "series": "10-Year Inflation-Indexed Treasury Constant Maturity",
+      "canonical_id": "DFII10",
+      "frequency": "daily",
+      "transform_candidate": "level",
+      "weight": 0.125,
+      "direction": "positive",
+      "rights_status": "source_family_public_domain_candidate_series_check_required"
+    },
+    {
+      "slot": "UST_2Y",
+      "concept": "front-end nominal-rate pressure",
+      "source_family": "Federal Reserve Board",
+      "product": "H.15 Selected Interest Rates",
+      "series": "2-Year Treasury Constant Maturity",
+      "canonical_id": "DGS2",
+      "frequency": "daily",
+      "transform_candidate": "level",
+      "weight": 0.125,
+      "direction": "positive",
+      "rights_status": "source_family_public_domain_candidate_series_check_required"
+    },
+    {
+      "slot": "UST_10Y",
+      "concept": "long-end nominal-rate pressure",
+      "source_family": "Federal Reserve Board",
+      "product": "H.15 Selected Interest Rates",
+      "series": "10-Year Treasury Constant Maturity",
+      "canonical_id": "DGS10",
+      "frequency": "daily",
+      "transform_candidate": "level",
+      "weight": 0.125,
+      "direction": "positive",
+      "rights_status": "source_family_public_domain_candidate_series_check_required"
+    }
+  ],
+  "timing_constraints": {
+    "weekly_score_anchor": "completed Friday",
+    "observation_date_is_not_release_date": true,
+    "FCI_G_monthly_rule": "Use only the latest monthly FCI-G value actually published by the Friday cutoff; never infer availability from month-end date.",
+    "FCI_G_max_age_calendar_days": 45,
+    "OFR_FSI_rule": "Respect OFR's stated two-business-day publication lag.",
+    "mixed_frequency_fail_closed": true
+  },
+  "differences_from_v2_1b": [
+    "Chicago Fed NFCI replaced with Federal Reserve Board FCI-G.",
+    "St. Louis Fed Financial Stress Index replaced with OFR Financial Stress Index.",
+    "FCI-G introduces a monthly financial-conditions channel, increasing persistence and requiring explicit stale-age controls.",
+    "OFR FSI is daily and broader/global in scope than STLFSI4."
+  ],
+  "research_risks": [
+    "FCI-G monthly frequency may make the financial-conditions slot too persistent for a weekly composite.",
+    "FCI-G includes private-source inputs in its construction; use of the published Board output still requires series-specific rights review.",
+    "OFR FSI incorporates market variables and may have revision history; point-in-time vintages must be handled explicitly.",
+    "OFR FSI and rate slots may still be correlated during stress episodes.",
+    "No assumption is made that federal public-domain status automatically resolves every underlying third-party input right."
+  ],
+  "next_allowed_step": "prepare_series_specific_rights_and_release_timing_receipt_only",
+  "real_data_research_authorized": false,
+  "production_authorized": false
+}
