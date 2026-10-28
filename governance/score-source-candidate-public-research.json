@@ -1,0 +1,199 @@
+{
+  "version": 1,
+  "state": "public_evidence_only",
+  "reviewed_at": "2026-10-28",
+  "issues": {
+    "rights_hold": "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
+    "source_replacement": "https://github.com/usdimpact/usd-impact-pipeline/issues/179"
+  },
+  "production_authorized": false,
+  "provider_purchase_or_contract_authorized": false,
+  "real_data_rehearsal_authorized": false,
+  "candidates": [
+    {
+      "driver": "DXY",
+      "provider": "ICE Data Indices",
+      "product_class": "ICE U.S. Dollar Index data",
+      "delivery_options": [
+        "ICE Data API",
+        "ICE Consolidated History",
+        "ICE Consolidated Feed",
+        "ICE Data Files"
+      ],
+      "public_evidence": {
+        "official_url": "https://developer.ice.com/fixed-income-data-services/catalog/ice-data-indices-currency-indices",
+        "confirms": [
+          "DXY administered by ICE Data Indices",
+          "history since 1996",
+          "daily/historical availability",
+          "API/file/feed delivery"
+        ]
+      },
+      "rights_status": "license_required_or_confirmation_pending",
+      "semantic_fit": "strong_candidate",
+      "unresolved": [
+        "commercial terms",
+        "derived/public output rights",
+        "exact close/end-of-day field semantics",
+        "pricing"
+      ]
+    },
+    {
+      "driver": "SPX",
+      "provider": "S&P Dow Jones Indices",
+      "product_class": "S&P 500 index-level data",
+      "delivery_options": [
+        "S&P DJI API Data Solutions",
+        "SFTP",
+        "third-party licensed vendors"
+      ],
+      "public_evidence": {
+        "official_url": "https://www.spglobal.com/spdji/en/about-us/data-index-licensing/",
+        "api_url": "https://www.spglobal.com/spdji/en/landing/topic/api-data-solutions/",
+        "confirms": [
+          "licensed index data subscriptions",
+          "index-level data",
+          "historical end-of-day data",
+          "API delivery",
+          "license/subscription required for use/distribution"
+        ]
+      },
+      "rights_status": "license_required_or_confirmation_pending",
+      "semantic_fit": "strong_candidate",
+      "unresolved": [
+        "derived/public output rights",
+        "display/machine-readable terms",
+        "pricing",
+        "response to case 01036004"
+      ]
+    },
+    {
+      "driver": "VIX",
+      "provider": "Cboe Global Markets",
+      "product_class": "Cboe Global Indices Feed / VIX",
+      "delivery_options": [
+        "direct feed",
+        "end-of-day file",
+        "historical DataShop",
+        "licensed vendors",
+        "cloud"
+      ],
+      "public_evidence": {
+        "official_url": "https://www.cboe.com/data/global-indices-feed/",
+        "confirms": [
+          "VIX available",
+          "end-of-day/historical delivery",
+          "direct/vendor/cloud delivery",
+          "index data license process"
+        ]
+      },
+      "rights_status": "license_required_or_confirmation_pending",
+      "semantic_fit": "strong_candidate",
+      "unresolved": [
+        "derived/public output rights",
+        "exact field/session semantics",
+        "pricing"
+      ]
+    },
+    {
+      "driver": "WTI",
+      "provider": "CME Group",
+      "product_class": "NYMEX WTI futures market data",
+      "delivery_options": [
+        "CME Market Data APIs",
+        "DataMine",
+        "Google Analytics Hub",
+        "licensed distributors"
+      ],
+      "public_evidence": {
+        "official_url": "https://www.cmegroup.com/market-data.html",
+        "data_services_url": "https://dataservices.cmegroup.com/pages/home",
+        "confirms": [
+          "historical/real-time market data",
+          "API and bulk historical delivery",
+          "licensed distribution ecosystem"
+        ]
+      },
+      "rights_status": "license_required_or_confirmation_pending",
+      "semantic_fit": "conditional_candidate",
+      "unresolved": [
+        "exact continuous/front-contract construction",
+        "settlement vs close field",
+        "roll convention",
+        "derived/public output rights",
+        "pricing"
+      ]
+    },
+    {
+      "driver": "GOLD",
+      "provider": "CME Group",
+      "product_class": "COMEX Gold futures market data",
+      "delivery_options": [
+        "CME Market Data APIs",
+        "DataMine",
+        "Google Analytics Hub",
+        "licensed distributors"
+      ],
+      "public_evidence": {
+        "official_url": "https://www.cmegroup.com/market-data.html",
+        "data_services_url": "https://dataservices.cmegroup.com/pages/home",
+        "confirms": [
+          "historical/real-time market data",
+          "API and bulk historical delivery",
+          "licensed distribution ecosystem"
+        ]
+      },
+      "rights_status": "license_required_or_confirmation_pending",
+      "semantic_fit": "conditional_candidate",
+      "unresolved": [
+        "exact continuous/front-contract construction",
+        "settlement vs close field",
+        "roll convention",
+        "derived/public output rights",
+        "pricing"
+      ]
+    },
+    {
+      "driver": "BTC",
+      "provider": "CME Group / CF Benchmarks",
+      "product_class": "CME CF Bitcoin Reference Rate (BRR) or Bitcoin Real-Time Index (BRTI)",
+      "delivery_options": [
+        "CMEGroup.com",
+        "MDP",
+        "DataMine",
+        "licensed third-party provider"
+      ],
+      "public_evidence": {
+        "official_url": "https://www.cmegroup.com/articles/faqs/cme-cf-cryptocurrency-benchmarks-faq.html",
+        "benchmark_url": "https://www.cfbenchmarks.com/data/indices/BRR",
+        "confirms": [
+          "commercial benchmark product",
+          "historical access",
+          "market data license agreement required",
+          "derived works require separate derived data license"
+        ]
+      },
+      "rights_status": "license_required_or_confirmation_pending",
+      "semantic_fit": "likely_methodology_mismatch",
+      "unresolved": [
+        "Yahoo BTC-USD parity",
+        "daily timestamp convention",
+        "composite/reference methodology difference",
+        "derived/public output rights",
+        "pricing"
+      ]
+    }
+  ],
+  "recommendation": {
+    "next_priority_order": [
+      "DXY",
+      "SPX",
+      "VIX",
+      "WTI",
+      "GOLD",
+      "BTC"
+    ],
+    "rationale": "start with drivers where authoritative first-party data is both directly available and closest to current instrument semantics; defer BTC until its reference-price semantics are explicitly resolved",
+    "no_vendor_selected": true
+  }
+}
