@@ -1,0 +1,113 @@
+{
+  "version": 1,
+  "state": "public_evidence_exact_series_receipts_only",
+  "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/199",
+  "controlling_hold": "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
+  "legal_conclusion": false,
+  "no_source_approved": true,
+  "real_data_fetch_authorized": false,
+  "real_data_research_authorized": false,
+  "production_authorized": false,
+  "common_rights_evidence": {
+    "federal_reserve_board": {
+      "official_url": "https://www.federalreserve.gov/disclaimer.htm",
+      "engineering_summary": "Board website information is public domain unless otherwise indicated; series-specific non-Board exceptions must still be checked.",
+      "approval_status": "not_approved"
+    },
+    "bls": {
+      "official_url": "https://www.bls.gov/opub/copyright-information.htm",
+      "engineering_summary": "BLS states everything it publishes is public domain except previously copyrighted photographs and illustrations; cite BLS.",
+      "approval_status": "not_approved"
+    }
+  },
+  "series_receipts": [
+    {
+      "slot": "USD",
+      "exact_series_id": "H10/H10/JRXWTFB_N.B",
+      "exact_description": "Nominal Broad Dollar Index",
+      "official_source": "https://www.federalreserve.gov/releases/h10/summary/jrxwtfb_nb.htm",
+      "evidence": "Board H.10 daily broad-dollar index; higher levels indicate dollar appreciation.",
+      "release_timing": "weekly Monday 16:15 ET for previous business week's daily observations",
+      "vintage_risk": "methodology/indexation revisions must be versioned",
+      "status": "strong_candidate_pending_series_exception_check"
+    },
+    {
+      "slot": "ENERGY",
+      "exact_series_id": "WPU0561",
+      "exact_description": "PPI crude petroleum (domestic production)",
+      "official_source": "https://data.bls.gov/timeseries/wpu0561",
+      "evidence": "BLS explicitly identifies WPU0561 as crude-petroleum PPI; BLS published material is public domain.",
+      "release_timing": "monthly scheduled PPI release, 08:30 ET",
+      "vintage_risk": "values subject to revision for four months after originally scheduled publication",
+      "status": "strong_public_domain_candidate_pending_vintage_reconstruction"
+    },
+    {
+      "slot": "FIN_CONDITIONS",
+      "exact_series_id": "H8/H8/B1001NCBA",
+      "exact_description": "Bank credit, all commercial banks, seasonally adjusted",
+      "official_source": "https://www.federalreserve.gov/datadownload/Review.aspx?filetype=csv&from=&label=include&lastObs=&layout=seriescolumn&rel=H8&series=fce2318909bacbc8ce268096deddd180&to=&type=package",
+      "release_timing": "Friday generally 16:15 ET; holiday Friday shifts to Thursday",
+      "vintage_risk": "benchmark revisions/reclassifications require release-vintage handling",
+      "status": "strong_candidate_pending_series_exception_check"
+    },
+    {
+      "slot": "FIN_STRESS",
+      "exact_series_id": "H41/H41/RESPPALDP_N.WW",
+      "exact_description": "Assets: Liquidity and Credit Facilities: Loans: Primary credit: Wednesday level",
+      "official_source": "https://www.federalreserve.gov/datadownload/Review.aspx?filetype=csv&label=include&lastObs=1&layout=seriescolumn&rel=H41&series=c8145b532d2bd9136ac598398c1ad5f3&type=package",
+      "release_timing": "Thursday generally 16:30 ET",
+      "vintage_risk": "release corrections must be tracked",
+      "status": "strong_candidate_pending_series_exception_check"
+    },
+    {
+      "slot": "LIQUIDITY",
+      "exact_series_id": "H41/H41/RESPPA_N.WW",
+      "exact_description": "Assets: Total Assets: Total assets: Wednesday level",
+      "official_source": "https://www.federalreserve.gov/datadownload/Review.aspx?filetype=spreadsheetml&label=include&lastobs=7&layout=seriescolumn&rel=h41&series=17398fbf71bc6a47df150bceebdea2bc",
+      "release_timing": "Thursday generally 16:30 ET",
+      "vintage_risk": "release corrections must be tracked",
+      "status": "strong_candidate_pending_series_exception_check"
+    },
+    {
+      "slot": "REAL_YIELD",
+      "exact_series_id": "H15/H15/RIFLGFCY10_XII_N.B",
+      "exact_description": "10-year inflation-indexed Treasury constant maturity",
+      "official_source": "https://www.federalreserve.gov/datadownload/Preview.aspx?pi=400&preview=H15%2FH15%2FRIFLGFCY10_XII_N.B&rel=H15",
+      "release_timing": "business days 16:15 ET",
+      "vintage_risk": "historical revisions must be versioned if present",
+      "status": "strong_candidate_pending_series_exception_check"
+    },
+    {
+      "slot": "UST_2Y",
+      "exact_series_id": "H15/H15/RIFLGFCY02_N.B",
+      "exact_description": "2-year Treasury constant maturity",
+      "official_source": "https://www.federalreserve.gov/datadownload/Review.aspx?filetype=csv&from=&label=include&lastObs=&layout=seriescolumn&rel=H15&series=bf17364827e38702b42a58cf8eaa3f78&to=&type=package",
+      "release_timing": "business days 16:15 ET",
+      "vintage_risk": "historical revisions must be versioned if present",
+      "status": "strong_candidate_pending_series_exception_check"
+    },
+    {
+      "slot": "UST_10Y",
+      "exact_series_id": "H15/H15/RIFLGFCY10_N.B",
+      "exact_description": "10-year Treasury constant maturity",
+      "official_source": "https://www.federalreserve.gov/datadownload/Review.aspx?filetype=csv&from=&label=include&lastObs=&layout=seriescolumn&rel=H15&series=bf17364827e38702b42a58cf8eaa3f78&to=&type=package",
+      "release_timing": "business days 16:15 ET",
+      "vintage_risk": "historical revisions must be versioned if present",
+      "status": "strong_candidate_pending_series_exception_check"
+    }
+  ],
+  "blocker_removed": {
+    "prior_candidate": "v2.1D",
+    "blocked_series": "EIA RWTC / DCOILWTICO",
+    "reason": "Official EIA materials identify Cushing WTI spot as Refinitiv/LSEG data republished by EIA; EIA reuse terms do not clear protected third-party material.",
+    "replacement": "BLS WPU0561",
+    "silent_substitution": false
+  },
+  "summary": {
+    "complete_conceptual_candidate": true,
+    "exact_series_identifiers_pinned": true,
+    "source_approval_authorized": false,
+    "key_remaining_research_blocker": "point-in-time vintage reconstruction, especially BLS WPU0561 and H.8 revisions",
+    "next_allowed_step": "preregister_synthetic_timing_and_revision_rules_only"
+  }
+}
