@@ -50,7 +50,12 @@
     "index_level_requires_non_numeric_header": true,
     "percent_or_change_term_forces_percent_change": true,
     "multiple_index_level_candidates_fail_closed": true,
-    "ambiguous_revision_context_fails_closed": true
+    "ambiguous_revision_context_fails_closed": true,
+    "release_context_policy": {
+      "archived_html": "fixed archived release path is sufficient original-release context",
+      "detailed_report_xlsx": "requires exactly one internal preliminary/final/revised/corrected context label",
+      "missing_or_conflicting_context": "fail_closed_no_value"
+    }
   },
   "runtime_parser_policy": {
     "html_parser": "python_standard_library_html_parser_only",
