@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate activated-but-not-dispatched Issue #258 ambiguity diagnostics."""
+"""Validate dispatched Issue #258 ambiguity diagnostics."""
 
 from __future__ import annotations
 
@@ -18,6 +18,7 @@ PREDECESSOR = ROOT / "governance/score-v2-1f-bls-wpu0561-representative-index-pr
 ISSUE = "https://github.com/usdimpact/usd-impact-pipeline/issues/258"
 APPROVAL_COMMENT = 6483711604
 APPROVED_AT = "2026-10-28T23:46:03Z"
+ACTIVATION_COMMIT = "f67d925e5bc35575f822ae6e22566b0155fbf00f"
 EXPECTED_UA = "USD-Impact-Score-v2.1F-WPU0561-ambiguity-diagnostics/1.0 (contact: support@usd-impact.com)"
 EXPECTED_RESOURCES = [
     "/news.release/archives/ppi_05152013.htm",
@@ -45,10 +46,11 @@ def validate(repo_root: Path | None = None) -> dict[str, Any]:
     workflow = (root / WORKFLOW.relative_to(ROOT)).read_text(encoding="utf-8")
 
     if not receipt_path.exists():
-        raise RuntimeError("active Issue #258 receipt must exist after activation")
-    if dispatch_path.exists():
-        raise RuntimeError("dispatch must remain absent before separate review")
+        raise RuntimeError("active Issue #258 receipt must exist while dispatched")
+    if not dispatch_path.exists():
+        raise RuntimeError("Issue #258 dispatch marker must exist while dispatched")
     receipt = _load(receipt_path)
+    dispatch = _load(dispatch_path)
 
     if predecessor.get("state") != "consumed_after_ambiguous_result":
         raise RuntimeError("Issue #252 consumption evidence changed")
@@ -129,18 +131,37 @@ def validate(repo_root: Path | None = None) -> dict[str, Any]:
         if auth.get(field) is not False:
             raise RuntimeError(f"{field} must remain false")
 
-    if contract.get("version") != 3:
-        raise RuntimeError("activation contract version changed")
-    if contract.get("state") != "ambiguity_diagnostics_authorized_pending_dispatch":
-        raise RuntimeError("contract must be active but pending dispatch")
+    if dispatch.get("state") != "approved_dispatch":
+        raise RuntimeError("dispatch state changed")
+    if dispatch.get("phase") != "bls_wpu0561_ambiguity_diagnostics_preflight":
+        raise RuntimeError("dispatch phase changed")
+    if dispatch.get("issue") != ISSUE:
+        raise RuntimeError("dispatch issue changed")
+    if dispatch.get("authorization_activation_merge_commit") != ACTIVATION_COMMIT:
+        raise RuntimeError("dispatch activation commit changed")
+    if dispatch.get("request_budget") != 2:
+        raise RuntimeError("dispatch request budget changed")
+    if dispatch.get("max_economic_observations_total") != 0:
+        raise RuntimeError("dispatch economic observation budget changed")
+    if dispatch.get("fixed_resources") != EXPECTED_RESOURCES:
+        raise RuntimeError("dispatch resources changed")
+    if dispatch.get("production_authorized") is not False:
+        raise RuntimeError("dispatch Production authorization changed")
+
+    if contract.get("version") != 4:
+        raise RuntimeError("dispatch contract version changed")
+    if contract.get("state") != "ambiguity_diagnostics_authorized":
+        raise RuntimeError("contract must be dispatched-active")
     if contract.get("owner_approval_comment_id") != APPROVAL_COMMENT:
         raise RuntimeError("contract approval comment changed")
     if contract.get("owner_approval_timestamp") != APPROVED_AT:
         raise RuntimeError("contract approval timestamp changed")
+    if contract.get("authorization_activation_merge_commit") != ACTIVATION_COMMIT:
+        raise RuntimeError("contract activation commit changed")
     if contract.get("active_authorization_receipt_expected_now") is not True:
         raise RuntimeError("active receipt must be expected")
-    if contract.get("dispatch_marker_expected_now") is not False:
-        raise RuntimeError("dispatch must remain absent")
+    if contract.get("dispatch_marker_expected_now") is not True:
+        raise RuntimeError("dispatch marker must be expected")
     if contract.get("request_budget") != 2 or contract.get("max_economic_observations_total") != 0:
         raise RuntimeError("contract budgets changed")
 
@@ -151,7 +172,7 @@ def validate(repo_root: Path | None = None) -> dict[str, Any]:
         "numeric_identifier_field_read_authorized",
     ):
         if current.get(field) is not True:
-            raise RuntimeError(f"{field} must be true after activation")
+            raise RuntimeError(f"{field} must be true while dispatched")
     for field in (
         "economic_value_read_authorized",
         "full_historical_reconstruction_authorized",
@@ -163,20 +184,23 @@ def validate(repo_root: Path | None = None) -> dict[str, Any]:
         if current.get(field) is not False:
             raise RuntimeError(f"{field} must remain false")
 
-    if ("if: $" + "{{ false }}") not in workflow:
-        raise RuntimeError("activation workflow must remain inert")
-    if "push:" in workflow:
-        raise RuntimeError("activation workflow must not have a push trigger")
+    if "score-v2-1f-bls-wpu0561-ambiguity-diagnostics-preflight-dispatch.json" not in workflow:
+        raise RuntimeError("workflow must be path-gated to the dispatch marker")
+    if ("if: $" + "{{ false }}") in workflow:
+        raise RuntimeError("workflow must be active in dispatched state")
+    if "workflow_dispatch:" in workflow:
+        raise RuntimeError("dispatched workflow must not allow manual reruns")
 
     return {
         "status": "passed",
-        "state": "ambiguity_diagnostics_authorized_pending_dispatch",
+        "state": "ambiguity_diagnostics_authorized",
         "issue": ISSUE,
+        "activation_merge_commit": ACTIVATION_COMMIT,
         "request_budget": 2,
         "max_economic_observations_total": 0,
         "active_receipt_present": True,
-        "dispatch_present": False,
-        "live_request_authorized": False,
+        "dispatch_present": True,
+        "live_request_authorized": True,
         "economic_value_read_authorized": False,
         "candidate_score_computation_authorized": False,
         "production_authorized": False,
