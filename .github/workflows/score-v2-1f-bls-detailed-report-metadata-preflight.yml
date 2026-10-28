@@ -1,97 +1,17 @@
-name: Score v2.1F BLS Detailed Report metadata preflight
+name: Score v2.1F BLS Detailed Report metadata preflight (consumed)
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'governance/score-v2-1f-bls-detailed-report-metadata-preflight-dispatch.json'
+  workflow_dispatch:
 
 permissions:
   contents: read
-  issues: write
-
-concurrency:
-  group: score-v2-1f-bls-detailed-report-metadata-preflight
-  cancel-in-progress: false
 
 jobs:
-  metadata-preflight:
+  consumed:
+    if: ${{ false }}
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-
-      - name: Run owner-authorized BLS metadata-only preflight
-        env:
-          PYTHONUNBUFFERED: "1"
+      - name: Consumed authorization guard
         run: |
-          python -m scripts.run_score_v2_1f_bls_detailed_report_metadata_preflight             > "$RUNNER_TEMP/bls-metadata-preflight.json"
-
-      - name: Record sanitized PASS metadata
-        if: success()
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          python - "$RUNNER_TEMP/bls-metadata-preflight.json" > "$RUNNER_TEMP/comment.md" <<'PY'
-          import json
-          import os
-          import sys
-          from pathlib import Path
-
-          report = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
-          archive = report["archive_metadata"]
-          run_url = (
-              f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/actions/runs/"
-              f"{os.environ['GITHUB_RUN_ID']}"
-          )
-
-          print("### v2.1F BLS Detailed Report metadata preflight — PASS")
-          print()
-          print("<!-- V2_1F_BLS_METADATA_PREFLIGHT_COMPLETED -->")
-          print(f"- Run: {run_url}")
-          print(f"- Request count: {report['request_count']}/4")
-          print(f"- 2013 report resource present: {archive['has_2013']}")
-          print(f"- 2026 report resource present: {archive['has_2026']}")
-          print(
-              "- October 2025 Not Available label seen: "
-              f"{archive['expected_unavailable_2025_10_seen']}"
-          )
-          print(
-              "- Corrected labels seen: "
-              + (", ".join(archive["corrected_labels"]) or "none")
-          )
-          print(f"- Selected 2013 resource: {archive['selected_2013_path']}")
-          print(f"- Selected 2026 resource: {archive['selected_2026_path']}")
-          print("- Report bodies downloaded: no")
-          print("- Source values retrieved: no")
-          print("- Candidate Score computed: no")
-          print("- Production modified: no")
-          print()
-          print(
-              "This metadata-only pass does not authorize report-body retrieval, "
-              "source-value research, candidate scoring, public changes, or Production."
-          )
-          PY
-          gh issue comment 230 --body-file "$RUNNER_TEMP/comment.md"
-
-      - name: Record fail-closed result
-        if: failure()
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          cat > "$RUNNER_TEMP/failure.md" <<EOF
-          ### v2.1F BLS Detailed Report metadata preflight — FAIL CLOSED
-
-          <!-- V2_1F_BLS_METADATA_PREFLIGHT_FAILED -->
-
-          - Run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
-          - The run stopped under the fixed four-request metadata-only policy.
-          - No report body or source value is attached to this issue comment.
-          - No Score/z-score/contribution was computed.
-          - No public artifact, research ledger, or Production state was modified.
-
-          Do not retry or broaden the source/request boundary under this authorization.
-          EOF
-          gh issue comment 230 --body-file "$RUNNER_TEMP/failure.md"
+          echo "The Issue #230 BLS metadata preflight authorization has been consumed."
+          echo "A new explicit owner authorization and reviewed activation are required for any future live request."

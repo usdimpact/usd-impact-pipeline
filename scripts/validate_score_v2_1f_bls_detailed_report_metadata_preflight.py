@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate dispatched Score v2.1F BLS metadata preflight authorization."""
+"""Validate consumed/fail-closed Score v2.1F BLS metadata preflight state."""
 
 from __future__ import annotations
 
@@ -9,15 +9,17 @@ from typing import Any
 
 RECEIPT = "governance/score-v2-1f-bls-detailed-report-metadata-preflight-authorization.json"
 DISPATCH = "governance/score-v2-1f-bls-detailed-report-metadata-preflight-dispatch.json"
+CONSUMPTION = (
+    "governance/"
+    "score-v2-1f-bls-detailed-report-metadata-preflight-consumption-2026-10-28.json"
+)
 OLD_RECEIPT = "governance/score-v2-1f-live-vintage-preflight-authorization.json"
 OLD_DISPATCH = "governance/score-v2-1f-live-vintage-preflight-dispatch.json"
 ISSUE = "https://github.com/usdimpact/usd-impact-pipeline/issues/230"
 BLOCKER = "https://github.com/usdimpact/usd-impact-pipeline/issues/228"
-APPROVAL_COMMENT = 6480432536
-APPROVED_AT = "2026-10-28T20:53:16Z"
+RUN = "https://github.com/usdimpact/usd-impact-pipeline/actions/runs/40768295606"
 ACTIVATION_COMMIT = "59cd5e6b1cd47f3d04eec6588697d252ff93cff2"
-EXPECTED_WINDOW = {"start": "2013-01-01", "end": "2026-10-23"}
-EXPECTED_UA = "USD-Impact-Score-v2.1F-BLS-metadata-preflight/1.0 (contact: support@usd-impact.com)"
+DISPATCH_COMMIT = "8348c276ecc12053501f444d9a55e1c6572612f5"
 
 
 def _load(path: Path) -> dict[str, Any]:
@@ -36,8 +38,7 @@ def validate(repo_root: Path) -> dict[str, Any]:
         root
         / "governance/score-v2-1f-bls-detailed-report-metadata-preflight-authorization.template.json"
     )
-    receipt = _load(root / RECEIPT)
-    dispatch = _load(root / DISPATCH)
+    consumption = _load(root / CONSUMPTION)
     contract = _load(
         root
         / "governance/score-v2-1f-bls-detailed-report-metadata-preflight-execution-contract.json"
@@ -51,9 +52,9 @@ def validate(repo_root: Path) -> dict[str, Any]:
         root / ".github/workflows/score-v2-1f-bls-detailed-report-metadata-preflight.yml"
     ).read_text(encoding="utf-8")
 
-    for relative in (OLD_RECEIPT, OLD_DISPATCH):
+    for relative in (RECEIPT, DISPATCH, OLD_RECEIPT, OLD_DISPATCH):
         if (root / relative).exists():
-            raise RuntimeError(f"prior consumed Stage 1 state reactivated: {relative}")
+            raise RuntimeError(f"consumed authorization state must not retain {relative}")
 
     if rights.get("state") != "hold":
         raise RuntimeError("Score publication rights gate must remain HOLD")
@@ -76,123 +77,93 @@ def validate(repo_root: Path) -> dict[str, Any]:
     if any(template.get("authorizations", {}).values()):
         raise RuntimeError("HOLD template authorizations must remain false")
 
-    if receipt.get("decision_status") != "approved":
-        raise RuntimeError("active BLS metadata receipt is not approved")
-    if receipt.get("issue") != ISSUE or receipt.get("blocker_issue") != BLOCKER:
-        raise RuntimeError("active BLS metadata receipt issue binding changed")
-    if receipt.get("execution_scope") != "bls_detailed_report_metadata_preflight_only":
-        raise RuntimeError("active BLS metadata receipt scope changed")
-    if receipt.get("data_window") != EXPECTED_WINDOW:
-        raise RuntimeError("active BLS metadata receipt window changed")
-    if receipt.get("request_budget") != 4:
-        raise RuntimeError("active BLS metadata request budget changed")
-    if receipt.get("allowed_host") != "www.bls.gov":
-        raise RuntimeError("active BLS metadata host changed")
-    if receipt.get("contact_user_agent") != EXPECTED_UA:
-        raise RuntimeError("contactable project User-Agent changed")
-    if receipt.get("approved_by") != (
-        "usdimpact owner via Issue #230 approval comment 6480432536"
-    ):
-        raise RuntimeError("active BLS metadata approval identity changed")
-    if receipt.get("approved_at") != APPROVED_AT:
-        raise RuntimeError("active BLS metadata approval timestamp changed")
+    if consumption.get("state") != "consumed_after_success":
+        raise RuntimeError("metadata preflight consumption state changed")
+    if consumption.get("owner_decision_issue") != ISSUE:
+        raise RuntimeError("consumption owner decision issue changed")
+    if consumption.get("blocker_issue") != BLOCKER:
+        raise RuntimeError("consumption blocker issue changed")
+    if consumption.get("owner_approval_comment_id") != 6480432536:
+        raise RuntimeError("owner approval evidence changed")
+    if consumption.get("authorization_activation_merge_commit") != ACTIVATION_COMMIT:
+        raise RuntimeError("activation merge evidence changed")
+    if consumption.get("dispatch_merge_commit") != DISPATCH_COMMIT:
+        raise RuntimeError("dispatch merge evidence changed")
+    if consumption.get("preflight_run") != RUN:
+        raise RuntimeError("preflight run evidence changed")
+    if consumption.get("preflight_conclusion") != "success":
+        raise RuntimeError("metadata preflight conclusion changed")
+    if consumption.get("request_budget") != 4:
+        raise RuntimeError("metadata preflight request budget changed")
+    if consumption.get("new_owner_authorization_required_for_any_future_live_request") is not True:
+        raise RuntimeError("future live work must require a new owner authorization")
 
-    auth = receipt.get("authorizations", {})
-    if auth.get("network_metadata_fetch") is not True:
-        raise RuntimeError("network metadata fetch must be authorized")
-    if auth.get("bls_metadata_preflight") is not True:
-        raise RuntimeError("BLS metadata preflight must be authorized")
+    result = consumption.get("sanitized_result", {})
+    expected_true = (
+        "report_resource_2013_present",
+        "report_resource_2026_present",
+        "october_2025_not_available_label_seen",
+        "february_2016_correction_label_seen",
+    )
+    for field in expected_true:
+        if result.get(field) is not True:
+            raise RuntimeError(f"{field} pass evidence changed")
+    if result.get("request_count") != 4:
+        raise RuntimeError("sanitized request count changed")
     for field in (
-        "report_body_download",
-        "source_value_retrieval",
-        "real_data_research",
-        "candidate_score_computation",
-        "research_ledger_mutation",
-        "public_artifact_replacement",
-        "production",
+        "report_bodies_downloaded",
+        "source_values_retrieved",
+        "candidate_score_computed",
+        "component_zscores_computed",
+        "component_contributions_computed",
+        "alternate_sources_used",
+        "public_artifacts_modified",
+        "research_ledgers_modified",
+        "production_modified",
     ):
-        if auth.get(field) is not False:
+        if result.get(field) is not False:
             raise RuntimeError(f"{field} must remain false")
 
-    if dispatch.get("state") != "approved_dispatch":
-        raise RuntimeError("dispatch marker state changed")
-    if dispatch.get("phase") != "bls_detailed_report_metadata_preflight":
-        raise RuntimeError("dispatch phase changed")
-    if dispatch.get("issue") != ISSUE or dispatch.get("blocker_issue") != BLOCKER:
-        raise RuntimeError("dispatch issue binding changed")
-    if dispatch.get("authorization_activation_merge_commit") != ACTIVATION_COMMIT:
-        raise RuntimeError("dispatch activation commit changed")
-    if dispatch.get("data_window") != EXPECTED_WINDOW:
-        raise RuntimeError("dispatch window changed")
-    if dispatch.get("request_budget") != 4:
-        raise RuntimeError("dispatch request budget changed")
-    if dispatch.get("allowed_host") != "www.bls.gov":
-        raise RuntimeError("dispatch host changed")
-    for field in (
-        "report_body_download_authorized",
-        "source_value_retrieval_authorized",
-        "real_data_research_authorized",
-        "candidate_score_computation_authorized",
-        "research_ledger_mutation_authorized",
-        "public_artifact_replacement_authorized",
-        "production_authorized",
-    ):
-        if dispatch.get(field) is not False:
-            raise RuntimeError(f"{field} must remain false in dispatch")
+    post = consumption.get("post_consumption_authorizations", {})
+    if not isinstance(post, dict) or any(post.values()):
+        raise RuntimeError("all post-consumption authorizations must be false")
 
-    if contract.get("state") != "metadata_preflight_authorized":
-        raise RuntimeError("execution contract must be dispatched-active")
-    if contract.get("owner_approval_comment_id") != APPROVAL_COMMENT:
-        raise RuntimeError("contract owner approval comment changed")
-    if contract.get("owner_approval_timestamp") != APPROVED_AT:
-        raise RuntimeError("contract owner approval timestamp changed")
-    if contract.get("authorization_activation_merge_commit") != ACTIVATION_COMMIT:
-        raise RuntimeError("contract activation commit changed")
-    if contract.get("active_authorization_receipt_expected_now") is not True:
-        raise RuntimeError("active receipt must be expected")
-    if contract.get("dispatch_marker_expected_now") is not True:
-        raise RuntimeError("dispatch must be expected")
-    if contract.get("request_budget") != 4:
-        raise RuntimeError("contract request budget changed")
-    if contract.get("contact_user_agent") != EXPECTED_UA:
-        raise RuntimeError("contract User-Agent changed")
+    if contract.get("state") != "metadata_preflight_consumed_fail_closed":
+        raise RuntimeError("execution contract is not consumed/fail-closed")
+    if contract.get("active_authorization_receipt_expected_now") is not False:
+        raise RuntimeError("active receipt must not be expected")
+    if contract.get("dispatch_marker_expected_now") is not False:
+        raise RuntimeError("dispatch must not be expected")
+    if contract.get("completed_preflight_run") != RUN:
+        raise RuntimeError("contract preflight run evidence changed")
+    if contract.get("completed_preflight_conclusion") != "success":
+        raise RuntimeError("contract preflight conclusion changed")
+    if any(contract.get("current_state", {}).values()):
+        raise RuntimeError("all contract authorization flags must be false after consumption")
+    if contract.get("production_authorized") is not False:
+        raise RuntimeError("Production must remain unauthorized")
 
-    current = contract.get("current_state", {})
-    for field in (
-        "network_metadata_fetch_authorized",
-        "bls_metadata_preflight_authorized",
-    ):
-        if current.get(field) is not True:
-            raise RuntimeError(f"{field} must be true while dispatched")
-    for field in (
-        "report_body_download_authorized",
-        "source_value_retrieval_authorized",
-        "real_data_research_authorized",
-        "candidate_score_computation_authorized",
-        "research_ledger_mutation_authorized",
-        "public_artifact_replacement_authorized",
-        "production_authorized",
-    ):
-        if current.get(field) is not False:
-            raise RuntimeError(f"{field} must remain false")
-
-    if "score-v2-1f-bls-detailed-report-metadata-preflight-dispatch.json" not in workflow:
-        raise RuntimeError("workflow is not path-gated to the dispatch marker")
-    if "if: ${{ false }}" in workflow:
-        raise RuntimeError("workflow must be active in the dispatched state")
+    if "if: ${{ false }}" not in workflow:
+        raise RuntimeError("consumed BLS metadata workflow must remain inert")
+    if "push:" in workflow:
+        raise RuntimeError("consumed BLS metadata workflow must not retain a push trigger")
 
     return {
         "status": "passed",
-        "state": "metadata_preflight_authorized",
+        "state": "metadata_preflight_consumed_fail_closed",
         "issue": ISSUE,
         "blocker_issue": BLOCKER,
-        "activation_merge_commit": ACTIVATION_COMMIT,
-        "request_budget": 4,
-        "allowed_host": "www.bls.gov",
-        "active_receipt_present": True,
-        "dispatch_present": True,
-        "network_metadata_fetch_authorized": True,
-        "bls_metadata_preflight_authorized": True,
+        "preflight_run": RUN,
+        "preflight_conclusion": "success",
+        "request_count": 4,
+        "report_resource_2013_present": True,
+        "report_resource_2026_present": True,
+        "october_2025_not_available_label_seen": True,
+        "february_2016_correction_label_seen": True,
+        "active_receipt_present": False,
+        "dispatch_present": False,
+        "network_metadata_fetch_authorized": False,
+        "bls_metadata_preflight_authorized": False,
         "candidate_score_computation_authorized": False,
         "production_authorized": False,
         "rights_hold": True,
