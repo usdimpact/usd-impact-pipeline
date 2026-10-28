@@ -40,7 +40,7 @@ BLS states recent PPI observations may be revised for four months. Therefore:
 - archived BLS PPI release evidence must bind the value;
 - if a required vintage cannot be reconstructed conservatively, the candidate week fails closed.
 
-The monthly value may be carried across weekly Score dates only after it has actually been released, up to a maximum age of 50 calendar days.
+The monthly value may be carried across weekly Score dates only after it has actually been released. Staleness is measured from the BLS release date, not the reference-month date, with a maximum release age of 45 calendar days.
 
 ## H.8 bank-credit vintage rule
 
