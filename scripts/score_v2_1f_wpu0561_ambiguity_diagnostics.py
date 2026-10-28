@@ -14,6 +14,7 @@ import unicodedata
 from dataclasses import dataclass
 
 IDENTIFIER_HEADERS = ("commodity code", "series code", "series id", "item code")
+BARE_CODE_HEADER_RE = re.compile(r"\\bcode\\b")
 DESCRIPTION_HEADERS = ("commodity", "item", "description")
 REVISION_CONTEXT_TERMS = ("preliminary", "final", "revised", "corrected")
 TRANSPORT_REASON_CODES = ("transport_dns_failure", "http_access_control")
@@ -26,7 +27,7 @@ def normalize_header(value: str) -> str:
 
 def header_role(value: str) -> str | None:
     normalized = normalize_header(value)
-    identifier = any(term in normalized for term in IDENTIFIER_HEADERS)
+    identifier = any(term in normalized for term in IDENTIFIER_HEADERS) or bool(BARE_CODE_HEADER_RE.search(normalized))
     percent_change = "percent" in normalized or "%" in normalized or "change" in normalized
     index_level = "index" in normalized and not percent_change
     description = any(term in normalized for term in DESCRIPTION_HEADERS)
