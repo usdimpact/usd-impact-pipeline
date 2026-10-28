@@ -58,8 +58,12 @@ def is_blank_row(row: list[str]) -> bool:
     return not any(cell.strip() for cell in row)
 
 
+def _row_header_role_count(row: list[str]) -> int:
+    return sum(1 for cell in row if header_role(cell) is not None)
+
+
 def _row_has_header_role(row: list[str]) -> bool:
-    return any(header_role(cell) is not None for cell in row)
+    return _row_header_role_count(row) > 0
 
 
 def _role_for_header_path(texts: tuple[str, ...]) -> str | None:
@@ -115,7 +119,10 @@ def _header_paths_and_roles(
 def find_header_anchors(rows: list[list[str]]) -> list[tuple[int, int, dict[int, tuple[str, ...]], dict[int, str]]]:
     anchors: list[tuple[int, int, dict[int, tuple[str, ...]], dict[int, str]]] = []
     for end_row in range(1, len(rows) + 1):
-        if not _row_has_header_role(rows[end_row - 1]):
+        # Data rows can legitimately contain words such as "item" or
+        # "description". Requiring at least two recognized header-role cells
+        # prevents those rows from becoming false header-stack terminators.
+        if _row_header_role_count(rows[end_row - 1]) < 2:
             continue
         start_row = _header_stack_start(rows, end_row)
         paths, roles = _header_paths_and_roles(rows, start_row=start_row, end_row=end_row)
