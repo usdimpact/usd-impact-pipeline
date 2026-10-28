@@ -1,0 +1,18 @@
+name: Score v2.1F BLS WPU0561 row-presence preflight (HOLD)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  design-only-hold:
+    if: ${{ false }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Explicit owner authorization guard
+        run: |
+          echo "The WPU0561 row-presence preflight is design-only/HOLD."
+          echo "Issue #236 requires a new explicit owner authorization."
+          echo "No BLS report-body request is authorized by this workflow definition."

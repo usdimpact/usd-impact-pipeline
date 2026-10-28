@@ -1,0 +1,99 @@
+{
+  "version": 1,
+  "state": "design_only_hold",
+  "methodology_version": "2.1F-design-candidate",
+  "owner_decision_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/236",
+  "metadata_preflight_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/230",
+  "controlling_rights_hold": "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
+  "research_window": {
+    "start": "2013-01-01",
+    "end": "2026-10-23"
+  },
+  "fixed_resources": [
+    {
+      "label": "april_2013_pdf",
+      "method": "GET",
+      "host": "www.bls.gov",
+      "path": "/ppi/detailed-report/ppi-detailed-report-april-2013.pdf",
+      "expected_format": "pdf"
+    },
+    {
+      "label": "april_2026_xlsx",
+      "method": "GET",
+      "host": "www.bls.gov",
+      "path": "/ppi/detailed-report/ppi-detailed-report-april-2026.xlsx",
+      "expected_format": "xlsx"
+    }
+  ],
+  "objective": "Determine whether representative official BLS Detailed Report bodies expose a structurally identifiable WPU0561 / 0561 / 05-61 / Crude petroleum row or label without extracting, logging, persisting or publishing economic values.",
+  "request_policy": {
+    "request_budget": 2,
+    "concurrency": 1,
+    "automatic_retries": 0,
+    "allowed_host": "www.bls.gov",
+    "redirects": "reject_fail_closed",
+    "transparent_contact_user_agent_required": true,
+    "access_control_stop_statuses": [401, 403, 429],
+    "challenge_detection_required": true
+  },
+  "runtime_capability_policy": {
+    "pdf_parser": "existing_runner_pdftotext_only",
+    "install_new_pdf_software": false,
+    "missing_pdftotext_behavior": "fail_before_first_network_request",
+    "xlsx_parser": "python_standard_library_zip_xml_only",
+    "install_new_python_dependency": false
+  },
+  "structural_match_terms": [
+    "WPU0561",
+    "0561",
+    "05-61",
+    "Crude petroleum"
+  ],
+  "allowed_ephemeral_processing": [
+    "read the two fixed report bodies into memory",
+    "PDF text extraction in memory using pre-existing pdftotext",
+    "XLSX ZIP/XML string-cell parsing in memory using Python standard library",
+    "discard numeric cells and numeric source values",
+    "emit only structural row/label/page/sheet identifiers and yes/no parseability"
+  ],
+  "forbidden": {
+    "report_body_persistence": true,
+    "numeric_source_value_persistence": true,
+    "numeric_source_value_logging": true,
+    "numeric_source_value_publication": true,
+    "wpu0561_value_extraction": true,
+    "full_historical_reconstruction": true,
+    "bls_api_call": true,
+    "bls_bulk_download": true,
+    "alternate_source": true,
+    "candidate_score_computation": true,
+    "component_zscore_computation": true,
+    "component_contribution_computation": true,
+    "research_ledger_mutation": true,
+    "public_artifact_replacement": true,
+    "production_change": true
+  },
+  "allowed_persistent_output": [
+    "pass/fail status",
+    "request count",
+    "resource path",
+    "format",
+    "matched structural identifier tokens",
+    "PDF page numbers containing a structural match",
+    "XLSX sheet names and row numbers containing a structural match",
+    "structural parseability yes/no",
+    "non-value-bearing error category"
+  ],
+  "current_authorizations": {
+    "report_body_ephemeral_retrieval": false,
+    "row_presence_preflight": false,
+    "source_value_extraction": false,
+    "real_data_research": false,
+    "full_historical_reconstruction": false,
+    "candidate_score_computation": false,
+    "research_ledger_mutation": false,
+    "public_artifact_replacement": false,
+    "production": false
+  },
+  "next_gate": "new_explicit_owner_authorization_under_issue_236_required_before_any_live_report_body_request"
+}

@@ -1,0 +1,149 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://usd-impact.com/schemas/score-v2-1f-bls-wpu0561-row-presence-preflight-authorization.schema.json",
+  "title": "Score v2.1F BLS WPU0561 row-presence preflight authorization",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "decision_status",
+    "methodology_version",
+    "issue",
+    "execution_scope",
+    "data_window",
+    "request_budget",
+    "contact_user_agent",
+    "allowed_host",
+    "fixed_resources",
+    "storage_policy",
+    "authorizations",
+    "approved_by",
+    "approved_at",
+    "notes"
+  ],
+  "properties": {
+    "version": {"const": 1},
+    "decision_status": {"enum": ["hold", "approved"]},
+    "methodology_version": {"const": "2.1F-design-candidate"},
+    "issue": {"const": "https://github.com/usdimpact/usd-impact-pipeline/issues/236"},
+    "execution_scope": {"const": "bls_wpu0561_row_presence_preflight_only"},
+    "data_window": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["start", "end"],
+      "properties": {
+        "start": {"type": ["string", "null"], "format": "date"},
+        "end": {"type": ["string", "null"], "format": "date"}
+      }
+    },
+    "request_budget": {"const": 2},
+    "contact_user_agent": {
+      "type": ["string", "null"],
+      "pattern": "^USD-Impact-Score-v2\\.1F-WPU0561-row-presence/1\\.0 \\(contact: .+\\)$"
+    },
+    "allowed_host": {"const": "www.bls.gov"},
+    "fixed_resources": {
+      "const": [
+        "/ppi/detailed-report/ppi-detailed-report-april-2013.pdf",
+        "/ppi/detailed-report/ppi-detailed-report-april-2026.xlsx"
+      ]
+    },
+    "storage_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "report_bodies",
+        "numeric_source_values",
+        "credentials",
+        "durable_private_storage"
+      ],
+      "properties": {
+        "report_bodies": {"const": "ephemeral_memory_only"},
+        "numeric_source_values": {"const": "do_not_extract_log_or_persist"},
+        "credentials": {"const": "forbidden"},
+        "durable_private_storage": {"const": false}
+      }
+    },
+    "authorizations": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "report_body_ephemeral_retrieval",
+        "row_presence_preflight",
+        "source_value_extraction",
+        "real_data_research",
+        "full_historical_reconstruction",
+        "candidate_score_computation",
+        "research_ledger_mutation",
+        "public_artifact_replacement",
+        "production"
+      ],
+      "properties": {
+        "report_body_ephemeral_retrieval": {"type": "boolean"},
+        "row_presence_preflight": {"type": "boolean"},
+        "source_value_extraction": {"const": false},
+        "real_data_research": {"const": false},
+        "full_historical_reconstruction": {"const": false},
+        "candidate_score_computation": {"const": false},
+        "research_ledger_mutation": {"const": false},
+        "public_artifact_replacement": {"const": false},
+        "production": {"const": false}
+      }
+    },
+    "approved_by": {"type": ["string", "null"], "minLength": 1},
+    "approved_at": {"type": ["string", "null"], "format": "date-time"},
+    "notes": {"type": "string"}
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {"decision_status": {"const": "hold"}},
+        "required": ["decision_status"]
+      },
+      "then": {
+        "properties": {
+          "data_window": {
+            "properties": {
+              "start": {"const": null},
+              "end": {"const": null}
+            }
+          },
+          "contact_user_agent": {"const": null},
+          "authorizations": {
+            "properties": {
+              "report_body_ephemeral_retrieval": {"const": false},
+              "row_presence_preflight": {"const": false}
+            }
+          },
+          "approved_by": {"const": null},
+          "approved_at": {"const": null}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {"decision_status": {"const": "approved"}},
+        "required": ["decision_status"]
+      },
+      "then": {
+        "properties": {
+          "data_window": {
+            "properties": {
+              "start": {"const": "2013-01-01"},
+              "end": {"const": "2026-10-23"}
+            }
+          },
+          "contact_user_agent": {"type": "string"},
+          "authorizations": {
+            "properties": {
+              "report_body_ephemeral_retrieval": {"const": true},
+              "row_presence_preflight": {"const": true}
+            }
+          },
+          "approved_by": {"type": "string", "minLength": 1},
+          "approved_at": {"type": "string", "format": "date-time"}
+        }
+      }
+    }
+  ]
+}
