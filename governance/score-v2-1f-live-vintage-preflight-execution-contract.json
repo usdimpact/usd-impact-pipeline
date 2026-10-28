@@ -1,21 +1,23 @@
 {
   "version": 1,
-  "state": "authorization_packet_only",
+  "state": "live_vintage_preflight_authorized_pending_dispatch",
   "methodology_version": "2.1F-design-candidate",
   "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/224",
   "controlling_hold": "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
   "design_merge_commit": "e14aec35142b9536b5b889d0fae4eab9a94faf88",
   "preregistration_merge_commit": "bcf473e2bbcb36fa1080a3a56f77a3796d74ccaa",
+  "owner_approval_comment_id": 6479715940,
+  "owner_approval_timestamp": "2026-10-28T20:20:28Z",
   "active_authorization_receipt_path": "governance/score-v2-1f-live-vintage-preflight-authorization.json",
-  "active_authorization_receipt_expected_now": false,
+  "active_authorization_receipt_expected_now": true,
   "dispatch_marker_path": "governance/score-v2-1f-live-vintage-preflight-dispatch.json",
   "dispatch_marker_expected_now": false,
-  "proposed_data_window": {
+  "authorized_data_window": {
     "start": "2013-01-01",
     "end": "2026-10-23"
   },
   "execution_preconditions": [
-    "separate explicit owner approval under Issue #224",
+    "explicit owner approval under Issue #224 comment 6479715940",
     "active preflight authorization receipt exists and validates",
     "decision_status is approved",
     "real_data_fetch and live_vintage_preflight are true",
@@ -27,7 +29,7 @@
     "no API key, paid account, paid source or contractual acceptance is required",
     "temporary workspace is isolated and non-public",
     "raw/source values are ephemeral only",
-    "dispatch marker is created only after the authorization activation merge is protected-main"
+    "dispatch marker remains absent until a separate reviewed dispatch change after this activation merge reaches protected main"
   ],
   "network_policy": {
     "allowed_hosts": [
@@ -68,7 +70,6 @@
     ]
   },
   "stop_conditions": [
-    "active authorization receipt is absent or invalid",
     "dispatch marker is absent or invalid",
     "any required source resolves to a paid or credentialed path",
     "any source falls outside the exact five-series inventory",
@@ -79,11 +80,11 @@
     "requested action would modify public Score artifacts, research ledgers or Production"
   ],
   "current_state": {
-    "real_data_fetch_authorized": false,
-    "live_vintage_preflight_authorized": false,
+    "real_data_fetch_authorized": true,
+    "live_vintage_preflight_authorized": true,
     "real_data_research_authorized": false,
     "candidate_score_computation_authorized": false,
-    "active_receipt_present": false,
+    "active_receipt_present": true,
     "dispatch_marker_present": false,
     "paid_data_authorized": false,
     "source_contract_acceptance_authorized": false,
@@ -92,6 +93,6 @@
     "research_ledger_mutation_authorized": false,
     "production_authorized": false
   },
-  "next_allowed_action": "explicit_owner_authorization_under_issue_224_then_separate_activation_review",
+  "next_allowed_action": "separate_dispatch_review_pinned_to_authorization_activation_merge",
   "production_authorized": false
 }

@@ -9,21 +9,48 @@ from scripts import validate_score_v2_1f_preflight_authorization as validator
 ROOT = Path(__file__).resolve().parents[1]
 
 
-class ScoreV21FPreflightAuthorizationPacketTests(unittest.TestCase):
-    def test_packet_is_fail_closed(self) -> None:
+class ScoreV21FPreflightAuthorizationTests(unittest.TestCase):
+    def test_preflight_is_authorized_but_dispatch_and_research_are_not(self) -> None:
         report = validator.validate(ROOT)
         self.assertEqual(report["status"], "passed")
-        self.assertEqual(report["state"], "authorization_packet_only")
+        self.assertEqual(
+            report["state"],
+            "live_vintage_preflight_authorized_pending_dispatch",
+        )
+        self.assertEqual(report["decision_status"], "approved")
         self.assertEqual(report["exact_series_count"], 5)
-        self.assertFalse(report["active_authorization_receipt_present"])
+        self.assertEqual(
+            report["data_window"],
+            {"start": "2013-01-01", "end": "2026-10-23"},
+        )
+        self.assertTrue(report["active_authorization_receipt_present"])
         self.assertFalse(report["dispatch_marker_present"])
-        self.assertFalse(report["live_vintage_preflight_authorized"])
+        self.assertTrue(report["real_data_fetch_authorized"])
+        self.assertTrue(report["live_vintage_preflight_authorized"])
         self.assertFalse(report["real_data_research_authorized"])
         self.assertFalse(report["candidate_score_computation_authorized"])
         self.assertFalse(report["production_authorized"])
         self.assertTrue(report["rights_hold"])
 
-    def test_template_keeps_every_authorization_false(self) -> None:
+    def test_active_receipt_has_exact_owner_approval(self) -> None:
+        receipt = json.loads(
+            (
+                ROOT
+                / "governance/score-v2-1f-live-vintage-preflight-authorization.json"
+            ).read_text(encoding="utf-8")
+        )
+        self.assertEqual(receipt["decision_status"], "approved")
+        self.assertEqual(
+            receipt["approved_by"],
+            "usdimpact owner via Issue #224 approval comment 6479715940",
+        )
+        self.assertEqual(receipt["approved_at"], "2026-10-28T20:20:28Z")
+        self.assertEqual(
+            receipt["data_window"],
+            {"start": "2013-01-01", "end": "2026-10-23"},
+        )
+
+    def test_template_remains_hold(self) -> None:
         template = json.loads(
             (
                 ROOT
@@ -36,25 +63,23 @@ class ScoreV21FPreflightAuthorizationPacketTests(unittest.TestCase):
         self.assertIsNone(template["approved_at"])
         self.assertFalse(any(template["authorizations"].values()))
 
-    def test_preflight_output_policy_forbids_values_and_score(self) -> None:
-        template = json.loads(
+    def test_full_research_scoring_and_production_remain_forbidden(self) -> None:
+        receipt = json.loads(
             (
                 ROOT
-                / "governance/score-v2-1f-live-vintage-preflight-authorization.template.json"
+                / "governance/score-v2-1f-live-vintage-preflight-authorization.json"
             ).read_text(encoding="utf-8")
         )
-        output = template["output_policy"]
-        self.assertFalse(output["source_values_in_logs"])
-        self.assertFalse(output["component_values_in_logs"])
-        self.assertFalse(output["candidate_score_output"])
-        self.assertFalse(output["public_repo_source_values"])
+        auth = receipt["authorizations"]
+        self.assertTrue(auth["real_data_fetch"])
+        self.assertTrue(auth["live_vintage_preflight"])
+        self.assertFalse(auth["real_data_research"])
+        self.assertFalse(auth["candidate_score_computation"])
+        self.assertFalse(auth["public_artifact_replacement"])
+        self.assertFalse(auth["research_ledger_mutation"])
+        self.assertFalse(auth["production"])
 
-    def test_active_receipt_and_dispatch_are_absent(self) -> None:
-        self.assertFalse(
-            (
-                ROOT / "governance/score-v2-1f-live-vintage-preflight-authorization.json"
-            ).exists()
-        )
+    def test_dispatch_marker_is_still_absent(self) -> None:
         self.assertFalse(
             (ROOT / "governance/score-v2-1f-live-vintage-preflight-dispatch.json").exists()
         )
