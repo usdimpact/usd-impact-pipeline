@@ -1,18 +1,25 @@
 {
   "version": 1,
-  "state": "authorization_packet_only",
+  "state": "one_off_private_research_authorized",
   "methodology_version": "2.1E-design-candidate",
   "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/203",
   "controlling_hold": "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
+  "owner_decision_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/209",
+  "owner_approval_comment_id": 6477834394,
+  "owner_approval_timestamp": "2026-10-28T18:55:48Z",
   "active_authorization_receipt_path": "governance/score-v2-1e-real-data-research-authorization.json",
-  "active_authorization_receipt_expected_now": false,
+  "active_authorization_receipt_expected_now": true,
+  "authorized_data_window": {
+    "start": "2013-01-01",
+    "end": "2026-10-23"
+  },
   "execution_preconditions": [
     "active authorization receipt exists and validates against schema",
     "decision_status is approved",
     "real_data_fetch and real_data_research are true",
     "design merge commit matches 65e71695a3d99ed6a5584548652a61dc0e66006f",
     "preregistration merge commit matches b93ab1b4514e828561e74963b1a830421a104e29",
-    "data window is explicit",
+    "data window is exactly 2013-01-01 through 2026-10-23",
     "network source allowlist is direct official Federal Reserve Board and BLS endpoints only",
     "no API key, paid account, paid source or contractual acceptance is required",
     "temporary workspace is isolated and non-public",
@@ -69,9 +76,14 @@
     "requested action would modify public Score artifacts, research ledgers or Production"
   ],
   "current_state": {
-    "real_data_fetch_authorized": false,
-    "real_data_research_authorized": false,
-    "active_receipt_present": false,
+    "real_data_fetch_authorized": true,
+    "real_data_research_authorized": true,
+    "active_receipt_present": true,
+    "paid_data_authorized": false,
+    "source_contract_acceptance_authorized": false,
+    "durable_private_storage_authorized": false,
+    "public_artifact_replacement_authorized": false,
+    "research_ledger_mutation_authorized": false,
     "production_authorized": false
   }
 }

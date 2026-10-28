@@ -18,17 +18,14 @@ EXPECTED = {
 def validate(repo_root: Path) -> dict[str, object]:
     review = json.loads((repo_root / "governance/score-v2-1e-upstream-provenance-review.json").read_text())
     hold = json.loads((repo_root / "governance/score-publication-rights-gate.json").read_text())
-    active_receipt = repo_root / "governance/score-v2-1e-real-data-research-authorization.json"
 
     if review["state"] != "evidence_only_no_source_approval":
         raise RuntimeError("review state changed")
     for key in ("legal_conclusion", "source_approval", "real_data_fetch_authorized", "real_data_research_authorized", "production_authorized"):
         if review.get(key) is not False:
-            raise RuntimeError(f"{key} must remain false")
+            raise RuntimeError(f"{key} must remain false in the historical review artifact")
     if hold.get("state") != "hold":
         raise RuntimeError("rights HOLD must remain active")
-    if active_receipt.exists():
-        raise RuntimeError("active research authorization receipt must remain absent")
 
     rows = review.get("series_review", [])
     if len(rows) != 8:
@@ -43,7 +40,7 @@ def validate(repo_root: Path) -> dict[str, object]:
     if summary.get("residual_upstream_provenance") != 3:
         raise RuntimeError("expected three H.15 residual-provenance slots")
     if summary.get("candidate_source_approved") is not False:
-        raise RuntimeError("candidate may not be source-approved")
+        raise RuntimeError("candidate may not be source-approved by this review")
 
     return {
         "status": "passed",
