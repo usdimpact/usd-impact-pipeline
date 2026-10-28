@@ -1,6 +1,6 @@
 {
-  "version": 3,
-  "state": "ambiguity_diagnostics_authorized_pending_dispatch",
+  "version": 4,
+  "state": "ambiguity_diagnostics_authorized",
   "methodology_version": "2.1F-design-candidate",
   "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/258",
   "predecessor_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/252",
@@ -10,7 +10,7 @@
   "active_authorization_receipt_path": "governance/score-v2-1f-bls-wpu0561-ambiguity-diagnostics-preflight-authorization.json",
   "active_authorization_receipt_expected_now": true,
   "dispatch_marker_path": "governance/score-v2-1f-bls-wpu0561-ambiguity-diagnostics-preflight-dispatch.json",
-  "dispatch_marker_expected_now": false,
+  "dispatch_marker_expected_now": true,
   "request_budget": 2,
   "max_economic_observations_total": 0,
   "max_economic_observations_per_resource": 0,
@@ -43,7 +43,7 @@
     "candidate Score, z-score or contribution would be computed",
     "public artifact, research ledger or Production would change"
   ],
-  "next_allowed_action": "separate_dispatch_review_after_activation_merge",
+  "next_allowed_action": "execute_one_off_protected_diagnostics_then_consume_authorization_fail_closed",
   "production_authorized": false,
   "execution_environment_policy": {
     "preferred_environment": "github_actions_protected_main_lifecycle",
@@ -53,5 +53,6 @@
     "access_control_challenge_redirect_or_other_non_200_global_stop": true
   },
   "owner_approval_comment_id": 6483711604,
-  "owner_approval_timestamp": "2026-10-28T23:46:03Z"
+  "owner_approval_timestamp": "2026-10-28T23:46:03Z",
+  "authorization_activation_merge_commit": "f67d925e5bc35575f822ae6e22566b0155fbf00f"
 }
