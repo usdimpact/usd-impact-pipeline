@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "state": "design_only_hold",
   "methodology_version": "2.1F-design-candidate",
   "owner_decision_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/258",
@@ -188,5 +188,20 @@
     "public_artifact_replacement": false,
     "production": false
   },
-  "next_gate": "new_explicit_owner_authorization_under_issue_258_required_before_any_live_request"
+  "next_gate": "new_explicit_owner_authorization_under_issue_258_required_before_any_live_request",
+  "execution_environment_policy": {
+    "preferred_environment": "github_actions_protected_main_lifecycle",
+    "rationale": "prior protected GitHub Actions BLS preflights completed HTTP retrieval while the later local runtime encountered DNS resolution failure; future live execution should use the auditable environment with demonstrated BLS reachability",
+    "activation_audit_write_required_before_live_request": true,
+    "dispatch_audit_write_required_before_live_request": true,
+    "github_write_unavailable_behavior": "fail_closed_before_network; do not bypass to direct local execution under the same authorization; obtain a new explicit owner authorization after the protected write path is restored",
+    "direct_local_execution_under_standard_issue_258_authorization": false,
+    "independent_resource_attempt_policy": {
+      "dns_or_name_resolution_failure": "record transport_dns_failure and semantic_status=not_evaluated for that resource; do not retry it; the other fixed resource retains its one separately authorized attempt",
+      "http_401_403_429_or_challenge": "global stop; do not retry and do not attempt any remaining resource",
+      "redirect": "global stop; do not follow and do not attempt any remaining resource",
+      "other_non_200": "global stop; do not retry and do not attempt any remaining resource"
+    },
+    "mandatory_post_run_consumption": "consume the one-off authorization after the run regardless of PASS, AMBIGUOUS, transport failure, or partial two-resource completion"
+  }
 }
