@@ -53,7 +53,8 @@ jobs:
         env:
           PYTHONUNBUFFERED: "1"
         run: |
-          python scripts/run_score_v2_1e_live_preflight.py             --output "$RUNNER_TEMP/score-v2-1e-preflight.json"
+          python scripts/run_score_v2_1e_live_preflight.py \
+            --output "$RUNNER_TEMP/score-v2-1e-preflight.json"
 
       - name: Record safe aggregate preflight result
         if: success()
@@ -62,17 +63,22 @@ jobs:
         run: |
           python - "$RUNNER_TEMP/score-v2-1e-preflight.json" > "$RUNNER_TEMP/comment.md" <<'PY'
           import json
+          import os
           import sys
           from pathlib import Path
 
           report = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
           fed = report["federal_reserve"]
           bls = report["bls"]
+          run_url = (
+              f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/actions/runs/"
+              f"{os.environ['GITHUB_RUN_ID']}"
+          )
 
           print("### v2.1E live historical-vintage preflight — PASS")
           print()
           print("<!-- V2_1E_PREFLIGHT_COMPLETED -->")
-          print(f"- Run: https://github.com/${{GITHUB_REPOSITORY}}/actions/runs/${{GITHUB_RUN_ID}}")
+          print(f"- Run: {run_url}")
           print(f"- Authorized window: {report['authorized_data_window']['start']} through {report['authorized_data_window']['end']}")
           print(f"- Exact series count: {report['exact_series_count']}")
           for family in ("H10", "H8", "H41", "H15"):
