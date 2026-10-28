@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "decision_status": "hold",
+  "methodology_version": "2.1F-design-candidate",
+  "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/244",
+  "execution_scope": "bls_wpu0561_column_semantics_preflight_only",
+  "data_window": {
+    "start": null,
+    "end": null
+  },
+  "request_budget": 2,
+  "contact_user_agent": null,
+  "allowed_host": "www.bls.gov",
+  "fixed_resources": [
+    "/news.release/archives/ppi_05152013.htm",
+    "/ppi/detailed-report/ppi-detailed-report-april-2026.xlsx"
+  ],
+  "storage_policy": {
+    "response_bodies": "ephemeral_memory_only",
+    "economic_values": "do_not_extract_log_or_persist",
+    "identifier_only_numeric_field": "allowed_only_under_proven_identifier_header",
+    "credentials": "forbidden",
+    "durable_private_storage": false
+  },
+  "authorizations": {
+    "response_body_ephemeral_retrieval": false,
+    "column_semantics_preflight": false,
+    "numeric_identifier_field_read": false,
+    "economic_value_extraction": false,
+    "real_data_research": false,
+    "full_historical_reconstruction": false,
+    "candidate_score_computation": false,
+    "research_ledger_mutation": false,
+    "public_artifact_replacement": false,
+    "production": false
+  },
+  "approved_by": null,
+  "approved_at": null,
+  "notes": "Template only. New explicit owner approval under Issue #244 is required before an active receipt may be created."
+}
