@@ -81,6 +81,41 @@ References:
 - https://github.com/python-pillow/Pillow/security/advisories/GHSA-4rr5-89j8-mwwm
 - https://github.com/python-pillow/Pillow/blob/main/docs/releasenotes/13.0.0.rst
 
+
+### 28 October 2026 advisory-database refresh
+
+The upstream PyPA advisory database changed the emitted identifiers for additional already-reviewed Pillow findings and introduced one newly surfaced finding, `CVE-2026-112403`.
+
+Verified alias updates:
+- `PYSEC-2026-4329 -> CVE-2026-112397`
+- `PYSEC-2026-4330 -> CVE-2026-112398`
+- `PYSEC-2026-4331 -> CVE-2026-112402`
+- `PYSEC-2026-4333 -> CVE-2026-112405`
+- `PYSEC-2026-4334 -> CVE-2026-112896`
+- `PYSEC-2026-4335 -> CVE-2026-112901`
+- `PYSEC-2026-4336 -> CVE-2026-114501`
+- `PYSEC-2026-4337 -> CVE-2026-96636`
+- `PYSEC-2026-4338 -> CVE-2026-96637`
+- `PYSEC-2026-4339 -> CVE-2026-96639`
+- `PYSEC-2026-4340 -> CVE-2026-96641`
+- `PYSEC-2026-4341 -> CVE-2026-96642`
+- `PYSEC-2026-4342 -> CVE-2026-96643`
+- `PYSEC-2026-4343 -> CVE-2026-96644`
+
+New finding:
+- `PYSEC-2026-4332` aliases `CVE-2026-112403` / `GHSA-8g5g-8vmr-9782`.
+- It affects Pillow JPEG decoding when an application requests draft/downscaled decoding of a crafted 8-bit lossless SOF3 JPEG under affected libjpeg-turbo builds, potentially causing heap corruption.
+- The issue is fixed in Pillow 13.0.0.
+- Repository review confirms the frozen research modes do not call Pillow image-opening APIs, `draft()`, or `thumbnail()`; they consume repository JSON/reproduction artifacts and do not render charts.
+- The active online runtime is already pinned to Pillow 13.0.0.
+- The frozen root lock remains byte-identical and network-isolated.
+- The existing residual-risk acceptance expiry remains **2026-11-05**; this review does not extend it.
+
+The exact-match gate now canonicalizes the verified PySec identifiers above to their CVE aliases before comparison and adds `CVE-2026-112403` to the explicitly reviewed frozen finding set. Any other finding change still fails closed.
+
+Reference:
+- https://github.com/pypa/advisory-database/blob/main/vulns/pillow/PYSEC-2026-4332.yaml
+
 ## Acceptance boundary
 
 Residual acceptance applies only while all of these remain true:
