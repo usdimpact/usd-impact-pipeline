@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "decision_status": "hold",
+  "methodology_version": "2.1F-design-candidate",
+  "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/224",
+  "design_merge_commit": "e14aec35142b9536b5b889d0fae4eab9a94faf88",
+  "preregistration_merge_commit": "bcf473e2bbcb36fa1080a3a56f77a3796d74ccaa",
+  "execution_scope": "live_historical_vintage_feasibility_preflight_only",
+  "exact_series": [
+    "H10/H10/JRXWTFB_N.B",
+    "WPU0561",
+    "H8/H8/B1001NCBA",
+    "H41/H41/RESPPALDP_N.WW",
+    "H41/H41/RESPPA_N.WW"
+  ],
+  "data_window": {
+    "start": null,
+    "end": null
+  },
+  "storage_policy": {
+    "source_values": "ephemeral_only",
+    "raw_responses": "ephemeral_only",
+    "temporary_workspace": "isolated_non_public",
+    "durable_private_storage": false
+  },
+  "output_policy": {
+    "source_values_in_logs": false,
+    "component_values_in_logs": false,
+    "candidate_score_output": false,
+    "public_repo_source_values": false,
+    "allowed_persistent_outputs": [
+      "aggregate_feasibility_status",
+      "aggregate_release_counts",
+      "release_identifiers_without_values",
+      "non_value_bearing_hashes"
+    ]
+  },
+  "authorizations": {
+    "real_data_fetch": false,
+    "live_vintage_preflight": false,
+    "real_data_research": false,
+    "candidate_score_computation": false,
+    "paid_data": false,
+    "source_contract_acceptance": false,
+    "research_ledger_mutation": false,
+    "public_artifact_replacement": false,
+    "production": false
+  },
+  "approved_by": null,
+  "approved_at": null,
+  "notes": "Template only. A separate explicit owner decision under Issue #224 is required before creating an active preflight authorization receipt."
+}
