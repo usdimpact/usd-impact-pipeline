@@ -1,0 +1,252 @@
+{
+  "version": 1,
+  "state": "preregistered_design_only",
+  "methodology_version": "2.1B-design-candidate",
+  "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/191",
+  "controlling_hold": "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
+  "budget_constraint": "zero_paid_market_data_budget",
+  "authorizations": {
+    "real_data_fetch": false,
+    "real_data_research": false,
+    "methodology_activation": false,
+    "public_artifact_replacement": false,
+    "research_ledger_mutation": false,
+    "production": false
+  },
+  "evaluation_clock": {
+    "timezone": "America/New_York",
+    "cutoff": "Friday 23:59:59",
+    "rule": "Only observations actually released and available at or before the cutoff may enter that Friday's candidate score.",
+    "observation_date_is_not_release_date": true,
+    "historical_release_timestamp_required_when_available": true,
+    "undocumented_release_lag_policy": "fail_closed_until_a_conservative_source_specific_rule_is_approved"
+  },
+  "source_rules": [
+    {
+      "slot": "USD",
+      "series": "DTWEXBGS",
+      "transform": "level",
+      "release_schedule": "H.10 releases the previous business week's daily dollar-index observations on Monday at 16:15 ET; holiday Monday shifts to the next business day.",
+      "point_in_time_rule": "For Friday t, use the latest H.10 observation whose scheduled H.10 release occurred on or before Friday t cutoff. This normally excludes the current business week's observations.",
+      "max_observation_age_calendar_days": 10,
+      "rights_state": "confirm_reuse_scope"
+    },
+    {
+      "slot": "ENERGY",
+      "series": "DCOILWTICO",
+      "transform": "natural_log_level",
+      "release_schedule": "Daily EIA spot series; release timing must be evidenced for historical point-in-time use before real-data research.",
+      "point_in_time_rule": "Use the latest positive WTI observation with documented release timestamp <= cutoff. If historical release timestamps are unavailable, no real-data run is allowed until a conservative fixed-lag rule is separately approved.",
+      "max_observation_age_calendar_days": 5,
+      "rights_state": "confirm_reuse_scope"
+    },
+    {
+      "slot": "FIN_CONDITIONS",
+      "series": "NFCI",
+      "transform": "level",
+      "release_schedule": "Chicago Fed NFCI is updated Wednesday 08:30 ET and covers the previous Friday; Thursday on certain holiday weeks.",
+      "point_in_time_rule": "For Friday t, the newest eligible NFCI observation is the prior Friday's index value if its Wednesday/Thursday release occurred by cutoff.",
+      "max_observation_age_calendar_days": 10,
+      "rights_state": "confirm_reuse_scope"
+    },
+    {
+      "slot": "FIN_STRESS",
+      "series": "STLFSI4",
+      "transform": "level",
+      "release_schedule": "Weekly index ending Friday; recent releases occur during the following week.",
+      "point_in_time_rule": "Use only an ending-Friday value whose actual release timestamp is <= cutoff. Without historical release timestamps, require at least a seven-calendar-day observation lag.",
+      "max_observation_age_calendar_days": 10,
+      "rights_state": "confirm_reuse_scope"
+    },
+    {
+      "slot": "LIQUIDITY",
+      "series": "WALCL",
+      "transform": "log_change_13_weeks",
+      "release_schedule": "H.4.1 Wednesday level, normally released Thursday.",
+      "point_in_time_rule": "For Friday t, current-week Wednesday level may be used only if its H.4.1 release occurred by cutoff.",
+      "max_observation_age_calendar_days": 4,
+      "rights_state": "confirm_reuse_scope"
+    },
+    {
+      "slot": "REAL_YIELD",
+      "series": "DFII10",
+      "transform": "level",
+      "release_schedule": "H.15 is posted each business day at 16:15 ET and generally publishes the prior business day's selected rates.",
+      "point_in_time_rule": "Use the latest H.15 observation whose H.15 release is <= cutoff; do not assume Friday observation is available on Friday unless the release proves it.",
+      "max_observation_age_calendar_days": 4,
+      "rights_state": "confirm_reuse_scope"
+    },
+    {
+      "slot": "UST_2Y",
+      "series": "DGS2",
+      "transform": "level",
+      "release_schedule": "H.15 is posted each business day at 16:15 ET.",
+      "point_in_time_rule": "Use the latest H.15 observation whose release is <= cutoff.",
+      "max_observation_age_calendar_days": 4,
+      "rights_state": "confirm_reuse_scope"
+    },
+    {
+      "slot": "UST_10Y",
+      "series": "DGS10",
+      "transform": "level",
+      "release_schedule": "H.15 is posted each business day at 16:15 ET.",
+      "point_in_time_rule": "Use the latest H.15 observation whose release is <= cutoff.",
+      "max_observation_age_calendar_days": 4,
+      "rights_state": "confirm_reuse_scope"
+    }
+  ],
+  "transformation_rationale": {
+    "USD": "Level measures the prevailing broad-dollar regime rather than only weekly impulse.",
+    "ENERGY": "Natural log preserves price-level information while reducing multiplicative scale/skew effects.",
+    "FIN_CONDITIONS": "NFCI level directly represents tight versus loose financial conditions.",
+    "FIN_STRESS": "STLFSI4 level directly represents above- versus below-normal financial stress.",
+    "LIQUIDITY": "A 13-week log change measures balance-sheet liquidity impulse and avoids treating the long-run WALCL level trend as a permanent regime signal.",
+    "REAL_YIELD": "Level captures the prevailing real-rate pressure relevant to USD conditions.",
+    "UST_2Y": "Level captures front-end nominal policy-rate pressure.",
+    "UST_10Y": "Level captures long-end nominal-rate pressure."
+  },
+  "weekly_matrix": {
+    "target_start": "2015-01-02",
+    "history_seed_start": "2013-01-01",
+    "required_prior_complete_weeks": 104,
+    "complete_case_history": true,
+    "missing_slot_policy": "fail_closed_no_score",
+    "dynamic_reweighting": false,
+    "proxy_autofill": false,
+    "stale_value_beyond_slot_limit": false
+  },
+  "normalization": {
+    "method": "expanding_point_in_time_zscore",
+    "history_scope": "strictly prior complete candidate weeks only",
+    "minimum_prior_complete_weeks": 104,
+    "standard_deviation": "sample ddof=1",
+    "clip": 3.5,
+    "current_week_excluded_from_own_normalization": true,
+    "full_sample_normalization_for_candidate": false
+  },
+  "score": {
+    "weights": {
+      "USD": 0.125,
+      "ENERGY": -0.125,
+      "FIN_CONDITIONS": 0.125,
+      "FIN_STRESS": 0.125,
+      "LIQUIDITY": -0.125,
+      "REAL_YIELD": 0.125,
+      "UST_2Y": 0.125,
+      "UST_10Y": 0.125
+    },
+    "formula": "sum(clipped_point_in_time_zscore * weight)",
+    "regime_bands": [
+      {
+        "low": 1,
+        "high": null,
+        "label": "Strong dollar regime"
+      },
+      {
+        "low": 0.3,
+        "high": 1,
+        "label": "Firm dollar regime"
+      },
+      {
+        "low": -0.3,
+        "high": 0.3,
+        "label": "Neutral / transitional"
+      },
+      {
+        "low": -1,
+        "high": -0.3,
+        "label": "Soft dollar regime"
+      },
+      {
+        "low": null,
+        "high": -1,
+        "label": "Weak dollar regime"
+      }
+    ],
+    "regime_bands_status": "frozen_for_first_candidate_research_only"
+  },
+  "hard_acceptance_gates": {
+    "rights_documented_for_all_slots": true,
+    "zero_lookahead_violations": true,
+    "availability_provenance_for_all_used_values": true,
+    "transform_domain_errors": 0,
+    "required_prior_complete_weeks": 104,
+    "evaluated_week_complete_slot_coverage_min": 0.975,
+    "each_slot_eligible_week_coverage_min": 0.98,
+    "maximum_consecutive_missing_candidate_weeks": 2,
+    "maximum_absolute_pairwise_spearman": 0.95,
+    "maximum_variance_inflation_factor": 12,
+    "maximum_first_principal_component_variance_share": 0.7,
+    "historical_anchor_windows_minimum_with_sign_hit_rate_at_least_0_55": 4,
+    "historical_anchor_window_minimum_allowed_sign_hit_rate": 0.35,
+    "thresholds_fixed_before_results_visible": true
+  },
+  "review_gates": {
+    "pairwise_absolute_spearman_review_above": 0.85,
+    "variance_inflation_factor_review_above": 8,
+    "first_principal_component_variance_share_review_above": 0.6,
+    "neutral_regime_share_review_above": 0.7,
+    "any_single_regime_share_review_above": 0.75,
+    "positive_non_neutral_share_review_below": 0.05,
+    "negative_non_neutral_share_review_below": 0.05,
+    "leave_one_slot_out_regime_change_share_review_above": 0.3,
+    "note": "Review gates require explanation and may cause rejection, but are not silently retuned after results are visible."
+  },
+  "mandatory_outputs": [
+    "point_in_time_eligibility_audit",
+    "source_release_lag_summary",
+    "weekly_coverage_report",
+    "pairwise_pearson_matrix",
+    "pairwise_spearman_matrix",
+    "variance_inflation_factors",
+    "principal_component_variance_shares",
+    "score_distribution",
+    "regime_distribution",
+    "historical_anchor_window_report",
+    "leave_one_slot_out_sensitivity",
+    "candidate_vs_v2_aggregate_descriptive_comparison_if_rights_allow"
+  ],
+  "historical_anchor_windows": [
+    {
+      "start": "2015-07-01",
+      "end": "2016-02-01",
+      "expected_sign": 1,
+      "name": "2015-16 oil/EM stress"
+    },
+    {
+      "start": "2018-06-01",
+      "end": "2018-12-31",
+      "expected_sign": 1,
+      "name": "2018 Fed tightening"
+    },
+    {
+      "start": "2020-03-01",
+      "end": "2020-03-23",
+      "expected_sign": 1,
+      "name": "2020 COVID funding stress phase 1"
+    },
+    {
+      "start": "2020-04-01",
+      "end": "2021-10-01",
+      "expected_sign": -1,
+      "name": "2020-21 post-Fed liquidity phase 2"
+    },
+    {
+      "start": "2022-02-01",
+      "end": "2023-03-01",
+      "expected_sign": 1,
+      "name": "2022 tightening cycle"
+    }
+  ],
+  "anti_tuning_rules": [
+    "No transform may change after candidate results are viewed without a new preregistration version.",
+    "No hard acceptance threshold may be relaxed after results are viewed.",
+    "No slot may be dropped or reweighted to rescue a failed candidate.",
+    "No replacement proxy may be introduced without a new preregistration.",
+    "No current-week observation may enter normalization history.",
+    "No historical observation may be treated as available before its actual or conservatively documented release time.",
+    "No predictive investment-performance claim is authorized."
+  ],
+  "next_step_if_all_preconditions_met": "separate_owner_authorization_for_real_data_research",
+  "production_authorized": false
+}
