@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "state": "design_only_hold",
   "methodology_version": "2.1F-design-candidate",
   "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/236",
@@ -10,8 +10,12 @@
   "dispatch_marker_path": "governance/score-v2-1f-bls-wpu0561-row-presence-preflight-dispatch.json",
   "dispatch_marker_expected_now": false,
   "request_budget": 2,
+  "fixed_resources": [
+    "/news.release/archives/ppi_05152013.htm",
+    "/ppi/detailed-report/ppi-detailed-report-april-2026.xlsx"
+  ],
   "current_state": {
-    "report_body_ephemeral_retrieval_authorized": false,
+    "response_body_ephemeral_retrieval_authorized": false,
     "row_presence_preflight_authorized": false,
     "source_value_extraction_authorized": false,
     "real_data_research_authorized": false,
@@ -22,9 +26,9 @@
     "production_authorized": false
   },
   "activation_preconditions": [
-    "new explicit owner authorization is recorded under Issue #236",
-    "owner approval explicitly acknowledges ephemeral retrieval of two report bodies that contain economic values",
-    "active receipt pins the exact two fixed BLS report resources",
+    "new explicit owner authorization is recorded under Issue #236 using the superseding HTML + XLSX wording",
+    "owner approval explicitly acknowledges ephemeral retrieval of two fixed official BLS response bodies that contain economic values",
+    "active receipt pins the exact archived 2013 HTML and 2026 XLSX resources",
     "contactable project User-Agent is pinned in the active receipt",
     "all value extraction, full research, scoring, public-artifact and Production flags remain false",
     "a separate dispatch marker is merged only after activation",
@@ -33,14 +37,13 @@
   "stop_conditions": [
     "no active authorization receipt",
     "no dispatch marker",
-    "pdftotext capability missing before first network request",
     "request budget would exceed two",
     "any request is outside www.bls.gov",
     "any request path differs from the two fixed resources",
     "HTTP 401, 403 or 429",
     "CAPTCHA, bot challenge or access-denied response",
     "any redirect",
-    "unexpected file signature or content type",
+    "unexpected HTML or XLSX signature/content type",
     "numeric source values would be logged or persisted",
     "WPU0561 values would be extracted",
     "full historical reconstruction would begin",
