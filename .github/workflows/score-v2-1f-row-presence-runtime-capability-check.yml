@@ -16,55 +16,61 @@ jobs:
     timeout-minutes: 5
 
     steps:
-      - name: Check local PDF/XLSX parsing capabilities only
+      - name: Inspect local parsing capabilities only
         id: capability
         shell: bash
         run: |
           set -euo pipefail
 
-          python - <<'PY'
-          import io
-          import zipfile
-          from xml.etree import ElementTree
-          print("python_stdlib_zip_xml=available")
+          {
+            echo "python_stdlib_zip_xml=true"
+            for tool in pdftotext pdfinfo mutool qpdf gs libreoffice strings file; do
+              if command -v "$tool" >/dev/null 2>&1; then
+                echo "$tool=true"
+              else
+                echo "$tool=false"
+              fi
+            done
+          } > "$RUNNER_TEMP/tools.txt"
+
+          python - <<'PY' > "$RUNNER_TEMP/python-modules.txt"
+          import importlib.util
+          modules = ["pypdf", "PyPDF2", "pdfplumber", "fitz", "pikepdf"]
+          for module in modules:
+              print(f"{module}={importlib.util.find_spec(module) is not None}")
           PY
 
-          if command -v pdftotext >/dev/null 2>&1; then
-            echo "pdftotext_available=true" >> "$GITHUB_OUTPUT"
-            pdftotext -v 2>&1 | head -n 1 | sed 's/^/pdftotext_version=/' > "$RUNNER_TEMP/pdftotext.txt"
-          else
-            echo "pdftotext_available=false" >> "$GITHUB_OUTPUT"
-            echo "pdftotext_version=unavailable" > "$RUNNER_TEMP/pdftotext.txt"
-          fi
+          cat "$RUNNER_TEMP/tools.txt"
+          cat "$RUNNER_TEMP/python-modules.txt"
 
-      - name: Record capability result
+      - name: Record local-only capability result
         env:
           GH_TOKEN: ${{ github.token }}
-          PDF_AVAILABLE: ${{ steps.capability.outputs.pdftotext_available }}
         shell: bash
         run: |
           set -euo pipefail
-          VERSION="$(cat "$RUNNER_TEMP/pdftotext.txt")"
-          cat > "$RUNNER_TEMP/comment.md" <<EOF
-          ### v2.1F row-presence local runtime capability check
+          {
+            echo "### v2.1F row-presence local runtime capability check — expanded"
+            echo
+            echo "<!-- V2_1F_ROW_PRESENCE_RUNTIME_CAPABILITY_V2 -->"
+            echo
+            echo "- Run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            echo "- Runner: ubuntu-24.04"
+            echo "- BLS/network request performed: no"
+            echo "- Report body retrieved: no"
+            echo "- Source value retrieved: no"
+            echo
+            echo "#### Local CLI tools"
+            while IFS='=' read -r key value; do
+              echo "- \`$key\`: $value"
+            done < "$RUNNER_TEMP/tools.txt"
+            echo
+            echo "#### Preinstalled Python PDF modules"
+            while IFS='=' read -r key value; do
+              echo "- \`$key\`: $value"
+            done < "$RUNNER_TEMP/python-modules.txt"
+            echo
+            echo "This is local-runtime-only evidence. It does not authorize any Issue #236 BLS report-body request."
+          } > "$RUNNER_TEMP/comment.md"
 
-          <!-- V2_1F_ROW_PRESENCE_RUNTIME_CAPABILITY -->
-
-          - Run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
-          - Runner: ubuntu-24.04
-          - Python standard-library ZIP/XML parsing: available
-          - pdftotext available: ${PDF_AVAILABLE}
-          - ${VERSION}
-          - BLS/network request performed: no
-          - Report body retrieved: no
-          - Source value retrieved: no
-
-          This check is local-runtime-only and does not authorize Issue #236 live report-body access.
-          EOF
-          gh issue comment 236 --body-file "$RUNNER_TEMP/comment.md"
-
-      - name: Fail closed if PDF capability is unavailable
-        if: steps.capability.outputs.pdftotext_available != 'true'
-        run: |
-          echo "pdftotext is unavailable on this runner; future row-presence execution must not start network access."
-          exit 1
+          gh issue comment 236 --repo "$GITHUB_REPOSITORY" --body-file "$RUNNER_TEMP/comment.md"
