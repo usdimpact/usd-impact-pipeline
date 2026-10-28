@@ -10,77 +10,91 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class ScoreV21FPreflightAuthorizationTests(unittest.TestCase):
-    def test_preflight_is_dispatched_but_full_research_is_not(self) -> None:
+    def test_stage1_authorization_is_consumed_fail_closed(self) -> None:
         report = validator.validate(ROOT)
         self.assertEqual(report["status"], "passed")
-        self.assertEqual(report["state"], "live_vintage_preflight_authorized")
-        self.assertEqual(report["decision_status"], "approved")
-        self.assertEqual(report["exact_series_count"], 5)
+        self.assertEqual(
+            report["state"],
+            "live_vintage_preflight_consumed_fail_closed",
+        )
+        self.assertFalse(report["active_authorization_receipt_present"])
+        self.assertFalse(report["dispatch_marker_present"])
         self.assertEqual(
             report["data_window"],
             {"start": "2013-01-01", "end": "2026-10-23"},
         )
-        self.assertEqual(
-            report["activation_merge_commit"],
-            "48f6815199db7c030939629f49a75001d20ae566",
-        )
-        self.assertTrue(report["active_authorization_receipt_present"])
-        self.assertTrue(report["dispatch_marker_present"])
-        self.assertTrue(report["real_data_fetch_authorized"])
-        self.assertTrue(report["live_vintage_preflight_authorized"])
+        self.assertEqual(report["preflight_conclusion"], "failure")
+        self.assertEqual(report["blocker_http_status"], 403)
+        self.assertTrue(report["federal_reserve_phase_completed_before_bls_request"])
+        self.assertFalse(report["real_data_fetch_authorized"])
+        self.assertFalse(report["live_vintage_preflight_authorized"])
         self.assertFalse(report["real_data_research_authorized"])
         self.assertFalse(report["candidate_score_computation_authorized"])
         self.assertFalse(report["production_authorized"])
         self.assertTrue(report["rights_hold"])
 
-    def test_dispatch_is_pinned_to_activation_merge_and_narrow_scope(self) -> None:
-        dispatch = json.loads(
+    def test_consumption_record_preserves_owner_and_run_evidence(self) -> None:
+        record = json.loads(
             (
-                ROOT / "governance/score-v2-1f-live-vintage-preflight-dispatch.json"
+                ROOT
+                / "governance/score-v2-1f-live-vintage-preflight-consumption-2026-10-28.json"
             ).read_text(encoding="utf-8")
         )
-        self.assertEqual(dispatch["state"], "dispatch_once")
+        self.assertEqual(record["owner_approval_comment_id"], 6479715940)
+        self.assertEqual(record["owner_approval_timestamp"], "2026-10-28T20:20:28Z")
         self.assertEqual(
-            dispatch["authorization_activation_merge_commit"],
+            record["authorization_activation_merge_commit"],
             "48f6815199db7c030939629f49a75001d20ae566",
         )
         self.assertEqual(
-            dispatch["data_window"],
-            {"start": "2013-01-01", "end": "2026-10-23"},
+            record["dispatch_merge_commit"],
+            "6ea7eb7390ad9949799867c6db38f20664cba6a3",
         )
-        self.assertFalse(dispatch["candidate_score_computation_authorized"])
-        self.assertFalse(dispatch["full_candidate_research_authorized"])
-        self.assertFalse(dispatch["production_authorized"])
-
-    def test_active_receipt_has_exact_owner_approval(self) -> None:
-        receipt = json.loads(
-            (
-                ROOT
-                / "governance/score-v2-1f-live-vintage-preflight-authorization.json"
-            ).read_text(encoding="utf-8")
-        )
-        self.assertEqual(receipt["decision_status"], "approved")
         self.assertEqual(
-            receipt["approved_by"],
-            "usdimpact owner via Issue #224 approval comment 6479715940",
+            record["preflight_run"],
+            "https://github.com/usdimpact/usd-impact-pipeline/actions/runs/40763350781",
         )
-        self.assertEqual(receipt["approved_at"], "2026-10-28T20:20:28Z")
+        self.assertEqual(
+            record["blocker_issue"],
+            "https://github.com/usdimpact/usd-impact-pipeline/issues/228",
+        )
+        self.assertEqual(record["failure"]["http_status"], 403)
+        self.assertTrue(
+            record["new_owner_authorization_required_for_any_future_live_request"]
+        )
 
-    def test_full_research_scoring_and_production_remain_forbidden(self) -> None:
-        receipt = json.loads(
+    def test_every_post_consumption_authorization_is_false(self) -> None:
+        record = json.loads(
             (
                 ROOT
-                / "governance/score-v2-1f-live-vintage-preflight-authorization.json"
+                / "governance/score-v2-1f-live-vintage-preflight-consumption-2026-10-28.json"
             ).read_text(encoding="utf-8")
         )
-        auth = receipt["authorizations"]
-        self.assertTrue(auth["real_data_fetch"])
-        self.assertTrue(auth["live_vintage_preflight"])
-        self.assertFalse(auth["real_data_research"])
-        self.assertFalse(auth["candidate_score_computation"])
-        self.assertFalse(auth["public_artifact_replacement"])
-        self.assertFalse(auth["research_ledger_mutation"])
-        self.assertFalse(auth["production"])
+        self.assertFalse(any(record["post_consumption_authorizations"].values()))
+        self.assertFalse(record["research_result"]["candidate_score_computed"])
+        self.assertFalse(record["research_result"]["component_zscores_computed"])
+        self.assertFalse(record["research_result"]["source_or_component_values_persisted"])
+
+    def test_active_receipt_and_dispatch_are_absent(self) -> None:
+        self.assertFalse(
+            (ROOT / "governance/score-v2-1f-live-vintage-preflight-authorization.json").exists()
+        )
+        self.assertFalse(
+            (ROOT / "governance/score-v2-1f-live-vintage-preflight-dispatch.json").exists()
+        )
+
+    def test_template_remains_hold(self) -> None:
+        template = json.loads(
+            (
+                ROOT
+                / "governance/score-v2-1f-live-vintage-preflight-authorization.template.json"
+            ).read_text(encoding="utf-8")
+        )
+        self.assertEqual(template["decision_status"], "hold")
+        self.assertEqual(template["data_window"], {"start": None, "end": None})
+        self.assertIsNone(template["approved_by"])
+        self.assertIsNone(template["approved_at"])
+        self.assertFalse(any(template["authorizations"].values()))
 
 
 if __name__ == "__main__":
