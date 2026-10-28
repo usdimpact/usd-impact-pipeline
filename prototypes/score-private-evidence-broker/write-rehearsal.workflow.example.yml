@@ -22,7 +22,6 @@ jobs:
       - name: Build and send synthetic fixture
         shell: bash
         env:
-          AUDIENCE: urn:usd-impact:score-private-evidence:write:development
           BROKER_URL: https://xakayexlzyrazuunqlxe.supabase.co/functions/v1/score-private-evidence-broker
           SYNTHETIC_WEEK: '2099-01-02'
         run: |
@@ -38,8 +37,9 @@ jobs:
           fixture="$fixture_root/archive/$SYNTHETIC_WEEK/repro_bundle.json"
           test -f "$fixture"
           sha256="$(sha256sum "$fixture" | awk '{print $1}')"
+          audience="urn:usd-impact:score-private-evidence:write:development:${SYNTHETIC_WEEK}:${sha256}"
 
-          encoded_audience="$(python - <<'PY'
+          encoded_audience="$(AUDIENCE="$audience" python - <<'PY'
           import os, urllib.parse
           print(urllib.parse.quote(os.environ['AUDIENCE'], safe=''))
           PY
