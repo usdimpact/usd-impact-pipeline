@@ -1,0 +1,78 @@
+# REVIEW EXAMPLE ONLY.
+# This file is intentionally outside .github/workflows and cannot run.
+name: Score private evidence synthetic write rehearsal
+
+on:
+  workflow_dispatch:
+    inputs:
+      synthetic_week:
+        description: Synthetic Friday (2099+ only)
+        required: true
+        default: '2099-01-02'
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  synthetic-write:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout reviewed code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Build and send synthetic fixture
+        shell: bash
+        env:
+          AUDIENCE: urn:usd-impact:score-private-evidence:write:development
+          BROKER_URL: https://xakayexlzyrazuunqlxe.supabase.co/functions/v1/score-private-evidence-broker
+          SYNTHETIC_WEEK: ${{ inputs.synthetic_week }}
+        run: |
+          set -euo pipefail
+          fixture_root="$RUNNER_TEMP/score-private-evidence-synthetic"
+          mkdir -p "$fixture_root"
+
+          # Future approved implementation must use the reviewed synthetic fixture
+          # builder from the private-evidence handoff work. No provider retrieval.
+          python scripts/build_synthetic_private_score_evidence.py \
+            --output-root "$fixture_root"
+
+          fixture="$fixture_root/archive/$SYNTHETIC_WEEK/repro_bundle.json"
+          test -f "$fixture"
+          sha256="$(sha256sum "$fixture" | awk '{print $1}')"
+
+          encoded_audience="$(python - <<'PY'
+          import os, urllib.parse
+          print(urllib.parse.quote(os.environ['AUDIENCE'], safe=''))
+          PY
+          )"
+          oidc_response="$(curl --fail --silent --show-error \
+            -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=${encoded_audience}")"
+          oidc_token="$(OIDC_RESPONSE="$oidc_response" python - <<'PY'
+          import json, os
+          value = json.loads(os.environ['OIDC_RESPONSE']).get('value')
+          if not isinstance(value, str) or not value:
+              raise SystemExit('missing OIDC token')
+          print(value)
+          PY
+          )"
+          unset oidc_response
+
+          receipt="$RUNNER_TEMP/score-private-evidence-write-receipt.json"
+          curl --fail --silent --show-error \
+            -X POST "$BROKER_URL" \
+            -H "Authorization: Bearer $oidc_token" \
+            -H "Content-Type: application/json" \
+            -H "x-score-operation: write" \
+            -H "x-score-week: $SYNTHETIC_WEEK" \
+            -H "x-score-content-sha256: $sha256" \
+            --data-binary "@$fixture" \
+            -o "$receipt"
+          unset oidc_token
+
+          python -m json.tool "$receipt" >/dev/null
