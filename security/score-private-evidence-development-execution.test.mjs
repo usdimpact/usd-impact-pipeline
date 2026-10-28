@@ -125,6 +125,10 @@ test('rehearsal workflows are manual-only and least privilege', async () => {
       );
       assert.match(source, /x-score-operation: write/);
       assert.match(source, /x-score-content-sha256: \$fixture_sha256/);
+      assert.match(source, /actions\/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1/);
+      assert.match(source, /python-version:\s*'3\.11'/);
+      assert.match(source, /runtime\/requirements-2026-10-05\.lock/);
+      assert.match(source, /python -m pip check/);
       assert.match(source, /python -m scripts\.build_synthetic_private_score_evidence/);
       assert.doesNotMatch(source, /python scripts\/build_synthetic_private_score_evidence\.py/);
     } else {
