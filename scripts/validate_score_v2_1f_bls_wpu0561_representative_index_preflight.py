@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate dispatched WPU0561 representative-index authorization."""
+"""Validate consumed/fail-closed WPU0561 representative-index state."""
 
 from __future__ import annotations
 
@@ -9,15 +9,11 @@ from typing import Any
 
 RECEIPT = "governance/score-v2-1f-bls-wpu0561-representative-index-preflight-authorization.json"
 DISPATCH = "governance/score-v2-1f-bls-wpu0561-representative-index-preflight-dispatch.json"
+CONSUMPTION = "governance/score-v2-1f-bls-wpu0561-representative-index-preflight-consumption-2026-10-29.json"
 ISSUE = "https://github.com/usdimpact/usd-impact-pipeline/issues/252"
-APPROVAL_COMMENT = 6482942968
-APPROVED_AT = "2026-10-28T23:02:22Z"
+RUN = "https://github.com/usdimpact/usd-impact-pipeline/actions/runs/40785283066"
 ACTIVATION_COMMIT = "c41413ce08f3fad32cefe7ad307449eac0e65978"
-EXPECTED_UA = "USD-Impact-Score-v2.1F-WPU0561-representative-index/1.0 (contact: support@usd-impact.com)"
-EXPECTED_RESOURCES = [
-    "/news.release/archives/ppi_05152013.htm",
-    "/ppi/detailed-report/ppi-detailed-report-april-2026.xlsx",
-]
+DISPATCH_COMMIT = "1f917706798f9d9b009a104f0543b84b51a8504c"
 
 def _load(path: Path) -> dict[str, Any]:
     payload = json.loads(path.read_text(encoding="utf-8"))
@@ -29,13 +25,16 @@ def validate(repo_root: Path) -> dict[str, Any]:
     root = repo_root.resolve()
     design = _load(root / "governance/score-v2-1f-bls-wpu0561-representative-index-preflight-design.json")
     template = _load(root / "governance/score-v2-1f-bls-wpu0561-representative-index-preflight-authorization.template.json")
-    receipt = _load(root / RECEIPT)
-    dispatch = _load(root / DISPATCH)
+    consumption = _load(root / CONSUMPTION)
     contract = _load(root / "governance/score-v2-1f-bls-wpu0561-representative-index-preflight-execution-contract.json")
     predecessor = _load(root / "governance/score-v2-1f-bls-wpu0561-column-semantics-preflight-consumption-2026-10-29.json")
     rights = _load(root / "governance/score-publication-rights-gate.json")
     prereg = _load(root / "governance/score-v2-1f-preregistration.json")
     workflow = (root / ".github/workflows/score-v2-1f-bls-wpu0561-representative-index-preflight.yml").read_text(encoding="utf-8")
+
+    for relative in (RECEIPT, DISPATCH):
+        if (root / relative).exists():
+            raise RuntimeError(f"consumed state must not retain {relative}")
 
     if predecessor.get("state") != "consumed_after_success":
         raise RuntimeError("Issue #244 consumption evidence changed")
@@ -49,9 +48,7 @@ def validate(repo_root: Path) -> dict[str, Any]:
     if design.get("state") != "design_only_hold":
         raise RuntimeError("frozen representative-index design changed")
     if design.get("owner_decision_issue") != ISSUE:
-        raise RuntimeError("representative-index owner-decision issue changed")
-    if [item.get("path") for item in design.get("fixed_resources", [])] != EXPECTED_RESOURCES:
-        raise RuntimeError("representative-index fixed resources changed")
+        raise RuntimeError("representative-index issue changed")
     policy = design.get("field_semantics_policy", {})
     if policy.get("allowed") != ["original_release_index_level"]:
         raise RuntimeError("allowed field semantics changed")
@@ -63,125 +60,91 @@ def validate(repo_root: Path) -> dict[str, Any]:
     if template.get("decision_status") != "hold" or any(template.get("authorizations", {}).values()):
         raise RuntimeError("HOLD template changed")
 
-    if receipt.get("decision_status") != "approved" or receipt.get("issue") != ISSUE:
-        raise RuntimeError("active receipt is invalid")
-    if receipt.get("execution_scope") != "bls_wpu0561_representative_index_preflight_only":
-        raise RuntimeError("active receipt scope changed")
-    if receipt.get("request_budget") != 2:
-        raise RuntimeError("active receipt request budget changed")
-    if receipt.get("max_observations_total") != 2 or receipt.get("max_observations_per_resource") != 1:
-        raise RuntimeError("active receipt observation cap changed")
-    if receipt.get("fixed_resources") != EXPECTED_RESOURCES:
-        raise RuntimeError("active receipt resources changed")
-    if receipt.get("allowed_host") != "www.bls.gov":
-        raise RuntimeError("active receipt host changed")
-    if receipt.get("contact_user_agent") != EXPECTED_UA:
-        raise RuntimeError("active receipt User-Agent changed")
-    if receipt.get("approved_by") != "usdimpact owner via Issue #252 approval comment 6482942968":
-        raise RuntimeError("active receipt approval identity changed")
-    if receipt.get("approved_at") != APPROVED_AT:
-        raise RuntimeError("active receipt approval timestamp changed")
+    if consumption.get("state") != "consumed_after_ambiguous_result":
+        raise RuntimeError("consumption state changed")
+    if consumption.get("owner_decision_issue") != ISSUE:
+        raise RuntimeError("consumption issue changed")
+    if consumption.get("owner_approval_comment_id") != 6482942968:
+        raise RuntimeError("owner approval evidence changed")
+    if consumption.get("authorization_activation_merge_commit") != ACTIVATION_COMMIT:
+        raise RuntimeError("activation merge evidence changed")
+    if consumption.get("dispatch_merge_commit") != DISPATCH_COMMIT:
+        raise RuntimeError("dispatch merge evidence changed")
+    if consumption.get("preflight_run") != RUN:
+        raise RuntimeError("preflight run evidence changed")
+    if consumption.get("preflight_workflow_conclusion") != "success":
+        raise RuntimeError("workflow conclusion changed")
+    if consumption.get("preflight_result_status") != "ambiguous":
+        raise RuntimeError("result status changed")
+    if consumption.get("request_budget") != 2:
+        raise RuntimeError("request budget changed")
+    if consumption.get("max_observations_total") != 2:
+        raise RuntimeError("observation budget changed")
+    if consumption.get("max_observations_per_resource") != 1:
+        raise RuntimeError("per-resource observation budget changed")
+    if consumption.get("new_owner_authorization_required_for_any_future_live_request") is not True:
+        raise RuntimeError("future live work must require new owner authorization")
 
-    auth = receipt.get("authorizations", {})
+    result = consumption.get("sanitized_result", {})
+    if result.get("request_count") != 2:
+        raise RuntimeError("sanitized request count changed")
+    if result.get("observation_count") != 0:
+        raise RuntimeError("ambiguous run must retain zero observations")
     for field in (
-        "response_body_ephemeral_retrieval",
-        "representative_index_value_read",
-        "representative_index_preflight",
+        "html_observation_retained",
+        "xlsx_observation_retained",
+        "percent_change_fields_retained",
+        "unrelated_numeric_values_retained",
+        "alternate_sources_used",
+        "full_historical_reconstruction_performed",
+        "candidate_score_computed",
+        "component_zscores_computed",
+        "component_contributions_computed",
+        "research_ledger_modified",
+        "public_artifacts_modified",
+        "production_modified",
     ):
-        if auth.get(field) is not True:
-            raise RuntimeError(f"{field} must be true")
-    for field in (
-        "full_historical_reconstruction",
-        "candidate_score_computation",
-        "research_ledger_mutation",
-        "public_artifact_replacement",
-        "production",
-    ):
-        if auth.get(field) is not False:
+        if result.get(field) is not False:
             raise RuntimeError(f"{field} must remain false")
+    if any(consumption.get("post_consumption_authorizations", {}).values()):
+        raise RuntimeError("all post-consumption authorizations must be false")
 
-    if dispatch.get("state") != "approved_dispatch":
-        raise RuntimeError("dispatch state changed")
-    if dispatch.get("phase") != "bls_wpu0561_representative_index_preflight":
-        raise RuntimeError("dispatch phase changed")
-    if dispatch.get("issue") != ISSUE:
-        raise RuntimeError("dispatch issue changed")
-    if dispatch.get("authorization_activation_merge_commit") != ACTIVATION_COMMIT:
-        raise RuntimeError("dispatch activation commit changed")
-    if dispatch.get("request_budget") != 2:
-        raise RuntimeError("dispatch request budget changed")
-    if dispatch.get("max_observations_total") != 2 or dispatch.get("max_observations_per_resource") != 1:
-        raise RuntimeError("dispatch observation cap changed")
-    if dispatch.get("fixed_resources") != EXPECTED_RESOURCES:
-        raise RuntimeError("dispatch resources changed")
-    for field in (
-        "response_body_ephemeral_retrieval_authorized",
-        "representative_index_value_read_authorized",
-        "representative_index_preflight_authorized",
-    ):
-        if dispatch.get(field) is not True:
-            raise RuntimeError(f"{field} must be true in dispatch")
-    for field in (
-        "full_historical_reconstruction_authorized",
-        "candidate_score_computation_authorized",
-        "research_ledger_mutation_authorized",
-        "public_artifact_replacement_authorized",
-        "production_authorized",
-    ):
-        if dispatch.get(field) is not False:
-            raise RuntimeError(f"{field} must remain false in dispatch")
+    if contract.get("state") != "representative_index_preflight_consumed_fail_closed":
+        raise RuntimeError("execution contract is not consumed/fail-closed")
+    if contract.get("active_authorization_receipt_expected_now") is not False:
+        raise RuntimeError("active receipt must not be expected")
+    if contract.get("dispatch_marker_expected_now") is not False:
+        raise RuntimeError("dispatch must not be expected")
+    if contract.get("completed_preflight_run") != RUN:
+        raise RuntimeError("contract run evidence changed")
+    if contract.get("completed_preflight_workflow_conclusion") != "success":
+        raise RuntimeError("contract workflow conclusion changed")
+    if contract.get("completed_preflight_result_status") != "ambiguous":
+        raise RuntimeError("contract result status changed")
+    if any(contract.get("current_state", {}).values()):
+        raise RuntimeError("all contract authorization flags must be false")
+    if contract.get("production_authorized") is not False:
+        raise RuntimeError("Production must remain unauthorized")
 
-    if contract.get("state") != "representative_index_preflight_authorized":
-        raise RuntimeError("execution contract must be dispatched-active")
-    if contract.get("owner_approval_comment_id") != APPROVAL_COMMENT or contract.get("owner_approval_timestamp") != APPROVED_AT:
-        raise RuntimeError("contract approval evidence changed")
-    if contract.get("authorization_activation_merge_commit") != ACTIVATION_COMMIT:
-        raise RuntimeError("contract activation commit changed")
-    if contract.get("active_authorization_receipt_expected_now") is not True or contract.get("dispatch_marker_expected_now") is not True:
-        raise RuntimeError("receipt/dispatch must both be expected")
-    if contract.get("request_budget") != 2:
-        raise RuntimeError("contract request budget changed")
-    if contract.get("max_observations_total") != 2 or contract.get("max_observations_per_resource") != 1:
-        raise RuntimeError("contract observation cap changed")
-    if contract.get("fixed_resources") != EXPECTED_RESOURCES:
-        raise RuntimeError("contract resources changed")
-
-    current = contract.get("current_state", {})
-    for field in (
-        "response_body_ephemeral_retrieval_authorized",
-        "representative_index_value_read_authorized",
-        "representative_index_preflight_authorized",
-    ):
-        if current.get(field) is not True:
-            raise RuntimeError(f"{field} must be true while dispatched")
-    for field in (
-        "full_historical_reconstruction_authorized",
-        "candidate_score_computation_authorized",
-        "research_ledger_mutation_authorized",
-        "public_artifact_replacement_authorized",
-        "production_authorized",
-    ):
-        if current.get(field) is not False:
-            raise RuntimeError(f"{field} must remain false")
-
-    if "score-v2-1f-bls-wpu0561-representative-index-preflight-dispatch.json" not in workflow:
-        raise RuntimeError("workflow is not path-gated to the dispatch marker")
-    if ("if: $" + "{{ false }}") in workflow:
-        raise RuntimeError("workflow must be active in dispatched state")
+    if ("if: $" + "{{ false }}") not in workflow:
+        raise RuntimeError("consumed workflow must remain inert")
+    if "push:" in workflow:
+        raise RuntimeError("consumed workflow must not retain a push trigger")
 
     return {
         "status": "passed",
-        "state": "representative_index_preflight_authorized",
+        "state": "representative_index_preflight_consumed_fail_closed",
         "issue": ISSUE,
-        "activation_merge_commit": ACTIVATION_COMMIT,
-        "request_budget": 2,
-        "max_observations_total": 2,
-        "max_observations_per_resource": 1,
-        "active_receipt_present": True,
-        "dispatch_present": True,
-        "response_body_ephemeral_retrieval_authorized": True,
-        "representative_index_value_read_authorized": True,
-        "representative_index_preflight_authorized": True,
+        "preflight_run": RUN,
+        "preflight_workflow_conclusion": "success",
+        "preflight_result_status": "ambiguous",
+        "request_count": 2,
+        "observation_count": 0,
+        "active_receipt_present": False,
+        "dispatch_present": False,
+        "response_body_ephemeral_retrieval_authorized": False,
+        "representative_index_value_read_authorized": False,
+        "representative_index_preflight_authorized": False,
         "candidate_score_computation_authorized": False,
         "production_authorized": False,
         "rights_hold": True,
