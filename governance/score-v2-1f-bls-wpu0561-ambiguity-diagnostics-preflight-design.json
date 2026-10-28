@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "state": "design_only_hold",
   "methodology_version": "2.1F-design-candidate",
   "owner_decision_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/258",
@@ -29,7 +29,8 @@
     "normalized_identifier": "0561",
     "issue_252_request_count": 2,
     "issue_252_observation_count": 0,
-    "issue_252_result_status": "ambiguous"
+    "issue_252_result_status": "ambiguous",
+    "identity_mapping_interpretation": "proven_under_issue_244_hardened_identifier_rules"
   },
   "future_live_budget": {
     "request_budget": 2,
@@ -37,6 +38,43 @@
     "max_economic_observations_per_resource": 0,
     "concurrency": 1,
     "automatic_retries": 0
+  },
+  "layered_result_model": {
+    "transport_status": [
+      "passed",
+      "failed"
+    ],
+    "semantic_status": [
+      "evaluated",
+      "not_evaluated"
+    ],
+    "identity_status": [
+      "proven",
+      "not_proven"
+    ],
+    "block_status": [
+      "unique",
+      "multiple",
+      "none"
+    ],
+    "field_status": [
+      "unique",
+      "multiple",
+      "missing",
+      "ambiguous",
+      "not_evaluated"
+    ],
+    "release_context_status": [
+      "archived_release_path",
+      "preliminary",
+      "final",
+      "revised",
+      "corrected",
+      "missing",
+      "conflicting",
+      "not_evaluated"
+    ],
+    "invariant": "downstream block, field, release-context, or transport ambiguity must never erase an already proven identity mapping"
   },
   "diagnostic_policy": {
     "economic_value_read": false,
@@ -47,7 +85,11 @@
     "local_block_required": true,
     "whole_sheet_or_whole_table_role_accumulation_forbidden": true,
     "whole_sheet_revision_context_accumulation_forbidden": true,
+    "candidate_multiplicity_is_not_identity_failure": true,
     "allowed_reason_codes": [
+      "transport_dns_failure",
+      "http_access_control",
+      "not_evaluated",
       "no_local_header_anchor",
       "identifier_column_not_proven",
       "mapped_row_count_zero",
@@ -57,30 +99,66 @@
       "ambiguous_local_column_semantics",
       "revision_context_missing",
       "revision_context_conflicting",
+      "merged_header_unresolved",
+      "multirow_header_unresolved",
+      "container_scope_role_poisoning",
+      "sheet_scope_context_poisoning",
       "multiple_candidate_blocks",
       "candidate_block_unique"
     ]
   },
   "local_block_policy": {
-    "header_anchor": "nearest preceding row in the same container containing both a description-header role and an identifier-header role",
-    "data_block_start": "header_anchor row",
-    "data_block_end": "row immediately before the next row containing both a description-header role and an identifier-header role, otherwise end of container",
-    "role_scope": "only the header anchor and rows in its governed local block",
-    "revision_context_scope": "contiguous non-data rows immediately above the header anchor, stopping at the first blank separator row or previous local header anchor, maximum 5 rows",
+    "header_anchor": "nearest local header stack in the same container whose resolved leaf roles contain both a description-header role and an identifier-header role",
+    "header_stack_max_rows": 3,
+    "header_role_precedence": "most-specific recognized child/leaf header wins; a mixed leaf such as Index code remains ambiguous; broader parent/group labels do not override a recognized child role",
+    "merged_header_policy": "merged/group header text may provide parent context, but an explicit child header controls the leaf role; unresolved merged structure fails closed without reading economic cells",
+    "data_block_start": "row immediately after the local header stack",
+    "data_block_end": "row immediately before the next local header stack, otherwise end of container",
+    "role_scope": "only the local header stack and rows in its governed local block",
+    "revision_context_scope": "contiguous non-data rows immediately above the local header stack, stopping at the first blank separator row or prior local header stack, maximum 5 rows",
     "candidate_rows": "Crude petroleum rows inside the local block whose identifier cell normalizes to 0561 under a proven local identifier header",
     "numeric_economic_cells": "must not be parsed or returned"
   },
+  "identifier_normalization_policy": {
+    "prerequisite": "identifier column must already be proven from non-economic local header semantics",
+    "unicode_normalization": "NFKC",
+    "recognized_prefix": "WPU",
+    "recognized_separators": [
+      "ASCII hyphen",
+      "Unicode hyphen/dash variants",
+      "whitespace"
+    ],
+    "canonical_identifier": "0561",
+    "accepted_structural_variants_after_header_proof": [
+      "05-61",
+      "05 61",
+      "0561",
+      "561",
+      "WPU0561"
+    ],
+    "unrestricted_punctuation_stripping": false,
+    "neighbor_cell_or_row_wide_search": false
+  },
+  "transport_policy": {
+    "dns_failure": "transport_status=failed; semantic_status=not_evaluated; emit transport_dns_failure only; do not infer content ambiguity",
+    "http_401_403_429_or_challenge": "transport_status=failed; semantic_status=not_evaluated; emit http_access_control only; no retry",
+    "redirect": "fail_closed",
+    "content_semantics_after_transport_failure": "not_evaluated"
+  },
   "allowed_persistent_output_if_future_approved": [
     "resource path",
+    "transport status and non-content transport reason code",
+    "semantic evaluated/not-evaluated status",
     "table or sheet identifier",
-    "local header anchor row coordinate",
+    "local header stack start/end coordinates",
     "candidate block start/end coordinates",
-    "exact non-economic header text",
+    "exact non-economic header text and header path",
     "local column-role classification",
     "normalized identifier 0561",
+    "layered identity/block/field/release-context statuses",
     "candidate row count",
     "revision-context labels scoped to the local title/header region",
-    "per-candidate ambiguity reason code",
+    "per-candidate ambiguity reason codes",
     "per-resource reason-code counts",
     "yes/no whether local scoping removes whole-container ambiguity"
   ],

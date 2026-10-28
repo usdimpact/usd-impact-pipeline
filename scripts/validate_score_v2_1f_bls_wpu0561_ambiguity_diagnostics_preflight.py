@@ -53,12 +53,15 @@ def validate(repo_root: Path) -> dict[str, Any]:
     if prereg.get("state") != "preregistered_design_only":
         raise RuntimeError("v2.1F preregistration state changed")
 
+    if design.get("version") != 2:
+        raise RuntimeError("Issue #258 hardened design version changed")
     if design.get("state") != "design_only_hold":
         raise RuntimeError("Issue #258 design must remain HOLD")
     if design.get("owner_decision_issue") != ISSUE:
         raise RuntimeError("Issue #258 owner-decision URL changed")
     if [item.get("path") for item in design.get("fixed_resources", [])] != EXPECTED_RESOURCES:
         raise RuntimeError("Issue #258 fixed resources changed")
+
     budget = design.get("future_live_budget", {})
     if budget.get("request_budget") != 2:
         raise RuntimeError("Issue #258 request budget changed")
@@ -66,6 +69,15 @@ def validate(repo_root: Path) -> dict[str, Any]:
         raise RuntimeError("Issue #258 must allow zero economic observations")
     if budget.get("max_economic_observations_per_resource") != 0:
         raise RuntimeError("Issue #258 per-resource economic observation cap must be zero")
+
+    layered = design.get("layered_result_model", {})
+    invariant = layered.get("invariant", "")
+    if "must never erase an already proven identity mapping" not in invariant:
+        raise RuntimeError("layered identity-preservation invariant changed")
+    if "not_evaluated" not in layered.get("semantic_status", []):
+        raise RuntimeError("transport failures must support semantic not_evaluated")
+    if set(layered.get("identity_status", [])) != {"proven", "not_proven"}:
+        raise RuntimeError("identity status model changed")
 
     policy = design.get("diagnostic_policy", {})
     if policy.get("economic_value_read") is not False:
@@ -76,6 +88,37 @@ def validate(repo_root: Path) -> dict[str, Any]:
         raise RuntimeError("whole-container role accumulation must remain forbidden")
     if policy.get("whole_sheet_revision_context_accumulation_forbidden") is not True:
         raise RuntimeError("whole-sheet revision context accumulation must remain forbidden")
+    if policy.get("candidate_multiplicity_is_not_identity_failure") is not True:
+        raise RuntimeError("candidate multiplicity must not erase identity")
+    for reason in ("transport_dns_failure", "not_evaluated", "multiple_candidate_blocks"):
+        if reason not in policy.get("allowed_reason_codes", []):
+            raise RuntimeError(f"missing required reason code: {reason}")
+
+    block_policy = design.get("local_block_policy", {})
+    if block_policy.get("header_stack_max_rows") != 3:
+        raise RuntimeError("header stack bound changed")
+    if "child/leaf header wins" not in block_policy.get("header_role_precedence", ""):
+        raise RuntimeError("child-header precedence changed")
+    if "economic cells" not in block_policy.get("merged_header_policy", ""):
+        raise RuntimeError("merged-header zero-value rule changed")
+    if block_policy.get("numeric_economic_cells") != "must not be parsed or returned":
+        raise RuntimeError("economic numeric cells must remain unread")
+
+    identifier_policy = design.get("identifier_normalization_policy", {})
+    if identifier_policy.get("prerequisite") != "identifier column must already be proven from non-economic local header semantics":
+        raise RuntimeError("identifier normalization prerequisite changed")
+    if identifier_policy.get("unicode_normalization") != "NFKC":
+        raise RuntimeError("identifier Unicode normalization changed")
+    if identifier_policy.get("unrestricted_punctuation_stripping") is not False:
+        raise RuntimeError("identifier normalization became too permissive")
+    if identifier_policy.get("neighbor_cell_or_row_wide_search") is not False:
+        raise RuntimeError("unsafe row-wide identifier fallback enabled")
+
+    transport_policy = design.get("transport_policy", {})
+    if "semantic_status=not_evaluated" not in transport_policy.get("dns_failure", ""):
+        raise RuntimeError("DNS failure must remain NOT_EVALUATED")
+    if transport_policy.get("content_semantics_after_transport_failure") != "not_evaluated":
+        raise RuntimeError("transport failure must not become content ambiguity")
 
     if any(design.get("current_authorizations", {}).values()):
         raise RuntimeError("all Issue #258 design authorizations must remain false")
@@ -110,6 +153,9 @@ def validate(repo_root: Path) -> dict[str, Any]:
         "issue": ISSUE,
         "request_budget": 2,
         "max_economic_observations_total": 0,
+        "layered_identity_preservation": True,
+        "transport_failure_semantics": "not_evaluated",
+        "multirow_header_support": True,
         "active_receipt_present": False,
         "dispatch_present": False,
         "live_request_authorized": False,
