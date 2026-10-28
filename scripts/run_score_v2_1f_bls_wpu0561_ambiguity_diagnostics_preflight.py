@@ -232,6 +232,7 @@ class _SanitizedHTMLTables(HTMLParser):
         self.current_row: list[str] | None = None
         self.current_cell_parts: list[str] | None = None
         self.current_cell_start_col = 0
+        self.current_expanded_col = 0
         self.current_colspan = 1
         self.tables: list[list[list[str]]] = []
         self.target_values: dict[tuple[int, int, int], str] = {}
@@ -248,9 +249,10 @@ class _SanitizedHTMLTables(HTMLParser):
         elif self.table_depth == 1 and tag == "tr":
             self.row_index += 1
             self.current_row = []
+            self.current_expanded_col = 0
         elif self.table_depth == 1 and tag in {"th", "td"} and self.current_row is not None:
             self.current_cell_parts = []
-            self.current_cell_start_col = len(self.current_row) + 1
+            self.current_cell_start_col = self.current_expanded_col + 1
             attrs_map = {k.lower(): v for k, v in attrs}
             try:
                 self.current_colspan = max(1, int(attrs_map.get("colspan") or "1"))
@@ -275,6 +277,7 @@ class _SanitizedHTMLTables(HTMLParser):
                 for _ in range(self.current_colspan):
                     assert self.current_row is not None
                     self.current_row.append(sanitized)
+            self.current_expanded_col += self.current_colspan
             self.current_cell_parts = None
         elif self.table_depth == 1 and tag == "tr":
             if not self.capture_targets and self.current_row is not None:
