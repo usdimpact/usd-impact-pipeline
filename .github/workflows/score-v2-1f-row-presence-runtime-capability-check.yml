@@ -1,0 +1,70 @@
+name: Score v2.1F row-presence runtime capability check
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/score-v2-1f-row-presence-runtime-capability-check.yml'
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  capability-check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+
+    steps:
+      - name: Check local PDF/XLSX parsing capabilities only
+        id: capability
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python - <<'PY'
+          import io
+          import zipfile
+          from xml.etree import ElementTree
+          print("python_stdlib_zip_xml=available")
+          PY
+
+          if command -v pdftotext >/dev/null 2>&1; then
+            echo "pdftotext_available=true" >> "$GITHUB_OUTPUT"
+            pdftotext -v 2>&1 | head -n 1 | sed 's/^/pdftotext_version=/' > "$RUNNER_TEMP/pdftotext.txt"
+          else
+            echo "pdftotext_available=false" >> "$GITHUB_OUTPUT"
+            echo "pdftotext_version=unavailable" > "$RUNNER_TEMP/pdftotext.txt"
+          fi
+
+      - name: Record capability result
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PDF_AVAILABLE: ${{ steps.capability.outputs.pdftotext_available }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="$(cat "$RUNNER_TEMP/pdftotext.txt")"
+          cat > "$RUNNER_TEMP/comment.md" <<EOF
+          ### v2.1F row-presence local runtime capability check
+
+          <!-- V2_1F_ROW_PRESENCE_RUNTIME_CAPABILITY -->
+
+          - Run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
+          - Runner: ubuntu-24.04
+          - Python standard-library ZIP/XML parsing: available
+          - pdftotext available: ${PDF_AVAILABLE}
+          - ${VERSION}
+          - BLS/network request performed: no
+          - Report body retrieved: no
+          - Source value retrieved: no
+
+          This check is local-runtime-only and does not authorize Issue #236 live report-body access.
+          EOF
+          gh issue comment 236 --body-file "$RUNNER_TEMP/comment.md"
+
+      - name: Fail closed if PDF capability is unavailable
+        if: steps.capability.outputs.pdftotext_available != 'true'
+        run: |
+          echo "pdftotext is unavailable on this runner; future row-presence execution must not start network access."
+          exit 1
