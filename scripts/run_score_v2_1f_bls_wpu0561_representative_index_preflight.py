@@ -42,6 +42,7 @@ USER_AGENT_RE = re.compile(
 )
 IDENTIFIER_HEADERS = ("commodity code", "series code", "series id", "item code")
 DESCRIPTION_HEADERS = ("commodity", "item", "description")
+REVISION_CONTEXT_TERMS = ("preliminary", "final", "revised", "corrected")
 CHALLENGE_MARKERS = (
     "access denied",
     "verify you are human",
@@ -284,7 +285,23 @@ def _parse_numeric(value: str) -> str | None:
     return compact
 
 
-def _classify_rows(rows: list[list[str]], *, container: str) -> dict[str, object]:
+def _revision_context_labels(rows: list[list[str]]) -> list[str]:
+    labels: set[str] = set()
+    for row in rows:
+        for cell in row:
+            normalized = _normalize_header(cell)
+            for term in REVISION_CONTEXT_TERMS:
+                if term in normalized:
+                    labels.add(term)
+    return sorted(labels)
+
+
+def _classify_rows(
+    rows: list[list[str]],
+    *,
+    container: str,
+    source_context: str,
+) -> dict[str, object]:
     roles: dict[int, str] = {}
     headers: list[dict[str, object]] = []
     for row_number, row in enumerate(rows, start=1):
@@ -310,6 +327,8 @@ def _classify_rows(rows: list[list[str]], *, container: str) -> dict[str, object
     percent_columns = sorted(c for c, r in roles.items() if r == "percent_change")
     ambiguous_columns = sorted(c for c, r in roles.items() if r == "ambiguous")
 
+    revision_context_labels = _revision_context_labels(rows)
+
     mapped_rows: list[tuple[int, list[str]]] = []
     for row_number, row in enumerate(rows, start=1):
         if not any(re.search(r"\bCrude\s+petroleum\b", cell, re.IGNORECASE) for cell in row):
@@ -325,7 +344,21 @@ def _classify_rows(rows: list[list[str]], *, container: str) -> dict[str, object
 
     observation = None
     ambiguity = None
-    if ambiguous_columns:
+    if source_context == "archived_original_release":
+        revision_context_status = "archived_release_path"
+    elif source_context == "detailed_report":
+        if len(revision_context_labels) == 1:
+            revision_context_status = revision_context_labels[0]
+        elif len(revision_context_labels) == 0:
+            revision_context_status = "missing"
+        else:
+            revision_context_status = "conflicting"
+    else:
+        revision_context_status = "unknown"
+
+    if revision_context_status in {"missing", "conflicting", "unknown"}:
+        ambiguity = "ambiguous_revision_context"
+    elif ambiguous_columns:
         ambiguity = "ambiguous_column_semantics"
     elif len(mapped_rows) != 1:
         ambiguity = "mapped_row_count_not_one"
@@ -345,6 +378,7 @@ def _classify_rows(rows: list[list[str]], *, container: str) -> dict[str, object
                 "column": column,
                 "normalized_identifier": "0561",
                 "semantic": "original_release_index_level",
+                "revision_context": revision_context_status,
                 "value": numeric,
             }
 
@@ -355,6 +389,8 @@ def _classify_rows(rows: list[list[str]], *, container: str) -> dict[str, object
         "percent_change_columns": percent_columns,
         "ambiguous_columns": ambiguous_columns,
         "mapped_row_count": len(mapped_rows),
+        "revision_context_labels": revision_context_labels,
+        "revision_context_status": revision_context_status,
         "observation": observation,
         "ambiguity": ambiguity,
     }
@@ -365,7 +401,11 @@ def _extract_html_candidate(payload: bytes) -> dict[str, object]:
     parser.feed(payload.decode("utf-8", errors="replace"))
     parser.close()
     reports = [
-        _classify_rows(table, container=f"table {index}")
+        _classify_rows(
+            table,
+            container=f"table {index}",
+            source_context="archived_original_release",
+        )
         for index, table in enumerate(parser.tables, start=1)
         if table
     ]
@@ -449,7 +489,13 @@ def _extract_xlsx_candidate(payload: bytes) -> dict[str, object]:
                 max_column = max(cells, default=0)
                 rows.append([cells.get(i, "") for i in range(1, max_column + 1)])
             if rows:
-                reports.append(_classify_rows(rows, container=f"sheet {sheet_name}"))
+                reports.append(
+                    _classify_rows(
+                        rows,
+                        container=f"sheet {sheet_name}",
+                        source_context="detailed_report",
+                    )
+                )
 
     observations = [r["observation"] for r in reports if r.get("observation")]
     if len(observations) == 1:
