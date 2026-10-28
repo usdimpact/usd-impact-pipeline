@@ -278,11 +278,19 @@ def _normalize_header(value: str) -> str:
 
 def _semantic_role(header: str) -> str | None:
     normalized = _normalize_header(header)
-    if any(term in normalized for term in IDENTIFIER_HEADERS):
+    identifier_match = any(term in normalized for term in IDENTIFIER_HEADERS)
+    economic_match = any(term in normalized for term in ECONOMIC_HEADERS)
+    description_match = any(term in normalized for term in DESCRIPTION_HEADERS)
+
+    # Any header that mixes identifier language with economic-value language
+    # is ambiguous and must never authorize reading a numeric-looking cell.
+    if identifier_match and economic_match:
+        return "ambiguous"
+    if identifier_match:
         return "identifier"
-    if any(term in normalized for term in ECONOMIC_HEADERS):
+    if economic_match:
         return "economic"
-    if any(term in normalized for term in DESCRIPTION_HEADERS):
+    if description_match:
         return "description"
     return None
 
@@ -305,6 +313,7 @@ def _analyze_rows(rows: list[list[str]], *, container: str) -> dict[str, object]
     identifier_columns: set[int] = set()
     description_columns: set[int] = set()
     economic_columns: set[int] = set()
+    ambiguous_columns: set[int] = set()
 
     for row_number, row in enumerate(rows, start=1):
         for column_index, cell in enumerate(row, start=1):
@@ -326,6 +335,8 @@ def _analyze_rows(rows: list[list[str]], *, container: str) -> dict[str, object]
                 description_columns.add(column_index)
             elif role == "economic":
                 economic_columns.add(column_index)
+            elif role == "ambiguous":
+                ambiguous_columns.add(column_index)
 
     matches: list[dict[str, object]] = []
     for row_number, row in enumerate(rows, start=1):
@@ -338,8 +349,8 @@ def _analyze_rows(rows: list[list[str]], *, container: str) -> dict[str, object]
                 identifier = _normalize_identifier(row[column_index - 1])
                 if identifier:
                     identifiers.add(identifier)
-        if "05-61" in row_text:
-            identifiers.add("0561")
+        # No row-wide identifier fallback: a token proves identity only when
+        # it is located in a column already proven to be an identifier column.
         matches.append(
             {
                 "container": container,
@@ -357,6 +368,7 @@ def _analyze_rows(rows: list[list[str]], *, container: str) -> dict[str, object]
         "identifier_columns": sorted(identifier_columns),
         "description_columns": sorted(description_columns),
         "economic_columns": sorted(economic_columns),
+        "ambiguous_columns": sorted(ambiguous_columns),
         "matches": matches,
     }
 
@@ -457,6 +469,7 @@ def _extract_xlsx_semantics(payload: bytes) -> list[dict[str, object]]:
             identifier_columns: set[int] = set()
             description_columns: set[int] = set()
             economic_columns: set[int] = set()
+            ambiguous_columns: set[int] = set()
             headers: list[dict[str, object]] = []
 
             for row_number, cells in enumerate(rows, start=1):
@@ -481,6 +494,8 @@ def _extract_xlsx_semantics(payload: bytes) -> list[dict[str, object]]:
                         description_columns.add(column)
                     elif role == "economic":
                         economic_columns.add(column)
+                    elif role == "ambiguous":
+                        ambiguous_columns.add(column)
 
             matches: list[dict[str, object]] = []
             for row_number, cells in enumerate(rows, start=1):
@@ -528,6 +543,7 @@ def _extract_xlsx_semantics(payload: bytes) -> list[dict[str, object]]:
                         "identifier_columns": sorted(identifier_columns),
                         "description_columns": sorted(description_columns),
                         "economic_columns": sorted(economic_columns),
+                        "ambiguous_columns": sorted(ambiguous_columns),
                         "matches": matches,
                     }
                 )
