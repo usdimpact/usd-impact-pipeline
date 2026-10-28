@@ -9,6 +9,7 @@ from scripts import build_synthetic_private_score_evidence as synthetic
 from scripts import rehearse_score_private_research_migration as rehearsal
 from scripts import score_private_evidence_research_adapter as adapter
 from scripts import rehearse_score_private_reader_compatibility as reader_compat
+from scripts import rehearse_score_private_full_reader_dry_run as full_reader_dry_run
 from usd_impact_score_v2 import WEIGHTS
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -82,6 +83,25 @@ class ScorePrivateResearchMigrationTests(unittest.TestCase):
         self.assertTrue(report["predictive_dxy_equal"])
         self.assertTrue(report["v3_source_levels_equal"])
         self.assertEqual(report["v3_driver_count"], len(WEIGHTS))
+        self.assertFalse(report["production_change_authorized"])
+        self.assertFalse(report["real_provider_evidence_authorized"])
+        self.assertFalse(report["public_replacement_authorized"])
+
+
+    def test_locked_readers_complete_first_week_without_writes(self) -> None:
+        report = full_reader_dry_run.rehearse(REPO_ROOT)
+        self.assertEqual(report["status"], "passed")
+        self.assertEqual(report["week"], "2026-08-28")
+        self.assertEqual(report["predictive_status"], "validated_dry_run")
+        self.assertEqual(report["v3_status"], "validated_dry_run")
+        self.assertTrue(report["predictive_manifest_unchanged"])
+        self.assertTrue(report["v3_manifest_unchanged"])
+        self.assertFalse(report["predictive_output_written"])
+        self.assertFalse(report["v3_output_written"])
+        self.assertFalse(report["locked_readers_modified"])
+        self.assertFalse(report["network_access_performed"])
+        self.assertFalse(report["cloud_action_performed"])
+        self.assertFalse(report["repository_public_paths_modified"])
         self.assertFalse(report["production_change_authorized"])
         self.assertFalse(report["real_provider_evidence_authorized"])
         self.assertFalse(report["public_replacement_authorized"])
