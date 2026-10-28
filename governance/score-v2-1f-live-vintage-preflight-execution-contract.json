@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "state": "live_vintage_preflight_authorized_pending_dispatch",
+  "state": "live_vintage_preflight_authorized",
   "methodology_version": "2.1F-design-candidate",
   "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/224",
   "controlling_hold": "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
@@ -8,10 +8,11 @@
   "preregistration_merge_commit": "bcf473e2bbcb36fa1080a3a56f77a3796d74ccaa",
   "owner_approval_comment_id": 6479715940,
   "owner_approval_timestamp": "2026-10-28T20:20:28Z",
+  "authorization_activation_merge_commit": "48f6815199db7c030939629f49a75001d20ae566",
   "active_authorization_receipt_path": "governance/score-v2-1f-live-vintage-preflight-authorization.json",
   "active_authorization_receipt_expected_now": true,
   "dispatch_marker_path": "governance/score-v2-1f-live-vintage-preflight-dispatch.json",
-  "dispatch_marker_expected_now": false,
+  "dispatch_marker_expected_now": true,
   "authorized_data_window": {
     "start": "2013-01-01",
     "end": "2026-10-23"
@@ -19,6 +20,7 @@
   "execution_preconditions": [
     "explicit owner approval under Issue #224 comment 6479715940",
     "active preflight authorization receipt exists and validates",
+    "dispatch marker exists and is pinned to authorization activation merge 48f6815199db7c030939629f49a75001d20ae566",
     "decision_status is approved",
     "real_data_fetch and live_vintage_preflight are true",
     "real_data_research and candidate_score_computation remain false",
@@ -28,8 +30,7 @@
     "network source allowlist is direct official Federal Reserve Board and BLS endpoints only",
     "no API key, paid account, paid source or contractual acceptance is required",
     "temporary workspace is isolated and non-public",
-    "raw/source values are ephemeral only",
-    "dispatch marker remains absent until a separate reviewed dispatch change after this activation merge reaches protected main"
+    "raw/source values are ephemeral only"
   ],
   "network_policy": {
     "allowed_hosts": [
@@ -70,6 +71,7 @@
     ]
   },
   "stop_conditions": [
+    "active authorization receipt is absent or invalid",
     "dispatch marker is absent or invalid",
     "any required source resolves to a paid or credentialed path",
     "any source falls outside the exact five-series inventory",
@@ -85,7 +87,7 @@
     "real_data_research_authorized": false,
     "candidate_score_computation_authorized": false,
     "active_receipt_present": true,
-    "dispatch_marker_present": false,
+    "dispatch_marker_present": true,
     "paid_data_authorized": false,
     "source_contract_acceptance_authorized": false,
     "durable_private_storage_authorized": false,
@@ -93,6 +95,6 @@
     "research_ledger_mutation_authorized": false,
     "production_authorized": false
   },
-  "next_allowed_action": "separate_dispatch_review_pinned_to_authorization_activation_merge",
+  "next_allowed_action": "execute_one_off_preflight_then_consume_authorization_fail_closed",
   "production_authorized": false
 }
