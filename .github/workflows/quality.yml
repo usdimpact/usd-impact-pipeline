@@ -42,6 +42,9 @@ jobs:
       - name: Test Cloudflare public-only Score perimeter
         run: node --test security/score-pages-public-only.test.mjs
 
+      - name: Test review-only private evidence OIDC broker
+        run: node --test security/score-private-evidence-broker.test.mjs
+
       - name: Validate private member asset publisher without remote writes
         env:
           SOURCE_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
