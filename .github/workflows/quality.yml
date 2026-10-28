@@ -40,7 +40,10 @@ jobs:
           node-version: '22'
 
       - name: Test Cloudflare public-only Score perimeter
-        run: node --test security/score-pages-public-only.test.mjs
+        run: |
+          node --test \
+            security/score-pages-public-only.test.mjs \
+            security/score-public-rights-surface.test.mjs
 
       - name: Validate private member asset publisher without remote writes
         env:
