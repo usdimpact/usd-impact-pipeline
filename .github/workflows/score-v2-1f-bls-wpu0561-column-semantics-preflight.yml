@@ -1,0 +1,18 @@
+name: Score v2.1F BLS WPU0561 column-semantics preflight (HOLD)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  design-only-hold:
+    if: ${{ false }}
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Explicit owner authorization guard
+        run: |
+          echo "The WPU0561 column-semantics preflight is design-only/HOLD."
+          echo "Issue #244 requires a new explicit owner authorization."
+          echo "No BLS request is authorized by this workflow definition."
