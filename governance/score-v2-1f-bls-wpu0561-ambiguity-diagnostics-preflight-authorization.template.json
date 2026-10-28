@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "decision_status": "hold",
+  "methodology_version": "2.1F-design-candidate",
+  "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/258",
+  "execution_scope": "bls_wpu0561_ambiguity_diagnostics_preflight_only",
+  "request_budget": 2,
+  "max_economic_observations_total": 0,
+  "max_economic_observations_per_resource": 0,
+  "contact_user_agent": null,
+  "allowed_host": "www.bls.gov",
+  "fixed_resources": [
+    "/news.release/archives/ppi_05152013.htm",
+    "/ppi/detailed-report/ppi-detailed-report-april-2026.xlsx"
+  ],
+  "authorizations": {
+    "response_body_ephemeral_retrieval": false,
+    "ambiguity_diagnostics_preflight": false,
+    "numeric_identifier_field_read": false,
+    "economic_value_read": false,
+    "full_historical_reconstruction": false,
+    "candidate_score_computation": false,
+    "research_ledger_mutation": false,
+    "public_artifact_replacement": false,
+    "production": false
+  },
+  "approved_by": null,
+  "approved_at": null,
+  "notes": "HOLD template only. No live BLS request or value read is authorized."
+}

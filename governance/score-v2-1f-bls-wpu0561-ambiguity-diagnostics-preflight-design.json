@@ -1,0 +1,114 @@
+{
+  "version": 1,
+  "state": "design_only_hold",
+  "methodology_version": "2.1F-design-candidate",
+  "owner_decision_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/258",
+  "predecessor_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/252",
+  "identity_evidence_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/244",
+  "controlling_rights_hold": "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
+  "fixed_resources": [
+    {
+      "label": "april_2013_archived_html",
+      "method": "GET",
+      "host": "www.bls.gov",
+      "path": "/news.release/archives/ppi_05152013.htm",
+      "expected_format": "html"
+    },
+    {
+      "label": "april_2026_xlsx",
+      "method": "GET",
+      "host": "www.bls.gov",
+      "path": "/ppi/detailed-report/ppi-detailed-report-april-2026.xlsx",
+      "expected_format": "xlsx"
+    }
+  ],
+  "objective": "Determine the non-economic structural reason each fixed resource remained ambiguous in Issue #252, using candidate-local header and revision-context scoping and retaining no economic values.",
+  "known_consumed_evidence": {
+    "issue_244_html_crude_petroleum_matches": 3,
+    "issue_244_xlsx_crude_petroleum_matches": 29,
+    "normalized_identifier": "0561",
+    "issue_252_request_count": 2,
+    "issue_252_observation_count": 0,
+    "issue_252_result_status": "ambiguous"
+  },
+  "future_live_budget": {
+    "request_budget": 2,
+    "max_economic_observations_total": 0,
+    "max_economic_observations_per_resource": 0,
+    "concurrency": 1,
+    "automatic_retries": 0
+  },
+  "diagnostic_policy": {
+    "economic_value_read": false,
+    "numeric_identifier_read_only_under_proven_identifier_header": true,
+    "row_wide_identifier_fallback": false,
+    "candidate_description": "Crude petroleum",
+    "normalized_identifier": "0561",
+    "local_block_required": true,
+    "whole_sheet_or_whole_table_role_accumulation_forbidden": true,
+    "whole_sheet_revision_context_accumulation_forbidden": true,
+    "allowed_reason_codes": [
+      "no_local_header_anchor",
+      "identifier_column_not_proven",
+      "mapped_row_count_zero",
+      "mapped_row_count_multiple",
+      "index_level_column_count_zero",
+      "index_level_column_count_multiple",
+      "ambiguous_local_column_semantics",
+      "revision_context_missing",
+      "revision_context_conflicting",
+      "multiple_candidate_blocks",
+      "candidate_block_unique"
+    ]
+  },
+  "local_block_policy": {
+    "header_anchor": "nearest preceding row in the same container containing both a description-header role and an identifier-header role",
+    "data_block_start": "header_anchor row",
+    "data_block_end": "row immediately before the next row containing both a description-header role and an identifier-header role, otherwise end of container",
+    "role_scope": "only the header anchor and rows in its governed local block",
+    "revision_context_scope": "contiguous non-data rows immediately above the header anchor, stopping at the first blank separator row or previous local header anchor, maximum 5 rows",
+    "candidate_rows": "Crude petroleum rows inside the local block whose identifier cell normalizes to 0561 under a proven local identifier header",
+    "numeric_economic_cells": "must not be parsed or returned"
+  },
+  "allowed_persistent_output_if_future_approved": [
+    "resource path",
+    "table or sheet identifier",
+    "local header anchor row coordinate",
+    "candidate block start/end coordinates",
+    "exact non-economic header text",
+    "local column-role classification",
+    "normalized identifier 0561",
+    "candidate row count",
+    "revision-context labels scoped to the local title/header region",
+    "per-candidate ambiguity reason code",
+    "per-resource reason-code counts",
+    "yes/no whether local scoping removes whole-container ambiguity"
+  ],
+  "forbidden_now": {
+    "live_bls_request": true,
+    "response_body_persistence": true,
+    "economic_value_read": true,
+    "representative_index_value_read": true,
+    "percent_change_value_read": true,
+    "unrelated_numeric_value_read": true,
+    "full_historical_reconstruction": true,
+    "bls_api_or_bulk": true,
+    "alternate_source": true,
+    "candidate_score_computation": true,
+    "research_ledger_mutation": true,
+    "public_artifact_replacement": true,
+    "production_change": true
+  },
+  "current_authorizations": {
+    "response_body_ephemeral_retrieval": false,
+    "ambiguity_diagnostics_preflight": false,
+    "numeric_identifier_field_read": false,
+    "economic_value_read": false,
+    "full_historical_reconstruction": false,
+    "candidate_score_computation": false,
+    "research_ledger_mutation": false,
+    "public_artifact_replacement": false,
+    "production": false
+  },
+  "next_gate": "new_explicit_owner_authorization_under_issue_258_required_before_any_live_request"
+}
