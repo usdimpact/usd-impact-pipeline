@@ -286,7 +286,7 @@ def _pit_scores(rows: list[dict[str, object]]) -> list[dict[str, object]]:
 
 
 def rehearse() -> dict[str, object]:
-    start = date(2013, 1, 4)
+    start = date(2013, 1, 11)
     weeks = 150
     events = _synthetic_events(start, weeks)
     rows = _selected_rows(events, start, weeks)
