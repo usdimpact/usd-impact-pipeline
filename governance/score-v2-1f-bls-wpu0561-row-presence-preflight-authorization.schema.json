@@ -22,7 +22,7 @@
     "notes"
   ],
   "properties": {
-    "version": {"const": 1},
+    "version": {"const": 2},
     "decision_status": {"enum": ["hold", "approved"]},
     "methodology_version": {"const": "2.1F-design-candidate"},
     "issue": {"const": "https://github.com/usdimpact/usd-impact-pipeline/issues/236"},
@@ -39,12 +39,12 @@
     "request_budget": {"const": 2},
     "contact_user_agent": {
       "type": ["string", "null"],
-      "pattern": "^USD-Impact-Score-v2\\.1F-WPU0561-row-presence/1\\.0 \\(contact: .+\\)$"
+      "pattern": "^USD-Impact-Score-v2\\.1F-WPU0561-row-presence/2\\.0 \\(contact: .+\\)$"
     },
     "allowed_host": {"const": "www.bls.gov"},
     "fixed_resources": {
       "const": [
-        "/ppi/detailed-report/ppi-detailed-report-april-2013.pdf",
+        "/news.release/archives/ppi_05152013.htm",
         "/ppi/detailed-report/ppi-detailed-report-april-2026.xlsx"
       ]
     },
@@ -52,13 +52,13 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "report_bodies",
+        "response_bodies",
         "numeric_source_values",
         "credentials",
         "durable_private_storage"
       ],
       "properties": {
-        "report_bodies": {"const": "ephemeral_memory_only"},
+        "response_bodies": {"const": "ephemeral_memory_only"},
         "numeric_source_values": {"const": "do_not_extract_log_or_persist"},
         "credentials": {"const": "forbidden"},
         "durable_private_storage": {"const": false}
@@ -68,7 +68,7 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "report_body_ephemeral_retrieval",
+        "response_body_ephemeral_retrieval",
         "row_presence_preflight",
         "source_value_extraction",
         "real_data_research",
@@ -79,7 +79,7 @@
         "production"
       ],
       "properties": {
-        "report_body_ephemeral_retrieval": {"type": "boolean"},
+        "response_body_ephemeral_retrieval": {"type": "boolean"},
         "row_presence_preflight": {"type": "boolean"},
         "source_value_extraction": {"const": false},
         "real_data_research": {"const": false},
@@ -111,7 +111,7 @@
           "contact_user_agent": {"const": null},
           "authorizations": {
             "properties": {
-              "report_body_ephemeral_retrieval": {"const": false},
+              "response_body_ephemeral_retrieval": {"const": false},
               "row_presence_preflight": {"const": false}
             }
           },
@@ -136,7 +136,7 @@
           "contact_user_agent": {"type": "string"},
           "authorizations": {
             "properties": {
-              "report_body_ephemeral_retrieval": {"const": true},
+              "response_body_ephemeral_retrieval": {"const": true},
               "row_presence_preflight": {"const": true}
             }
           },
