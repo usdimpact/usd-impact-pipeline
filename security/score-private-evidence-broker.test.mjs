@@ -289,6 +289,7 @@ test('edge wrapper has no list/delete/signed-url or legacy service-role escape h
   assert.match(source, /\.getBucket\s*\(/);
   assert.match(source, /SCORE_BROKER_MODE/);
   assert.match(source, /synthetic_bundle_rejected/);
+  assert.match(source, /stored_bundle_rejected/);
   assert.doesNotMatch(source, /\.remove\s*\(/);
   assert.doesNotMatch(source, /\.list\s*\(/);
   assert.doesNotMatch(source, /\.listBuckets\s*\(/);
