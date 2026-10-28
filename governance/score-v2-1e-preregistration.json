@@ -36,10 +36,10 @@
       "exact_series_id": "WPU0561",
       "transform": "natural_log_level",
       "release_rule": "Monthly BLS PPI scheduled release at 08:30 ET.",
-      "point_in_time_rule": "Use the WPU0561 vintage published in the most recent BLS PPI release available by cutoff.",
-      "max_observation_age_calendar_days": 50,
+      "point_in_time_rule": "Use the WPU0561 vintage published in the most recent BLS PPI release available by cutoff. Carry that released vintage across weekly Score dates only until a newer eligible BLS PPI release appears; measure staleness from the release date, not the reference-month date.",
       "historical_vintage_rule": "Archived BLS PPI release evidence is mandatory because PPI values can be revised for four months. Current revised history is not an allowed substitute.",
-      "vintage_fallback": "fail_closed_no_candidate_week"
+      "vintage_fallback": "fail_closed_no_candidate_week",
+      "max_release_age_calendar_days": 45
     },
     {
       "slot": "FIN_CONDITIONS",
