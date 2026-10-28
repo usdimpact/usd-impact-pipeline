@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "decision_status": "hold",
+  "methodology_version": "2.1F-design-candidate",
+  "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/230",
+  "blocker_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/228",
+  "execution_scope": "bls_detailed_report_metadata_preflight_only",
+  "data_window": {
+    "start": null,
+    "end": null
+  },
+  "request_budget": 4,
+  "contact_user_agent": null,
+  "allowed_host": "www.bls.gov",
+  "allowed_requests": [
+    "GET /robots.txt",
+    "GET /ppi/detailed-report/",
+    "HEAD one 2013 report resource selected from the official index",
+    "HEAD one 2026 report resource selected from the official index"
+  ],
+  "storage_policy": {
+    "source_values": "forbidden",
+    "report_bodies": "ephemeral_index_only_no_report_body",
+    "cookies": "do_not_persist",
+    "credentials": "forbidden",
+    "durable_private_storage": false
+  },
+  "authorizations": {
+    "network_metadata_fetch": false,
+    "bls_metadata_preflight": false,
+    "report_body_download": false,
+    "source_value_retrieval": false,
+    "real_data_research": false,
+    "candidate_score_computation": false,
+    "research_ledger_mutation": false,
+    "public_artifact_replacement": false,
+    "production": false
+  },
+  "approved_by": null,
+  "approved_at": null,
+  "notes": "Template only. A new explicit owner decision under Issue #230 is required before an active receipt may be created."
+}
