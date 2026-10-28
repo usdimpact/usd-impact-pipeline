@@ -1,0 +1,170 @@
+{
+  "version": 1,
+  "state": "public_evidence_series_receipts_only",
+  "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/195",
+  "controlling_hold": "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
+  "legal_conclusion": false,
+  "no_source_approved": true,
+  "real_data_fetch_authorized": false,
+  "real_data_research_authorized": false,
+  "production_authorized": false,
+  "common_rights_evidence": {
+    "federal_reserve_board": {
+      "official_url": "https://www.federalreserve.gov/disclaimer.htm",
+      "rule": "Unless otherwise indicated, information on the Board website is in the public domain and may be copied and distributed without permission; cite the Board. Non-Board material requires permission from the non-Board source.",
+      "engineering_use": "public-domain default is favorable but series-specific/non-Board exceptions must still be checked."
+    },
+    "eia": {
+      "official_url": "https://www.eia.gov/about/copyrights_reuse.php",
+      "rule": "EIA states its website data/files/databases and other information products may be used and distributed; acknowledgment including publication date is requested. Protected third-party materials remain excluded.",
+      "engineering_use": "strong reuse evidence for EIA-published WTI data, with attribution and protected-material checks."
+    },
+    "ofr": {
+      "official_url": "https://www.financialresearch.gov/legal-notices/",
+      "rule": "Federal-employee works cannot be copyrighted; credit is requested. Copyrighted third-party material must be cleared separately.",
+      "engineering_use": "favorable for OFR-created output, but the FSI's proprietary underlying inputs create an unresolved privately-owned-rights risk."
+    }
+  },
+  "series_receipts": [
+    {
+      "slot": "USD",
+      "canonical_id": "DTWEXBGS",
+      "publisher": "Board of Governors of the Federal Reserve System",
+      "product": "H.10 Foreign Exchange Rates / Nominal Broad U.S. Dollar Index",
+      "official_source_page": "https://www.federalreserve.gov/releases/h10/",
+      "official_delivery_page": "https://www.federalreserve.gov/datadownload/Choose.aspx?rel=H10",
+      "delivery_evidence": "Board DDP exposes a preformatted H.10 Daily Indexes CSV and full XML; Board announced DDP retirement migration toward FRED/XML.",
+      "release_schedule": "Monday 16:15 America/New_York for daily exchange rates and dollar indexes from the previous business week; next business day if Monday is a federal holiday.",
+      "point_in_time_rule": "For Friday t, use only an H.10 observation contained in a Board release published on or before Friday t cutoff. Current business-week observations are normally unavailable until the following Monday.",
+      "attribution": "Cite Board of Governors of the Federal Reserve System.",
+      "rights_basis": "Board public-domain default",
+      "third_party_input_risk": "No series-specific exception identified in the reviewed H.10 release page, but the Board disclaimer preserves non-Board/private-rights caveats.",
+      "revision_vintage_risk": "Index methodology/indexation has changed historically; bind methodology vintage and release provenance.",
+      "status": "strong_candidate_pending_series_exception_check"
+    },
+    {
+      "slot": "ENERGY",
+      "canonical_id": "DCOILWTICO",
+      "publisher": "U.S. Energy Information Administration",
+      "product": "Cushing, OK WTI Spot Price FOB",
+      "official_source_page": "https://www.eia.gov/dnav/pet/hist/rwtcD.htm",
+      "official_delivery_page": "https://www.eia.gov/dnav/pet/hist/rwtcm.htm",
+      "delivery_evidence": "EIA publishes daily/weekly/monthly/annual history and a downloadable data file; EIA also describes its Open Data offering as free and open.",
+      "release_schedule": "The historical price pages carry explicit Release Date / Next Release Date metadata; the observed schedule is not assumed to equal the observation date.",
+      "point_in_time_rule": "Use only WTI observations included in an EIA release whose release date is on or before the Friday cutoff. Do not infer daily same-day availability.",
+      "attribution": "Use an EIA acknowledgment including publication date.",
+      "rights_basis": "EIA explicit use/distribution permission",
+      "third_party_input_risk": "EIA reuse notice excludes separately protected third-party materials; no such exception is treated as cleared without source-specific confirmation.",
+      "revision_vintage_risk": "Release-date metadata must be captured; historical corrections are possible.",
+      "status": "strong_candidate_pending_release_history_rule"
+    },
+    {
+      "slot": "FIN_CONDITIONS",
+      "canonical_id": "FCI_G_BASELINE_MONTHLY",
+      "publisher": "Board of Governors of the Federal Reserve System",
+      "product": "Financial Conditions Impulse on Growth (FCI-G), baseline monthly",
+      "official_source_page": "https://www.federalreserve.gov/econres/notes/feds-notes/a-new-index-to-measure-us-financial-conditions-20230630.html",
+      "official_delivery_page": "same Board FEDS Note; baseline Monthly CSV link",
+      "delivery_evidence": "Board publishes monthly and quarterly CSVs plus code and definitions; starting with the January 2024 release, updated estimates are provided.",
+      "release_schedule": "Monthly output, but no fixed day/time schedule is documented in the reviewed page. Publication/version timestamp must be captured explicitly.",
+      "point_in_time_rule": "Use a monthly FCI-G value only after the Board page/CSV version containing it was actually published. If historical publication timing cannot be reconstructed, fail closed.",
+      "attribution": "Cite Board and the FCI-G authors/source page.",
+      "rights_basis": "Board public-domain default for Board-created website output",
+      "third_party_input_risk": "Material. The published methodology uses private/non-Board inputs including financial and housing-market data; Board disclaimer says it does not represent that use will not infringe privately owned rights.",
+      "revision_vintage_risk": "Material. Board updates estimates; historical values may change and vintage tracking is required.",
+      "status": "conditional_blocked_pending_output_and_private_input_scope_review"
+    },
+    {
+      "slot": "FIN_STRESS",
+      "canonical_id": "OFR_FSI",
+      "publisher": "Office of Financial Research",
+      "product": "OFR Financial Stress Index",
+      "official_source_page": "https://www.financialresearch.gov/financial-stress-index/",
+      "official_delivery_page": "same OFR FSI page; Download all data control",
+      "delivery_evidence": "OFR publishes a downloadable daily FSI and a revision-history file.",
+      "release_schedule": "Daily index; OFR states published data are current from two business days prior.",
+      "point_in_time_rule": "For Friday t, use only FSI observations whose two-business-day publication lag has elapsed by cutoff, and apply any documented vintage/revision information. If release-time precision is unavailable, use the conservative lag rather than observation date.",
+      "attribution": "Credit Office of Financial Research and use the suggested citation.",
+      "rights_basis": "OFR federal-employee copyright rule for OFR-created work",
+      "third_party_input_risk": "High. OFR's indicator table says all underlying series are pulled from Datastream by Refinitiv and includes ICE, S&P, Cboe, MSCI, JPMorgan and other proprietary market inputs. OFR also states it does not represent that use would not infringe privately owned rights.",
+      "revision_vintage_risk": "High. OFR publishes revision history and has issued data-feed corrections; point-in-time vintage handling is mandatory.",
+      "status": "conditional_blocked_pending_published_output_private_input_rights_review"
+    },
+    {
+      "slot": "LIQUIDITY",
+      "canonical_id": "WALCL",
+      "publisher": "Board of Governors of the Federal Reserve System",
+      "product": "H.4.1 Factors Affecting Reserve Balances / Total Assets Wednesday Level",
+      "official_source_page": "https://www.federalreserve.gov/releases/h41/",
+      "official_delivery_page": "https://www.federalreserve.gov/datadownload/Choose.aspx?rel=h41",
+      "delivery_evidence": "Board DDP exposes H.4.1 table CSVs and full XML; release pages also expose XML/FRED migration paths.",
+      "release_schedule": "Thursday, generally 16:30 America/New_York; next business day when publication date is a federal holiday.",
+      "point_in_time_rule": "For Friday t, use the Wednesday level only if the corresponding Thursday H.4.1 release occurred by cutoff.",
+      "attribution": "Cite Board of Governors of the Federal Reserve System.",
+      "rights_basis": "Board public-domain default",
+      "third_party_input_risk": "No series-specific non-Board exception identified in reviewed H.4.1 release materials.",
+      "revision_vintage_risk": "Release revisions/corrections must be versioned if they occur.",
+      "status": "strong_candidate_pending_series_exception_check"
+    },
+    {
+      "slot": "REAL_YIELD",
+      "canonical_id": "DFII10",
+      "publisher": "Board of Governors of the Federal Reserve System",
+      "product": "H.15 Selected Interest Rates / 10-Year Inflation-Indexed Treasury Constant Maturity",
+      "official_source_page": "https://www.federalreserve.gov/releases/h15/",
+      "official_delivery_page": "https://www.federalreserve.gov/datadownload/Choose.aspx?rel=H15",
+      "delivery_evidence": "Board DDP exposes Treasury Constant Maturities CSV and full H.15 XML.",
+      "release_schedule": "Monday-Friday 16:15 America/New_York; not posted on holidays/Board closures.",
+      "point_in_time_rule": "Use only an observation contained in an H.15 release posted by the Friday cutoff; do not assume same-day observation availability.",
+      "attribution": "Cite Board of Governors of the Federal Reserve System.",
+      "rights_basis": "Board public-domain default",
+      "third_party_input_risk": "No series-specific non-Board exception identified in reviewed H.15 release materials.",
+      "revision_vintage_risk": "Historical revisions must be versioned if present.",
+      "status": "strong_candidate_pending_series_exception_check"
+    },
+    {
+      "slot": "UST_2Y",
+      "canonical_id": "DGS2",
+      "publisher": "Board of Governors of the Federal Reserve System",
+      "product": "H.15 Selected Interest Rates / 2-Year Treasury Constant Maturity",
+      "official_source_page": "https://www.federalreserve.gov/releases/h15/",
+      "official_delivery_page": "https://www.federalreserve.gov/datadownload/Choose.aspx?rel=H15",
+      "delivery_evidence": "Board DDP exposes Treasury Constant Maturities CSV and full H.15 XML.",
+      "release_schedule": "Monday-Friday 16:15 America/New_York; not posted on holidays/Board closures.",
+      "point_in_time_rule": "Use only an observation contained in an H.15 release posted by the Friday cutoff.",
+      "attribution": "Cite Board of Governors of the Federal Reserve System.",
+      "rights_basis": "Board public-domain default",
+      "third_party_input_risk": "No series-specific non-Board exception identified in reviewed H.15 release materials.",
+      "revision_vintage_risk": "Historical revisions must be versioned if present.",
+      "status": "strong_candidate_pending_series_exception_check"
+    },
+    {
+      "slot": "UST_10Y",
+      "canonical_id": "DGS10",
+      "publisher": "Board of Governors of the Federal Reserve System",
+      "product": "H.15 Selected Interest Rates / 10-Year Treasury Constant Maturity",
+      "official_source_page": "https://www.federalreserve.gov/releases/h15/",
+      "official_delivery_page": "https://www.federalreserve.gov/datadownload/Choose.aspx?rel=H15",
+      "delivery_evidence": "Board DDP exposes Treasury Constant Maturities CSV and full H.15 XML.",
+      "release_schedule": "Monday-Friday 16:15 America/New_York; not posted on holidays/Board closures.",
+      "point_in_time_rule": "Use only an observation contained in an H.15 release posted by the Friday cutoff.",
+      "attribution": "Cite Board of Governors of the Federal Reserve System.",
+      "rights_basis": "Board public-domain default",
+      "third_party_input_risk": "No series-specific non-Board exception identified in reviewed H.15 release materials.",
+      "revision_vintage_risk": "Historical revisions must be versioned if present.",
+      "status": "strong_candidate_pending_series_exception_check"
+    }
+  ],
+  "summary": {
+    "strong_candidate_count": 6,
+    "conditional_blocked_count": 2,
+    "blocked_slots": [
+      "FIN_CONDITIONS",
+      "FIN_STRESS"
+    ],
+    "exact_complete_eight_slot_candidate_rights_ready": false,
+    "key_finding": "v2.1C materially reduces rights friction but is not yet a complete rights-cleared candidate because FCI-G and OFR FSI are composite outputs with unresolved privately owned input implications.",
+    "next_allowed_step": "design_public_domain_only_replacements_for_blocked_composite_slots_or_obtain_explicit_scope_confirmation",
+    "source_approval_authorized": false
+  }
+}
