@@ -51,7 +51,7 @@ def validate(repo_root: Path) -> dict[str, Any]:
         raise RuntimeError("representative-index design must remain HOLD")
     if design.get("owner_decision_issue") != ISSUE:
         raise RuntimeError("representative-index owner-decision issue changed")
-    if design.get("fixed_resources") != EXPECTED_RESOURCES:
+    if [item.get("path") for item in design.get("fixed_resources", [])] != EXPECTED_RESOURCES:
         raise RuntimeError("representative-index fixed resources changed")
     budget = design.get("future_live_budget", {})
     if budget.get("request_budget") != 2:
