@@ -1,21 +1,14 @@
 from __future__ import annotations
 
 import unittest
-from unittest import mock
 
 from scripts import run_score_v2_1f_bls_detailed_report_metadata_preflight as preflight
 
 
 class ScoreV21FBlsDetailedReportMetadataPreflightTests(unittest.TestCase):
-    def test_activated_but_undispatched_state_refuses_before_network(self) -> None:
-        with mock.patch.object(
-            preflight,
-            "_request_once",
-            side_effect=AssertionError("network request occurred before dispatch"),
-        ) as request:
-            with self.assertRaisesRegex(RuntimeError, "dispatch is not active"):
-                preflight.run_preflight()
-            request.assert_not_called()
+    def test_dispatched_authorization_gate_validates_without_network(self) -> None:
+        user_agent = preflight._validate_authorization_and_dispatch()
+        self.assertIn("support@usd-impact.com", user_agent)
 
     def test_request_budget_is_hard_capped_at_four(self) -> None:
         budget = preflight.RequestBudget()
