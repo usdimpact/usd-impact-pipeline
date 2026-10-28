@@ -1,0 +1,120 @@
+{
+  "version": 1,
+  "state": "design_only_hold",
+  "methodology_version": "2.1F-design-candidate",
+  "owner_decision_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/230",
+  "blocker_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/228",
+  "controlling_rights_hold": "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
+  "prior_consumed_stage1_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/224",
+  "research_window": {
+    "start": "2013-01-01",
+    "end": "2026-10-23"
+  },
+  "official_evidence": {
+    "detailed_report_archive": "https://www.bls.gov/ppi/detailed-report/",
+    "automated_retrieval_policy": "https://www.bls.gov/bls/blsterms.htm",
+    "robots": "https://www.bls.gov/robots.txt",
+    "api_signature": "https://www.bls.gov/developers/api_signature_v2.htm",
+    "bulk_wp_documentation": "https://download.bls.gov/pub/time.series/wp/wp.txt"
+  },
+  "research_findings": {
+    "preferred_official_route": "/ppi/detailed-report/",
+    "archive_description": "BLS describes the Detailed Report archive as historical PPI records from 2005 to current and says monthly reports include tables of all PPIs released that month.",
+    "revision_warning": "PPI indexes are subject to monthly revisions up to four months after originally scheduled publication.",
+    "known_correction_metadata": "February 2016 is labeled CORRECTED on the official Detailed Report archive index.",
+    "known_gap_metadata": "October 2025 is labeled Not Available on the official Detailed Report archive index.",
+    "api_vintage_status": "The documented BLS Public Data API has no historical-vintage/as-of selector and is not accepted as a point-in-time substitute.",
+    "bulk_vintage_status": "The WP bulk dataset is documented as the Current Commodity Series and is revised; it is not accepted as a point-in-time substitute.",
+    "robot_policy": "BLS prohibits excessive automated retrieval and reserves the right to block robots without information usable to contact the owner.",
+    "robots_path_status": "The general User-agent:* robots rules do not currently disallow /ppi/detailed-report/."
+  },
+  "proposed_preflight": {
+    "scope": "bls_detailed_report_metadata_only",
+    "request_budget": 4,
+    "concurrency": 1,
+    "automatic_retries": 0,
+    "allowed_hosts": [
+      "www.bls.gov"
+    ],
+    "requests": [
+      {
+        "order": 1,
+        "method": "GET",
+        "path": "/robots.txt",
+        "body_policy": "ephemeral_parse_only"
+      },
+      {
+        "order": 2,
+        "method": "GET",
+        "path": "/ppi/detailed-report/",
+        "body_policy": "ephemeral_link_and_label_parse_only"
+      },
+      {
+        "order": 3,
+        "method": "HEAD",
+        "path_source": "one_2013_report_resource_from_official_index",
+        "body_policy": "forbidden"
+      },
+      {
+        "order": 4,
+        "method": "HEAD",
+        "path_source": "one_2026_report_resource_from_official_index",
+        "body_policy": "forbidden"
+      }
+    ],
+    "contactable_user_agent_required": true,
+    "redirect_policy": "reject_all_redirects_fail_closed",
+    "access_control_stop_statuses": [
+      401,
+      403,
+      429
+    ],
+    "challenge_detection_required": true,
+    "head_405_policy": "stop_no_get_fallback"
+  },
+  "forbidden": {
+    "pdf_or_xlsx_body_download": true,
+    "wpu0561_value_retrieval": true,
+    "wpu0561_value_parsing": true,
+    "bls_data_api_call": true,
+    "alternate_source": true,
+    "candidate_score_computation": true,
+    "component_zscore_computation": true,
+    "component_contribution_computation": true,
+    "full_research": true,
+    "research_ledger_mutation": true,
+    "public_artifact_replacement": true,
+    "production_change": true
+  },
+  "persistence_policy": {
+    "response_bodies": "do_not_persist",
+    "cookies": "do_not_persist",
+    "credentials": "forbidden",
+    "source_values": "do_not_retrieve_or_persist",
+    "allowed": [
+      "request method",
+      "official BLS host and path",
+      "HTTP status",
+      "content type",
+      "content length if supplied",
+      "redirect count",
+      "retry-after if supplied",
+      "archive year-presence flags",
+      "Not Available labels",
+      "CORRECTED labels",
+      "sanitized aggregate pass/fail status"
+    ]
+  },
+  "current_authorizations": {
+    "network_metadata_fetch": false,
+    "bls_metadata_preflight": false,
+    "report_body_download": false,
+    "source_value_retrieval": false,
+    "real_data_research": false,
+    "candidate_score_computation": false,
+    "research_ledger_mutation": false,
+    "public_artifact_replacement": false,
+    "production": false
+  },
+  "next_gate": "new_explicit_owner_authorization_under_issue_230_required_before_any_live_request"
+}
