@@ -47,6 +47,10 @@ class ScoreV21FWpu0561RepresentativeIndexDesignTests(unittest.TestCase):
         self.assertTrue(
             design["field_semantics_policy"]["ambiguous_revision_context_fails_closed"]
         )
+        self.assertEqual(
+            design["field_semantics_policy"]["release_context_policy"]["missing_or_conflicting_context"],
+            "fail_closed_no_value",
+        )
         self.assertEqual(design["future_live_budget"]["request_budget"], 2)
         self.assertEqual(
             design["future_live_budget"]["max_economic_observations_total"], 2
