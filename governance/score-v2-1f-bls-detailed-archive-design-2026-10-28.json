@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "state": "offline_design_only",
+  "methodology_version": "2.1F-design-candidate",
+  "control_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
+  "preflight_blocker": "https://github.com/usdimpact/usd-impact-pipeline/issues/228",
+  "consumed_authorization_record": "governance/score-v2-1f-live-vintage-preflight-consumption-2026-10-28.json",
+  "consumed_authorization_merge": "56aa8b97922266be88c2f74ebf2659a48a8abede",
+  "original_failed_index": "https://www.bls.gov/bls/news-release/ppi.htm",
+  "original_blocker_http_status": 403,
+  "proposed_official_index": "https://www.bls.gov/ppi/detailed-report/",
+  "primary_documentation": [
+    "https://www.bls.gov/ppi/detailed-report/",
+    "https://www.bls.gov/ppi/faqs/questions-and-answers.htm",
+    "https://www.bls.gov/bls/news-release/ppi.htm"
+  ],
+  "documented_archive_start_year": 2005,
+  "target_series": "WPU0561",
+  "output_semantics": "Candidate documents and metadata only, never source/index values",
+  "source_coverage_status": "unverified",
+  "index_access_from_runner": "unverified",
+  "bls_wpu0561_vintage_status": "unverified",
+  "publication_time_provenance": "unverified",
+  "ppi_four_month_revisions_require_vintage_proof": true,
+  "current_revised_history_fallback": false,
+  "no_2025_october_detailed_report_seen_in_documented_index": true,
+  "no_h15_or_proxy_substitution": true,
+  "new_owner_approval_required_for_any_live_request": true,
+  "authorizations": {
+    "network_or_live_fetch": false,
+    "new_blS_archive_preflight": false,
+    "candidate_score_computation": false,
+    "full_private_research": false,
+    "data_redistribution": false,
+    "public_artifact_replacement": false,
+    "research_ledger_mutation": false,
+    "paid_data_or_contract": false,
+    "production": false
+  }
+}
