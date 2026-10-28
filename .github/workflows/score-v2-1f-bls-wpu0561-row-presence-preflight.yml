@@ -1,95 +1,17 @@
-name: Score v2.1F BLS WPU0561 row-presence preflight
+name: Score v2.1F BLS WPU0561 row-presence preflight (consumed)
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'governance/score-v2-1f-bls-wpu0561-row-presence-preflight-dispatch.json'
+  workflow_dispatch:
 
 permissions:
   contents: read
-  issues: write
-
-concurrency:
-  group: score-v2-1f-bls-wpu0561-row-presence-preflight
-  cancel-in-progress: false
 
 jobs:
-  row-presence-preflight:
+  consumed:
+    if: ${{ false }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-
-      - name: Run owner-authorized row-presence preflight
-        env:
-          PYTHONUNBUFFERED: "1"
+      - name: Consumed authorization guard
         run: |
-          python -m scripts.run_score_v2_1f_bls_wpu0561_row_presence_preflight             > "$RUNNER_TEMP/row-presence-preflight.json"
-
-      - name: Record sanitized PASS result
-        if: success()
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          python - "$RUNNER_TEMP/row-presence-preflight.json" > "$RUNNER_TEMP/comment.md" <<'PY'
-          import json
-          import os
-          import sys
-          from pathlib import Path
-
-          report = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
-          run_url = (
-              f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/actions/runs/"
-              f"{os.environ['GITHUB_RUN_ID']}"
-          )
-
-          print("### v2.1F BLS WPU0561 row-presence preflight — PASS")
-          print()
-          print("<!-- V2_1F_WPU0561_ROW_PRESENCE_COMPLETED -->")
-          print(f"- Run: {run_url}")
-          print(f"- Request count: {report['request_count']}/2")
-          print(f"- Structurally identifiable: {report['structurally_identifiable']}")
-          print("- 2013 HTML structural matches:")
-          for match in report["html_structural_matches"]:
-              ids = ", ".join(match["matched_identifiers"])
-              print(f"  - table {match['table']}, row {match['row']}: {ids}")
-          print("- 2026 XLSX structural matches:")
-          for match in report["xlsx_structural_matches"]:
-              ids = ", ".join(match["matched_identifiers"])
-              print(f"  - sheet {match['sheet']}, row {match['row']}: {ids}")
-          print("- Response bodies persisted: no")
-          print("- Numeric source values extracted/logged/persisted: no")
-          print("- Full historical reconstruction: no")
-          print("- Candidate Score computed: no")
-          print("- Production modified: no")
-          print()
-          print(
-              "This structural PASS does not authorize numeric value extraction, "
-              "full historical reconstruction, candidate scoring, public changes, "
-              "research-ledger mutation, or Production."
-          )
-          PY
-          gh issue comment 236 --repo "$GITHUB_REPOSITORY" --body-file "$RUNNER_TEMP/comment.md"
-
-      - name: Record fail-closed result
-        if: failure()
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          cat > "$RUNNER_TEMP/failure.md" <<EOF
-          ### v2.1F BLS WPU0561 row-presence preflight — FAIL CLOSED
-
-          <!-- V2_1F_WPU0561_ROW_PRESENCE_FAILED -->
-
-          - Run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
-          - The run stopped under the fixed two-request HTML+XLSX structural-only policy.
-          - No response body or numeric source value is attached to this issue comment.
-          - No Score/z-score/contribution was computed.
-          - No public artifact, research ledger, or Production state was modified.
-
-          Do not retry or broaden the request boundary under this authorization.
-          EOF
-          gh issue comment 236 --repo "$GITHUB_REPOSITORY" --body-file "$RUNNER_TEMP/failure.md"
+          echo "The Issue #236 WPU0561 row-presence authorization has been consumed."
+          echo "A new explicit owner authorization is required for any future live BLS request."
