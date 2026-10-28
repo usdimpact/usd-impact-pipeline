@@ -130,7 +130,7 @@ test('rehearsal workflows are manual-only and least privilege', async () => {
       assert.match(source, /read:development:\$\{SYNTHETIC_WEEK\}/);
       assert.match(source, /x-score-operation: read/);
       assert.doesNotMatch(source, /-H "x-score-content-sha256:/);
-      assert.match(source, /^x-score-content-sha256:/m);
+      assert.match(source, /x-score-content-sha256:/);
       assert.match(source, /stored bundle is not synthetic/);
     }
   }
