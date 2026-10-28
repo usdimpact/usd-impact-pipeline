@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
+  "decision_status": "hold",
+  "decided_at_utc": null,
+  "decision_authority": null,
+  "authority_reference": null,
+  "public_classes": {
+    "A": {
+      "treatment": "pending",
+      "notes": ""
+    },
+    "B": {
+      "treatment": "pending",
+      "notes": ""
+    },
+    "C": {
+      "treatment": "pending",
+      "notes": ""
+    },
+    "D": {
+      "treatment": "pending",
+      "notes": ""
+    },
+    "E": {
+      "treatment": "pending",
+      "notes": ""
+    },
+    "F": {
+      "treatment": "pending",
+      "notes": ""
+    }
+  },
+  "provider_dispositions": [
+    {
+      "provider_family": "Yahoo Finance / yfinance delivery path",
+      "status": "pending",
+      "scope": "DX-Y.NYB; CL=F; ^GSPC; ^VIX; BTC-USD; GC=F",
+      "reference": null
+    },
+    {
+      "provider_family": "S&P Dow Jones Indices",
+      "status": "pending",
+      "scope": "S&P 500-derived use",
+      "reference": null
+    },
+    {
+      "provider_family": "Cboe Global Indices",
+      "status": "pending",
+      "scope": "VIX-derived use",
+      "reference": null
+    },
+    {
+      "provider_family": "CME Group",
+      "status": "pending",
+      "scope": "WTI and Gold futures-derived use",
+      "reference": null
+    },
+    {
+      "provider_family": "FRED",
+      "status": "pending",
+      "scope": "DGS2 and DGS10",
+      "reference": null
+    }
+  ],
+  "approved_public_schema": null,
+  "replication_claim_wording_approved": false,
+  "archive_treatment_approved": false,
+  "private_evidence_boundary_approved": false,
+  "production_authorized": false
+}
