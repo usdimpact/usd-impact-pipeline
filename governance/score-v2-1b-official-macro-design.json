@@ -1,0 +1,166 @@
+{
+  "version": 1,
+  "methodology_version": "2.1B-design-candidate",
+  "state": "design_only",
+  "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/189",
+  "controlling_rights_hold": "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
+  "source_replacement_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/179",
+  "budget_constraint": "zero_paid_market_data_budget",
+  "candidate_class": "official_macro_proxy_architecture",
+  "authorizations": {
+    "real_data_access": false,
+    "real_data_backtest": false,
+    "methodology_activation": false,
+    "public_artifact_replacement": false,
+    "research_ledger_mutation": false,
+    "production": false
+  },
+  "design_goal": "Replace proprietary market-price dependencies with official/public macro-financial transmission proxies while preserving an eight-slot standardized weekly composite architecture.",
+  "proposed_slots": [
+    {
+      "slot": "USD",
+      "series": "DTWEXBGS",
+      "label": "Nominal Broad U.S. Dollar Index",
+      "source": "Board of Governors / FRED",
+      "frequency": "daily",
+      "weight": 0.125,
+      "direction": "positive",
+      "role": "broad USD strength",
+      "rights_state": "confirm_reuse_scope"
+    },
+    {
+      "slot": "ENERGY",
+      "series": "DCOILWTICO",
+      "label": "WTI Cushing spot",
+      "source": "EIA / FRED",
+      "frequency": "daily",
+      "weight": -0.125,
+      "direction": "negative",
+      "role": "energy/commodity transmission",
+      "rights_state": "confirm_reuse_scope"
+    },
+    {
+      "slot": "FIN_CONDITIONS",
+      "series": "NFCI",
+      "label": "Chicago Fed National Financial Conditions Index",
+      "source": "Federal Reserve Bank of Chicago",
+      "frequency": "weekly",
+      "weight": 0.125,
+      "direction": "positive",
+      "role": "financial conditions/tightness",
+      "rights_state": "confirm_reuse_scope"
+    },
+    {
+      "slot": "FIN_STRESS",
+      "series": "STLFSI4",
+      "label": "St. Louis Fed Financial Stress Index",
+      "source": "Federal Reserve Bank of St. Louis",
+      "frequency": "weekly_friday",
+      "weight": 0.125,
+      "direction": "positive",
+      "role": "market stress/risk aversion",
+      "rights_state": "confirm_reuse_scope"
+    },
+    {
+      "slot": "LIQUIDITY",
+      "series": "WALCL",
+      "label": "Federal Reserve Total Assets",
+      "source": "Board of Governors / FRED",
+      "frequency": "weekly_wednesday",
+      "weight": -0.125,
+      "direction": "negative",
+      "role": "system liquidity proxy",
+      "rights_state": "confirm_reuse_scope"
+    },
+    {
+      "slot": "REAL_YIELD",
+      "series": "DFII10",
+      "label": "10-Year TIPS Real Yield",
+      "source": "Board of Governors / FRED",
+      "frequency": "daily",
+      "weight": 0.125,
+      "direction": "positive",
+      "role": "real-rate/monetary-pressure channel",
+      "rights_state": "confirm_reuse_scope"
+    },
+    {
+      "slot": "UST_2Y",
+      "series": "DGS2",
+      "label": "2-Year Treasury Constant Maturity",
+      "source": "Board of Governors / FRED",
+      "frequency": "daily",
+      "weight": 0.125,
+      "direction": "positive",
+      "role": "front-end nominal rates",
+      "rights_state": "confirm_reuse_scope"
+    },
+    {
+      "slot": "UST_10Y",
+      "series": "DGS10",
+      "label": "10-Year Treasury Constant Maturity",
+      "source": "Board of Governors / FRED",
+      "frequency": "daily",
+      "weight": 0.125,
+      "direction": "positive",
+      "role": "long-end nominal rates",
+      "rights_state": "confirm_reuse_scope"
+    }
+  ],
+  "structural_rules": {
+    "weekly_anchor": "Friday",
+    "mixed_frequency_policy": "latest observation available on or before completed Friday; no future-dated carry",
+    "forward_fill_limit_days": 4,
+    "zscore_clip": 3.5,
+    "weights_absolute_sum": 1,
+    "missing_slot_policy": "fail_closed_no_score",
+    "no_dynamic_reweighting": true,
+    "no_unapproved_proxy_autofill": true,
+    "candidate_start_target": "2015-01-01"
+  },
+  "methodology_differences_from_v2": [
+    "DXY replaced by broad trade-weighted USD index",
+    "WTI futures convenience series replaced by WTI spot",
+    "SPX replaced by broad financial-conditions proxy",
+    "VIX replaced by financial-stress proxy",
+    "BTC replaced by central-bank balance-sheet liquidity proxy",
+    "COMEX gold futures replaced by 10Y real yield",
+    "slot signs reflect the new proxy definitions rather than preserving old ticker signs where concepts changed"
+  ],
+  "known_tradeoffs": [
+    "candidate is more macro/financial-conditions oriented and less directly market-price oriented",
+    "NFCI and STLFSI4 may be correlated and must be tested for redundancy",
+    "DGS10 and DFII10 may introduce rate-factor concentration",
+    "WALCL level may be structurally trending and may require transformation choice to be preregistered",
+    "mixed daily/weekly source timing requires strict point-in-time alignment"
+  ],
+  "preregistration_requirements": [
+    "exact transformation per slot",
+    "level_vs_change decision for WALCL",
+    "level_vs_change decision for all non-price indices",
+    "point_in_time availability lag per source",
+    "weekly alignment rule",
+    "history cutoff",
+    "missing-data policy",
+    "revision policy",
+    "correlation/redundancy diagnostics",
+    "acceptance thresholds",
+    "historical regime-window evaluation",
+    "separate real_data_research_authorization"
+  ],
+  "mandatory_research_diagnostics": [
+    "pairwise_slot_correlation_matrix",
+    "variance_inflation_or_equivalent_redundancy_check",
+    "effective_factor_concentration",
+    "weekly_coverage",
+    "point_in_time_lag_audit",
+    "score_distribution",
+    "regime_balance",
+    "regime_transition_frequency",
+    "historical_regime_window_behavior",
+    "sensitivity_to_each_slot",
+    "leave_one_slot_out_sensitivity",
+    "comparison_to_v2_aggregate_only_where_rights_allow"
+  ],
+  "decision_rule": "This candidate may advance to preregistered research only if reuse scope for every source is documented and the owner separately authorizes real-data research.",
+  "production_authorized": false
+}
