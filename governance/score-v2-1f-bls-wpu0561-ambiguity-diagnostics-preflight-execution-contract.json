@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "state": "ambiguity_diagnostics_design_only_hold",
   "methodology_version": "2.1F-design-candidate",
   "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/258",
@@ -31,16 +31,25 @@
   },
   "stop_conditions": [
     "no new explicit owner authorization under Issue #258",
-    "any live BLS request would occur",
+    "activation or dispatch audit write cannot be recorded in the protected GitHub lifecycle",
+    "any live BLS request would occur outside the separately merged dispatch state",
     "any economic index-level or percent-change value would be read",
     "any unrelated numeric value would be read",
     "response body would be persisted",
     "request leaves www.bls.gov",
     "request path differs from the two fixed resources",
+    "HTTP 401, 403, 429, access challenge, redirect, or other non-200 response",
     "full historical reconstruction would begin",
     "candidate Score, z-score or contribution would be computed",
     "public artifact, research ledger or Production would change"
   ],
-  "next_allowed_action": "design_only_static_and_synthetic_validation_then_owner_decision",
-  "production_authorized": false
+  "next_allowed_action": "new_explicit_owner_authorization_then_protected_github_activation_and_separate_dispatch_only",
+  "production_authorized": false,
+  "execution_environment_policy": {
+    "preferred_environment": "github_actions_protected_main_lifecycle",
+    "activation_and_dispatch_writes_required_before_network": true,
+    "github_write_unavailable_behavior": "fail_closed_before_network_no_direct_local_fallback",
+    "dns_failure_on_one_resource_does_not_cancel_other_resource_single_attempt": true,
+    "access_control_challenge_redirect_or_other_non_200_global_stop": true
+  }
 }
