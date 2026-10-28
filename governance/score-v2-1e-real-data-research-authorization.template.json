@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "decision_status": "hold",
+  "methodology_version": "2.1E-design-candidate",
+  "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/203",
+  "design_merge_commit": "65e71695a3d99ed6a5584548652a61dc0e66006f",
+  "preregistration_merge_commit": "b93ab1b4514e828561e74963b1a830421a104e29",
+  "execution_scope": "one_off_private_research_only",
+  "exact_series": [
+    "H10/H10/JRXWTFB_N.B",
+    "WPU0561",
+    "H8/H8/B1001NCBA",
+    "H41/H41/RESPPALDP_N.WW",
+    "H41/H41/RESPPA_N.WW",
+    "H15/H15/RIFLGFCY10_XII_N.B",
+    "H15/H15/RIFLGFCY02_N.B",
+    "H15/H15/RIFLGFCY10_N.B"
+  ],
+  "data_window": {
+    "start": null,
+    "end": null
+  },
+  "storage_policy": {
+    "source_values": "ephemeral_only",
+    "raw_responses": "ephemeral_only",
+    "temporary_workspace": "isolated_non_public",
+    "durable_private_storage": false
+  },
+  "output_policy": {
+    "public_repo_source_values": false,
+    "public_repo_component_values": false,
+    "allowed_persistent_outputs": [
+      "aggregate_diagnostics",
+      "pass_fail_gate_results",
+      "non_value_bearing_hashes",
+      "release_vintage_identifiers",
+      "coverage_statistics",
+      "correlation_and_redundancy_statistics"
+    ]
+  },
+  "authorizations": {
+    "real_data_fetch": false,
+    "real_data_research": false,
+    "paid_data": false,
+    "source_contract_acceptance": false,
+    "research_ledger_mutation": false,
+    "public_artifact_replacement": false,
+    "production": false
+  },
+  "approved_by": null,
+  "approved_at": null,
+  "notes": "Template only. A separately reviewed owner decision is required before creating an active authorization receipt."
+}
