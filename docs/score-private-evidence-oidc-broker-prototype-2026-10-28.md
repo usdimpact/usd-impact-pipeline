@@ -27,6 +27,7 @@ Relevant current behavior:
 - functions normally perform Supabase JWT verification before user code.
 - external GitHub OIDC tokens therefore require the future broker function to set `verify_jwt = false` and perform its own GitHub JWT verification in code.
 - Supabase currently recommends `SUPABASE_SECRET_KEYS` for server-side privileged operations; the prototype intentionally has no legacy `SUPABASE_SERVICE_ROLE_KEY` fallback.
+- the current stable `@supabase/supabase-js` release was verified as `2.118.0` and is pinned exactly in the prototype; canary releases are not used.
 - private Storage objects do not have public URLs; this design does not create signed URLs.
 - Supabase has announced removal of a small set of obsolete TLS 1.2 CBC ciphers no earlier than 2026-11-10. GitHub-hosted runners use modern TLS and the prototype does not depend on those legacy ciphers.
 
