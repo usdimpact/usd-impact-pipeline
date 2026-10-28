@@ -10,15 +10,17 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class ScoreV21FWpu0561AmbiguityDiagnosticsTests(unittest.TestCase):
-    def test_dispatch_is_authorized_and_zero_value(self) -> None:
+    def test_consumed_state_is_fail_closed(self) -> None:
         report = validator.validate(ROOT)
         self.assertEqual(report["status"], "passed")
-        self.assertEqual(report["state"], "ambiguity_diagnostics_authorized")
-        self.assertEqual(report["request_budget"], 2)
-        self.assertEqual(report["max_economic_observations_total"], 0)
-        self.assertTrue(report["active_receipt_present"])
-        self.assertTrue(report["dispatch_present"])
-        self.assertTrue(report["live_request_authorized"])
+        self.assertEqual(report["state"], "ambiguity_diagnostics_consumed_fail_closed")
+        self.assertEqual(report["request_attempt_count"], 2)
+        self.assertEqual(report["economic_observation_count"], 0)
+        self.assertEqual(report["html_reason"], "no_local_header_anchor")
+        self.assertEqual(report["xlsx_reason"], "no_local_header_anchor")
+        self.assertFalse(report["active_receipt_present"])
+        self.assertFalse(report["dispatch_present"])
+        self.assertFalse(report["live_request_authorized"])
         self.assertFalse(report["economic_value_read_authorized"])
         self.assertFalse(report["candidate_score_computation_authorized"])
         self.assertFalse(report["production_authorized"])
