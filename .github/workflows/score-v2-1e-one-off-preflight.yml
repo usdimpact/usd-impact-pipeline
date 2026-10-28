@@ -35,14 +35,14 @@ jobs:
           assert payload == {
               "version": 1,
               "state": "dispatch_once",
-              "attempt": 5,
+              "attempt": 6,
               "phase": "vintage_feasibility_preflight",
               "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/211",
               "authorization_merge_commit": "bb9e4c4d2ef7d28938d670746b4a57f3fb1af587",
               "data_window": {"start": "2013-01-01", "end": "2026-10-23"},
               "production_authorized": False,
           }
-          print("One-off v2.1E preflight attempt 5 dispatch validated.")
+          print("One-off v2.1E preflight attempt 6 dispatch validated.")
           PY
 
       - name: Run official-source vintage feasibility preflight
@@ -80,8 +80,9 @@ jobs:
           for family in ("H10", "H8", "H41", "H15"):
               row = fed[family]
               print(
-                  f"- {family}: {row['release_count']} archived release identifiers enumerated; "
-                  f"{row['parseable_samples']}/{row['sampled_releases']} sampled archives parseable"
+                  f"- {family}: official release surface verified; "
+                  f"{row['parseable_samples']}/{row['sampled_releases']} fixed historical archives parseable; "
+                  "every full-run release remains individually fail-closed"
               )
           print(
               f"- BLS PPI archived news releases: {bls['archived_news_release_count']} enumerated; "
