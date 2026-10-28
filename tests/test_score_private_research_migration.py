@@ -70,9 +70,13 @@ class ScorePrivateResearchMigrationTests(unittest.TestCase):
         )
 
     def test_manual_read_workflow_is_read_only_and_hold_bound(self) -> None:
-        source = (
-            REPO_ROOT / ".github" / "workflows" / "score-private-research-read-rehearsal.yml"
-        ).read_text(encoding="utf-8")
+        workflow_dir = REPO_ROOT / ".github" / "workflows"
+        source = (workflow_dir / "score-private-evidence-read-rehearsal.yml").read_text(
+            encoding="utf-8"
+        )
+        self.assertFalse(
+            (workflow_dir / "score-private-research-read-rehearsal.yml").exists()
+        )
 
         self.assertIn("workflow_dispatch:", source)
         self.assertNotIn("schedule:", source)
@@ -89,6 +93,10 @@ class ScorePrivateResearchMigrationTests(unittest.TestCase):
             source,
         )
         self.assertIn("score-private-research-migration-contract.json", source)
+        self.assertIn("validate_score_private_research_migration_bundle", source)
+        self.assertIn("private-research-migration-report.json", source)
+        self.assertIn("actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1", source)
+        self.assertIn("runtime/requirements-2026-10-05.lock", source)
         self.assertIn("real_provider_evidence_authorized", source)
         self.assertIn("public_replacement_authorized", source)
         self.assertIn("production_change_authorized", source)
