@@ -1,0 +1,65 @@
+# REVIEW EXAMPLE ONLY.
+# This file is intentionally outside .github/workflows and cannot run.
+name: Score private evidence synthetic read rehearsal
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  synthetic-read:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout reviewed code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Fetch exact synthetic evidence into runner temp
+        shell: bash
+        env:
+          BROKER_URL: https://xakayexlzyrazuunqlxe.supabase.co/functions/v1/score-private-evidence-broker
+          SYNTHETIC_WEEK: '2099-01-02'
+        run: |
+          set -euo pipefail
+          audience="urn:usd-impact:score-private-evidence:read:development:${SYNTHETIC_WEEK}"
+          encoded_audience="$(AUDIENCE="$audience" python - <<'PY'
+          import os, urllib.parse
+          print(urllib.parse.quote(os.environ['AUDIENCE'], safe=''))
+          PY
+          )"
+          oidc_response="$(curl --fail --silent --show-error \
+            -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=${encoded_audience}")"
+          oidc_token="$(OIDC_RESPONSE="$oidc_response" python - <<'PY'
+          import json, os
+          value = json.loads(os.environ['OIDC_RESPONSE']).get('value')
+          if not isinstance(value, str) or not value:
+              raise SystemExit('missing OIDC token')
+          print(value)
+          PY
+          )"
+          unset oidc_response
+
+          private_root="$RUNNER_TEMP/score-private-evidence-read"
+          mkdir -p "$private_root"
+          output="$private_root/repro_bundle.json"
+          headers="$private_root/headers.txt"
+
+          curl --fail --silent --show-error \
+            -X POST "$BROKER_URL" \
+            -H "Authorization: Bearer $oidc_token" \
+            -H "x-score-operation: read" \
+            -H "x-score-week: $SYNTHETIC_WEEK" \
+            -D "$headers" \
+            -o "$output"
+          unset oidc_token
+
+          expected_sha="$(awk 'BEGIN{IGNORECASE=1} /^x-score-content-sha256:/ {gsub("\r","",$2); print $2}' "$headers")"
+          actual_sha="$(sha256sum "$output" | awk '{print $1}')"
+          test -n "$expected_sha"
+          test "$actual_sha" = "$expected_sha"
