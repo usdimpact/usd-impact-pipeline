@@ -1,0 +1,89 @@
+{
+  "version": 1,
+  "state": "review_only",
+  "budget_constraint": "zero_paid_market_data_budget",
+  "controlling_hold": "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
+  "source_replacement_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/179",
+  "production_authorized": false,
+  "methodology_change_authorized": false,
+  "real_data_rehearsal_authorized": false,
+  "drivers": [
+    {
+      "driver": "DXY",
+      "current_series": "DX-Y.NYB",
+      "zero_budget_candidate": "Federal Reserve Nominal Broad U.S. Dollar Index (DTWEXBGS)",
+      "official_source": "Board of Governors of the Federal Reserve System via FRED",
+      "exact_semantic_replacement": false,
+      "reason": "Trade-weighted broad dollar index is not ICE DXY and uses a different basket/weighting methodology.",
+      "disposition": "methodology_change_required"
+    },
+    {
+      "driver": "WTI",
+      "current_series": "CL=F",
+      "zero_budget_candidate": "EIA WTI Cushing spot price / FRED DCOILWTICO",
+      "official_source": "U.S. Energy Information Administration",
+      "exact_semantic_replacement": false,
+      "reason": "Spot WTI is not the current continuous/front-contract futures convenience series.",
+      "disposition": "methodology_change_required"
+    },
+    {
+      "driver": "SPX",
+      "current_series": "^GSPC",
+      "zero_budget_candidate": "FRED SP500",
+      "official_source": "S&P Dow Jones Indices via FRED",
+      "exact_semantic_replacement": false,
+      "reason": "FRED redistributes the S&P 500 under a separate agreement and marks the series copyrighted/pre-approval required; FRED access does not resolve USD Impact commercial/derived-use rights.",
+      "disposition": "rights_unresolved_not_zero_budget_safe"
+    },
+    {
+      "driver": "VIX",
+      "current_series": "^VIX",
+      "zero_budget_candidate": "FRED VIXCLS",
+      "official_source": "Cboe via FRED",
+      "exact_semantic_replacement": false,
+      "reason": "FRED notes Cboe copyright and reprint permission; FRED access does not establish USD Impact redistribution/derived-use permission.",
+      "disposition": "rights_unresolved_not_zero_budget_safe"
+    },
+    {
+      "driver": "BTC",
+      "current_series": "BTC-USD",
+      "zero_budget_candidate": null,
+      "official_source": null,
+      "exact_semantic_replacement": false,
+      "reason": "No authoritative zero-cost source has yet been identified with both suitable commercial/derived-use rights and semantic equivalence to the historical Yahoo BTC-USD convention.",
+      "disposition": "no_confirmed_zero_budget_equivalent"
+    },
+    {
+      "driver": "GOLD",
+      "current_series": "GC=F",
+      "zero_budget_candidate": null,
+      "official_source": null,
+      "exact_semantic_replacement": false,
+      "reason": "No authoritative zero-cost source has yet been identified that preserves COMEX continuous/front-contract semantics with confirmed commercial/derived-use rights.",
+      "disposition": "no_confirmed_zero_budget_equivalent"
+    },
+    {
+      "driver": "UST_2Y",
+      "current_series": "DGS2",
+      "zero_budget_candidate": "retain current FRED path pending rights confirmation",
+      "official_source": "FRED / U.S. Treasury-derived series",
+      "exact_semantic_replacement": true,
+      "reason": "No replacement is currently needed if FRED confirms acceptable use.",
+      "disposition": "retain_if_rights_confirmed"
+    },
+    {
+      "driver": "UST_10Y",
+      "current_series": "DGS10",
+      "zero_budget_candidate": "retain current FRED path pending rights confirmation",
+      "official_source": "FRED / U.S. Treasury-derived series",
+      "exact_semantic_replacement": true,
+      "reason": "No replacement is currently needed if FRED confirms acceptable use.",
+      "disposition": "retain_if_rights_confirmed"
+    }
+  ],
+  "conclusion": {
+    "exact_v2_zero_budget_path_confirmed": false,
+    "likely_outcome": "If paid provider licenses are required, preserving Score v2 exactly is unlikely under a zero-budget constraint. A separately reviewed v2.1 methodology would be required for any free-source substitutions.",
+    "next_allowed_step": "wait_for_provider_rights_responses_or_prepare_methodology_change_options_only"
+  }
+}
