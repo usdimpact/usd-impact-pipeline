@@ -1,22 +1,25 @@
 {
   "version": 2,
-  "state": "design_only_hold",
+  "state": "row_presence_preflight_authorized_pending_dispatch",
   "methodology_version": "2.1F-design-candidate",
   "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/236",
   "controlling_rights_hold": "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
+  "owner_approval_comment_id": 6481426895,
+  "owner_approval_timestamp": "2026-10-28T21:44:04Z",
   "design_path": "governance/score-v2-1f-bls-wpu0561-row-presence-preflight-design.json",
   "active_authorization_receipt_path": "governance/score-v2-1f-bls-wpu0561-row-presence-preflight-authorization.json",
-  "active_authorization_receipt_expected_now": false,
+  "active_authorization_receipt_expected_now": true,
   "dispatch_marker_path": "governance/score-v2-1f-bls-wpu0561-row-presence-preflight-dispatch.json",
   "dispatch_marker_expected_now": false,
   "request_budget": 2,
+  "contact_user_agent": "USD-Impact-Score-v2.1F-WPU0561-row-presence/2.0 (contact: https://usd-impact.com/support)",
   "fixed_resources": [
     "/news.release/archives/ppi_05152013.htm",
     "/ppi/detailed-report/ppi-detailed-report-april-2026.xlsx"
   ],
   "current_state": {
-    "response_body_ephemeral_retrieval_authorized": false,
-    "row_presence_preflight_authorized": false,
+    "response_body_ephemeral_retrieval_authorized": true,
+    "row_presence_preflight_authorized": true,
     "source_value_extraction_authorized": false,
     "real_data_research_authorized": false,
     "full_historical_reconstruction_authorized": false,
@@ -25,17 +28,15 @@
     "public_artifact_replacement_authorized": false,
     "production_authorized": false
   },
-  "activation_preconditions": [
-    "new explicit owner authorization is recorded under Issue #236 using the superseding HTML + XLSX wording",
-    "owner approval explicitly acknowledges ephemeral retrieval of two fixed official BLS response bodies that contain economic values",
+  "execution_preconditions": [
+    "owner approval is recorded under Issue #236 comment 6481426895",
     "active receipt pins the exact archived 2013 HTML and 2026 XLSX resources",
     "contactable project User-Agent is pinned in the active receipt",
     "all value extraction, full research, scoring, public-artifact and Production flags remain false",
-    "a separate dispatch marker is merged only after activation",
-    "workflow remains inert until dispatch"
+    "dispatch marker remains absent until a separate reviewed dispatch change",
+    "workflow remains inert until the separate dispatch change"
   ],
   "stop_conditions": [
-    "no active authorization receipt",
     "no dispatch marker",
     "request budget would exceed two",
     "any request is outside www.bls.gov",
@@ -50,6 +51,6 @@
     "candidate Score, z-score or contribution would be computed",
     "public artifact, research ledger or Production would change"
   ],
-  "next_allowed_action": "design_review_and_owner_decision_only",
+  "next_allowed_action": "separate_dispatch_review_after_activation_merge",
   "production_authorized": false
 }
