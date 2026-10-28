@@ -1,0 +1,69 @@
+{
+  "version": 1,
+  "state": "template_only",
+  "methodology_version": "2.1-design-candidate",
+  "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/187",
+  "production_authorized": false,
+  "real_data_research_authorized": false,
+  "frozen_before_data_required": true,
+  "fields": {
+    "preregistration_id": null,
+    "approved_by": null,
+    "approved_at": null,
+    "data_cutoff": null,
+    "evaluation_window_start": null,
+    "evaluation_window_end": null,
+    "candidate_definition_commit": null,
+    "rights_evidence_references": [],
+    "driver_sources": {
+      "DXY": null,
+      "WTI": null,
+      "SPX": null,
+      "VIX": null,
+      "BTC": null,
+      "GOLD": null,
+      "UST_2Y": null,
+      "UST_10Y": null
+    },
+    "source_semantics": {
+      "DXY": null,
+      "WTI": null,
+      "SPX": null,
+      "VIX": null,
+      "BTC": null,
+      "GOLD": null,
+      "UST_2Y": null,
+      "UST_10Y": null
+    },
+    "missing_history_policy": null,
+    "revision_policy": null,
+    "calendar_policy": null,
+    "timezone_policy": null,
+    "candidate_history_freeze_hashes": {},
+    "metrics": [
+      "weekly_observation_coverage",
+      "driver_level_overlap_weeks",
+      "driver_level_pearson_correlation",
+      "driver_level_spearman_correlation",
+      "weekly_direction_agreement",
+      "weekly_standardized_value_difference",
+      "aggregate_score_correlation",
+      "aggregate_score_mean_absolute_difference",
+      "aggregate_score_max_absolute_difference",
+      "regime_agreement_rate",
+      "regime_transition_date_difference",
+      "historical_regime_window_behavior",
+      "freshness_failure_count",
+      "missing_week_count"
+    ],
+    "thresholds": null,
+    "stop_conditions": [
+      "rights_scope_not_confirmed",
+      "candidate_semantics_change_after_freeze",
+      "data_cutoff_change_after_freeze",
+      "threshold_change_after_results_visible",
+      "missing_driver_reweighted_or_autofilled",
+      "provider_terms_require_payment_under_zero_budget_constraint"
+    ]
+  }
+}
