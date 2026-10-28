@@ -1,0 +1,95 @@
+{
+  "version": 1,
+  "state": "design_only_hold",
+  "methodology_version": "2.1F-design-candidate",
+  "owner_decision_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/252",
+  "predecessor_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/244",
+  "controlling_rights_hold": "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
+  "fixed_resources": [
+    {
+      "label": "april_2013_archived_html",
+      "method": "GET",
+      "host": "www.bls.gov",
+      "path": "/news.release/archives/ppi_05152013.htm",
+      "expected_format": "html"
+    },
+    {
+      "label": "april_2026_xlsx",
+      "method": "GET",
+      "host": "www.bls.gov",
+      "path": "/ppi/detailed-report/ppi-detailed-report-april-2026.xlsx",
+      "expected_format": "xlsx"
+    }
+  ],
+  "objective": "Determine whether one representative original-release index-level observation per fixed BLS resource can be extracted unambiguously from a Crude petroleum row mapped to normalized identifier 0561, while rejecting percent-change fields and broader history.",
+  "future_live_budget": {
+    "request_budget": 2,
+    "max_economic_observations_total": 2,
+    "max_economic_observations_per_resource": 1,
+    "concurrency": 1,
+    "automatic_retries": 0
+  },
+  "required_identity_evidence": {
+    "description": "Crude petroleum",
+    "normalized_identifier": "0561",
+    "identifier_must_be_under_proven_identifier_header": true,
+    "row_wide_identifier_fallback": false
+  },
+  "field_semantics_policy": {
+    "allowed": [
+      "original_release_index_level"
+    ],
+    "forbidden": [
+      "monthly_percent_change",
+      "annual_percent_change",
+      "percent_change_unspecified_horizon",
+      "identifier_field",
+      "revised_current_history",
+      "ambiguous_numeric_field"
+    ],
+    "index_level_requires_non_numeric_header": true,
+    "percent_or_change_term_forces_percent_change": true,
+    "multiple_index_level_candidates_fail_closed": true,
+    "ambiguous_revision_context_fails_closed": true
+  },
+  "runtime_parser_policy": {
+    "html_parser": "python_standard_library_html_parser_only",
+    "xlsx_parser": "python_standard_library_zip_xml_only",
+    "install_new_system_software": false,
+    "install_new_python_dependency": false,
+    "external_parser_process": false
+  },
+  "allowed_persistent_output_if_future_approved": [
+    "resource path",
+    "structural table/sheet/row/column coordinates",
+    "normalized identifier 0561",
+    "exact non-economic header text",
+    "field semantic classification",
+    "revision/preliminary/final label",
+    "at most one representative original-release index-level observation per resource",
+    "yes/no/ambiguous semantic reconstructability"
+  ],
+  "forbidden_now": {
+    "live_bls_request": true,
+    "economic_value_extraction": true,
+    "response_body_persistence": true,
+    "full_historical_reconstruction": true,
+    "bls_api_or_bulk": true,
+    "alternate_source": true,
+    "candidate_score_computation": true,
+    "research_ledger_mutation": true,
+    "public_artifact_replacement": true,
+    "production_change": true
+  },
+  "current_authorizations": {
+    "response_body_ephemeral_retrieval": false,
+    "representative_index_value_extraction": false,
+    "representative_index_preflight": false,
+    "full_historical_reconstruction": false,
+    "candidate_score_computation": false,
+    "research_ledger_mutation": false,
+    "public_artifact_replacement": false,
+    "production": false
+  },
+  "next_gate": "new_explicit_owner_authorization_under_issue_252_required_before_any_live_request_or_economic_value_extraction"
+}
