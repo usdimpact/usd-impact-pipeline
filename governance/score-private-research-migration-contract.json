@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "state": "review_only",
+  "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
+  "production_change_authorized": false,
+  "real_provider_evidence_authorized": false,
+  "public_replacement_authorized": false,
+  "development_synthetic_rehearsal_authorized": true,
+  "current_private_boundary": {
+    "provider": "supabase",
+    "environment": "development",
+    "project_ref": "xakayexlzyrazuunqlxe",
+    "bucket": "score-private-evidence",
+    "broker": "score-private-evidence-broker",
+    "public": false,
+    "signed_urls": false
+  },
+  "migration_order": [
+    "define_private_research_reader_contract",
+    "prove_synthetic_private_bundle_to_research_inputs",
+    "prove_aggregate_safe_public_transform",
+    "migrate_score_v2_predictive_reader_in_development",
+    "migrate_score_v3_shadow_reader_in_development",
+    "migrate_full_research_generation_and_vintage_inputs_in_development",
+    "run_provider_counsel_decision_gate",
+    "prepare_separate_production_release_candidate"
+  ],
+  "required_gates_before_real_provider_evidence": [
+    "provider_or_counsel_disposition_or_explicit_owner_authorization",
+    "retention_and_access_boundary_approved",
+    "exact_head_ci_green",
+    "development_only_rehearsal_green"
+  ],
+  "required_gates_before_public_replacement": [
+    "research_readers_no_longer_depend_on_public_component_values",
+    "public_safe_schema_approved",
+    "consumer_and_archive_migration_verified",
+    "provider_or_counsel_disposition",
+    "separate_production_authorization"
+  ],
+  "rollback": {
+    "development_reader_migration": "revert_to_current_public_strict_bundle_reader_before_any_public_redaction",
+    "public_release": "retain_current_production_until_separate_release_is_approved"
+  }
+}
