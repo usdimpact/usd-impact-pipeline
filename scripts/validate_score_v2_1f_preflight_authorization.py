@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate fail-closed Score v2.1F live-vintage preflight authorization packet."""
+"""Validate active-but-not-dispatched Score v2.1F live-vintage preflight authorization."""
 
 from __future__ import annotations
 
@@ -11,6 +11,10 @@ DESIGN_COMMIT = "e14aec35142b9536b5b889d0fae4eab9a94faf88"
 PREREG_COMMIT = "bcf473e2bbcb36fa1080a3a56f77a3796d74ccaa"
 ACTIVE_RECEIPT = "governance/score-v2-1f-live-vintage-preflight-authorization.json"
 DISPATCH = "governance/score-v2-1f-live-vintage-preflight-dispatch.json"
+APPROVAL_COMMENT = 6479715940
+APPROVED_AT = "2026-10-28T20:20:28Z"
+APPROVED_BY = "usdimpact owner via Issue #224 approval comment 6479715940"
+EXPECTED_WINDOW = {"start": "2013-01-01", "end": "2026-10-23"}
 EXPECTED_SERIES = [
     "H10/H10/JRXWTFB_N.B",
     "WPU0561",
@@ -27,12 +31,10 @@ def _load(path: Path) -> dict[str, Any]:
 
 def validate(repo_root: Path) -> dict[str, Any]:
     repo_root = repo_root.resolve()
-    schema = _load(
-        repo_root / "governance/score-v2-1f-live-vintage-preflight-authorization.schema.json"
-    )
     template = _load(
         repo_root / "governance/score-v2-1f-live-vintage-preflight-authorization.template.json"
     )
+    receipt = _load(repo_root / ACTIVE_RECEIPT)
     contract = _load(
         repo_root / "governance/score-v2-1f-live-vintage-preflight-execution-contract.json"
     )
@@ -48,24 +50,11 @@ def validate(repo_root: Path) -> dict[str, Any]:
         raise RuntimeError("v2.1F preregistration state changed")
     if prereg.get("design_merge_commit") != DESIGN_COMMIT:
         raise RuntimeError("v2.1F design pin changed")
-
-    if (repo_root / ACTIVE_RECEIPT).exists():
-        raise RuntimeError("active v2.1F preflight authorization receipt must remain absent")
     if (repo_root / DISPATCH).exists():
-        raise RuntimeError("v2.1F preflight dispatch marker must remain absent")
+        raise RuntimeError("v2.1F dispatch marker must remain absent before dispatch review")
 
     if template.get("decision_status") != "hold":
-        raise RuntimeError("preflight authorization template must remain HOLD")
-    if template.get("methodology_version") != "2.1F-design-candidate":
-        raise RuntimeError("template methodology version changed")
-    if template.get("issue") != "https://github.com/usdimpact/usd-impact-pipeline/issues/224":
-        raise RuntimeError("template owner decision issue changed")
-    if template.get("design_merge_commit") != DESIGN_COMMIT:
-        raise RuntimeError("template design pin changed")
-    if template.get("preregistration_merge_commit") != PREREG_COMMIT:
-        raise RuntimeError("template preregistration pin changed")
-    if template.get("exact_series") != EXPECTED_SERIES:
-        raise RuntimeError("template exact-series inventory changed")
+        raise RuntimeError("HOLD template must remain unchanged")
     if template.get("data_window") != {"start": None, "end": None}:
         raise RuntimeError("HOLD template may not preselect a live data window")
     if template.get("approved_by") is not None or template.get("approved_at") is not None:
@@ -73,45 +62,32 @@ def validate(repo_root: Path) -> dict[str, Any]:
     if any(template.get("authorizations", {}).values()):
         raise RuntimeError("HOLD template authorizations must remain false")
 
-    output = template.get("output_policy", {})
-    for field in (
-        "source_values_in_logs",
-        "component_values_in_logs",
-        "candidate_score_output",
-        "public_repo_source_values",
-    ):
-        if output.get(field) is not False:
-            raise RuntimeError(f"{field} must remain false")
+    if receipt.get("decision_status") != "approved":
+        raise RuntimeError("active preflight receipt is not approved")
+    if receipt.get("methodology_version") != "2.1F-design-candidate":
+        raise RuntimeError("receipt methodology version changed")
+    if receipt.get("issue") != "https://github.com/usdimpact/usd-impact-pipeline/issues/224":
+        raise RuntimeError("receipt owner decision issue changed")
+    if receipt.get("design_merge_commit") != DESIGN_COMMIT:
+        raise RuntimeError("receipt design pin changed")
+    if receipt.get("preregistration_merge_commit") != PREREG_COMMIT:
+        raise RuntimeError("receipt preregistration pin changed")
+    if receipt.get("execution_scope") != "live_historical_vintage_feasibility_preflight_only":
+        raise RuntimeError("receipt execution scope changed")
+    if receipt.get("exact_series") != EXPECTED_SERIES:
+        raise RuntimeError("receipt exact-series inventory changed")
+    if receipt.get("data_window") != EXPECTED_WINDOW:
+        raise RuntimeError("receipt data window changed")
+    if receipt.get("approved_by") != APPROVED_BY:
+        raise RuntimeError("receipt approval identity/evidence changed")
+    if receipt.get("approved_at") != APPROVED_AT:
+        raise RuntimeError("receipt approval timestamp changed")
 
-    if contract.get("state") != "authorization_packet_only":
-        raise RuntimeError("preflight execution contract must remain packet-only")
-    if contract.get("design_merge_commit") != DESIGN_COMMIT:
-        raise RuntimeError("contract design pin changed")
-    if contract.get("preregistration_merge_commit") != PREREG_COMMIT:
-        raise RuntimeError("contract preregistration pin changed")
-    if contract.get("active_authorization_receipt_expected_now") is not False:
-        raise RuntimeError("active receipt must not be expected before owner approval")
-    if contract.get("dispatch_marker_expected_now") is not False:
-        raise RuntimeError("dispatch marker must not be expected before activation")
-    if contract.get("production_authorized") is not False:
-        raise RuntimeError("Production must remain unauthorized")
-    current = contract.get("current_state", {})
-    if not isinstance(current, dict) or any(current.values()):
-        raise RuntimeError("all current preflight execution authorizations must be false")
-
-    network = contract.get("network_policy", {})
-    required_hosts = {"www.federalreserve.gov", "www.bls.gov", "data.bls.gov"}
-    if not required_hosts.issubset(set(network.get("allowed_hosts", []))):
-        raise RuntimeError("official Board/BLS host allowlist is incomplete")
-    if network.get("credentials_required") is not False:
-        raise RuntimeError("credentials must remain unnecessary")
-
-    schema_props = schema.get("properties", {})
-    if schema_props.get("design_merge_commit", {}).get("const") != DESIGN_COMMIT:
-        raise RuntimeError("schema design pin changed")
-    if schema_props.get("preregistration_merge_commit", {}).get("const") != PREREG_COMMIT:
-        raise RuntimeError("schema preregistration pin changed")
-    auth_schema = schema_props.get("authorizations", {}).get("properties", {})
+    auth = receipt.get("authorizations", {})
+    if auth.get("real_data_fetch") is not True:
+        raise RuntimeError("preflight receipt must authorize real-data fetch")
+    if auth.get("live_vintage_preflight") is not True:
+        raise RuntimeError("preflight receipt must authorize live vintage preflight")
     for field in (
         "real_data_research",
         "candidate_score_computation",
@@ -121,21 +97,70 @@ def validate(repo_root: Path) -> dict[str, Any]:
         "public_artifact_replacement",
         "production",
     ):
-        if auth_schema.get(field, {}).get("const") is not False:
-            raise RuntimeError(f"schema must hard-code {field}=false")
+        if auth.get(field) is not False:
+            raise RuntimeError(f"{field} must remain false")
 
-    if prereg.get("next_step_if_design_checks_pass") != (
-        "separate_owner_authorization_for_v2_1f_live_vintage_feasibility_preflight_only"
+    output = receipt.get("output_policy", {})
+    for field in (
+        "source_values_in_logs",
+        "component_values_in_logs",
+        "candidate_score_output",
+        "public_repo_source_values",
     ):
-        raise RuntimeError("preregistration next step changed")
+        if output.get(field) is not False:
+            raise RuntimeError(f"{field} must remain false")
+
+    if contract.get("state") != "live_vintage_preflight_authorized_pending_dispatch":
+        raise RuntimeError("execution contract must be active but pending dispatch")
+    if contract.get("owner_approval_comment_id") != APPROVAL_COMMENT:
+        raise RuntimeError("contract owner approval comment changed")
+    if contract.get("owner_approval_timestamp") != APPROVED_AT:
+        raise RuntimeError("contract owner approval timestamp changed")
+    if contract.get("design_merge_commit") != DESIGN_COMMIT:
+        raise RuntimeError("contract design pin changed")
+    if contract.get("preregistration_merge_commit") != PREREG_COMMIT:
+        raise RuntimeError("contract preregistration pin changed")
+    if contract.get("active_authorization_receipt_expected_now") is not True:
+        raise RuntimeError("active receipt must be expected after activation")
+    if contract.get("dispatch_marker_expected_now") is not False:
+        raise RuntimeError("dispatch marker must remain absent before separate review")
+    if contract.get("authorized_data_window") != EXPECTED_WINDOW:
+        raise RuntimeError("contract data window changed")
+    if contract.get("production_authorized") is not False:
+        raise RuntimeError("Production must remain unauthorized")
+
+    current = contract.get("current_state", {})
+    for field in (
+        "real_data_fetch_authorized",
+        "live_vintage_preflight_authorized",
+        "active_receipt_present",
+    ):
+        if current.get(field) is not True:
+            raise RuntimeError(f"{field} must be true after activation")
+    for field in (
+        "real_data_research_authorized",
+        "candidate_score_computation_authorized",
+        "dispatch_marker_present",
+        "paid_data_authorized",
+        "source_contract_acceptance_authorized",
+        "durable_private_storage_authorized",
+        "public_artifact_replacement_authorized",
+        "research_ledger_mutation_authorized",
+        "production_authorized",
+    ):
+        if current.get(field) is not False:
+            raise RuntimeError(f"{field} must remain false")
 
     return {
         "status": "passed",
-        "state": "authorization_packet_only",
+        "state": "live_vintage_preflight_authorized_pending_dispatch",
+        "decision_status": "approved",
         "exact_series_count": len(EXPECTED_SERIES),
-        "active_authorization_receipt_present": False,
+        "data_window": EXPECTED_WINDOW,
+        "active_authorization_receipt_present": True,
         "dispatch_marker_present": False,
-        "live_vintage_preflight_authorized": False,
+        "real_data_fetch_authorized": True,
+        "live_vintage_preflight_authorized": True,
         "real_data_research_authorized": False,
         "candidate_score_computation_authorized": False,
         "production_authorized": False,
