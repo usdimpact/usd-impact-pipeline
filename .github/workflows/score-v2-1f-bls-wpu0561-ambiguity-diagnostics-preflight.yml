@@ -1,0 +1,17 @@
+name: Score v2.1F BLS WPU0561 ambiguity diagnostics preflight (HOLD)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  design-only-hold:
+    if: ${{ false }}
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Explicit owner authorization guard
+        run: |
+          echo "Issue #258 is design-only/HOLD."
+          echo "No BLS request or economic-value read is authorized."
