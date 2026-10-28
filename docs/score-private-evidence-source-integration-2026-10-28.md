@@ -47,6 +47,18 @@ Copied #158 files:
 
 There is no provider retrieval and no cloud/network storage access.
 
+## Request-bound OIDC hardening
+
+The integration review tightens #160's source-only broker policy without changing #160's historical accepted head:
+
+- read OIDC audience is bound to the exact synthetic week;
+- write OIDC audience is bound to the exact synthetic week **and** the exact body SHA-256;
+- the broker derives the expected audience from validated request headers before accepting the GitHub token;
+- tests prove a valid token for one week cannot be reused for another week;
+- tests prove a valid write token cannot be reused for different bytes.
+
+This reduces short-lived bearer-token replay scope before any Development deployment exists.
+
 ## Deliberate non-execution boundary
 
 The example read/write workflow files remain outside `.github/workflows`.
