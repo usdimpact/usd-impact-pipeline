@@ -7,13 +7,13 @@ from scripts import run_score_v2_1f_bls_detailed_report_metadata_preflight as pr
 
 
 class ScoreV21FBlsDetailedReportMetadataPreflightTests(unittest.TestCase):
-    def test_design_only_state_refuses_before_network(self) -> None:
+    def test_activated_but_undispatched_state_refuses_before_network(self) -> None:
         with mock.patch.object(
             preflight,
             "_request_once",
-            side_effect=AssertionError("network request occurred in HOLD state"),
+            side_effect=AssertionError("network request occurred before dispatch"),
         ) as request:
-            with self.assertRaisesRegex(RuntimeError, "authorization is not active"):
+            with self.assertRaisesRegex(RuntimeError, "dispatch is not active"):
                 preflight.run_preflight()
             request.assert_not_called()
 
@@ -74,7 +74,7 @@ class ScoreV21FBlsDetailedReportMetadataPreflightTests(unittest.TestCase):
     def test_contactable_user_agent_is_required(self) -> None:
         valid = (
             "USD-Impact-Score-v2.1F-BLS-metadata-preflight/1.0 "
-            "(contact: owner@example.com)"
+            "(contact: support@usd-impact.com)"
         )
         self.assertEqual(preflight._validate_contact_user_agent(valid), valid)
         with self.assertRaisesRegex(RuntimeError, "User-Agent"):
