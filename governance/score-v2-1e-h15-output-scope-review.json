@@ -1,0 +1,92 @@
+{
+  "version": 1,
+  "state": "evidence_only_no_source_approval",
+  "review_date": "2026-10-28",
+  "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/207",
+  "controlling_hold": "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
+  "prior_provenance_review_merge_commit": "d4d1e441f6dd91e1d249d9f3ad515c76e2d3f61b",
+  "legal_conclusion": false,
+  "source_approval": false,
+  "real_data_fetch_authorized": false,
+  "real_data_research_authorized": false,
+  "public_artifact_replacement_authorized": false,
+  "research_ledger_mutation_authorized": false,
+  "production_authorized": false,
+  "scope": {
+    "published_government_outputs_only": true,
+    "raw_upstream_otc_quotes_in_scope": false,
+    "reconstruction_of_raw_upstream_quotes_in_scope": false,
+    "paid_or_credentialed_source_in_scope": false
+  },
+  "official_evidence": [
+    {
+      "source": "U.S. Department of the Treasury",
+      "url": "https://home.treasury.gov/policy-issues/financing-the-government/interest-rate-statistics/treasury-yield-curve-methodology",
+      "finding": "Treasury describes the par yield curve as its official yield curve. Inputs are indicative bid-side market price quotations obtained by the Federal Reserve Bank of New York; Treasury converts them to yields and derives the published curve."
+    },
+    {
+      "source": "U.S. Department of the Treasury",
+      "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve",
+      "finding": "Treasury directly publishes Daily Treasury Par Yield Curve Rates, commonly referred to as Constant Maturity Treasury rates."
+    },
+    {
+      "source": "Federal Reserve Board H.15",
+      "url": "https://www.federalreserve.gov/releases/h15/",
+      "finding": "H.15 states nominal and inflation-indexed constant-maturity yields are interpolated by the U.S. Treasury from Treasury yield curves and publishes the resulting constant-maturity series."
+    },
+    {
+      "source": "Federal Reserve Board disclaimer",
+      "url": "https://www.federalreserve.gov/disclaimer.htm",
+      "finding": "Board website information is public domain unless otherwise indicated; separately identified non-Board material requires permission from that source."
+    },
+    {
+      "source": "17 U.S.C. Section 105",
+      "url": "https://www.govinfo.gov/content/pkg/USCODE-2024-title17/html/USCODE-2024-title17-chap1-sec105.htm",
+      "finding": "Copyright protection under Title 17 is not available for works of the United States Government, subject to the statute's stated provisions."
+    }
+  ],
+  "h15_slots": [
+    {
+      "slot": "REAL_YIELD",
+      "series_id": "H15/H15/RIFLGFCY10_XII_N.B",
+      "classification": "government_derived_published_output_no_specific_third_party_notice_identified_on_reviewed_output_path",
+      "raw_upstream_quote_use": false,
+      "source_approved": false
+    },
+    {
+      "slot": "UST_2Y",
+      "series_id": "H15/H15/RIFLGFCY02_N.B",
+      "classification": "government_derived_published_output_no_specific_third_party_notice_identified_on_reviewed_output_path",
+      "raw_upstream_quote_use": false,
+      "source_approved": false
+    },
+    {
+      "slot": "UST_10Y",
+      "series_id": "H15/H15/RIFLGFCY10_N.B",
+      "classification": "government_derived_published_output_no_specific_third_party_notice_identified_on_reviewed_output_path",
+      "raw_upstream_quote_use": false,
+      "source_approved": false
+    }
+  ],
+  "interpretation_boundary": {
+    "finding": "The upstream quotations are documented methodology inputs to Treasury's derived government outputs; v2.1E would consume only the published Treasury/Board constant-maturity outputs.",
+    "does_not_establish": [
+      "legal clearance",
+      "provider or counsel approval",
+      "rights to raw upstream market quotations",
+      "authorization to fetch or analyze real observations",
+      "authorization to publish component values",
+      "authorization to modify Production"
+    ],
+    "remaining_state": "owner_decision_required_before_any_one_off_private_real_data_research"
+  },
+  "summary": {
+    "h15_slots_reviewed": 3,
+    "raw_upstream_quote_streams_in_scope": 0,
+    "specific_third_party_notice_identified_on_reviewed_published_output_path": false,
+    "source_approval": false,
+    "rights_hold_remains": true,
+    "active_research_authorization_receipt_present": false,
+    "next_safe_step": "owner_decision_on_narrow_one_off_private_research_authorization_or_continue_hold"
+  }
+}
