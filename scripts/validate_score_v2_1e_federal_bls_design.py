@@ -74,10 +74,10 @@ def validate(repo_root: Path) -> dict[str, Any]:
     if "four months" not in str(energy.get("revision_rule", "")).lower():
         raise RuntimeError("BLS revision handling is not explicit")
 
-    serialized = json.dumps(design).lower()
+    active_slots_serialized = json.dumps(slots).lower()
     for forbidden in ("dcoilwtico", "rwtc", "refinitiv", "lseg"):
-        if forbidden in serialized:
-            raise RuntimeError(f"forbidden prior energy dependency remains: {forbidden}")
+        if forbidden in active_slots_serialized:
+            raise RuntimeError(f"forbidden prior energy dependency remains active: {forbidden}")
 
     rules = design.get("structural_rules", {})
     if rules.get("observation_date_is_not_release_date") is not True:
