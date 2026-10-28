@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Authorized live historical-vintage feasibility preflight for Score v2.1E.
 
-The preflight may retrieve real official Federal Reserve Board and BLS archive
-documents under the active one-off research authorization. It never prints,
-persists, or returns source values and it never computes a candidate Score.
+Retrieves only official Federal Reserve Board and BLS HTML archive pages under
+the active one-off research authorization. Source values are never printed or
+persisted, and this phase never computes a candidate Score.
 """
 
 from __future__ import annotations
@@ -12,7 +12,6 @@ import argparse
 import http.client
 import json
 import re
-import subprocess
 import sys
 from datetime import date
 from html.parser import HTMLParser
@@ -31,7 +30,6 @@ ALLOWED_HOSTS = {
     BLS_HOST,
     "data.bls.gov",
 }
-PDFTOTEXT = Path("/usr/bin/pdftotext")
 FED_FAMILIES = {
     "H10": {
         "index_path": "/releases/h10/",
@@ -66,11 +64,12 @@ FED_FAMILIES = {
         "sample_dates": (date(2013, 1, 14), date(2020, 1, 6), date(2025, 1, 6)),
     },
 }
-BLS_REPORT_INDEX_PATH = "/ppi/detailed-report/"
-BLS_SAMPLE_REPORT_PATHS = (
-    "/ppi/detailed-report/ppi-detailed-report-september-2013.pdf",
-    "/ppi/detailed-report/ppi-detailed-report-january-2020.pdf",
-    "/ppi/detailed-report/ppi-detailed-report-september-2026.pdf",
+BLS_NEWS_ARCHIVE_PATH = "/bls/news-release/ppi.htm"
+BLS_MINIMUM_RELEASES = 160
+BLS_SAMPLE_RELEASES = (
+    (date(2013, 10, 29), "/news.release/archives/ppi_10292013.htm"),
+    (date(2020, 2, 19), "/news.release/archives/ppi_02192020.htm"),
+    (date(2026, 10, 15), "/news.release/archives/ppi_10152026.htm"),
 )
 EXPECTED_SERIES_COUNT = 8
 MAX_BYTES = 30 * 1024 * 1024
@@ -78,7 +77,7 @@ USER_AGENT = "USD-Impact-v2.1E-private-research-preflight/1.0"
 
 
 def _validate_url(url: str) -> str:
-    """Policy helper used by tests; live retrieval does not accept arbitrary URLs."""
+    """Policy helper used by tests; live retrieval accepts only fixed hosts."""
     parsed = urlparse(url)
     host = (parsed.hostname or "").lower()
     if parsed.scheme != "https":
@@ -98,7 +97,7 @@ def _validate_path(path: str) -> None:
 
 
 def _get_fixed(host: str, path: str) -> tuple[bytes, str]:
-    """Retrieve from a fixed official host; redirects are intentionally rejected."""
+    """Retrieve from one fixed official host; redirects are rejected."""
     if host not in {FED_HOST, BLS_HOST}:
         raise RuntimeError("live source host is outside the fixed preflight set")
     _validate_path(path)
@@ -155,23 +154,7 @@ def _html_text(payload: bytes) -> str:
     parser = _VisibleTextParser()
     parser.feed(payload.decode("utf-8", errors="replace"))
     parser.close()
-    return re.sub(r"\\s+", " ", " ".join(parser.parts)).strip()
-
-
-def _pdf_text(payload: bytes) -> str:
-    if not PDFTOTEXT.is_file():
-        raise RuntimeError("pdftotext is required for archived PDF feasibility checks")
-    proc = subprocess.run(
-        [str(PDFTOTEXT), "-layout", "-", "-"],
-        input=payload,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        check=False,
-        timeout=60,
-    )
-    if proc.returncode != 0:
-        raise RuntimeError("pdftotext could not parse an official archived PDF")
-    return proc.stdout.decode("utf-8", errors="replace")
+    return re.sub(r"\s+", " ", " ".join(parser.parts)).strip()
 
 
 def extract_fed_release_dates(payload: bytes, code: str) -> list[date]:
@@ -189,6 +172,21 @@ def extract_fed_release_dates(payload: bytes, code: str) -> list[date]:
     return sorted(found)
 
 
+def extract_bls_release_dates(payload: bytes) -> list[date]:
+    """Count archived BLS PPI release identifiers without using them as requests."""
+    text = payload.decode("utf-8", errors="replace")
+    pattern = re.compile(r"(?i)ppi_(\d{8})\.htm")
+    found: set[date] = set()
+    for raw in pattern.findall(text):
+        try:
+            value = date(int(raw[4:8]), int(raw[:2]), int(raw[2:4]))
+        except ValueError:
+            continue
+        if START <= value <= END:
+            found.add(value)
+    return sorted(found)
+
+
 def _matches_family(text: str, token_groups: tuple[tuple[str, ...], ...]) -> bool:
     lowered = text.lower()
     return all(any(token in lowered for token in group) for group in token_groups)
@@ -196,52 +194,24 @@ def _matches_family(text: str, token_groups: tuple[tuple[str, ...], ...]) -> boo
 
 def _fed_archive_text(code: str, released: date) -> str:
     stamp = released.strftime("%Y%m%d")
-    html_path = f"/releases/{code}/{stamp}/default.htm"
-    try:
-        payload, content_type = _get_fed(html_path)
-        text = _pdf_text(payload) if "pdf" in content_type else _html_text(payload)
-        if text.strip():
-            return text
-    except RuntimeError:
-        pass
-    pdf_path = f"/releases/{code}/{stamp}/{code}.pdf"
-    payload, _ = _get_fed(pdf_path)
-    return _pdf_text(payload)
+    payload, content_type = _get_fed(f"/releases/{code}/{stamp}/default.htm")
+    if "html" not in content_type and "text" not in content_type:
+        raise RuntimeError("Federal Reserve sampled archive is not HTML/text")
+    text = _html_text(payload)
+    if not text:
+        raise RuntimeError("Federal Reserve sampled archive is empty")
+    return text
 
 
-_MONTH_NAMES = (
-    "january", "february", "march", "april", "may", "june",
-    "july", "august", "september", "october", "november", "december",
-)
-_MONTHS = {name: idx for idx, name in enumerate(_MONTH_NAMES, start=1)}
-_BLS_NAME = re.compile(
-    r"ppi-detailed-report-([a-z]+)-(20\d{2})\.pdf",
-    re.IGNORECASE,
-)
-
-
-def extract_bls_report_identifiers(payload: bytes) -> list[date]:
-    """Count archive month/year identifiers without using them as network paths."""
-    text = payload.decode("utf-8", errors="replace")
-    reports: set[date] = set()
-    for month_name, year_text in _BLS_NAME.findall(text):
-        month = _MONTHS.get(month_name.lower())
-        if not month:
-            continue
-        ref = date(int(year_text), month, 1)
-        if START <= ref <= END:
-            reports.add(ref)
-    return sorted(reports)
-
-
-def _bls_wpu0561_parseable(text: str) -> bool:
-    lines = [re.sub(r"\s+", " ", line).strip().lower() for line in text.splitlines()]
-    for idx, line in enumerate(lines):
-        if re.search(r"\b0561\b", line):
-            context = " ".join(lines[max(0, idx - 1): idx + 2])
-            if "crude petroleum" in context:
-                return True
-    return False
+def _bls_crude_petroleum_parseable(text: str) -> bool:
+    lowered = re.sub(r"\s+", " ", text.lower())
+    if "crude petroleum" not in lowered:
+        return False
+    return bool(
+        re.search(r"\b05\s*-\s*61\b", lowered)
+        or re.search(r"\b05\s+61\b", lowered)
+        or re.search(r"\b0561\b", lowered)
+    )
 
 
 def _validate_active_authorization() -> None:
@@ -262,8 +232,6 @@ def _validate_active_authorization() -> None:
 
 def run_preflight() -> dict[str, object]:
     _validate_active_authorization()
-    if not PDFTOTEXT.is_file():
-        raise RuntimeError("pdftotext is unavailable; fail closed before archive parsing")
 
     fed_summary: dict[str, dict[str, int]] = {}
     for family, cfg in FED_FAMILIES.items():
@@ -292,20 +260,28 @@ def run_preflight() -> dict[str, object]:
             "parseable_samples": parseable,
         }
 
-    bls_index, _ = _get_bls(BLS_REPORT_INDEX_PATH)
-    report_identifiers = extract_bls_report_identifiers(bls_index)
-    if len(report_identifiers) < 160:
+    bls_index, _ = _get_bls(BLS_NEWS_ARCHIVE_PATH)
+    bls_release_dates = extract_bls_release_dates(bls_index)
+    if len(bls_release_dates) < BLS_MINIMUM_RELEASES:
         raise RuntimeError(
-            f"BLS PPI detailed-report archive enumeration is incomplete "
-            f"({len(report_identifiers)} < 160)"
+            f"BLS PPI archived-news enumeration is incomplete "
+            f"({len(bls_release_dates)} < {BLS_MINIMUM_RELEASES})"
         )
 
+    fixed_dates = tuple(released for released, _ in BLS_SAMPLE_RELEASES)
+    if not all(released in bls_release_dates for released in fixed_dates):
+        raise RuntimeError("BLS fixed sample identifiers are absent from official archive index")
+
     bls_parseable = 0
-    for report_path in BLS_SAMPLE_REPORT_PATHS:
-        payload, _ = _get_bls(report_path)
-        text = _pdf_text(payload)
-        if not _bls_wpu0561_parseable(text):
-            raise RuntimeError("BLS sampled detailed report does not expose WPU0561 conservatively")
+    for _, release_path in BLS_SAMPLE_RELEASES:
+        payload, content_type = _get_bls(release_path)
+        if "html" not in content_type and "text" not in content_type:
+            raise RuntimeError("BLS sampled archive is not HTML/text")
+        text = _html_text(payload)
+        if not _bls_crude_petroleum_parseable(text):
+            raise RuntimeError(
+                "BLS sampled archived release does not expose crude petroleum code 05-61"
+            )
         bls_parseable += 1
 
     return {
@@ -315,9 +291,9 @@ def run_preflight() -> dict[str, object]:
         "exact_series_count": EXPECTED_SERIES_COUNT,
         "federal_reserve": fed_summary,
         "bls": {
-            "detailed_report_count": len(report_identifiers),
-            "sampled_reports": len(BLS_SAMPLE_REPORT_PATHS),
-            "wpu0561_parseable_samples": bls_parseable,
+            "archived_news_release_count": len(bls_release_dates),
+            "sampled_releases": len(BLS_SAMPLE_RELEASES),
+            "crude_petroleum_parseable_samples": bls_parseable,
         },
         "source_hosts_allowlisted": sorted(ALLOWED_HOSTS),
         "source_payloads_persisted": False,
