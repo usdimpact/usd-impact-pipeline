@@ -175,7 +175,7 @@ def extract_fed_release_dates(payload: bytes, code: str) -> list[date]:
 def extract_bls_release_dates(payload: bytes) -> list[date]:
     """Count archived BLS PPI release identifiers without using them as requests."""
     text = payload.decode("utf-8", errors="replace")
-    pattern = re.compile(rf"(?i)(?:/releases/)?{re.escape(code)}/(20\d{{6}})\b")
+    pattern = re.compile(r"(?i)ppi_(\d{8})\.htm")
     found: set[date] = set()
     for raw in pattern.findall(text):
         try:
