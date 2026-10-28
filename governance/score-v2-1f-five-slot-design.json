@@ -1,0 +1,202 @@
+{
+  "version": 1,
+  "methodology_version": "2.1F-design-candidate",
+  "state": "design_only",
+  "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/221",
+  "controlling_hold": "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
+  "predecessor": {
+    "methodology_version": "2.1E-design-candidate",
+    "blocker_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/218",
+    "authorization_consumption_merge_commit": "f2ac360fa01b4fbe87a2a94b0da4519d63210515",
+    "consumed_authorization_reuse_guard_commit": "7770bd0cc64438b4cb03353ec8f486d84de62948",
+    "candidate_score_computed": false,
+    "source_or_component_values_persisted": false,
+    "authorization_inherited": false
+  },
+  "budget_constraint": "zero_paid_market_data_budget",
+  "candidate_class": "five_slot_archived_federal_board_bls_release_architecture",
+  "legal_conclusion": false,
+  "no_source_approved": true,
+  "authorizations": {
+    "source_approval": false,
+    "real_data_fetch": false,
+    "real_data_research": false,
+    "methodology_activation": false,
+    "public_artifact_replacement": false,
+    "research_ledger_mutation": false,
+    "paid_data": false,
+    "source_contract_acceptance": false,
+    "production": false
+  },
+  "design_principle": {
+    "h15_slots_removed": true,
+    "silent_proxy_substitution": false,
+    "weight_derivation": "Equal absolute re-normalization across the five surviving v2.1E conceptual factors; no empirical candidate results were available or used.",
+    "absolute_weight_sum": 1.0,
+    "result_driven_tuning": false
+  },
+  "proposed_slots": [
+    {
+      "slot": "USD",
+      "source_family": "Federal Reserve Board",
+      "product": "H.10 Foreign Exchange Rates",
+      "exact_series_id": "H10/H10/JRXWTFB_N.B",
+      "series_label": "Nominal Broad Dollar Index",
+      "frequency": "daily observations / weekly Monday release",
+      "transform": "level",
+      "weight": 0.2,
+      "direction": "positive",
+      "conceptual_role": "broad USD strength",
+      "release_rule": "Monday 16:15 America/New_York for the previous business week's daily index observations; holiday Monday shifts to the next business day.",
+      "historical_vintage_rule": "Use only values contained in an H.10 release available by the Friday cutoff; bind the exact release provenance.",
+      "live_archive_feasibility": "sampled_historical_archive_paths_verified_before_v2_1e_h15_failure",
+      "rights_status": "candidate_only_no_source_approval"
+    },
+    {
+      "slot": "ENERGY",
+      "source_family": "U.S. Bureau of Labor Statistics",
+      "product": "Producer Price Index",
+      "exact_series_id": "WPU0561",
+      "series_label": "Crude petroleum (domestic production)",
+      "frequency": "monthly",
+      "transform": "natural_log_level",
+      "weight": -0.2,
+      "direction": "negative",
+      "conceptual_role": "domestic crude-price pressure / energy transmission",
+      "release_rule": "Use only the PPI value published in a BLS release available by the Friday cutoff; BLS PPI releases are scheduled at 08:30 America/New_York.",
+      "revision_rule": "PPI values remain subject to revision for four months after originally scheduled publication; point-in-time research must bind the vintage actually available at each Friday cutoff.",
+      "historical_vintage_rule": "Archived BLS PPI release evidence is mandatory; current revised history is not an allowed historical-vintage substitute.",
+      "live_archive_feasibility": "pending_separate_authorized_preflight",
+      "rights_status": "candidate_only_no_source_approval"
+    },
+    {
+      "slot": "FIN_CONDITIONS",
+      "source_family": "Federal Reserve Board",
+      "product": "H.8 Assets and Liabilities of Commercial Banks in the United States",
+      "exact_series_id": "H8/H8/B1001NCBA",
+      "series_label": "Bank credit, all commercial banks, seasonally adjusted",
+      "frequency": "weekly Wednesday observation / Friday release",
+      "transform": "negative_log_change_13_weeks",
+      "weight": 0.2,
+      "direction": "positive",
+      "conceptual_role": "bank-credit contraction / tightening",
+      "release_rule": "Friday generally 16:15 America/New_York; federal-holiday Friday shifts to Thursday. Use only values contained in the release available by cutoff.",
+      "historical_vintage_rule": "Release-vintage snapshot is mandatory; latest revised history is not an allowed historical-vintage substitute.",
+      "live_archive_feasibility": "sampled_historical_archive_paths_verified_before_v2_1e_h15_failure",
+      "rights_status": "candidate_only_no_source_approval"
+    },
+    {
+      "slot": "FIN_STRESS",
+      "source_family": "Federal Reserve Board",
+      "product": "H.4.1 Factors Affecting Reserve Balances",
+      "exact_series_id": "H41/H41/RESPPALDP_N.WW",
+      "series_label": "Primary credit: Wednesday level",
+      "frequency": "weekly Wednesday observation / Thursday release",
+      "transform": "log1p_level",
+      "weight": 0.2,
+      "direction": "positive",
+      "conceptual_role": "discount-window stress / emergency funding demand",
+      "release_rule": "Thursday generally 16:30 America/New_York; use Wednesday level only after release.",
+      "historical_vintage_rule": "Bind the exact H.4.1 release provenance; later corrections may not silently replace the historically available value.",
+      "live_archive_feasibility": "sampled_historical_archive_paths_verified_before_v2_1e_h15_failure",
+      "rights_status": "candidate_only_no_source_approval"
+    },
+    {
+      "slot": "LIQUIDITY",
+      "source_family": "Federal Reserve Board",
+      "product": "H.4.1 Factors Affecting Reserve Balances",
+      "exact_series_id": "H41/H41/RESPPA_N.WW",
+      "series_label": "Total assets: Wednesday level",
+      "frequency": "weekly Wednesday observation / Thursday release",
+      "transform": "log_change_13_weeks",
+      "weight": -0.2,
+      "direction": "negative",
+      "conceptual_role": "central-bank balance-sheet liquidity impulse",
+      "release_rule": "Thursday generally 16:30 America/New_York; use Wednesday level only after release.",
+      "historical_vintage_rule": "Bind the exact H.4.1 release provenance; later corrections may not silently replace the historically available value.",
+      "live_archive_feasibility": "sampled_historical_archive_paths_verified_before_v2_1e_h15_failure",
+      "rights_status": "candidate_only_no_source_approval"
+    }
+  ],
+  "removed_v2_1e_slots": [
+    {
+      "slot": "REAL_YIELD",
+      "series_id": "H15/H15/RIFLGFCY10_XII_N.B",
+      "reason": "Historical H.15 release-vintage reconstruction failed closed on the approved source boundary."
+    },
+    {
+      "slot": "UST_2Y",
+      "series_id": "H15/H15/RIFLGFCY02_N.B",
+      "reason": "Historical H.15 release-vintage reconstruction failed closed on the approved source boundary."
+    },
+    {
+      "slot": "UST_10Y",
+      "series_id": "H15/H15/RIFLGFCY10_N.B",
+      "reason": "Historical H.15 release-vintage reconstruction failed closed on the approved source boundary."
+    }
+  ],
+  "forbidden_substitutions": [
+    "H.15 current revised history",
+    "FRED",
+    "ALFRED",
+    "U.S. Treasury current history",
+    "Wayback Machine",
+    "Yahoo",
+    "yfinance",
+    "Refinitiv",
+    "LSEG",
+    "CME",
+    "Cboe",
+    "S&P DJI",
+    "ICE market data"
+  ],
+  "structural_rules": {
+    "weekly_anchor": "completed Friday",
+    "cutoff_timezone": "America/New_York",
+    "cutoff_time": "23:59:59",
+    "observation_date_is_not_release_date": true,
+    "release_date_is_not_vintage_identity": true,
+    "point_in_time_release_provenance_required": true,
+    "minimum_prior_complete_weeks": 104,
+    "normalization": "expanding_point_in_time_zscore",
+    "zscore_clip": 3.5,
+    "missing_slot_policy": "fail_closed_no_score",
+    "complete_case_history": true,
+    "dynamic_reweighting": false,
+    "proxy_autofill": false,
+    "latest_revised_history_fallback": false,
+    "target_start": "2015-01-02",
+    "history_seed_start": "2013-01-01"
+  },
+  "candidate_scale": {
+    "absolute_weights_sum_to_one": true,
+    "regime_band_scale_intent": "Preserve the v2.1E weighted-z-score scale by keeping absolute weights normalized to 1.0; exact bands must be frozen in preregistration before any v2.1F real-data results.",
+    "regime_bands_frozen_here": false
+  },
+  "mandatory_preregistration_topics": [
+    "exact five-slot inventory and weights",
+    "BLS WPU0561 historical vintage reconstruction strategy",
+    "BLS four-month revision handling",
+    "H.8 benchmark-revision handling",
+    "H.10 point-in-time release eligibility",
+    "H.4.1 release-vintage provenance",
+    "primary-credit sparse-distribution diagnostics",
+    "complete-case weekly coverage thresholds",
+    "redundancy diagnostics for the five-slot factor set",
+    "historical anchor windows and acceptance thresholds fixed before results",
+    "separate real_data_research_authorization"
+  ],
+  "known_research_risks": [
+    "Removing the three H.15 factors materially changes the economic factor mix and eliminates direct nominal/real-rate channels.",
+    "BLS WPU0561 is monthly and slower than market WTI, changing the energy channel.",
+    "BLS PPI observations are revised for four months, so point-in-time vintage reconstruction is mandatory.",
+    "H.8 is revised and subject to benchmark changes/reclassifications.",
+    "Primary credit can be near zero for long periods and may miss stress expressed through special facilities.",
+    "H.4.1 total assets and primary credit may become correlated in crises.",
+    "Five equal-absolute-weight factors may increase the influence of sparse or slow-moving series relative to v2.1E.",
+    "H.10 broad-dollar data are normally one business week behind the Friday cutoff because the week's observations are released the following Monday."
+  ],
+  "next_allowed_step": "prepare_v2_1f_preregistration_and_synthetic_release_timing_rehearsal_only",
+  "real_data_research_authorized": false,
+  "production_authorized": false
+}
