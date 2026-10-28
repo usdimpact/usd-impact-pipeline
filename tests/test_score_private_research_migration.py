@@ -69,6 +69,33 @@ class ScorePrivateResearchMigrationTests(unittest.TestCase):
             contract["required_gates_before_public_replacement"],
         )
 
+    def test_manual_read_workflow_is_read_only_and_hold_bound(self) -> None:
+        source = (
+            REPO_ROOT / ".github" / "workflows" / "score-private-research-read-rehearsal.yml"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("workflow_dispatch:", source)
+        self.assertNotIn("schedule:", source)
+        self.assertNotIn("push:", source)
+        self.assertNotIn("pull_request:", source)
+        self.assertIn("id-token: write", source)
+        self.assertIn("contents: read", source)
+        self.assertIn("github.ref == 'refs/heads/main'", source)
+        self.assertIn("SYNTHETIC_WEEK: '2099-01-02'", source)
+        self.assertIn("x-score-operation: read", source)
+        self.assertNotIn("x-score-operation: write", source)
+        self.assertIn(
+            "https://xakayexlzyrazuunqlxe.supabase.co/functions/v1/score-private-evidence-broker",
+            source,
+        )
+        self.assertIn("score-private-research-migration-contract.json", source)
+        self.assertIn("real_provider_evidence_authorized", source)
+        self.assertIn("public_replacement_authorized", source)
+        self.assertIn("production_change_authorized", source)
+        self.assertNotIn("storage/v1/object", source)
+        self.assertNotIn("signedUrl", source)
+        self.assertNotIn("signed-url", source)
+
 
 if __name__ == "__main__":
     unittest.main()
