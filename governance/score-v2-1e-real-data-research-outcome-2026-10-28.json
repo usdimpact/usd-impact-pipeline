@@ -1,0 +1,79 @@
+{
+  "version": 1,
+  "state": "blocked_fail_closed",
+  "methodology_version": "2.1E-design-candidate",
+  "owner_decision_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/209",
+  "preflight_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/211",
+  "blocker_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/218",
+  "authorization_merge_commit": "bb9e4c4d2ef7d28938d670746b4a57f3fb1af587",
+  "approved_window": {
+    "start": "2013-01-01",
+    "end": "2026-10-23"
+  },
+  "preflight_attempts": [
+    {
+      "attempt": 1,
+      "workflow_run": 40752523569,
+      "disposition": "runner_dependency_blocked_before_source_access"
+    },
+    {
+      "attempt": 2,
+      "workflow_run": 40753114657,
+      "disposition": "module_invocation_blocked_before_source_access"
+    },
+    {
+      "attempt": 3,
+      "workflow_run": 40753494184,
+      "disposition": "fed_index_parser_blocked"
+    },
+    {
+      "attempt": 4,
+      "workflow_run": 40754657012,
+      "disposition": "fed_index_parser_blocked"
+    },
+    {
+      "attempt": 5,
+      "workflow_run": 40755178476,
+      "disposition": "fed_rendered_index_not_machine_readable"
+    },
+    {
+      "attempt": 6,
+      "workflow_run": 40755916179,
+      "disposition": "hard_blocker_h15_historical_release_snapshot_unavailable"
+    }
+  ],
+  "hard_blocker": {
+    "slot_family": "H15",
+    "affected_slots": [
+      "REAL_YIELD",
+      "UST_2Y",
+      "UST_10Y"
+    ],
+    "reason": "A required historical H.15 release was officially scheduled/published, but the corresponding dated Board release snapshot is not exposed on the approved Board-only archive path. The Board documents historical H.15 corrections, so current DDP history cannot conservatively substitute for the historical release vintage.",
+    "preregistered_stop_condition_triggered": "a required release timestamp/vintage cannot be established",
+    "current_revised_history_substitution_allowed": false
+  },
+  "aggregate_preflight_observations": {
+    "h10_fixed_historical_archive_samples_reached": true,
+    "h8_fixed_historical_archive_samples_reached": true,
+    "h41_fixed_historical_archive_samples_reached": true,
+    "h15_historical_dated_archive_blocked": true,
+    "bls_full_preflight_reached": false
+  },
+  "execution_result": {
+    "full_candidate_score_computed": false,
+    "methodology_activated": false,
+    "public_artifacts_modified": false,
+    "research_ledgers_modified": false,
+    "production_modified": false,
+    "raw_source_values_persisted": false,
+    "component_values_persisted": false
+  },
+  "authorization_consumption": {
+    "one_off_authorization_consumed": true,
+    "active_authorization_receipt_should_exist": false,
+    "further_real_data_fetch_authorized": false,
+    "further_real_data_research_authorized": false
+  },
+  "next_safe_step": "Design a separately versioned candidate with point-in-time reconstructable replacements for the three H.15 slots, preregister it before viewing real-data results, and obtain a new explicit owner authorization before any real-data research."
+}
