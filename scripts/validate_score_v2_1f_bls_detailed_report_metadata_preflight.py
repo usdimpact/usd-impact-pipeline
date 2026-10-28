@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate active-but-not-dispatched Score v2.1F BLS metadata preflight authorization."""
+"""Validate dispatched Score v2.1F BLS metadata preflight authorization."""
 
 from __future__ import annotations
 
@@ -15,11 +15,9 @@ ISSUE = "https://github.com/usdimpact/usd-impact-pipeline/issues/230"
 BLOCKER = "https://github.com/usdimpact/usd-impact-pipeline/issues/228"
 APPROVAL_COMMENT = 6480432536
 APPROVED_AT = "2026-10-28T20:53:16Z"
+ACTIVATION_COMMIT = "59cd5e6b1cd47f3d04eec6588697d252ff93cff2"
 EXPECTED_WINDOW = {"start": "2013-01-01", "end": "2026-10-23"}
-EXPECTED_UA = (
-    "USD-Impact-Score-v2.1F-BLS-metadata-preflight/1.0 "
-    "(contact: support@usd-impact.com)"
-)
+EXPECTED_UA = "USD-Impact-Score-v2.1F-BLS-metadata-preflight/1.0 (contact: support@usd-impact.com)"
 
 
 def _load(path: Path) -> dict[str, Any]:
@@ -39,6 +37,7 @@ def validate(repo_root: Path) -> dict[str, Any]:
         / "governance/score-v2-1f-bls-detailed-report-metadata-preflight-authorization.template.json"
     )
     receipt = _load(root / RECEIPT)
+    dispatch = _load(root / DISPATCH)
     contract = _load(
         root
         / "governance/score-v2-1f-bls-detailed-report-metadata-preflight-execution-contract.json"
@@ -52,8 +51,6 @@ def validate(repo_root: Path) -> dict[str, Any]:
         root / ".github/workflows/score-v2-1f-bls-detailed-report-metadata-preflight.yml"
     ).read_text(encoding="utf-8")
 
-    if (root / DISPATCH).exists():
-        raise RuntimeError("BLS metadata dispatch must remain absent before separate review")
     for relative in (OLD_RECEIPT, OLD_DISPATCH):
         if (root / relative).exists():
             raise RuntimeError(f"prior consumed Stage 1 state reactivated: {relative}")
@@ -67,10 +64,8 @@ def validate(repo_root: Path) -> dict[str, Any]:
 
     if design.get("state") != "design_only_hold":
         raise RuntimeError("frozen BLS metadata design artifact changed")
-    if design.get("owner_decision_issue") != ISSUE:
-        raise RuntimeError("BLS metadata owner-decision issue changed")
-    if design.get("blocker_issue") != BLOCKER:
-        raise RuntimeError("BLS metadata blocker issue changed")
+    if design.get("owner_decision_issue") != ISSUE or design.get("blocker_issue") != BLOCKER:
+        raise RuntimeError("BLS metadata design issue binding changed")
 
     if template.get("decision_status") != "hold":
         raise RuntimeError("authorization template must remain HOLD")
@@ -119,27 +114,56 @@ def validate(repo_root: Path) -> dict[str, Any]:
         if auth.get(field) is not False:
             raise RuntimeError(f"{field} must remain false")
 
-    if contract.get("state") != "metadata_preflight_authorized_pending_dispatch":
-        raise RuntimeError("execution contract must be active but pending dispatch")
+    if dispatch.get("state") != "approved_dispatch":
+        raise RuntimeError("dispatch marker state changed")
+    if dispatch.get("phase") != "bls_detailed_report_metadata_preflight":
+        raise RuntimeError("dispatch phase changed")
+    if dispatch.get("issue") != ISSUE or dispatch.get("blocker_issue") != BLOCKER:
+        raise RuntimeError("dispatch issue binding changed")
+    if dispatch.get("authorization_activation_merge_commit") != ACTIVATION_COMMIT:
+        raise RuntimeError("dispatch activation commit changed")
+    if dispatch.get("data_window") != EXPECTED_WINDOW:
+        raise RuntimeError("dispatch window changed")
+    if dispatch.get("request_budget") != 4:
+        raise RuntimeError("dispatch request budget changed")
+    if dispatch.get("allowed_host") != "www.bls.gov":
+        raise RuntimeError("dispatch host changed")
+    for field in (
+        "report_body_download_authorized",
+        "source_value_retrieval_authorized",
+        "real_data_research_authorized",
+        "candidate_score_computation_authorized",
+        "research_ledger_mutation_authorized",
+        "public_artifact_replacement_authorized",
+        "production_authorized",
+    ):
+        if dispatch.get(field) is not False:
+            raise RuntimeError(f"{field} must remain false in dispatch")
+
+    if contract.get("state") != "metadata_preflight_authorized":
+        raise RuntimeError("execution contract must be dispatched-active")
     if contract.get("owner_approval_comment_id") != APPROVAL_COMMENT:
         raise RuntimeError("contract owner approval comment changed")
     if contract.get("owner_approval_timestamp") != APPROVED_AT:
         raise RuntimeError("contract owner approval timestamp changed")
+    if contract.get("authorization_activation_merge_commit") != ACTIVATION_COMMIT:
+        raise RuntimeError("contract activation commit changed")
     if contract.get("active_authorization_receipt_expected_now") is not True:
-        raise RuntimeError("active receipt must be expected after activation")
-    if contract.get("dispatch_marker_expected_now") is not False:
-        raise RuntimeError("dispatch must remain absent before separate review")
+        raise RuntimeError("active receipt must be expected")
+    if contract.get("dispatch_marker_expected_now") is not True:
+        raise RuntimeError("dispatch must be expected")
     if contract.get("request_budget") != 4:
         raise RuntimeError("contract request budget changed")
     if contract.get("contact_user_agent") != EXPECTED_UA:
         raise RuntimeError("contract User-Agent changed")
+
     current = contract.get("current_state", {})
     for field in (
         "network_metadata_fetch_authorized",
         "bls_metadata_preflight_authorized",
     ):
         if current.get(field) is not True:
-            raise RuntimeError(f"{field} must be true after activation")
+            raise RuntimeError(f"{field} must be true while dispatched")
     for field in (
         "report_body_download_authorized",
         "source_value_retrieval_authorized",
@@ -152,18 +176,21 @@ def validate(repo_root: Path) -> dict[str, Any]:
         if current.get(field) is not False:
             raise RuntimeError(f"{field} must remain false")
 
-    if "if: ${{ false }}" not in workflow:
-        raise RuntimeError("BLS metadata workflow must remain inert until dispatch")
+    if "score-v2-1f-bls-detailed-report-metadata-preflight-dispatch.json" not in workflow:
+        raise RuntimeError("workflow is not path-gated to the dispatch marker")
+    if "if: ${{ false }}" in workflow:
+        raise RuntimeError("workflow must be active in the dispatched state")
 
     return {
         "status": "passed",
-        "state": "metadata_preflight_authorized_pending_dispatch",
+        "state": "metadata_preflight_authorized",
         "issue": ISSUE,
         "blocker_issue": BLOCKER,
+        "activation_merge_commit": ACTIVATION_COMMIT,
         "request_budget": 4,
         "allowed_host": "www.bls.gov",
         "active_receipt_present": True,
-        "dispatch_present": False,
+        "dispatch_present": True,
         "network_metadata_fetch_authorized": True,
         "bls_metadata_preflight_authorized": True,
         "candidate_score_computation_authorized": False,
