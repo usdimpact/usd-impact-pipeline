@@ -7,6 +7,7 @@ import pandas as pd
 from pandas.testing import assert_frame_equal, assert_series_equal
 
 from scripts.score_source_adapter import AdapterSpec, normalize_daily_frame
+from scripts import rehearse_score_source_adapter_parity as rehearsal
 from usd_impact_score_v2 import (
     WEIGHTS,
     ZSCORE_CLIP,
@@ -98,6 +99,25 @@ class ScoreSourceAdapterParityTests(unittest.TestCase):
         alpha_regime = alpha_score.apply(label_regime)
         beta_regime = beta_score.apply(label_regime)
         assert_series_equal(alpha_regime, beta_regime, check_exact=True)
+
+    def test_rehearsal_report_is_fail_closed_and_equal(self) -> None:
+        report = rehearsal.rehearse()
+        self.assertEqual(report["status"], "passed")
+        self.assertTrue(report["review_only"])
+        self.assertFalse(report["network_access_performed"])
+        self.assertFalse(report["real_provider_data_used"])
+        self.assertFalse(report["live_fetch_switch_performed"])
+        self.assertFalse(report["provider_purchase_or_contract_performed"])
+        self.assertFalse(report["production_change_authorized"])
+        self.assertTrue(report["canonical_daily_frame_equal"])
+        self.assertTrue(report["weekly_inputs_equal"])
+        self.assertTrue(report["zscores_equal"])
+        self.assertTrue(report["score_equal"])
+        self.assertTrue(report["regime_equal"])
+        self.assertEqual(report["canonical_driver_count"], 8)
+        self.assertEqual(len(report["canonical_daily_sha256"]), 64)
+        self.assertEqual(report["latest_week"], "2026-08-28")
+
 
     def test_adapter_rejects_incomplete_canonical_mapping(self) -> None:
         broken = AdapterSpec(
