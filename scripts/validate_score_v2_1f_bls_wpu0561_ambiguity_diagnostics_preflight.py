@@ -47,7 +47,7 @@ def validate(repo_root: Path | None = None) -> dict[str, Any]:
     if prereg.get("state") != "preregistered_design_only":
         raise RuntimeError("v2.1F preregistration state changed")
 
-    if design.get("version") != 3 or design.get("state") != "design_only_hold":
+    if design.get("version") != 4 or design.get("state") != "design_only_hold":
         raise RuntimeError("Issue #258 frozen design changed")
     if design.get("owner_decision_issue") != ISSUE:
         raise RuntimeError("Issue #258 design issue changed")
@@ -55,6 +55,15 @@ def validate(repo_root: Path | None = None) -> dict[str, Any]:
         raise RuntimeError("economic observation budget must remain zero")
     if any(design.get("current_authorizations", {}).values()):
         raise RuntimeError("frozen design authorizations must remain false")
+    header_compat = design.get("header_compatibility_policy", {})
+    if header_compat.get("standalone_code_token_role") != "identifier":
+        raise RuntimeError("standalone Code header role changed")
+    if header_compat.get("mixed_index_code_role") != "ambiguous":
+        raise RuntimeError("Index code must remain ambiguous")
+    if header_compat.get("substring_only_matches_for_code") != "forbidden; Code must appear as a standalone word token":
+        raise RuntimeError("bare Code recognition became too permissive")
+    if header_compat.get("live_verification_status") != "not_yet_authorized":
+        raise RuntimeError("header compatibility must remain unverified without new owner authorization")
 
     if template.get("decision_status") != "hold":
         raise RuntimeError("authorization template must remain HOLD")
