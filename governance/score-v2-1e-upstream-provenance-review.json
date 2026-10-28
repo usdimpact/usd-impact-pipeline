@@ -1,0 +1,115 @@
+{
+  "version": 1,
+  "state": "evidence_only_no_source_approval",
+  "review_date": "2026-10-28",
+  "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/205",
+  "controlling_hold": "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
+  "design_merge_commit": "65e71695a3d99ed6a5584548652a61dc0e66006f",
+  "preregistration_merge_commit": "b93ab1b4514e828561e74963b1a830421a104e29",
+  "authorization_boundary_merge_commit": "4810d6546d511debf49b6e0afba57c265837f71d",
+  "legal_conclusion": false,
+  "source_approval": false,
+  "real_data_fetch_authorized": false,
+  "real_data_research_authorized": false,
+  "production_authorized": false,
+  "reviewed_official_policy": {
+    "federal_reserve_board_disclaimer": {
+      "url": "https://www.federalreserve.gov/disclaimer.htm",
+      "finding": "Board website information is public domain unless otherwise indicated; separately identified non-Board material requires separate permission."
+    },
+    "bls_copyright": {
+      "url": "https://www.bls.gov/opub/copyright-information.htm",
+      "finding": "BLS states its published material is public domain except previously copyrighted photographs and illustrations; BLS requests citation."
+    }
+  },
+  "series_review": [
+    {
+      "slot": "USD",
+      "series_id": "H10/H10/JRXWTFB_N.B",
+      "classification": "no_specific_exception_identified_in_reviewed_official_publication_path",
+      "evidence_urls": [
+        "https://www.federalreserve.gov/releases/H10/summary/default.htm",
+        "https://www.federalreserve.gov/releases/H10/Weights/"
+      ],
+      "note": "Board publishes the broad dollar index and describes the construction/weights. This classification is not source approval."
+    },
+    {
+      "slot": "ENERGY",
+      "series_id": "WPU0561",
+      "classification": "no_specific_exception_identified_in_reviewed_official_publication_path",
+      "evidence_urls": [
+        "https://www.bls.gov/opub/copyright-information.htm",
+        "https://data.bls.gov/timeseries/wpu0561"
+      ],
+      "note": "BLS publication path is covered by BLS public-domain notice. Point-in-time vintage reconstruction remains mandatory."
+    },
+    {
+      "slot": "FIN_CONDITIONS",
+      "series_id": "H8/H8/B1001NCBA",
+      "classification": "no_specific_exception_identified_in_reviewed_official_publication_path",
+      "evidence_urls": [
+        "https://www.federalreserve.gov/releases/h8/about.htm",
+        "https://www.federalreserve.gov/disclaimer.htm"
+      ],
+      "note": "H.8 is a Board statistical release estimated primarily from FR 2644 and Call Report data. Historical release-vintage handling remains mandatory."
+    },
+    {
+      "slot": "FIN_STRESS",
+      "series_id": "H41/H41/RESPPALDP_N.WW",
+      "classification": "no_specific_exception_identified_in_reviewed_official_publication_path",
+      "evidence_urls": [
+        "https://www.federalreserve.gov/releases/h41/",
+        "https://www.federalreserve.gov/disclaimer.htm"
+      ],
+      "note": "Primary credit is published in the Board H.4.1 statistical release. This review found no separately identified non-Board material for the series."
+    },
+    {
+      "slot": "LIQUIDITY",
+      "series_id": "H41/H41/RESPPA_N.WW",
+      "classification": "no_specific_exception_identified_in_reviewed_official_publication_path",
+      "evidence_urls": [
+        "https://www.federalreserve.gov/releases/h41/",
+        "https://www.federalreserve.gov/disclaimer.htm"
+      ],
+      "note": "Total assets is published in the Board H.4.1 statistical release. This review found no separately identified non-Board material for the series."
+    },
+    {
+      "slot": "REAL_YIELD",
+      "series_id": "H15/H15/RIFLGFCY10_XII_N.B",
+      "classification": "residual_upstream_provenance_requires_explicit_scope_confirmation",
+      "evidence_urls": [
+        "https://www.federalreserve.gov/releases/H15/Current/",
+        "https://www.federalreserve.gov/disclaimer.htm"
+      ],
+      "note": "The Board H.15 release states Treasury constant-maturity curves are interpolated by the U.S. Treasury from OTC market yields calculated from composites of quotations obtained by the Federal Reserve Bank of New York. No legal conclusion is drawn."
+    },
+    {
+      "slot": "UST_2Y",
+      "series_id": "H15/H15/RIFLGFCY02_N.B",
+      "classification": "residual_upstream_provenance_requires_explicit_scope_confirmation",
+      "evidence_urls": [
+        "https://www.federalreserve.gov/releases/H15/Current/",
+        "https://www.federalreserve.gov/disclaimer.htm"
+      ],
+      "note": "The Board H.15 release identifies an upstream market-quotation input path via the Federal Reserve Bank of New York. Explicit scope confirmation remains required before treating this slot as rights-cleared."
+    },
+    {
+      "slot": "UST_10Y",
+      "series_id": "H15/H15/RIFLGFCY10_N.B",
+      "classification": "residual_upstream_provenance_requires_explicit_scope_confirmation",
+      "evidence_urls": [
+        "https://www.federalreserve.gov/releases/H15/Current/",
+        "https://www.federalreserve.gov/disclaimer.htm"
+      ],
+      "note": "The Board H.15 release identifies an upstream market-quotation input path via the Federal Reserve Bank of New York. Explicit scope confirmation remains required before treating this slot as rights-cleared."
+    }
+  ],
+  "summary": {
+    "slots_reviewed": 8,
+    "no_specific_exception_identified": 5,
+    "residual_upstream_provenance": 3,
+    "candidate_source_approved": false,
+    "real_data_authorization_state": "hold",
+    "next_safe_step": "obtain explicit source-scope confirmation for H.15 constant-maturity outputs or preserve HOLD"
+  }
+}
