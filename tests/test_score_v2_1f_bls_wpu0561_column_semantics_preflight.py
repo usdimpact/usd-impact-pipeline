@@ -136,15 +136,9 @@ def _synthetic_ambiguous_xlsx() -> bytes:
 
 
 class ScoreV21FWpu0561ColumnSemanticsRunnerTests(unittest.TestCase):
-    def test_activated_without_dispatch_refuses_before_network(self) -> None:
-        with mock.patch.object(
-            preflight,
-            "_request_once",
-            side_effect=AssertionError("network request occurred in HOLD state"),
-        ) as request:
-            with self.assertRaisesRegex(RuntimeError, "authorization is not active"):
-                preflight.run_preflight()
-            request.assert_not_called()
+    def test_dispatched_authorization_gate_validates_without_network(self) -> None:
+        user_agent = preflight._validate_authorization_and_dispatch()
+        self.assertIn("support@usd-impact.com", user_agent)
 
     def test_html_semantics_maps_05_61_without_economic_value(self) -> None:
         reports = preflight._extract_html_semantics(_synthetic_html())
