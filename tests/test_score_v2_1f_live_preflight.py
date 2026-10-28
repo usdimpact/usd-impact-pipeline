@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import unittest
 from datetime import date
+from unittest import mock
 
 from scripts import run_score_v2_1f_live_preflight as preflight
 
@@ -53,8 +54,15 @@ class ScoreV21FLivePreflightTests(unittest.TestCase):
         )
         self.assertFalse(preflight._bls_crude_petroleum_parseable("Finished gasoline 0571"))
 
-    def test_dispatched_authorization_gate_validates_without_network(self) -> None:
-        preflight._validate_active_authorization_and_dispatch()
+    def test_consumed_state_refuses_before_any_network_call(self) -> None:
+        with mock.patch.object(
+            preflight,
+            "_get_fixed",
+            side_effect=AssertionError("network request after Stage 1 consumption"),
+        ) as request:
+            with self.assertRaisesRegex(RuntimeError, "authorization is not active"):
+                preflight.run_preflight()
+            request.assert_not_called()
 
 
 if __name__ == "__main__":
