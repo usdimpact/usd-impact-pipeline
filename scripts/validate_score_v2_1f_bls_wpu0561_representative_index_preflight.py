@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate active-but-not-dispatched WPU0561 representative-index authorization."""
+"""Validate dispatched WPU0561 representative-index authorization."""
 
 from __future__ import annotations
 
@@ -12,6 +12,7 @@ DISPATCH = "governance/score-v2-1f-bls-wpu0561-representative-index-preflight-di
 ISSUE = "https://github.com/usdimpact/usd-impact-pipeline/issues/252"
 APPROVAL_COMMENT = 6482942968
 APPROVED_AT = "2026-10-28T23:02:22Z"
+ACTIVATION_COMMIT = "c41413ce08f3fad32cefe7ad307449eac0e65978"
 EXPECTED_UA = "USD-Impact-Score-v2.1F-WPU0561-representative-index/1.0 (contact: support@usd-impact.com)"
 EXPECTED_RESOURCES = [
     "/news.release/archives/ppi_05152013.htm",
@@ -29,22 +30,17 @@ def validate(repo_root: Path) -> dict[str, Any]:
     design = _load(root / "governance/score-v2-1f-bls-wpu0561-representative-index-preflight-design.json")
     template = _load(root / "governance/score-v2-1f-bls-wpu0561-representative-index-preflight-authorization.template.json")
     receipt = _load(root / RECEIPT)
+    dispatch = _load(root / DISPATCH)
     contract = _load(root / "governance/score-v2-1f-bls-wpu0561-representative-index-preflight-execution-contract.json")
     predecessor = _load(root / "governance/score-v2-1f-bls-wpu0561-column-semantics-preflight-consumption-2026-10-29.json")
     rights = _load(root / "governance/score-publication-rights-gate.json")
     prereg = _load(root / "governance/score-v2-1f-preregistration.json")
     workflow = (root / ".github/workflows/score-v2-1f-bls-wpu0561-representative-index-preflight.yml").read_text(encoding="utf-8")
 
-    if (root / DISPATCH).exists():
-        raise RuntimeError("dispatch must remain absent before separate review")
-
     if predecessor.get("state") != "consumed_after_success":
         raise RuntimeError("Issue #244 consumption evidence changed")
     if predecessor.get("sanitized_result", {}).get("wpu0561_mapping_proven") is not True:
         raise RuntimeError("Issue #244 WPU0561 mapping evidence changed")
-    if predecessor.get("new_owner_authorization_required_for_any_future_live_request") is not True:
-        raise RuntimeError("future live work must require a new owner authorization")
-
     if rights.get("state") != "hold":
         raise RuntimeError("Score publication rights gate must remain HOLD")
     if prereg.get("state") != "preregistered_design_only":
@@ -64,29 +60,21 @@ def validate(repo_root: Path) -> dict[str, Any]:
     if policy.get("ambiguous_revision_context_fails_closed") is not True:
         raise RuntimeError("revision ambiguity policy changed")
 
-    if template.get("decision_status") != "hold":
-        raise RuntimeError("authorization template must remain HOLD")
-    if template.get("contact_user_agent") is not None:
-        raise RuntimeError("HOLD template must not preselect contact identity")
-    if any(template.get("authorizations", {}).values()):
-        raise RuntimeError("HOLD template authorizations must remain false")
+    if template.get("decision_status") != "hold" or any(template.get("authorizations", {}).values()):
+        raise RuntimeError("HOLD template changed")
 
-    if receipt.get("decision_status") != "approved":
-        raise RuntimeError("active representative-index receipt is not approved")
-    if receipt.get("issue") != ISSUE:
-        raise RuntimeError("active receipt issue changed")
+    if receipt.get("decision_status") != "approved" or receipt.get("issue") != ISSUE:
+        raise RuntimeError("active receipt is invalid")
     if receipt.get("execution_scope") != "bls_wpu0561_representative_index_preflight_only":
         raise RuntimeError("active receipt scope changed")
     if receipt.get("request_budget") != 2:
         raise RuntimeError("active receipt request budget changed")
-    if receipt.get("max_observations_total") != 2:
-        raise RuntimeError("active receipt total observation cap changed")
-    if receipt.get("max_observations_per_resource") != 1:
-        raise RuntimeError("active receipt per-resource observation cap changed")
-    if receipt.get("allowed_host") != "www.bls.gov":
-        raise RuntimeError("active receipt host changed")
+    if receipt.get("max_observations_total") != 2 or receipt.get("max_observations_per_resource") != 1:
+        raise RuntimeError("active receipt observation cap changed")
     if receipt.get("fixed_resources") != EXPECTED_RESOURCES:
         raise RuntimeError("active receipt resources changed")
+    if receipt.get("allowed_host") != "www.bls.gov":
+        raise RuntimeError("active receipt host changed")
     if receipt.get("contact_user_agent") != EXPECTED_UA:
         raise RuntimeError("active receipt User-Agent changed")
     if receipt.get("approved_by") != "usdimpact owner via Issue #252 approval comment 6482942968":
@@ -101,7 +89,7 @@ def validate(repo_root: Path) -> dict[str, Any]:
         "representative_index_preflight",
     ):
         if auth.get(field) is not True:
-            raise RuntimeError(f"{field} must be authorized")
+            raise RuntimeError(f"{field} must be true")
     for field in (
         "full_historical_reconstruction",
         "candidate_score_computation",
@@ -112,24 +100,49 @@ def validate(repo_root: Path) -> dict[str, Any]:
         if auth.get(field) is not False:
             raise RuntimeError(f"{field} must remain false")
 
-    if contract.get("state") != "representative_index_preflight_authorized_pending_dispatch":
-        raise RuntimeError("execution contract must be active but pending dispatch")
-    if contract.get("owner_approval_comment_id") != APPROVAL_COMMENT:
-        raise RuntimeError("contract approval comment changed")
-    if contract.get("owner_approval_timestamp") != APPROVED_AT:
-        raise RuntimeError("contract approval timestamp changed")
-    if contract.get("active_authorization_receipt_expected_now") is not True:
-        raise RuntimeError("active receipt must be expected")
-    if contract.get("dispatch_marker_expected_now") is not False:
-        raise RuntimeError("dispatch must remain absent")
+    if dispatch.get("state") != "approved_dispatch":
+        raise RuntimeError("dispatch state changed")
+    if dispatch.get("phase") != "bls_wpu0561_representative_index_preflight":
+        raise RuntimeError("dispatch phase changed")
+    if dispatch.get("issue") != ISSUE:
+        raise RuntimeError("dispatch issue changed")
+    if dispatch.get("authorization_activation_merge_commit") != ACTIVATION_COMMIT:
+        raise RuntimeError("dispatch activation commit changed")
+    if dispatch.get("request_budget") != 2:
+        raise RuntimeError("dispatch request budget changed")
+    if dispatch.get("max_observations_total") != 2 or dispatch.get("max_observations_per_resource") != 1:
+        raise RuntimeError("dispatch observation cap changed")
+    if dispatch.get("fixed_resources") != EXPECTED_RESOURCES:
+        raise RuntimeError("dispatch resources changed")
+    for field in (
+        "response_body_ephemeral_retrieval_authorized",
+        "representative_index_value_read_authorized",
+        "representative_index_preflight_authorized",
+    ):
+        if dispatch.get(field) is not True:
+            raise RuntimeError(f"{field} must be true in dispatch")
+    for field in (
+        "full_historical_reconstruction_authorized",
+        "candidate_score_computation_authorized",
+        "research_ledger_mutation_authorized",
+        "public_artifact_replacement_authorized",
+        "production_authorized",
+    ):
+        if dispatch.get(field) is not False:
+            raise RuntimeError(f"{field} must remain false in dispatch")
+
+    if contract.get("state") != "representative_index_preflight_authorized":
+        raise RuntimeError("execution contract must be dispatched-active")
+    if contract.get("owner_approval_comment_id") != APPROVAL_COMMENT or contract.get("owner_approval_timestamp") != APPROVED_AT:
+        raise RuntimeError("contract approval evidence changed")
+    if contract.get("authorization_activation_merge_commit") != ACTIVATION_COMMIT:
+        raise RuntimeError("contract activation commit changed")
+    if contract.get("active_authorization_receipt_expected_now") is not True or contract.get("dispatch_marker_expected_now") is not True:
+        raise RuntimeError("receipt/dispatch must both be expected")
     if contract.get("request_budget") != 2:
         raise RuntimeError("contract request budget changed")
-    if contract.get("max_observations_total") != 2:
-        raise RuntimeError("contract total observation cap changed")
-    if contract.get("max_observations_per_resource") != 1:
-        raise RuntimeError("contract per-resource observation cap changed")
-    if contract.get("contact_user_agent") != EXPECTED_UA:
-        raise RuntimeError("contract User-Agent changed")
+    if contract.get("max_observations_total") != 2 or contract.get("max_observations_per_resource") != 1:
+        raise RuntimeError("contract observation cap changed")
     if contract.get("fixed_resources") != EXPECTED_RESOURCES:
         raise RuntimeError("contract resources changed")
 
@@ -140,7 +153,7 @@ def validate(repo_root: Path) -> dict[str, Any]:
         "representative_index_preflight_authorized",
     ):
         if current.get(field) is not True:
-            raise RuntimeError(f"{field} must be true after activation")
+            raise RuntimeError(f"{field} must be true while dispatched")
     for field in (
         "full_historical_reconstruction_authorized",
         "candidate_score_computation_authorized",
@@ -151,20 +164,21 @@ def validate(repo_root: Path) -> dict[str, Any]:
         if current.get(field) is not False:
             raise RuntimeError(f"{field} must remain false")
 
-    if ("if: $" + "{{ false }}") not in workflow:
-        raise RuntimeError("workflow must remain inert until dispatch")
-    if "push:" in workflow:
-        raise RuntimeError("activation-only workflow must not have a push trigger")
+    if "score-v2-1f-bls-wpu0561-representative-index-preflight-dispatch.json" not in workflow:
+        raise RuntimeError("workflow is not path-gated to the dispatch marker")
+    if ("if: $" + "{{ false }}") in workflow:
+        raise RuntimeError("workflow must be active in dispatched state")
 
     return {
         "status": "passed",
-        "state": "representative_index_preflight_authorized_pending_dispatch",
+        "state": "representative_index_preflight_authorized",
         "issue": ISSUE,
+        "activation_merge_commit": ACTIVATION_COMMIT,
         "request_budget": 2,
         "max_observations_total": 2,
         "max_observations_per_resource": 1,
         "active_receipt_present": True,
-        "dispatch_present": False,
+        "dispatch_present": True,
         "response_body_ephemeral_retrieval_authorized": True,
         "representative_index_value_read_authorized": True,
         "representative_index_preflight_authorized": True,
