@@ -1,21 +1,28 @@
 {
   "version": 1,
-  "state": "design_only_hold",
+  "state": "representative_index_preflight_authorized_pending_dispatch",
   "methodology_version": "2.1F-design-candidate",
   "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/252",
   "controlling_rights_hold": "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
+  "owner_approval_comment_id": 6482942968,
+  "owner_approval_timestamp": "2026-10-28T23:02:22Z",
   "design_path": "governance/score-v2-1f-bls-wpu0561-representative-index-preflight-design.json",
   "active_authorization_receipt_path": "governance/score-v2-1f-bls-wpu0561-representative-index-preflight-authorization.json",
-  "active_authorization_receipt_expected_now": false,
+  "active_authorization_receipt_expected_now": true,
   "dispatch_marker_path": "governance/score-v2-1f-bls-wpu0561-representative-index-preflight-dispatch.json",
   "dispatch_marker_expected_now": false,
   "request_budget": 2,
   "max_observations_total": 2,
   "max_observations_per_resource": 1,
+  "contact_user_agent": "USD-Impact-Score-v2.1F-WPU0561-representative-index/1.0 (contact: support@usd-impact.com)",
+  "fixed_resources": [
+    "/news.release/archives/ppi_05152013.htm",
+    "/ppi/detailed-report/ppi-detailed-report-april-2026.xlsx"
+  ],
   "current_state": {
-    "response_body_ephemeral_retrieval_authorized": false,
-    "representative_index_value_read_authorized": false,
-    "representative_index_preflight_authorized": false,
+    "response_body_ephemeral_retrieval_authorized": true,
+    "representative_index_value_read_authorized": true,
+    "representative_index_preflight_authorized": true,
     "full_historical_reconstruction_authorized": false,
     "candidate_score_computation_authorized": false,
     "research_ledger_mutation_authorized": false,
@@ -23,7 +30,7 @@
     "production_authorized": false
   },
   "activation_preconditions": [
-    "new explicit owner authorization is recorded under Issue #252",
+    "explicit owner authorization is recorded under Issue #252 comment 6482942968",
     "owner approval explicitly acknowledges at most two representative index-level observations",
     "active receipt pins the exact 2013 HTML and 2026 XLSX resources",
     "contactable project User-Agent is pinned",
@@ -33,7 +40,6 @@
     "workflow remains inert until dispatch"
   ],
   "stop_conditions": [
-    "no active authorization receipt",
     "no dispatch marker",
     "request count would exceed two",
     "observation count would exceed two total or one per resource",
@@ -47,6 +53,6 @@
     "candidate Score or component calculations would begin",
     "public artifact, research ledger, or Production would change"
   ],
-  "next_allowed_action": "design_review_only_pending_new_owner_authorization",
+  "next_allowed_action": "separate_dispatch_review_after_activation_merge",
   "production_authorized": false
 }

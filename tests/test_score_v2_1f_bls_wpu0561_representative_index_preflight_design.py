@@ -9,11 +9,14 @@ from scripts import validate_score_v2_1f_bls_wpu0561_representative_index_prefli
 ROOT = Path(__file__).resolve().parents[1]
 
 
-class ScoreV21FWpu0561RepresentativeIndexDesignTests(unittest.TestCase):
-    def test_packet_is_design_only_and_fail_closed(self) -> None:
+class ScoreV21FWpu0561RepresentativeIndexActivationTests(unittest.TestCase):
+    def test_packet_is_authorized_but_pending_dispatch(self) -> None:
         report = validator.validate(ROOT)
         self.assertEqual(report["status"], "passed")
-        self.assertEqual(report["state"], "design_only_hold")
+        self.assertEqual(
+            report["state"],
+            "representative_index_preflight_authorized_pending_dispatch",
+        )
         self.assertEqual(
             report["issue"],
             "https://github.com/usdimpact/usd-impact-pipeline/issues/252",
@@ -21,11 +24,11 @@ class ScoreV21FWpu0561RepresentativeIndexDesignTests(unittest.TestCase):
         self.assertEqual(report["request_budget"], 2)
         self.assertEqual(report["max_observations_total"], 2)
         self.assertEqual(report["max_observations_per_resource"], 1)
-        self.assertFalse(report["active_receipt_present"])
+        self.assertTrue(report["active_receipt_present"])
         self.assertFalse(report["dispatch_present"])
-        self.assertFalse(report["response_body_ephemeral_retrieval_authorized"])
-        self.assertFalse(report["representative_index_value_read_authorized"])
-        self.assertFalse(report["representative_index_preflight_authorized"])
+        self.assertTrue(report["response_body_ephemeral_retrieval_authorized"])
+        self.assertTrue(report["representative_index_value_read_authorized"])
+        self.assertTrue(report["representative_index_preflight_authorized"])
         self.assertFalse(report["candidate_score_computation_authorized"])
         self.assertFalse(report["production_authorized"])
         self.assertTrue(report["rights_hold"])
