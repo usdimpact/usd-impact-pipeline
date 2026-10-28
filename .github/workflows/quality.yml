@@ -43,7 +43,10 @@ jobs:
         run: node --test security/score-pages-public-only.test.mjs
 
       - name: Test review-only private evidence OIDC broker
-        run: node --test security/score-private-evidence-broker.test.mjs
+        run: |
+          node --test \
+            security/score-private-evidence-broker.test.mjs \
+            security/score-private-evidence-integration.test.mjs
 
       - name: Validate private member asset publisher without remote writes
         env:
