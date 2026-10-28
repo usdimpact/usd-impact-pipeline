@@ -54,13 +54,13 @@ class ScoreV21FLivePreflightTests(unittest.TestCase):
         )
         self.assertFalse(preflight._bls_crude_petroleum_parseable("Finished gasoline 0571"))
 
-    def test_packet_only_state_refuses_before_any_network_call(self) -> None:
+    def test_activated_but_undispatched_state_refuses_before_network(self) -> None:
         with mock.patch.object(
             preflight,
             "_get_fixed",
-            side_effect=AssertionError("network request before active authorization/dispatch"),
+            side_effect=AssertionError("network request before dispatch"),
         ) as request:
-            with self.assertRaisesRegex(RuntimeError, "authorization is not active"):
+            with self.assertRaisesRegex(RuntimeError, "dispatch is not active"):
                 preflight.run_preflight()
             request.assert_not_called()
 
