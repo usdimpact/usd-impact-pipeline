@@ -96,6 +96,7 @@ test('rehearsal workflows are manual-only and least privilege', async () => {
     assert.match(source, /id-token:\s*write/);
     assert.match(source, /github\.ref == 'refs\/heads\/main'/);
     assert.match(source, /persist-credentials:\s*false/);
+    assert.doesNotMatch(source, /echo \"[^\"]*`/);
     assert.match(source, /SYNTHETIC_WEEK:\s*'2099-01-02'/);
     assert.match(source, /score-publication-rights-gate\.json/);
     assert.match(source, /score-public-rights-surface\.json/);

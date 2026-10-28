@@ -116,8 +116,8 @@ jobs:
           {
             echo "### Synthetic private evidence read rehearsal"
             echo
-            echo "- week: `2099-01-02`"
-            echo "- SHA-256: `$actual_sha`"
+            echo "- week: 2099-01-02"
+            echo "- SHA-256: $actual_sha"
             echo "- source: Development private broker"
             echo "- provider-derived values: false"
           } >> "$GITHUB_STEP_SUMMARY"

@@ -143,8 +143,8 @@ jobs:
           {
             echo "### Synthetic private evidence write rehearsal"
             echo
-            echo "- week: `2099-01-02`"
-            echo "- SHA-256: `$fixture_sha256`"
+            echo "- week: 2099-01-02"
+            echo "- SHA-256: $fixture_sha256"
             echo "- target: Development private broker"
             echo "- provider-derived values: false"
           } >> "$GITHUB_STEP_SUMMARY"
