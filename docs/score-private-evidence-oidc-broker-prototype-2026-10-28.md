@@ -92,7 +92,7 @@ The prototype pins:
 - runner environment: `github-hosted`;
 - event: `workflow_dispatch` only;
 - exact operation-specific workflow refs;
-- operation-specific audiences;
+- operation-specific, request-bound audiences;
 - short token age/lifetime;
 - signed commit/run/JTI claims.
 
@@ -100,16 +100,20 @@ It does not rely only on mutable repository names or the JWT subject.
 
 ### Write identity
 
-Audience:
-`urn:usd-impact:score-private-evidence:write:development`
+Audience pattern:
+`urn:usd-impact:score-private-evidence:write:development:<synthetic-week>:<content-sha256>`
+
+The write token is therefore valid only for the exact synthetic week and exact bytes whose SHA-256 was known before requesting the token.
 
 Future exact workflow ref:
 `usdimpact/usd-impact-pipeline/.github/workflows/score-private-evidence-write-rehearsal.yml@refs/heads/main`
 
 ### Read identity
 
-Audience:
-`urn:usd-impact:score-private-evidence:read:development`
+Audience pattern:
+`urn:usd-impact:score-private-evidence:read:development:<synthetic-week>`
+
+The read token is therefore valid only for one exact synthetic week.
 
 Future exact workflow ref:
 `usdimpact/usd-impact-pipeline/.github/workflows/score-private-evidence-read-rehearsal.yml@refs/heads/main`
@@ -223,7 +227,7 @@ This prototype does not yet solve:
 - current public artifact redaction;
 - migration of historical research inputs.
 
-Create-only write semantics make replayed writes non-destructive after the first successful create. Read-token replay remains a bounded residual risk and should be reviewed before any production design.
+Create-only write semantics make replayed writes non-destructive after the first successful create. The OIDC audience is also bound to the exact week, and write tokens additionally bind the exact content SHA-256. A replayed read token can therefore only re-read the same week during its short validity window; eliminating even that bounded replay would require a server-side one-time JTI store or equivalent and remains a production-design decision.
 
 ## Promotion gates
 
