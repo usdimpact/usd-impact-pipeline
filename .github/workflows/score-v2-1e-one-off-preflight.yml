@@ -1,0 +1,114 @@
+name: Score v2.1E one-off vintage preflight
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'governance/score-v2-1e-preflight-dispatch-2026-10-28.json'
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: score-v2-1e-one-off-vintage-preflight
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Validate one-off authorization and dispatch
+        run: |
+          python -m scripts.validate_score_v2_1e_research_authorization
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path("governance/score-v2-1e-preflight-dispatch-2026-10-28.json")
+          payload = json.loads(path.read_text(encoding="utf-8"))
+          assert payload == {
+              "version": 1,
+              "state": "dispatch_once",
+              "phase": "vintage_feasibility_preflight",
+              "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/211",
+              "authorization_merge_commit": "bb9e4c4d2ef7d28938d670746b4a57f3fb1af587",
+              "data_window": {"start": "2013-01-01", "end": "2026-10-23"},
+              "production_authorized": False,
+          }
+          print("One-off v2.1E preflight dispatch validated.")
+          PY
+
+      - name: Verify local PDF text extractor
+        run: |
+          command -v pdftotext >/dev/null
+          pdftotext -v 2>&1 | head -n 1
+
+      - name: Run official-source vintage feasibility preflight
+        env:
+          PYTHONUNBUFFERED: "1"
+        run: |
+          python scripts/run_score_v2_1e_live_preflight.py             --output "$RUNNER_TEMP/score-v2-1e-preflight.json"
+
+      - name: Record safe aggregate preflight result
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - "$RUNNER_TEMP/score-v2-1e-preflight.json" > "$RUNNER_TEMP/comment.md" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+
+          report = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+          fed = report["federal_reserve"]
+          bls = report["bls"]
+
+          print("### v2.1E live historical-vintage preflight — PASS")
+          print()
+          print("<!-- V2_1E_PREFLIGHT_COMPLETED -->")
+          print(f"- Run: https://github.com/${{GITHUB_REPOSITORY}}/actions/runs/${{GITHUB_RUN_ID}}")
+          print(f"- Authorized window: {report['authorized_data_window']['start']} through {report['authorized_data_window']['end']}")
+          print(f"- Exact series count: {report['exact_series_count']}")
+          for family in ("H10", "H8", "H41", "H15"):
+              row = fed[family]
+              print(
+                  f"- {family}: {row['release_count']} archived release identifiers enumerated; "
+                  f"{row['parseable_samples']}/{row['sampled_releases']} sampled archives parseable"
+              )
+          print(
+              f"- BLS PPI detailed reports: {bls['detailed_report_count']} enumerated; "
+              f"{bls['wpu0561_parseable_samples']}/{bls['sampled_reports']} sampled WPU0561 reports parseable"
+          )
+          print("- Source/raw values persisted: no")
+          print("- Source/raw values logged: no")
+          print("- Candidate Score computed: no")
+          print("- Production authorized: no")
+          print()
+          print("Preflight passed. This result authorizes no public or Production change; Issue #155 remains HOLD.")
+          PY
+          gh issue comment 211 --body-file "$RUNNER_TEMP/comment.md"
+
+      - name: Record fail-closed preflight failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cat > "$RUNNER_TEMP/failure.md" <<EOF
+          ### v2.1E live historical-vintage preflight — FAIL CLOSED
+
+          <!-- V2_1E_PREFLIGHT_FAILED -->
+
+          - Run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
+          - The preflight stopped before candidate Score computation.
+          - No source/component values are attached to this issue comment.
+          - No public artifact, research ledger, or Production state was modified.
+
+          The run logs should be reviewed only to identify the archive/parseability blocker. Current revised data must not be substituted for a failed historical-vintage path.
+          EOF
+          gh issue comment 211 --body-file "$RUNNER_TEMP/failure.md"
