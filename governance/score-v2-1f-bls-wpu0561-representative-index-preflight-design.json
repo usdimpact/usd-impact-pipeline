@@ -71,7 +71,6 @@
   ],
   "forbidden_now": {
     "live_bls_request": true,
-    "economic_value_extraction": true,
     "response_body_persistence": true,
     "full_historical_reconstruction": true,
     "bls_api_or_bulk": true,
@@ -79,17 +78,18 @@
     "candidate_score_computation": true,
     "research_ledger_mutation": true,
     "public_artifact_replacement": true,
-    "production_change": true
+    "production_change": true,
+    "representative_index_value_read": true
   },
   "current_authorizations": {
     "response_body_ephemeral_retrieval": false,
-    "representative_index_value_extraction": false,
     "representative_index_preflight": false,
     "full_historical_reconstruction": false,
     "candidate_score_computation": false,
     "research_ledger_mutation": false,
     "public_artifact_replacement": false,
-    "production": false
+    "production": false,
+    "representative_index_value_read": false
   },
-  "next_gate": "new_explicit_owner_authorization_under_issue_252_required_before_any_live_request_or_economic_value_extraction"
+  "next_gate": "new_explicit_owner_authorization_under_issue_252_required_before_any_live_request_or_representative_index_value_read"
 }
