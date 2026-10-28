@@ -32,6 +32,15 @@ class ScoreV21ELivePreflightTests(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             preflight._validate_path("/https://example.com/")
 
+    def test_html_parser_suppresses_script_and_style_variants(self) -> None:
+        payload = (
+            b"<div>visible<script>alert(1)</script ><style>.x{display:none}</style ></div>"
+        )
+        text = preflight._html_text(payload)
+        self.assertIn("visible", text)
+        self.assertNotIn("alert", text)
+        self.assertNotIn("display:none", text)
+
     def test_fed_release_date_extraction_respects_authorized_window(self) -> None:
         payload = b"""
         <a href="/releases/h8/20121228/">old</a>
