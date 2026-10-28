@@ -181,6 +181,13 @@ async function handleRead(req, client, week, objectPath, identity) {
     return errorResponse(404, 'archive_not_found');
   }
 
+  try {
+    validateSyntheticBundleBytes(stored.bytes, week);
+  } catch {
+    audit({ operation: 'read', week, identity, result: 'stored_bundle_rejected' });
+    return errorResponse(500, 'stored_bundle_rejected');
+  }
+
   const sha = await sha256Hex(stored.bytes);
   audit({ operation: 'read', week, identity, sha256: sha, result: 'served' });
 
