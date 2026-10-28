@@ -134,13 +134,13 @@ test('verifies a correctly signed write token with immutable repository claims',
 });
 
 test('read and write identities cannot reuse the same OIDC token', async () => {
-  const writePolicy = writePolicy();
-  const readPolicy = readPolicy();
+  const writeTrust = writePolicy();
+  const readTrust = readPolicy();
   const { privateKey, jwks } = await generateSigningKey();
-  const token = await signJwt(privateKey, validClaims(writePolicy));
+  const token = await signJwt(privateKey, validClaims(writeTrust));
 
   await assert.rejects(
-    verifyGithubOidcJwt(token, readPolicy, { jwks, nowSeconds: NOW }),
+    verifyGithubOidcJwt(token, readTrust, { jwks, nowSeconds: NOW }),
     /audience|workflow ref/i,
   );
 });
