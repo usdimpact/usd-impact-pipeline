@@ -1,17 +1,18 @@
 {
   "version": 1,
-  "state": "metadata_preflight_authorized_pending_dispatch",
+  "state": "metadata_preflight_authorized",
   "methodology_version": "2.1F-design-candidate",
   "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/230",
   "blocker_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/228",
   "controlling_rights_hold": "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
   "owner_approval_comment_id": 6480432536,
   "owner_approval_timestamp": "2026-10-28T20:53:16Z",
+  "authorization_activation_merge_commit": "59cd5e6b1cd47f3d04eec6588697d252ff93cff2",
   "design_path": "governance/score-v2-1f-bls-detailed-report-metadata-preflight-design.json",
   "active_authorization_receipt_path": "governance/score-v2-1f-bls-detailed-report-metadata-preflight-authorization.json",
   "active_authorization_receipt_expected_now": true,
   "dispatch_marker_path": "governance/score-v2-1f-bls-detailed-report-metadata-preflight-dispatch.json",
-  "dispatch_marker_expected_now": false,
+  "dispatch_marker_expected_now": true,
   "request_budget": 4,
   "contact_user_agent": "USD-Impact-Score-v2.1F-BLS-metadata-preflight/1.0 (contact: support@usd-impact.com)",
   "current_state": {
@@ -27,14 +28,15 @@
   },
   "execution_preconditions": [
     "owner approval is recorded under Issue #230 comment 6480432536",
-    "active receipt exactly matches the authorization schema and fixed 2013-01-01 through 2026-10-23 window",
+    "active receipt exactly matches the fixed 2013-01-01 through 2026-10-23 window",
+    "dispatch is pinned to activation merge 59cd5e6b1cd47f3d04eec6588697d252ff93cff2",
     "contactable project User-Agent is pinned to support@usd-impact.com",
-    "all report-body, source-value, research, scoring, public-artifact and Production flags remain false",
-    "dispatch marker remains absent until a separate reviewed dispatch change",
-    "workflow remains inert until the separate dispatch change"
+    "request budget is exactly four maximum serialized requests",
+    "all report-body, source-value, research, scoring, public-artifact and Production flags remain false"
   ],
   "stop_conditions": [
-    "no dispatch marker",
+    "active authorization receipt is absent or invalid",
+    "dispatch marker is absent or invalid",
     "request budget would exceed four",
     "any request is outside www.bls.gov",
     "any request is not one of the two fixed GETs or two report-resource HEADs",
@@ -48,6 +50,6 @@
     "candidate Score, z-score or contribution would be computed",
     "public artifact, research ledger or Production would change"
   ],
-  "next_allowed_action": "separate_dispatch_review_after_activation_merge",
+  "next_allowed_action": "execute_one_off_metadata_preflight_then_consume_authorization_fail_closed",
   "production_authorized": false
 }

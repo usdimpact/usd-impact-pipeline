@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "state": "approved_dispatch",
+  "phase": "bls_detailed_report_metadata_preflight",
+  "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/230",
+  "blocker_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/228",
+  "authorization_activation_merge_commit": "59cd5e6b1cd47f3d04eec6588697d252ff93cff2",
+  "methodology_version": "2.1F-design-candidate",
+  "data_window": {
+    "start": "2013-01-01",
+    "end": "2026-10-23"
+  },
+  "request_budget": 4,
+  "allowed_host": "www.bls.gov",
+  "allowed_requests": [
+    "GET /robots.txt",
+    "GET /ppi/detailed-report/",
+    "HEAD one 2013 report resource selected from the official index",
+    "HEAD one 2026 report resource selected from the official index"
+  ],
+  "report_body_download_authorized": false,
+  "source_value_retrieval_authorized": false,
+  "real_data_research_authorized": false,
+  "candidate_score_computation_authorized": false,
+  "research_ledger_mutation_authorized": false,
+  "public_artifact_replacement_authorized": false,
+  "production_authorized": false,
+  "dispatch_reason": "Execute the owner-approved metadata-only BLS Detailed Report feasibility preflight once after activation merge 59cd5e6b1cd47f3d04eec6588697d252ff93cff2 reached protected main."
+}
