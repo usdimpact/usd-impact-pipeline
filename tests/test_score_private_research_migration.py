@@ -8,6 +8,7 @@ from pathlib import Path
 from scripts import build_synthetic_private_score_evidence as synthetic
 from scripts import rehearse_score_private_research_migration as rehearsal
 from scripts import score_private_evidence_research_adapter as adapter
+from scripts import rehearse_score_private_reader_compatibility as reader_compat
 from usd_impact_score_v2 import WEIGHTS
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -68,6 +69,23 @@ class ScorePrivateResearchMigrationTests(unittest.TestCase):
             "separate_production_authorization",
             contract["required_gates_before_public_replacement"],
         )
+
+    def test_locked_readers_accept_temp_materialized_private_bundle(self) -> None:
+        report = reader_compat.rehearse()
+        self.assertEqual(report["status"], "passed")
+        self.assertTrue(report["review_only"])
+        self.assertFalse(report["writes_performed"])
+        self.assertFalse(report["network_access_performed"])
+        self.assertFalse(report["repository_public_paths_modified"])
+        self.assertFalse(report["locked_readers_modified"])
+        self.assertTrue(report["predictive_score_equal"])
+        self.assertTrue(report["predictive_dxy_equal"])
+        self.assertTrue(report["v3_source_levels_equal"])
+        self.assertEqual(report["v3_driver_count"], len(WEIGHTS))
+        self.assertFalse(report["production_change_authorized"])
+        self.assertFalse(report["real_provider_evidence_authorized"])
+        self.assertFalse(report["public_replacement_authorized"])
+
 
     def test_manual_read_workflow_is_read_only_and_hold_bound(self) -> None:
         workflow_dir = REPO_ROOT / ".github" / "workflows"
