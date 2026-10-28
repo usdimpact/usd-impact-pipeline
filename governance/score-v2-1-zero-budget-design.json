@@ -1,0 +1,284 @@
+{
+  "version": 1,
+  "methodology_version": "2.1-design-candidate",
+  "state": "design_only",
+  "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/187",
+  "controlling_rights_hold": "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
+  "source_replacement_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/179",
+  "budget_constraint": "zero_paid_market_data_budget",
+  "authorizations": {
+    "real_data_access": false,
+    "real_data_backtest": false,
+    "methodology_activation": false,
+    "public_artifact_replacement": false,
+    "research_ledger_mutation": false,
+    "production": false
+  },
+  "design_goal": "Determine whether a zero-cost, rights-safe Score can preserve the economic intent of Score v2 without hiding source-semantic changes.",
+  "phase_1_invariants": {
+    "start_date_target": "2015-01-01",
+    "weekly_rule": "W-FRI",
+    "zscore_clip": 3.5,
+    "normalization": "same Score v2 normalization method for source-isolation comparison",
+    "standard_deviation": "sample standard deviation (ddof=1)",
+    "canonical_driver_order": [
+      "DXY",
+      "WTI",
+      "SPX",
+      "VIX",
+      "BTC",
+      "GOLD",
+      "UST_2Y",
+      "UST_10Y"
+    ],
+    "weights": {
+      "DXY": 0.125,
+      "WTI": -0.125,
+      "SPX": -0.125,
+      "VIX": 0.125,
+      "BTC": -0.125,
+      "GOLD": -0.125,
+      "UST_2Y": 0.125,
+      "UST_10Y": 0.125
+    },
+    "regime_bands": [
+      {
+        "low": 1,
+        "high": null,
+        "label": "Strong dollar regime"
+      },
+      {
+        "low": 0.3,
+        "high": 1,
+        "label": "Firm dollar regime"
+      },
+      {
+        "low": -0.3,
+        "high": 0.3,
+        "label": "Neutral / transitional"
+      },
+      {
+        "low": -1,
+        "high": -0.3,
+        "label": "Soft dollar regime"
+      },
+      {
+        "low": null,
+        "high": -1,
+        "label": "Weak dollar regime"
+      }
+    ],
+    "rule": "No weight, sign, normalization, clipping, weekly-rule or regime-band change is allowed in the first source-substitution research candidate."
+  },
+  "drivers": [
+    {
+      "driver": "DXY",
+      "conceptual_role": "USD strength",
+      "v2_series": "DX-Y.NYB",
+      "v2_weight": 0.125,
+      "v2_direction": "positive",
+      "design_status": "candidate_methodology_substitution",
+      "zero_budget_candidate": "DTWEXBGS",
+      "candidate_label": "Federal Reserve Nominal Broad U.S. Dollar Index",
+      "candidate_source": "Board of Governors / FRED",
+      "semantic_change": "ICE DXY basket and weights -> broad trade-weighted USD basket",
+      "phase_1_action": "research_only_if_rights_and_history_confirmed",
+      "silent_replacement_forbidden": true
+    },
+    {
+      "driver": "WTI",
+      "conceptual_role": "oil / global commodity-risk transmission",
+      "v2_series": "CL=F",
+      "v2_weight": -0.125,
+      "v2_direction": "negative",
+      "design_status": "candidate_methodology_substitution",
+      "zero_budget_candidate": "DCOILWTICO",
+      "candidate_label": "WTI Cushing spot",
+      "candidate_source": "EIA via FRED/direct EIA",
+      "semantic_change": "continuous/front futures convention -> physical spot benchmark",
+      "phase_1_action": "research_only_if_rights_and_history_confirmed",
+      "silent_replacement_forbidden": true
+    },
+    {
+      "driver": "SPX",
+      "conceptual_role": "US risk assets",
+      "v2_series": "^GSPC",
+      "v2_weight": -0.125,
+      "v2_direction": "negative",
+      "design_status": "blocked_by_rights",
+      "zero_budget_candidate": null,
+      "candidate_label": null,
+      "candidate_source": null,
+      "semantic_change": null,
+      "phase_1_action": "do_not_substitute_until_zero_cost_rights_safe_index_or_explicit_redesign_is_identified",
+      "silent_replacement_forbidden": true
+    },
+    {
+      "driver": "VIX",
+      "conceptual_role": "equity volatility / risk aversion",
+      "v2_series": "^VIX",
+      "v2_weight": 0.125,
+      "v2_direction": "positive",
+      "design_status": "blocked_by_rights",
+      "zero_budget_candidate": null,
+      "candidate_label": null,
+      "candidate_source": null,
+      "semantic_change": null,
+      "phase_1_action": "do_not_substitute_until_zero_cost_rights_safe_volatility_measure_or_explicit_redesign_is_identified",
+      "silent_replacement_forbidden": true
+    },
+    {
+      "driver": "BTC",
+      "conceptual_role": "crypto / speculative liquidity risk",
+      "v2_series": "BTC-USD",
+      "v2_weight": -0.125,
+      "v2_direction": "negative",
+      "design_status": "unresolved_zero_budget_source",
+      "zero_budget_candidate": null,
+      "candidate_label": null,
+      "candidate_source": null,
+      "semantic_change": null,
+      "phase_1_action": "no_candidate_until_price_convention_and_rights_are_explicit",
+      "silent_replacement_forbidden": true
+    },
+    {
+      "driver": "GOLD",
+      "conceptual_role": "precious-metal / real-rate and USD transmission",
+      "v2_series": "GC=F",
+      "v2_weight": -0.125,
+      "v2_direction": "negative",
+      "design_status": "unresolved_zero_budget_source",
+      "zero_budget_candidate": null,
+      "candidate_label": null,
+      "candidate_source": null,
+      "semantic_change": null,
+      "phase_1_action": "no_candidate_until_futures_or_alternative_gold_measure_semantics_and_rights_are explicit",
+      "silent_replacement_forbidden": true
+    },
+    {
+      "driver": "UST_2Y",
+      "conceptual_role": "front-end nominal rates",
+      "v2_series": "DGS2",
+      "v2_weight": 0.125,
+      "v2_direction": "positive",
+      "design_status": "retain_if_rights_confirmed",
+      "zero_budget_candidate": "DGS2",
+      "candidate_label": "2-Year Treasury Constant Maturity Rate",
+      "candidate_source": "FRED",
+      "semantic_change": "none",
+      "phase_1_action": "retain_only_if_FRED_use_is_confirmed",
+      "silent_replacement_forbidden": false
+    },
+    {
+      "driver": "UST_10Y",
+      "conceptual_role": "long-end nominal rates",
+      "v2_series": "DGS10",
+      "v2_weight": 0.125,
+      "v2_direction": "positive",
+      "design_status": "retain_if_rights_confirmed",
+      "zero_budget_candidate": "DGS10",
+      "candidate_label": "10-Year Treasury Constant Maturity Rate",
+      "candidate_source": "FRED",
+      "semantic_change": "none",
+      "phase_1_action": "retain_only_if_FRED_use_is_confirmed",
+      "silent_replacement_forbidden": false
+    }
+  ],
+  "research_protocol": {
+    "status": "not_authorized",
+    "first_candidate_type": "source_semantics_only",
+    "candidate_freeze_required_before_data": true,
+    "candidate_source_definitions_required_before_data": true,
+    "candidate_rights_evidence_required_before_data": true,
+    "data_cutoff_required_before_data": true,
+    "no_lookahead": true,
+    "revision_policy_required": true,
+    "missing_history_policy_required": true,
+    "incomplete_driver_policy": "fail_closed_no_score",
+    "no_reweighting_for_missing_driver": true,
+    "no_proxy_autofill": true,
+    "measurements": [
+      "weekly_observation_coverage",
+      "driver_level_overlap_weeks",
+      "driver_level_pearson_correlation",
+      "driver_level_spearman_correlation",
+      "weekly_direction_agreement",
+      "weekly_standardized_value_difference",
+      "aggregate_score_correlation",
+      "aggregate_score_mean_absolute_difference",
+      "aggregate_score_max_absolute_difference",
+      "regime_agreement_rate",
+      "regime_transition_date_difference",
+      "historical_regime_window_behavior",
+      "freshness_failure_count",
+      "missing_week_count"
+    ],
+    "acceptance_thresholds": {
+      "status": "not_set",
+      "rule": "Thresholds must be preregistered before any authorized real-data comparison; they may not be selected after seeing candidate results."
+    }
+  },
+  "versioning": {
+    "v2_history_rewrite_forbidden": true,
+    "v2_1_must_be_new_methodology_version": true,
+    "backfilled_v2_1_history_must_be_labeled_recomputed": true,
+    "v2_and_v2_1_must_not_be_spliced_into_one_unversioned_series": true,
+    "transition_date_requires_approval": true
+  },
+  "public_private_target": {
+    "public_allowed_if_rights_gate_later_permits": [
+      "date",
+      "aggregate_score",
+      "regime",
+      "aggregate_score_history",
+      "methodology_version",
+      "weights",
+      "regime_bands",
+      "approved_high_level_source_provenance",
+      "non_value_bearing_hashes"
+    ],
+    "private_by_default": [
+      "raw_provider_values",
+      "component_daily_history",
+      "component_weekly_levels",
+      "normalization_moments",
+      "component_zscores",
+      "component_contributions",
+      "provider_specific_reproduction_inputs"
+    ]
+  },
+  "gates_before_any_real_data_research": [
+    "issue_155_scope_allows_research_use",
+    "candidate_rights_documented",
+    "candidate_semantics_frozen",
+    "research_metrics_and_thresholds_preregistered",
+    "data_cutoff_preregistered",
+    "revision_policy_preregistered",
+    "missing_history_policy_preregistered",
+    "separate_real_data_research_authorization"
+  ],
+  "gates_before_methodology_activation": [
+    "authorized_real_data_research_completed",
+    "research_results_reviewed",
+    "v2_1_methodology_decision_recorded",
+    "public_private_artifact_schema_approved",
+    "archive_transition_plan_approved",
+    "research_reader_migration_or_versioning_approved",
+    "exact_head_ci_green",
+    "separate_production_authorization"
+  ],
+  "prohibited": [
+    "run_real_candidate_data_before_authorization",
+    "select_acceptance_thresholds_after_viewing_results",
+    "change_weights_to_improve_candidate_fit_during_phase_1",
+    "silently_replace_DXY_with_broad_dollar_index",
+    "silently_replace_WTI_futures_with_spot",
+    "use_ETF_proxy_for_SPX_without_explicit_methodology_change",
+    "use_VIX_futures_or_other_volatility_proxy_as_VIX_without_explicit_methodology_change",
+    "choose_BTC_reference_convention_after_viewing_performance",
+    "replace_COMEX_gold_futures_with_spot_gold_without_explicit_methodology_change",
+    "publish_component_provider_derived_values_under_unresolved_rights",
+    "rewrite_v2_history",
+    "deploy_v2_1_without_separate_production_authorization"
+  ]
+}
