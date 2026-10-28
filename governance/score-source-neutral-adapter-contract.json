@@ -1,0 +1,160 @@
+{
+  "version": 1,
+  "state": "review_only",
+  "issues": {
+    "rights_hold": "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
+    "source_replacement": "https://github.com/usdimpact/usd-impact-pipeline/issues/179"
+  },
+  "production_change_authorized": false,
+  "real_provider_data_migration_authorized": false,
+  "provider_purchase_or_contract_authorized": false,
+  "live_fetch_switch_authorized": false,
+  "score_semantics": {
+    "start_date": "2015-01-01",
+    "weekly_rule": "W-FRI",
+    "zscore_clip": 3.5,
+    "canonical_driver_order": [
+      "DXY",
+      "WTI",
+      "SPX",
+      "VIX",
+      "BTC",
+      "GOLD",
+      "UST_2Y",
+      "UST_10Y"
+    ],
+    "weights": {
+      "DXY": 0.125,
+      "WTI": -0.125,
+      "SPX": -0.125,
+      "VIX": 0.125,
+      "BTC": -0.125,
+      "GOLD": -0.125,
+      "UST_2Y": 0.125,
+      "UST_10Y": 0.125
+    },
+    "source_age_days": {
+      "DXY": 3,
+      "WTI": 3,
+      "SPX": 3,
+      "VIX": 3,
+      "BTC": 2,
+      "GOLD": 3,
+      "UST_2Y": 4,
+      "UST_10Y": 4
+    },
+    "daily_input_contract": {
+      "index": "calendar date",
+      "value_type": "finite numeric daily observation or missing",
+      "timezone_contract": "provider date normalized to pandas date index before canonical join",
+      "join": "outer join on daily date",
+      "provider_specific_values": "not part of score semantics once mapped to canonical driver columns"
+    }
+  },
+  "current_sources": {
+    "DXY": {
+      "provider_code": "yahoo",
+      "delivery": "Yahoo Finance via yfinance",
+      "series": "DX-Y.NYB",
+      "rights_state": "replace_or_explicitly_license"
+    },
+    "WTI": {
+      "provider_code": "yahoo",
+      "delivery": "Yahoo Finance via yfinance",
+      "series": "CL=F",
+      "rights_state": "replace_or_explicitly_license"
+    },
+    "SPX": {
+      "provider_code": "yahoo",
+      "delivery": "Yahoo Finance via yfinance",
+      "series": "^GSPC",
+      "rights_state": "replace_or_explicitly_license"
+    },
+    "VIX": {
+      "provider_code": "yahoo",
+      "delivery": "Yahoo Finance via yfinance",
+      "series": "^VIX",
+      "rights_state": "replace_or_explicitly_license"
+    },
+    "BTC": {
+      "provider_code": "yahoo",
+      "delivery": "Yahoo Finance via yfinance",
+      "series": "BTC-USD",
+      "rights_state": "replace_or_explicitly_license"
+    },
+    "GOLD": {
+      "provider_code": "yahoo",
+      "delivery": "Yahoo Finance via yfinance",
+      "series": "GC=F",
+      "rights_state": "replace_or_explicitly_license"
+    },
+    "UST_2Y": {
+      "provider_code": "fred",
+      "delivery": "FRED",
+      "series": "DGS2",
+      "rights_state": "retain_if_series_rights_confirmed"
+    },
+    "UST_10Y": {
+      "provider_code": "fred",
+      "delivery": "FRED",
+      "series": "DGS10",
+      "rights_state": "retain_if_series_rights_confirmed"
+    }
+  },
+  "replacement_requirements": {
+    "adapter_output": {
+      "type": "daily_dataframe",
+      "columns": [
+        "DXY",
+        "WTI",
+        "SPX",
+        "VIX",
+        "BTC",
+        "GOLD",
+        "UST_2Y",
+        "UST_10Y"
+      ],
+      "index": "daily date",
+      "canonical_order_required": true,
+      "extra_columns_forbidden": true
+    },
+    "parity_dimensions": [
+      "instrument identity",
+      "price/index field definition",
+      "adjustment convention",
+      "front-contract/continuous-futures convention",
+      "trading calendar",
+      "observation timezone/date",
+      "Friday-ended weekly resampling behavior",
+      "holiday/missing-data behavior",
+      "revision behavior",
+      "units",
+      "freshness limits",
+      "history availability from 2015-01-01"
+    ],
+    "gates_before_development_real_data": [
+      "commercial_internal_use_rights_documented",
+      "retention_rights_documented",
+      "derived_use_rights_documented",
+      "provider_specific_semantics_documented",
+      "synthetic_adapter_tests_green",
+      "issue_155_scope_allows_use"
+    ],
+    "gates_before_production": [
+      "development_parity_rehearsal_green",
+      "research_protocol_change_approved_if_required",
+      "weekly_release_contract_updated_and_green",
+      "archive_and_provenance_migration_approved",
+      "exact_head_ci_green",
+      "separate_production_authorization"
+    ]
+  },
+  "prohibited_shortcuts": [
+    "treat_yfinance_access_as_commercial_license",
+    "treat_delayed_data_as_redistribution_permission",
+    "change_instrument_or_price_semantics_to_fit_vendor",
+    "change_score_weights_or_formula_during_source_migration",
+    "mix_new_and_old_sources_without_explicit_parity_evidence",
+    "publish_provider_derived_component_values_before_rights_resolution"
+  ]
+}
