@@ -41,7 +41,7 @@ class ScoreV21ELivePreflightTests(unittest.TestCase):
     def test_fed_release_date_extraction_respects_authorized_window(self) -> None:
         payload = b"""
         <a href="/releases/h8/20121228/">old</a>
-        <a href="/releases/h8/20130104/">in</a>
+        <a href="/releases/h8/20130104">in terminal</a>
         <a href="/releases/h8/20261023/default.htm">in</a>
         <a href="/releases/h8/20261030/">future</a>
         """
