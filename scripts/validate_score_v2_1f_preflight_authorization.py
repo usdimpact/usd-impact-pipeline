@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate active-but-not-dispatched Score v2.1F live-vintage preflight authorization."""
+"""Validate dispatched Score v2.1F live-vintage preflight authorization."""
 
 from __future__ import annotations
 
@@ -9,6 +9,7 @@ from typing import Any
 
 DESIGN_COMMIT = "e14aec35142b9536b5b889d0fae4eab9a94faf88"
 PREREG_COMMIT = "bcf473e2bbcb36fa1080a3a56f77a3796d74ccaa"
+ACTIVATION_COMMIT = "48f6815199db7c030939629f49a75001d20ae566"
 ACTIVE_RECEIPT = "governance/score-v2-1f-live-vintage-preflight-authorization.json"
 DISPATCH = "governance/score-v2-1f-live-vintage-preflight-dispatch.json"
 APPROVAL_COMMENT = 6479715940
@@ -35,6 +36,7 @@ def validate(repo_root: Path) -> dict[str, Any]:
         repo_root / "governance/score-v2-1f-live-vintage-preflight-authorization.template.json"
     )
     receipt = _load(repo_root / ACTIVE_RECEIPT)
+    dispatch = _load(repo_root / DISPATCH)
     contract = _load(
         repo_root / "governance/score-v2-1f-live-vintage-preflight-execution-contract.json"
     )
@@ -50,8 +52,6 @@ def validate(repo_root: Path) -> dict[str, Any]:
         raise RuntimeError("v2.1F preregistration state changed")
     if prereg.get("design_merge_commit") != DESIGN_COMMIT:
         raise RuntimeError("v2.1F design pin changed")
-    if (repo_root / DISPATCH).exists():
-        raise RuntimeError("v2.1F dispatch marker must remain absent before dispatch review")
 
     if template.get("decision_status") != "hold":
         raise RuntimeError("HOLD template must remain unchanged")
@@ -100,30 +100,44 @@ def validate(repo_root: Path) -> dict[str, Any]:
         if auth.get(field) is not False:
             raise RuntimeError(f"{field} must remain false")
 
-    output = receipt.get("output_policy", {})
+    if dispatch.get("version") != 1 or dispatch.get("state") != "dispatch_once":
+        raise RuntimeError("dispatch marker state changed")
+    if dispatch.get("phase") != "live_historical_vintage_feasibility_preflight":
+        raise RuntimeError("dispatch phase changed")
+    if dispatch.get("issue") != "https://github.com/usdimpact/usd-impact-pipeline/issues/224":
+        raise RuntimeError("dispatch issue changed")
+    if dispatch.get("authorization_activation_merge_commit") != ACTIVATION_COMMIT:
+        raise RuntimeError("dispatch activation pin changed")
+    if dispatch.get("exact_series") != EXPECTED_SERIES:
+        raise RuntimeError("dispatch exact-series inventory changed")
+    if dispatch.get("data_window") != EXPECTED_WINDOW:
+        raise RuntimeError("dispatch data window changed")
     for field in (
-        "source_values_in_logs",
-        "component_values_in_logs",
-        "candidate_score_output",
-        "public_repo_source_values",
+        "candidate_score_computation_authorized",
+        "full_candidate_research_authorized",
+        "public_artifact_replacement_authorized",
+        "research_ledger_mutation_authorized",
+        "production_authorized",
     ):
-        if output.get(field) is not False:
-            raise RuntimeError(f"{field} must remain false")
+        if dispatch.get(field) is not False:
+            raise RuntimeError(f"{field} must remain false in dispatch")
 
-    if contract.get("state") != "live_vintage_preflight_authorized_pending_dispatch":
-        raise RuntimeError("execution contract must be active but pending dispatch")
+    if contract.get("state") != "live_vintage_preflight_authorized":
+        raise RuntimeError("execution contract must be dispatched-active")
     if contract.get("owner_approval_comment_id") != APPROVAL_COMMENT:
         raise RuntimeError("contract owner approval comment changed")
     if contract.get("owner_approval_timestamp") != APPROVED_AT:
         raise RuntimeError("contract owner approval timestamp changed")
+    if contract.get("authorization_activation_merge_commit") != ACTIVATION_COMMIT:
+        raise RuntimeError("contract activation merge pin changed")
     if contract.get("design_merge_commit") != DESIGN_COMMIT:
         raise RuntimeError("contract design pin changed")
     if contract.get("preregistration_merge_commit") != PREREG_COMMIT:
         raise RuntimeError("contract preregistration pin changed")
     if contract.get("active_authorization_receipt_expected_now") is not True:
-        raise RuntimeError("active receipt must be expected after activation")
-    if contract.get("dispatch_marker_expected_now") is not False:
-        raise RuntimeError("dispatch marker must remain absent before separate review")
+        raise RuntimeError("active receipt must be expected")
+    if contract.get("dispatch_marker_expected_now") is not True:
+        raise RuntimeError("dispatch marker must be expected")
     if contract.get("authorized_data_window") != EXPECTED_WINDOW:
         raise RuntimeError("contract data window changed")
     if contract.get("production_authorized") is not False:
@@ -134,13 +148,13 @@ def validate(repo_root: Path) -> dict[str, Any]:
         "real_data_fetch_authorized",
         "live_vintage_preflight_authorized",
         "active_receipt_present",
+        "dispatch_marker_present",
     ):
         if current.get(field) is not True:
-            raise RuntimeError(f"{field} must be true after activation")
+            raise RuntimeError(f"{field} must be true during dispatched preflight")
     for field in (
         "real_data_research_authorized",
         "candidate_score_computation_authorized",
-        "dispatch_marker_present",
         "paid_data_authorized",
         "source_contract_acceptance_authorized",
         "durable_private_storage_authorized",
@@ -153,12 +167,13 @@ def validate(repo_root: Path) -> dict[str, Any]:
 
     return {
         "status": "passed",
-        "state": "live_vintage_preflight_authorized_pending_dispatch",
+        "state": "live_vintage_preflight_authorized",
         "decision_status": "approved",
         "exact_series_count": len(EXPECTED_SERIES),
         "data_window": EXPECTED_WINDOW,
+        "activation_merge_commit": ACTIVATION_COMMIT,
         "active_authorization_receipt_present": True,
-        "dispatch_marker_present": False,
+        "dispatch_marker_present": True,
         "real_data_fetch_authorized": True,
         "live_vintage_preflight_authorized": True,
         "real_data_research_authorized": False,
