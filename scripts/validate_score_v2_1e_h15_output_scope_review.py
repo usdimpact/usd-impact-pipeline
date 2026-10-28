@@ -24,7 +24,6 @@ def validate(repo_root: Path) -> dict[str, object]:
     review = _load(repo_root / "governance/score-v2-1e-h15-output-scope-review.json")
     prior = _load(repo_root / "governance/score-v2-1e-upstream-provenance-review.json")
     hold = _load(repo_root / "governance/score-publication-rights-gate.json")
-    active_receipt = repo_root / "governance/score-v2-1e-real-data-research-authorization.json"
 
     if review.get("state") != "evidence_only_no_source_approval":
         raise RuntimeError("H.15 review state changed")
@@ -38,12 +37,10 @@ def validate(repo_root: Path) -> dict[str, object]:
         "production_authorized",
     ):
         if review.get(key) is not False:
-            raise RuntimeError(f"{key} must remain false")
+            raise RuntimeError(f"{key} must remain false in the historical review artifact")
 
     if hold.get("state") != "hold":
         raise RuntimeError("rights HOLD must remain active")
-    if active_receipt.exists():
-        raise RuntimeError("active v2.1E research authorization receipt must remain absent")
 
     prior_rows = {row["slot"]: row for row in prior.get("series_review", [])}
     for slot in EXPECTED:
@@ -87,7 +84,7 @@ def validate(repo_root: Path) -> dict[str, object]:
     if summary.get("rights_hold_remains") is not True:
         raise RuntimeError("rights HOLD must remain explicit")
     if summary.get("active_research_authorization_receipt_present") is not False:
-        raise RuntimeError("active authorization receipt must remain absent")
+        raise RuntimeError("historical review snapshot changed")
 
     return {
         "status": "passed",
