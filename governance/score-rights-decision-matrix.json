@@ -1,0 +1,125 @@
+{
+  "version": 1,
+  "state": "provider_counsel_decision_required",
+  "effective_date": "2026-10-28",
+  "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
+  "engineering_conclusion": "technical_containment_path_proven_but_rights_not_resolved",
+  "legal_conclusion": null,
+  "public_target": {
+    "aggregate_score": true,
+    "regime": true,
+    "aggregate_history": true,
+    "methodology_weights": true,
+    "regime_bands": true,
+    "non_value_bearing_hashes": true,
+    "component_weekly_levels": false,
+    "component_z_scores": false,
+    "component_contributions": false,
+    "normalization_moments": false,
+    "component_revision_diagnostics": false,
+    "exact_provider_provenance": "decision_required"
+  },
+  "classes": {
+    "A": {
+      "current_treatment": "public",
+      "proposed_treatment": "retain_public",
+      "decision_needed": "confirm_no_separate_restriction",
+      "rationale": "aggregate_or_operational"
+    },
+    "B": {
+      "current_treatment": "public",
+      "proposed_treatment": "retain_public_with_reviewed_wording",
+      "decision_needed": "approve_provider_source_naming_and_replication_wording",
+      "rationale": "methodology_or_source_contract_without_observation_series"
+    },
+    "C": {
+      "current_treatment": "public",
+      "proposed_treatment": "replace_with_aggregate_safe_public_views_after_private_migration",
+      "decision_needed": "confirm_whether_any_component_fields_may_remain_public",
+      "rationale": "direct_component_derived_release_evidence"
+    },
+    "D": {
+      "current_treatment": "public",
+      "proposed_treatment": "retain_aggregate_results_remove_or_narrow_provenance_as_required",
+      "decision_needed": "approve_provenance_wording",
+      "rationale": "aggregate_research_with_provider_provenance"
+    },
+    "E": {
+      "current_treatment": "public",
+      "proposed_treatment": "aggregate_safe_transform_or_private_only",
+      "decision_needed": "derived_data_rights_disposition",
+      "rationale": "component_derived_diagnostic_research"
+    },
+    "F": {
+      "current_treatment": "public",
+      "proposed_treatment": "aggregate_safe_transform_or_private_only",
+      "decision_needed": "derived_data_and_revision_rights_disposition",
+      "rationale": "component_revision_research"
+    }
+  },
+  "provider_questions": [
+    {
+      "provider_family": "Yahoo Finance / yfinance delivery path",
+      "instruments": [
+        "DX-Y.NYB",
+        "CL=F",
+        "^GSPC",
+        "^VIX",
+        "BTC-USD",
+        "GC=F"
+      ],
+      "ask": "Confirm permitted commercial use, retention, internal research use, public redistribution, and publication of transformed/derived values for each applicable upstream dataset.",
+      "unresolved": true
+    },
+    {
+      "provider_family": "S&P Dow Jones Indices / S&P 500",
+      "instruments": [
+        "^GSPC"
+      ],
+      "ask": "Confirm whether public aggregate Score outputs derived in part from S&P 500 observations require a derived-data or redistribution license, and whether component-level transformed values may be published.",
+      "unresolved": true
+    },
+    {
+      "provider_family": "Cboe Global Indices / VIX",
+      "instruments": [
+        "^VIX"
+      ],
+      "ask": "Confirm licensing required for external redistribution of transformed VIX-derived values and whether aggregate non-reversible outputs are permitted.",
+      "unresolved": true
+    },
+    {
+      "provider_family": "CME Group / WTI and Gold futures",
+      "instruments": [
+        "CL=F",
+        "GC=F"
+      ],
+      "ask": "Confirm whether Score outputs or diagnostics constitute derived works under applicable CME data terms and what public/internal uses are licensed.",
+      "unresolved": true
+    },
+    {
+      "provider_family": "FRED / U.S. Treasury series",
+      "instruments": [
+        "DGS2",
+        "DGS10"
+      ],
+      "ask": "Confirm attribution, redistribution and derived-data treatment for the exact FRED series used, separately from the Yahoo-delivered inputs.",
+      "unresolved": true
+    }
+  ],
+  "engineering_evidence": {
+    "private_boundary_proven": true,
+    "aggregate_safe_transform_proven": true,
+    "locked_reader_compatibility_proven": true,
+    "full_locked_reader_write_false_dry_run_proven": true,
+    "production_migration_performed": false
+  },
+  "release_requires": [
+    "provider_or_counsel_disposition_recorded",
+    "public_safe_schema_approved",
+    "research_readers_no_longer_depend_on_public_component_values_or_explicit_exception",
+    "archive_and_consumer_migration_plan_approved",
+    "exact_head_ci_green",
+    "separate_production_authorization"
+  ],
+  "production_change_authorized": false
+}
