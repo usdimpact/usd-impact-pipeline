@@ -23,6 +23,21 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Set up Python 3.11
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: runtime/requirements-2026-10-05.lock
+
+      - name: Install pinned runtime dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip==26.2.1
+          python -m pip install -r runtime/requirements-2026-10-05.lock
+          python -m pip check
+
       - name: Confirm rights HOLD remains active
         shell: bash
         run: |
@@ -33,6 +48,7 @@ jobs:
 
           gate = json.loads(Path("governance/score-publication-rights-gate.json").read_text())
           surface = json.loads(Path("governance/score-public-rights-surface.json").read_text())
+          migration = json.loads(Path("governance/score-private-research-migration-contract.json").read_text())
           if gate.get("state") != "hold":
               raise SystemExit("Score publication gate is not HOLD")
           if gate.get("decision_receipt") is not None:
@@ -41,6 +57,14 @@ jobs:
               raise SystemExit("Score public rights surface is not HOLD")
           if surface.get("production_change_authorized") is not False:
               raise SystemExit("Production change is unexpectedly authorized")
+          if migration.get("state") != "review_only":
+              raise SystemExit("private research migration contract is not review-only")
+          if migration.get("development_synthetic_rehearsal_authorized") is not True:
+              raise SystemExit("Development synthetic rehearsal is not authorized")
+          if migration.get("real_provider_evidence_authorized") is not False:
+              raise SystemExit("real provider evidence is unexpectedly authorized")
+          if migration.get("public_replacement_authorized") is not False:
+              raise SystemExit("public replacement is unexpectedly authorized")
           PY
 
       - name: Request week-bound GitHub OIDC token
@@ -122,6 +146,45 @@ jobs:
             echo "- provider-derived values: false"
           } >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Validate private research adapter and aggregate-safe view
+        shell: bash
+        env:
+          SYNTHETIC_WEEK: '2099-01-02'
+        run: |
+          set -euo pipefail
+          report="$RUNNER_TEMP/private-research-migration-report.json"
+          python -m scripts.validate_score_private_research_migration_bundle \
+            --repo-root . \
+            --bundle "$RUNNER_TEMP/repro_bundle.json" \
+            --expected-week "$SYNTHETIC_WEEK" \
+            --report-output "$report"
+
+          REPORT="$report" python - <<'PY'
+          import json, os
+          from pathlib import Path
+
+          report = json.loads(Path(os.environ["REPORT"]).read_text())
+          if report.get("status") != "passed":
+              raise SystemExit("private research migration validation did not pass")
+          if report.get("private_component_values_exposed_publicly") is not False:
+              raise SystemExit("private component leakage detected")
+          if report.get("production_change_authorized") is not False:
+              raise SystemExit("Production change unexpectedly authorized")
+          if report.get("real_provider_evidence_authorized") is not False:
+              raise SystemExit("real provider evidence unexpectedly authorized")
+          if report.get("public_replacement_authorized") is not False:
+              raise SystemExit("public replacement unexpectedly authorized")
+          PY
+
+          {
+            echo "### Private research adapter validation"
+            echo
+            echo "- source: authorized Development read workflow"
+            echo "- provider-derived real evidence: false"
+            echo "- public replacement: false"
+            echo "- Production change: false"
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Remove runner-temporary evidence
         if: always()
         shell: bash
@@ -129,4 +192,5 @@ jobs:
           rm -f \
             "$RUNNER_TEMP/repro_bundle.json" \
             "$RUNNER_TEMP/headers.txt" \
+            "$RUNNER_TEMP/private-research-migration-report.json" \
             "$RUNNER_TEMP/oidc-token.txt"
