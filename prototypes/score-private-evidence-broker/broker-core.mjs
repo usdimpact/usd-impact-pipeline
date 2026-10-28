@@ -1,8 +1,10 @@
 export const BROKER_MODE = 'synthetic-only';
 export const MAX_BODY_BYTES = 1024 * 1024;
 export const STORAGE_BUCKET = 'score-private-evidence';
-export const WORKFLOW_REF =
-  'usdimpact/usd-impact-pipeline/.github/workflows/score-private-evidence-rehearsal.yml@refs/heads/main';
+export const WORKFLOW_REFS = Object.freeze({
+  write: 'usdimpact/usd-impact-pipeline/.github/workflows/score-private-evidence-write-rehearsal.yml@refs/heads/main',
+  read: 'usdimpact/usd-impact-pipeline/.github/workflows/score-private-evidence-read-rehearsal.yml@refs/heads/main',
+});
 
 const BASE_POLICY = Object.freeze({
   repository: 'usdimpact/usd-impact-pipeline',
@@ -10,7 +12,6 @@ const BASE_POLICY = Object.freeze({
   repositoryOwnerId: '275107298',
   ref: 'refs/heads/main',
   refType: 'branch',
-  workflowRef: WORKFLOW_REF,
   allowedEvents: ['workflow_dispatch'],
   runnerEnvironment: 'github-hosted',
   subjectPrefix: 'repo:usdimpact/usd-impact-pipeline',
@@ -50,7 +51,11 @@ const REQUIRED_COMPONENTS = [
 
 export function buildOidcPolicy(operation) {
   if (!(operation in AUDIENCES)) throw new Error('Unsupported broker operation');
-  return { ...BASE_POLICY, audience: AUDIENCES[operation] };
+  return {
+    ...BASE_POLICY,
+    audience: AUDIENCES[operation],
+    workflowRef: WORKFLOW_REFS[operation],
+  };
 }
 
 export function parseBearerToken(headerValue) {
