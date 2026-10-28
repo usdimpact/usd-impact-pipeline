@@ -1,14 +1,21 @@
 from __future__ import annotations
 
 import unittest
+from unittest import mock
 
 from scripts import run_score_v2_1f_bls_wpu0561_representative_index_preflight as preflight
 
 
 class ScoreV21FWpu0561RepresentativeIndexRunnerTests(unittest.TestCase):
-    def test_dispatched_authorization_gate_validates_without_network(self) -> None:
-        user_agent = preflight._validate_authorization_and_dispatch()
-        self.assertIn("support@usd-impact.com", user_agent)
+    def test_consumed_state_refuses_before_network(self) -> None:
+        with mock.patch.object(
+            preflight,
+            "_request_once",
+            side_effect=AssertionError("network request occurred in consumed state"),
+        ) as request:
+            with self.assertRaisesRegex(RuntimeError, "authorization is not active"):
+                preflight.run_preflight()
+            request.assert_not_called()
 
     def test_single_index_level_candidate_is_allowed(self) -> None:
         rows = [

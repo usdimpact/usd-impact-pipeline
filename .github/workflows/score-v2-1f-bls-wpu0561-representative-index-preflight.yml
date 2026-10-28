@@ -1,94 +1,18 @@
-name: Score v2.1F BLS WPU0561 representative index preflight
+name: Score v2.1F BLS WPU0561 representative index preflight (consumed)
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'governance/score-v2-1f-bls-wpu0561-representative-index-preflight-dispatch.json'
+  workflow_dispatch:
 
 permissions:
   contents: read
-  issues: write
-
-concurrency:
-  group: score-v2-1f-bls-wpu0561-representative-index-preflight
-  cancel-in-progress: false
 
 jobs:
-  representative-index-preflight:
+  consumed:
+    if: ${{ false }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-
-      - name: Run owner-authorized representative-index preflight
-        env:
-          PYTHONUNBUFFERED: "1"
+      - name: Consumed authorization guard
         run: |
-          python -m scripts.run_score_v2_1f_bls_wpu0561_representative_index_preflight \
-            > "$RUNNER_TEMP/representative-index.json"
-
-      - name: Record sanitized result
-        if: success()
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          python - "$RUNNER_TEMP/representative-index.json" > "$RUNNER_TEMP/comment.md" <<'PY'
-          import json
-          import os
-          import sys
-          from pathlib import Path
-
-          report = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
-          run_url = (
-              f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/actions/runs/"
-              f"{os.environ['GITHUB_RUN_ID']}"
-          )
-          html_obs = report.get("html_result", {}).get("observation")
-          xlsx_obs = report.get("xlsx_result", {}).get("observation")
-
-          print(f"### v2.1F WPU0561 representative index-level preflight — {report['status'].upper()}")
-          print()
-          print("<!-- V2_1F_WPU0561_REPRESENTATIVE_INDEX_COMPLETED -->")
-          print(f"- Run: {run_url}")
-          print(f"- Request count: {report['request_count']}/2")
-          print(f"- Observation count: {report['observation_count']}/2")
-          if html_obs:
-              print(f"- 2013 HTML observation: {html_obs['value']} ({html_obs['semantic']}; {html_obs['revision_context']})")
-          else:
-              print("- 2013 HTML observation: not retained (ambiguous/fail-closed)")
-          if xlsx_obs:
-              print(f"- April 2026 XLSX observation: {xlsx_obs['value']} ({xlsx_obs['semantic']}; {xlsx_obs['revision_context']})")
-          else:
-              print("- April 2026 XLSX observation: not retained (ambiguous/fail-closed)")
-          print("- Percent-change fields retained: no")
-          print("- Unrelated numeric values retained: no")
-          print("- Full historical reconstruction: no")
-          print("- Candidate Score/z-score/contribution computation: no")
-          print("- Public artifact or research-ledger modification: no")
-          print("- Production modified: no")
-          print()
-          print("This one-off result does not authorize broader historical reconstruction, scoring, publication changes, or Production use.")
-          PY
-          gh issue comment 252 --repo "$GITHUB_REPOSITORY" --body-file "$RUNNER_TEMP/comment.md"
-
-      - name: Record fail-closed result
-        if: failure()
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          cat > "$RUNNER_TEMP/failure.md" <<EOF
-          ### v2.1F WPU0561 representative index-level preflight — FAIL CLOSED
-
-          <!-- V2_1F_WPU0561_REPRESENTATIVE_INDEX_FAILED -->
-
-          - Run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
-          - The run stopped under the exact two-request / two-observation policy.
-          - No broader historical reconstruction or Score calculation occurred.
-          - No public artifact, research ledger, or Production state was modified.
-
-          Do not retry or broaden the request boundary under this authorization.
-          EOF
-          gh issue comment 252 --repo "$GITHUB_REPOSITORY" --body-file "$RUNNER_TEMP/failure.md"
+          echo "The Issue #252 representative index-level authorization has been consumed."
+          echo "The one-off run returned an ambiguous fail-closed research result with 0 retained observations."
+          echo "A new explicit owner authorization is required for any future live request or economic-value read."
