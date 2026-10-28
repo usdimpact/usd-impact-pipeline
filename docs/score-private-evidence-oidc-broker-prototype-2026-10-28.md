@@ -168,12 +168,13 @@ Request:
 
 Broker:
 1. verifies GitHub signature and exact write identity;
-2. validates synthetic bundle;
-3. recomputes SHA-256;
-4. uploads with `upsert: false`;
-5. reads exact object back;
-6. verifies byte hash;
-7. returns non-sensitive receipt metadata.
+2. verifies bucket metadata still matches the approved private/JSON-only/1 MiB contract;
+3. validates synthetic bundle;
+4. recomputes SHA-256;
+5. uploads with `upsert: false`;
+6. reads exact object back;
+7. verifies byte hash;
+8. returns non-sensitive receipt metadata.
 
 A repeated create at the same object path is refused.
 
@@ -187,10 +188,11 @@ Request:
 
 Broker:
 1. verifies GitHub signature and exact read identity;
-2. derives exact object path;
-3. downloads through privileged server-side Storage access;
-4. hashes bytes;
-5. streams bytes directly with `private, no-store`.
+2. verifies bucket metadata still matches the approved private/JSON-only/1 MiB contract;
+3. derives exact object path;
+4. downloads through privileged server-side Storage access;
+5. hashes bytes;
+6. streams bytes directly with `private, no-store`.
 
 No signed/public bearer URL is created.
 
