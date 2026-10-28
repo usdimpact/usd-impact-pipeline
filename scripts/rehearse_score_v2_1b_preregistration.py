@@ -102,9 +102,19 @@ def _synthetic_events(start_friday: date, weeks: int) -> list[Event]:
         events.append(Event("FIN_CONDITIONS", prior_friday, datetime.combine(wednesday, time(8, 30), NY), -0.5 + i * 0.002))
         events.append(Event("FIN_STRESS", prior_friday, datetime.combine(wednesday, time(10, 0), NY), -0.4 + i * 0.003))
 
-        # Add an intentionally future-released same-Friday NFCI observation.
-        future_wednesday = friday + timedelta(days=5)
-        events.append(Event("FIN_CONDITIONS", friday, datetime.combine(future_wednesday, time(8, 30), NY), 9999.0))
+        # Add one intentionally future-released same-Friday NFCI observation
+        # at the probe week. It must be excluded from that Friday, without
+        # contaminating the later synthetic history.
+        if i == 120:
+            future_release = friday + timedelta(days=12)
+            events.append(
+                Event(
+                    "FIN_CONDITIONS",
+                    friday,
+                    datetime.combine(future_release, time(8, 30), NY),
+                    9999.0,
+                )
+            )
 
         # WALCL: Wednesday level released Thursday.
         events.append(Event("LIQUIDITY", wednesday, datetime.combine(thursday, time(16, 30), NY), 6000000.0 * (1.0 + 0.0008 * i)))
