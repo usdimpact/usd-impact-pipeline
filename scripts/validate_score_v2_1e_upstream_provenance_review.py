@@ -47,7 +47,7 @@ def validate(repo_root: Path) -> dict[str, object]:
         "slots_reviewed": 8,
         "h15_residual_slots": 3,
         "source_approval": False,
-        "review_artifact_real_data_research_authorized": False,
+        "real_data_research_authorized": False,
         "production_authorized": False,
         "rights_hold": True,
     }
