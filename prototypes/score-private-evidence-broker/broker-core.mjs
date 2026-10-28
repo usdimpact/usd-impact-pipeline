@@ -20,7 +20,7 @@ const BASE_POLICY = Object.freeze({
   maxTokenLifetimeSeconds: 600,
 });
 
-const AUDIENCES = Object.freeze({
+const AUDIENCE_PREFIXES = Object.freeze({
   write: 'urn:usd-impact:score-private-evidence:write:development',
   read: 'urn:usd-impact:score-private-evidence:read:development',
 });
@@ -74,11 +74,21 @@ export function validateBucketMetadata(data) {
   return true;
 }
 
-export function buildOidcPolicy(operation) {
-  if (!(operation in AUDIENCES)) throw new Error('Unsupported broker operation');
+export function buildOidcAudience(operation, { week, sha256 = null } = {}) {
+  if (!(operation in AUDIENCE_PREFIXES)) throw new Error('Unsupported broker operation');
+  validateSyntheticWeek(week);
+
+  if (operation === 'write') {
+    validateDeclaredSha256(sha256);
+    return `${AUDIENCE_PREFIXES.write}:${week}:${sha256}`;
+  }
+  return `${AUDIENCE_PREFIXES.read}:${week}`;
+}
+
+export function buildOidcPolicy(operation, binding) {
   return {
     ...BASE_POLICY,
-    audience: AUDIENCES[operation],
+    audience: buildOidcAudience(operation, binding),
     workflowRef: WORKFLOW_REFS[operation],
   };
 }
