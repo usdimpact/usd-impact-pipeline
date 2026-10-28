@@ -1,0 +1,110 @@
+{
+  "version": 1,
+  "state": "public_evidence_only",
+  "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/193",
+  "legal_conclusion": false,
+  "zero_budget": true,
+  "rows": [
+    {
+      "series": "DTWEXBGS",
+      "source": "Federal Reserve Board",
+      "status": "strong_candidate",
+      "basis": "Board public-domain default",
+      "unresolved": [
+        "series-specific exception check",
+        "direct delivery path",
+        "attribution"
+      ]
+    },
+    {
+      "series": "DCOILWTICO",
+      "source": "EIA",
+      "status": "strong_candidate",
+      "basis": "EIA public-domain/reuse statement",
+      "unresolved": [
+        "direct delivery path",
+        "attribution implementation"
+      ]
+    },
+    {
+      "series": "FCI_G_BASELINE_MONTHLY",
+      "source": "Federal Reserve Board",
+      "status": "conditional_candidate",
+      "basis": "Board public-domain default for Board-created output",
+      "unresolved": [
+        "third-party input implications",
+        "publication/versioning/revision policy",
+        "monthly timing"
+      ]
+    },
+    {
+      "series": "OFR_FSI",
+      "source": "Office of Financial Research",
+      "status": "conditional_candidate",
+      "basis": "federal-employee work copyright rule",
+      "unresolved": [
+        "third-party material exception check",
+        "revision/vintage policy",
+        "direct data endpoint"
+      ]
+    },
+    {
+      "series": "WALCL",
+      "source": "Federal Reserve Board",
+      "status": "strong_candidate",
+      "basis": "Board public-domain default",
+      "unresolved": [
+        "series-specific exception check",
+        "direct delivery path",
+        "attribution"
+      ]
+    },
+    {
+      "series": "DFII10",
+      "source": "Federal Reserve Board",
+      "status": "strong_candidate",
+      "basis": "Board public-domain default",
+      "unresolved": [
+        "series-specific exception check",
+        "direct delivery path",
+        "attribution"
+      ]
+    },
+    {
+      "series": "DGS2",
+      "source": "Federal Reserve Board",
+      "status": "strong_candidate",
+      "basis": "Board public-domain default",
+      "unresolved": [
+        "series-specific exception check",
+        "direct delivery path",
+        "attribution"
+      ]
+    },
+    {
+      "series": "DGS10",
+      "source": "Federal Reserve Board",
+      "status": "strong_candidate",
+      "basis": "Board public-domain default",
+      "unresolved": [
+        "series-specific exception check",
+        "direct delivery path",
+        "attribution"
+      ]
+    }
+  ],
+  "rejected_or_deprioritized": [
+    {
+      "series": "NFCI",
+      "reason": "Chicago Fed legal notice says commercial/republication use of Bank-copyrighted materials generally requires written permission.",
+      "status": "deprioritize_for_zero_friction_candidate"
+    },
+    {
+      "series": "STLFSI4",
+      "reason": "Copyrighted/citation-required series; public aggregate derived/machine-readable scope is less explicit than federal-source alternatives.",
+      "status": "deprioritize_for_rights_minimized_candidate"
+    }
+  ],
+  "no_source_approved": true,
+  "production_authorized": false
+}
