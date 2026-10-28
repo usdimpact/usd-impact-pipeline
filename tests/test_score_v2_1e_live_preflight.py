@@ -38,18 +38,16 @@ class ScoreV21ELivePreflightTests(unittest.TestCase):
         self.assertIn("visible", text)
         self.assertNotIn("alert", text)
 
-    def test_fed_release_date_extraction_respects_authorized_window(self) -> None:
-        payload = b"""
-        <a href="20121228">old relative</a>
-        <a href="20130104">in relative terminal</a>
-        <a href="./20130111/default.htm">in dot-relative</a>
-        <a href="https://www.federalreserve.gov/releases/h8/20261023">in absolute</a>
-        <a href="/releases/h8/20261030/">future</a>
-        """
-        self.assertEqual(
-            preflight.extract_fed_release_dates(payload, "h8"),
-            [date(2013, 1, 4), date(2013, 1, 11), date(2026, 10, 23)],
-        )
+    def test_fed_fixed_samples_span_authorized_window(self) -> None:
+        for family, cfg in preflight.FED_FAMILIES.items():
+            samples = tuple(cfg["sample_dates"])
+            self.assertEqual(len(samples), 3, family)
+            self.assertLessEqual(preflight.START, samples[0], family)
+            self.assertLess(samples[0], samples[1], family)
+            self.assertLess(samples[1], samples[2], family)
+            self.assertLessEqual(samples[2], preflight.END, family)
+            self.assertTrue(cfg["landing_tokens"], family)
+            self.assertTrue(cfg["tokens"], family)
 
     def test_bls_release_date_extraction_respects_authorized_window(self) -> None:
         payload = b"""
