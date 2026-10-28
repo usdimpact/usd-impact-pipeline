@@ -9,13 +9,13 @@ persists, or returns source values and it never computes a candidate Score.
 from __future__ import annotations
 
 import argparse
-import html
 import http.client
 import json
 import re
 import subprocess
 import sys
 from datetime import date
+from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -132,11 +132,30 @@ def _get_bls(path: str) -> tuple[bytes, str]:
     return _get_fixed(BLS_HOST, path)
 
 
+class _VisibleTextParser(HTMLParser):
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self._suppressed_depth = 0
+        self.parts: list[str] = []
+
+    def handle_starttag(self, tag: str, attrs) -> None:
+        if tag.lower() in {"script", "style"}:
+            self._suppressed_depth += 1
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag.lower() in {"script", "style"} and self._suppressed_depth:
+            self._suppressed_depth -= 1
+
+    def handle_data(self, data: str) -> None:
+        if not self._suppressed_depth:
+            self.parts.append(data)
+
+
 def _html_text(payload: bytes) -> str:
-    text = payload.decode("utf-8", errors="replace")
-    text = re.sub(r"(?is)<script.*?</script>|<style.*?</style>", " ", text)
-    text = re.sub(r"(?s)<[^>]+>", " ", text)
-    return re.sub(r"\s+", " ", html.unescape(text)).strip()
+    parser = _VisibleTextParser()
+    parser.feed(payload.decode("utf-8", errors="replace"))
+    parser.close()
+    return re.sub(r"\\s+", " ", " ".join(parser.parts)).strip()
 
 
 def _pdf_text(payload: bytes) -> str:
