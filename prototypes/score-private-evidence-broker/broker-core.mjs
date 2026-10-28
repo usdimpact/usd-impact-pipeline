@@ -49,6 +49,31 @@ const REQUIRED_COMPONENTS = [
   'UST_10Y',
 ];
 
+export function validateBucketMetadata(data) {
+  if (!data || typeof data !== 'object' || Array.isArray(data)) {
+    throw new Error('bucket_policy_mismatch');
+  }
+
+  const bucketId = data.id ?? data.name;
+  const fileSizeLimit = Number(data.file_size_limit ?? data.fileSizeLimit);
+  const allowedMimeTypes = data.allowed_mime_types ?? data.allowedMimeTypes;
+
+  if (bucketId !== STORAGE_BUCKET) throw new Error('bucket_policy_mismatch');
+  if (data.public !== false) throw new Error('bucket_policy_mismatch');
+  if (!Number.isFinite(fileSizeLimit) || fileSizeLimit !== MAX_BODY_BYTES) {
+    throw new Error('bucket_policy_mismatch');
+  }
+  if (
+    !Array.isArray(allowedMimeTypes)
+    || allowedMimeTypes.length !== 1
+    || allowedMimeTypes[0] !== 'application/json'
+  ) {
+    throw new Error('bucket_policy_mismatch');
+  }
+
+  return true;
+}
+
 export function buildOidcPolicy(operation) {
   if (!(operation in AUDIENCES)) throw new Error('Unsupported broker operation');
   return {
