@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "state": "consumed_after_completed_diagnostics",
+  "methodology_version": "2.1F-design-candidate",
+  "owner_decision_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/258",
+  "controlling_rights_hold": "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
+  "owner_approval_comment_id": 6483711604,
+  "owner_approval_timestamp": "2026-10-28T23:46:03Z",
+  "authorization_activation_merge_commit": "f67d925e5bc35575f822ae6e22566b0155fbf00f",
+  "dispatch_merge_commit": "7046d9d69c65739ca43c4e6effec7fbee3c0b35f",
+  "request_budget": 2,
+  "max_economic_observations_total": 0,
+  "max_economic_observations_per_resource": 0,
+  "consumed_by_phase": "bls_wpu0561_ambiguity_diagnostics_preflight",
+  "preflight_run": "https://github.com/usdimpact/usd-impact-pipeline/actions/runs/40790532286",
+  "preflight_workflow_conclusion": "success",
+  "preflight_result_status": "completed",
+  "result_comment_id": 6483857134,
+  "consumption_comment_id": 6483863027,
+  "completed_at": "2026-10-28T23:54:44Z",
+  "consumed_at": "2026-10-28T23:55:06Z",
+  "sanitized_result": {
+    "request_attempt_count": 2,
+    "economic_observation_count": 0,
+    "html": {
+      "transport_status": "passed",
+      "semantic_status": "evaluated",
+      "reason_summary": {
+        "no_local_header_anchor": 1
+      },
+      "candidate_bearing_or_proven_blocks": 0
+    },
+    "xlsx": {
+      "transport_status": "passed",
+      "semantic_status": "evaluated",
+      "reason_summary": {
+        "no_local_header_anchor": 1
+      },
+      "candidate_bearing_or_proven_blocks": 0
+    },
+    "alternate_sources_used": false,
+    "full_historical_reconstruction_performed": false,
+    "candidate_score_computed": false,
+    "component_zscores_computed": false,
+    "component_contributions_computed": false,
+    "research_ledger_modified": false,
+    "public_artifacts_modified": false,
+    "production_modified": false
+  },
+  "interpretation": "Both fixed resources were reachable and semantically evaluated under the zero-economic-value rules. Neither parser found a local header stack satisfying the current description-plus-identifier anchor policy, so the result is no_local_header_anchor for both formats. This diagnostic does not invalidate the previously proven Crude petroleum to 0561 identity mapping; it identifies the current local-header anchor policy as the next design boundary to inspect.",
+  "post_consumption_authorizations": {
+    "response_body_ephemeral_retrieval": false,
+    "ambiguity_diagnostics_preflight": false,
+    "numeric_identifier_field_read": false,
+    "economic_value_read": false,
+    "full_historical_reconstruction": false,
+    "candidate_score_computation": false,
+    "research_ledger_mutation": false,
+    "public_artifact_replacement": false,
+    "production": false
+  },
+  "new_owner_authorization_required_for_any_future_live_request": true
+}
