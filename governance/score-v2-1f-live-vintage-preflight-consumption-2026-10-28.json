@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "state": "consumed_fail_closed",
+  "methodology_version": "2.1F-design-candidate",
+  "owner_decision_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/224",
+  "owner_approval_comment_id": 6479715940,
+  "owner_approval_timestamp": "2026-10-28T20:20:28Z",
+  "authorization_activation_merge_commit": "48f6815199db7c030939629f49a75001d20ae566",
+  "dispatch_merge_commit": "6ea7eb7390ad9949799867c6db38f20664cba6a3",
+  "authorized_data_window": {
+    "start": "2013-01-01",
+    "end": "2026-10-23"
+  },
+  "consumed_by_phase": "live_historical_vintage_feasibility_preflight",
+  "preflight_run": "https://github.com/usdimpact/usd-impact-pipeline/actions/runs/40763350781",
+  "preflight_conclusion": "failure",
+  "blocker_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/228",
+  "consumed_at": "2026-10-28T20:27:02Z",
+  "failure": {
+    "stage": "BLS PPI archive index retrieval",
+    "official_host": "www.bls.gov",
+    "official_path": "/bls/news-release/ppi.htm",
+    "http_status": 403,
+    "federal_reserve_phase_completed_before_bls_request": true,
+    "interpretation": "automation access/feasibility blocker on the approved official-source boundary; no substitute source authorized"
+  },
+  "research_result": {
+    "candidate_score_computed": false,
+    "component_zscores_computed": false,
+    "component_contributions_computed": false,
+    "source_or_component_values_persisted": false,
+    "source_or_component_values_posted_to_issue": false,
+    "public_artifacts_modified": false,
+    "research_ledgers_modified": false,
+    "production_modified": false
+  },
+  "post_consumption_authorizations": {
+    "real_data_fetch": false,
+    "live_vintage_preflight": false,
+    "real_data_research": false,
+    "candidate_score_computation": false,
+    "paid_data": false,
+    "source_contract_acceptance": false,
+    "research_ledger_mutation": false,
+    "public_artifact_replacement": false,
+    "production": false
+  },
+  "owner_approval_preserved_as_audit_evidence": true,
+  "new_owner_authorization_required_for_any_future_live_request": true
+}
