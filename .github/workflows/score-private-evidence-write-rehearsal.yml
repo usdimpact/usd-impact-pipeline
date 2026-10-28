@@ -51,7 +51,7 @@ jobs:
           set -euo pipefail
           fixture_root="$RUNNER_TEMP/score-private-evidence-synthetic"
           rm -rf "$fixture_root"
-          python scripts/build_synthetic_private_score_evidence.py \
+          python -m scripts.build_synthetic_private_score_evidence \
             --output-root "$fixture_root" \
             > "$RUNNER_TEMP/synthetic-report.json"
 
