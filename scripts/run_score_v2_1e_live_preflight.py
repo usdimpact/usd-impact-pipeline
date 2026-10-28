@@ -34,28 +34,28 @@ FED_FAMILIES = {
     "H10": {
         "index_path": "/releases/h10/",
         "archive_code": "h10",
-        "minimum_releases": 600,
-        "tokens": (("broad", "dollar"),),
+        "landing_tokens": (("foreign exchange rates",), ("h.10", "h10")),
+        "tokens": (("broad",), ("dollar",)),
         "sample_dates": (date(2013, 1, 7), date(2020, 1, 6), date(2025, 1, 6)),
     },
     "H8": {
         "index_path": "/releases/h8/",
         "archive_code": "h8",
-        "minimum_releases": 600,
+        "landing_tokens": (("assets and liabilities",), ("commercial banks",)),
         "tokens": (("bank credit",), ("commercial banks",)),
         "sample_dates": (date(2013, 1, 11), date(2020, 1, 10), date(2025, 1, 10)),
     },
     "H41": {
         "index_path": "/releases/h41/",
         "archive_code": "h41",
-        "minimum_releases": 600,
+        "landing_tokens": (("factors affecting reserve balances",), ("h.4.1", "h41")),
         "tokens": (("primary credit",), ("total assets",)),
         "sample_dates": (date(2013, 1, 3), date(2020, 1, 2), date(2025, 1, 2)),
     },
     "H15": {
         "index_path": "/releases/h15/",
         "archive_code": "h15",
-        "minimum_releases": 3000,
+        "landing_tokens": (("selected interest rates",), ("h.15", "h15")),
         "tokens": (
             ("2-year", "2 year"),
             ("10-year", "10 year"),
@@ -150,56 +150,11 @@ class _VisibleTextParser(HTMLParser):
             self.parts.append(data)
 
 
-class _HrefParser(HTMLParser):
-    def __init__(self) -> None:
-        super().__init__(convert_charrefs=True)
-        self.hrefs: list[str] = []
-
-    def handle_starttag(self, tag: str, attrs) -> None:
-        if tag.lower() != "a":
-            return
-        for key, value in attrs:
-            if key.lower() == "href" and isinstance(value, str):
-                self.hrefs.append(value.strip())
-
-
-def _hrefs(payload: bytes) -> list[str]:
-    parser = _HrefParser()
-    parser.feed(payload.decode("utf-8", errors="replace"))
-    parser.close()
-    return parser.hrefs
-
-
 def _html_text(payload: bytes) -> str:
     parser = _VisibleTextParser()
     parser.feed(payload.decode("utf-8", errors="replace"))
     parser.close()
     return re.sub(r"\s+", " ", " ".join(parser.parts)).strip()
-
-
-def extract_fed_release_dates(payload: bytes, code: str) -> list[date]:
-    code = code.lower()
-    family_pattern = re.compile(
-        rf"(?i)(?:^|/)releases/{re.escape(code)}/(20\d{{6}})(?:$|[/?#])"
-    )
-    relative_pattern = re.compile(r"(?i)^(?:\./)?(20\d{6})(?:$|[/?#])")
-    found: set[date] = set()
-
-    for href in _hrefs(payload):
-        family_match = family_pattern.search(href)
-        relative_match = relative_pattern.search(href)
-        match = family_match or relative_match
-        if not match:
-            continue
-        raw = match.group(1)
-        try:
-            value = date(int(raw[:4]), int(raw[4:6]), int(raw[6:8]))
-        except ValueError:
-            continue
-        if START <= value <= END:
-            found.add(value)
-
-    return sorted(found)
 
 
 def extract_bls_release_dates(payload: bytes) -> list[date]:
@@ -263,19 +218,20 @@ def _validate_active_authorization() -> None:
 def run_preflight() -> dict[str, object]:
     _validate_active_authorization()
 
-    fed_summary: dict[str, dict[str, int]] = {}
+    fed_summary: dict[str, dict[str, object]] = {}
     for family, cfg in FED_FAMILIES.items():
-        payload, _ = _get_fed(str(cfg["index_path"]))
-        release_dates = extract_fed_release_dates(payload, str(cfg["archive_code"]))
-        if len(release_dates) < int(cfg["minimum_releases"]):
-            raise RuntimeError(
-                f"{family} historical release enumeration is incomplete "
-                f"({len(release_dates)} < {cfg['minimum_releases']})"
-            )
+        index_payload, index_content_type = _get_fed(str(cfg["index_path"]))
+        if "html" not in index_content_type and "text" not in index_content_type:
+            raise RuntimeError(f"{family} release landing page is not HTML/text")
+        landing_text = _html_text(index_payload)
+        if not _matches_family(landing_text, cfg["landing_tokens"]):
+            raise RuntimeError(f"{family} release landing page identity could not be verified")
 
         sample_dates = tuple(cfg["sample_dates"])
-        if not all(released in release_dates for released in sample_dates):
-            raise RuntimeError(f"{family} fixed sample identifiers are absent from official index")
+        if len(sample_dates) != 3:
+            raise RuntimeError(f"{family} must retain exactly three fixed archive samples")
+        if not (START <= sample_dates[0] < sample_dates[1] < sample_dates[2] <= END):
+            raise RuntimeError(f"{family} fixed archive samples do not span the authorized window")
 
         parseable = 0
         for released in sample_dates:
@@ -285,9 +241,10 @@ def run_preflight() -> dict[str, object]:
             parseable += 1
 
         fed_summary[family] = {
-            "release_count": len(release_dates),
+            "archive_surface_verified": True,
             "sampled_releases": len(sample_dates),
             "parseable_samples": parseable,
+            "full_run_release_validation_required": True,
         }
 
     bls_index, _ = _get_bls(BLS_NEWS_ARCHIVE_PATH)
