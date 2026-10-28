@@ -96,7 +96,7 @@ async function readStoredBytes(client, objectPath) {
   return { bytes, error: false };
 }
 
-async function handleWrite(req, client, week, objectPath, identity) {
+async function handleWrite(req, client, week, objectPath, identity, declaredSha) {
   const contentType = req.headers.get('content-type') ?? '';
   if (!contentType.toLowerCase().startsWith('application/json')) {
     return errorResponse(415, 'json_required');
@@ -116,13 +116,6 @@ async function handleWrite(req, client, week, objectPath, identity) {
     validateSyntheticBundleBytes(body, week);
   } catch {
     return errorResponse(400, 'synthetic_bundle_rejected');
-  }
-
-  let declaredSha;
-  try {
-    declaredSha = validateDeclaredSha256(req.headers.get('x-score-content-sha256'));
-  } catch {
-    return errorResponse(400, 'invalid_declared_sha256');
   }
 
   const actualSha = await sha256Hex(body);
@@ -215,17 +208,24 @@ Deno.serve(async (req) => {
   let operation;
   let week;
   let token;
+  let declaredSha = null;
   try {
     operation = requireBrokerOperation(req.headers.get('x-score-operation'));
     week = validateSyntheticWeek(req.headers.get('x-score-week'));
     token = parseBearerToken(req.headers.get('authorization'));
+    if (operation === 'write') {
+      declaredSha = validateDeclaredSha256(req.headers.get('x-score-content-sha256'));
+    }
   } catch {
     return errorResponse(400, 'invalid_request_headers');
   }
 
   let verification;
   try {
-    verification = await verifyGithubOidcJwt(token, buildOidcPolicy(operation));
+    verification = await verifyGithubOidcJwt(
+      token,
+      buildOidcPolicy(operation, { week, sha256: declaredSha }),
+    );
   } catch {
     audit({ operation, week, identity: null, result: 'oidc_rejected' });
     return errorResponse(401, 'oidc_rejected');
@@ -249,7 +249,14 @@ Deno.serve(async (req) => {
   }
 
   if (operation === 'write') {
-    return handleWrite(req, client, week, objectPath, verification.identity);
+    return handleWrite(
+      req,
+      client,
+      week,
+      objectPath,
+      verification.identity,
+      declaredSha,
+    );
   }
   return handleRead(req, client, week, objectPath, verification.identity);
 });
