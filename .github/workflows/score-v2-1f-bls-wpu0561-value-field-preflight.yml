@@ -1,0 +1,16 @@
+name: Score v2.1F BLS WPU0561 value-field mapping preflight (HOLD)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  design-only-hold:
+    if: ${{ false }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "Issue #245 is HOLD."
+          echo "No BLS live request or numeric value extraction is authorized."
