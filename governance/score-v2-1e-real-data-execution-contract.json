@@ -1,31 +1,28 @@
 {
   "version": 1,
-  "state": "one_off_private_research_authorized",
+  "state": "one_off_private_research_consumed_fail_closed",
   "methodology_version": "2.1E-design-candidate",
   "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/203",
   "controlling_hold": "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
   "owner_decision_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/209",
   "owner_approval_comment_id": 6477834394,
   "owner_approval_timestamp": "2026-10-28T18:55:48Z",
+  "consumption_record_path": "governance/score-v2-1e-real-data-research-consumption-2026-10-28.json",
   "active_authorization_receipt_path": "governance/score-v2-1e-real-data-research-authorization.json",
-  "active_authorization_receipt_expected_now": true,
+  "active_authorization_receipt_expected_now": false,
   "authorized_data_window": {
     "start": "2013-01-01",
     "end": "2026-10-23"
   },
+  "consumed_reason": "H.15 historical release-vintage reconstruction unavailable on the approved source boundary",
+  "blocker_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/218",
+  "failed_preflight_run": "https://github.com/usdimpact/usd-impact-pipeline/actions/runs/40755916179",
   "execution_preconditions": [
-    "active authorization receipt exists and validates against schema",
-    "decision_status is approved",
-    "real_data_fetch and real_data_research are true",
-    "design merge commit matches 65e71695a3d99ed6a5584548652a61dc0e66006f",
-    "preregistration merge commit matches b93ab1b4514e828561e74963b1a830421a104e29",
-    "data window is exactly 2013-01-01 through 2026-10-23",
-    "network source allowlist is direct official Federal Reserve Board and BLS endpoints only",
-    "no API key, paid account, paid source or contractual acceptance is required",
-    "temporary workspace is isolated and non-public",
-    "raw/source values are ephemeral only",
-    "latest revised BLS or H.8 history is not used as a historical-vintage substitute",
-    "all eight release-vintage streams pass point-in-time eligibility checks"
+    "no further real-data execution is authorized under the consumed one-off receipt",
+    "a new explicit owner decision and new active receipt are required before any future real-data run",
+    "Production remains unauthorized",
+    "public Score replacement remains unauthorized",
+    "research-ledger mutation remains unauthorized"
   ],
   "network_policy": {
     "allowed_hosts": [
@@ -65,20 +62,15 @@
     ]
   },
   "stop_conditions": [
-    "any required source resolves to a paid or credentialed path",
-    "source-specific reuse scope becomes materially ambiguous",
-    "historical BLS vintage cannot be reconstructed conservatively",
-    "historical H.8 vintage cannot be reconstructed conservatively",
-    "a required release timestamp/vintage cannot be established",
-    "any source falls outside the exact eight-series inventory",
-    "active authorization receipt is absent or does not validate",
-    "requested output would persist raw/component values",
+    "the one-off authorization has been consumed",
+    "H.15 historical release-vintage reconstruction is not conservatively available on the approved source boundary",
+    "any future real-data execution is requested without a new explicit owner authorization",
     "requested action would modify public Score artifacts, research ledgers or Production"
   ],
   "current_state": {
-    "real_data_fetch_authorized": true,
-    "real_data_research_authorized": true,
-    "active_receipt_present": true,
+    "real_data_fetch_authorized": false,
+    "real_data_research_authorized": false,
+    "active_receipt_present": false,
     "paid_data_authorized": false,
     "source_contract_acceptance_authorized": false,
     "durable_private_storage_authorized": false,

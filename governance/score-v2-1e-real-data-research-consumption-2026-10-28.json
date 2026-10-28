@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "state": "consumed_fail_closed",
+  "methodology_version": "2.1E-design-candidate",
+  "owner_decision_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/209",
+  "owner_approval_comment_id": 6477834394,
+  "owner_approval_timestamp": "2026-10-28T18:55:48Z",
+  "authorization_merge_commit": "bb9e4c4d2ef7d28938d670746b4a57f3fb1af587",
+  "authorized_data_window": {
+    "start": "2013-01-01",
+    "end": "2026-10-23"
+  },
+  "consumed_by_phase": "historical_vintage_feasibility_preflight",
+  "failed_run": "https://github.com/usdimpact/usd-impact-pipeline/actions/runs/40755916179",
+  "blocker_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/218",
+  "consumed_at": "2026-10-28T19:39:10Z",
+  "reason": "H.15 exact historical release-vintage reconstruction could not be established on the approved direct Federal Reserve Board source boundary; current revised history may not substitute under the preregistration.",
+  "research_result": {
+    "candidate_score_computed": false,
+    "source_or_component_values_persisted": false,
+    "public_artifacts_modified": false,
+    "research_ledgers_modified": false,
+    "production_modified": false
+  },
+  "post_consumption_authorizations": {
+    "real_data_fetch": false,
+    "real_data_research": false,
+    "paid_data": false,
+    "source_contract_acceptance": false,
+    "research_ledger_mutation": false,
+    "public_artifact_replacement": false,
+    "production": false
+  },
+  "owner_approval_preserved_as_audit_evidence": true,
+  "new_owner_authorization_required_for_any_future_real_data_run": true
+}
