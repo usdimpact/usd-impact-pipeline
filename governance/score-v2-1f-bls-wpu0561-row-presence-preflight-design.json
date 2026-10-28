@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "state": "design_only_hold",
   "methodology_version": "2.1F-design-candidate",
   "owner_decision_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/236",
@@ -9,13 +9,33 @@
     "start": "2013-01-01",
     "end": "2026-10-23"
   },
+  "supersedes": {
+    "version": 1,
+    "reason": "Hosted ubuntu-24.04 capability checks found no preinstalled PDF parser. Official BLS archived HTML for the April 2013 PPI release exposes the Crude petroleum row with commodity code 05-61, allowing a dependency-free standard-library design."
+  },
+  "runtime_capability_evidence": {
+    "initial_run": "https://github.com/usdimpact/usd-impact-pipeline/actions/runs/40770754204",
+    "expanded_run": "https://github.com/usdimpact/usd-impact-pipeline/actions/runs/40771354805",
+    "python_standard_library_zip_xml": true,
+    "pdftotext": false,
+    "pdfinfo": false,
+    "mutool": false,
+    "qpdf": false,
+    "ghostscript": false,
+    "libreoffice": false,
+    "pypdf": false,
+    "PyPDF2": false,
+    "pdfplumber": false,
+    "fitz": false,
+    "pikepdf": false
+  },
   "fixed_resources": [
     {
-      "label": "april_2013_pdf",
+      "label": "april_2013_archived_html",
       "method": "GET",
       "host": "www.bls.gov",
-      "path": "/ppi/detailed-report/ppi-detailed-report-april-2013.pdf",
-      "expected_format": "pdf"
+      "path": "/news.release/archives/ppi_05152013.htm",
+      "expected_format": "html"
     },
     {
       "label": "april_2026_xlsx",
@@ -25,7 +45,17 @@
       "expected_format": "xlsx"
     }
   ],
-  "objective": "Determine whether representative official BLS Detailed Report bodies expose a structurally identifiable WPU0561 / 0561 / 05-61 / Crude petroleum row or label without extracting, logging, persisting or publishing economic values.",
+  "official_structural_evidence": {
+    "2013_archived_html": "Public BLS archived release evidence exposes Crude petroleum with commodity code 05-61 in the April 2013 PPI release.",
+    "wpu0561_literal_in_2013_html": false,
+    "accepted_identity_tokens": [
+      "WPU0561",
+      "0561",
+      "05-61",
+      "Crude petroleum"
+    ]
+  },
+  "objective": "Determine whether the two fixed official BLS responses expose a structurally identifiable WPU0561 / 0561 / 05-61 / Crude petroleum row or label without extracting, logging, persisting or publishing economic values.",
   "request_policy": {
     "request_budget": 2,
     "concurrency": 1,
@@ -36,12 +66,12 @@
     "access_control_stop_statuses": [401, 403, 429],
     "challenge_detection_required": true
   },
-  "runtime_capability_policy": {
-    "pdf_parser": "existing_runner_pdftotext_only",
-    "install_new_pdf_software": false,
-    "missing_pdftotext_behavior": "fail_before_first_network_request",
+  "runtime_parser_policy": {
+    "html_parser": "python_standard_library_html_parser_only",
     "xlsx_parser": "python_standard_library_zip_xml_only",
-    "install_new_python_dependency": false
+    "install_new_system_software": false,
+    "install_new_python_dependency": false,
+    "external_parser_process": false
   },
   "structural_match_terms": [
     "WPU0561",
@@ -50,14 +80,14 @@
     "Crude petroleum"
   ],
   "allowed_ephemeral_processing": [
-    "read the two fixed report bodies into memory",
-    "PDF text extraction in memory using pre-existing pdftotext",
+    "read the two fixed response bodies into memory",
+    "HTML table-row parsing in memory using Python standard library",
     "XLSX ZIP/XML string-cell parsing in memory using Python standard library",
-    "discard numeric cells and numeric source values",
-    "emit only structural row/label/page/sheet identifiers and yes/no parseability"
+    "ignore numeric cells and numeric source values",
+    "emit only structural token/table/row/sheet identifiers and yes/no parseability"
   ],
   "forbidden": {
-    "report_body_persistence": true,
+    "response_body_persistence": true,
     "numeric_source_value_persistence": true,
     "numeric_source_value_logging": true,
     "numeric_source_value_publication": true,
@@ -79,13 +109,13 @@
     "resource path",
     "format",
     "matched structural identifier tokens",
-    "PDF page numbers containing a structural match",
+    "HTML table and row numbers containing a structural match",
     "XLSX sheet names and row numbers containing a structural match",
     "structural parseability yes/no",
     "non-value-bearing error category"
   ],
   "current_authorizations": {
-    "report_body_ephemeral_retrieval": false,
+    "response_body_ephemeral_retrieval": false,
     "row_presence_preflight": false,
     "source_value_extraction": false,
     "real_data_research": false,
@@ -95,5 +125,5 @@
     "public_artifact_replacement": false,
     "production": false
   },
-  "next_gate": "new_explicit_owner_authorization_under_issue_236_required_before_any_live_report_body_request"
+  "next_gate": "new_explicit_owner_authorization_under_issue_236_required_before_any_live_response_body_request"
 }
