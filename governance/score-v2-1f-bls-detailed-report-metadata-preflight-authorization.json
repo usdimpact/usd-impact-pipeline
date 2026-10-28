@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "decision_status": "approved",
+  "methodology_version": "2.1F-design-candidate",
+  "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/230",
+  "blocker_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/228",
+  "execution_scope": "bls_detailed_report_metadata_preflight_only",
+  "data_window": {
+    "start": "2013-01-01",
+    "end": "2026-10-23"
+  },
+  "request_budget": 4,
+  "contact_user_agent": "USD-Impact-Score-v2.1F-BLS-metadata-preflight/1.0 (contact: support@usd-impact.com)",
+  "allowed_host": "www.bls.gov",
+  "allowed_requests": [
+    "GET /robots.txt",
+    "GET /ppi/detailed-report/",
+    "HEAD one 2013 report resource selected from the official index",
+    "HEAD one 2026 report resource selected from the official index"
+  ],
+  "storage_policy": {
+    "source_values": "forbidden",
+    "report_bodies": "ephemeral_index_only_no_report_body",
+    "cookies": "do_not_persist",
+    "credentials": "forbidden",
+    "durable_private_storage": false
+  },
+  "authorizations": {
+    "network_metadata_fetch": true,
+    "bls_metadata_preflight": true,
+    "report_body_download": false,
+    "source_value_retrieval": false,
+    "real_data_research": false,
+    "candidate_score_computation": false,
+    "research_ledger_mutation": false,
+    "public_artifact_replacement": false,
+    "production": false
+  },
+  "approved_by": "usdimpact owner via Issue #230 approval comment 6480432536",
+  "approved_at": "2026-10-28T20:53:16Z",
+  "notes": "Owner-approved metadata-only BLS Detailed Report archive feasibility preflight. Activation only; dispatch remains separate. No report-body download, source-value retrieval, full research, Score computation, public/research-ledger mutation, or Production."
+}
