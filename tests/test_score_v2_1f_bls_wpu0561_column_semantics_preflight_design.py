@@ -40,6 +40,13 @@ class ScoreV21FWpu0561ColumnSemanticsDesignTests(unittest.TestCase):
             design["identifier_policy"]["ambiguous_cell_behavior"],
             "discard_value_emit_ambiguity_only",
         )
+        self.assertEqual(
+            design["identifier_policy"]["conflicting_header_behavior"],
+            "classify_ambiguous_never_identifier",
+        )
+        self.assertFalse(
+            design["identifier_policy"]["row_wide_identifier_fallback"]
+        )
         self.assertTrue(design["forbidden"]["economic_index_value_extraction"])
         self.assertTrue(design["forbidden"]["economic_percent_change_extraction"])
         self.assertTrue(design["forbidden"]["economic_value_logging"])
