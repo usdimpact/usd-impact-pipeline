@@ -1,16 +1,17 @@
 {
   "version": 1,
-  "state": "representative_index_preflight_authorized_pending_dispatch",
+  "state": "representative_index_preflight_authorized",
   "methodology_version": "2.1F-design-candidate",
   "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/252",
   "controlling_rights_hold": "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
   "owner_approval_comment_id": 6482942968,
   "owner_approval_timestamp": "2026-10-28T23:02:22Z",
+  "authorization_activation_merge_commit": "c41413ce08f3fad32cefe7ad307449eac0e65978",
   "design_path": "governance/score-v2-1f-bls-wpu0561-representative-index-preflight-design.json",
   "active_authorization_receipt_path": "governance/score-v2-1f-bls-wpu0561-representative-index-preflight-authorization.json",
   "active_authorization_receipt_expected_now": true,
   "dispatch_marker_path": "governance/score-v2-1f-bls-wpu0561-representative-index-preflight-dispatch.json",
-  "dispatch_marker_expected_now": false,
+  "dispatch_marker_expected_now": true,
   "request_budget": 2,
   "max_observations_total": 2,
   "max_observations_per_resource": 1,
@@ -29,20 +30,26 @@
     "public_artifact_replacement_authorized": false,
     "production_authorized": false
   },
-  "activation_preconditions": [
-    "explicit owner authorization is recorded under Issue #252 comment 6482942968",
-    "owner approval explicitly acknowledges at most two representative index-level observations",
-    "active receipt pins the exact 2013 HTML and 2026 XLSX resources",
-    "contactable project User-Agent is pinned",
-    "percent-change fields remain forbidden",
-    "full historical reconstruction remains false",
-    "dispatch is merged separately after activation",
-    "workflow remains inert until dispatch"
+  "execution_preconditions": [
+    "owner approval is recorded under Issue #252 comment 6482942968",
+    "dispatch is pinned to activation merge c41413ce08f3fad32cefe7ad307449eac0e65978",
+    "request budget is exactly two serialized GET requests",
+    "maximum observations are one per fixed resource and two total",
+    "Crude petroleum must map to normalized identifier 0561 before any value read",
+    "only a unique original-release index-level field may be retained",
+    "percent-change and unrelated numeric fields remain forbidden",
+    "workflow is path-gated to the dispatch marker"
   ],
   "stop_conditions": [
-    "no dispatch marker",
+    "active authorization receipt is absent or invalid",
+    "dispatch marker is absent or invalid",
     "request count would exceed two",
     "observation count would exceed two total or one per resource",
+    "request leaves www.bls.gov",
+    "request path differs from the two fixed resources",
+    "HTTP 401, 403 or 429",
+    "CAPTCHA, bot challenge or access-denied response",
+    "any redirect",
     "Crude petroleum row is not mapped to normalized identifier 0561",
     "index-level header is not explicit",
     "multiple index-level candidates remain",
@@ -53,6 +60,6 @@
     "candidate Score or component calculations would begin",
     "public artifact, research ledger, or Production would change"
   ],
-  "next_allowed_action": "separate_dispatch_review_after_activation_merge",
+  "next_allowed_action": "execute_one_off_representative_index_preflight_then_consume_authorization_fail_closed",
   "production_authorized": false
 }
