@@ -1,0 +1,262 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://usd-impact.com/schemas/score-rights-decision-receipt.schema.json",
+  "title": "Score rights decision receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "issue",
+    "decision_status",
+    "decided_at_utc",
+    "decision_authority",
+    "public_classes",
+    "provider_dispositions",
+    "approved_public_schema",
+    "production_authorized"
+  ],
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "issue": {
+      "const": "https://github.com/usdimpact/usd-impact-pipeline/issues/155"
+    },
+    "decision_status": {
+      "enum": [
+        "approved_aggregate_only",
+        "approved_with_explicit_component_permissions",
+        "hold",
+        "rejected"
+      ]
+    },
+    "decided_at_utc": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "decision_authority": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1
+    },
+    "authority_reference": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "public_classes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F"
+      ],
+      "properties": {
+        "A": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "treatment",
+            "notes"
+          ],
+          "properties": {
+            "treatment": {
+              "enum": [
+                "retain_public",
+                "retain_public_with_conditions",
+                "aggregate_safe_only",
+                "private_only",
+                "remove",
+                "pending"
+              ]
+            },
+            "notes": {
+              "type": "string"
+            }
+          }
+        },
+        "B": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "treatment",
+            "notes"
+          ],
+          "properties": {
+            "treatment": {
+              "enum": [
+                "retain_public",
+                "retain_public_with_conditions",
+                "aggregate_safe_only",
+                "private_only",
+                "remove",
+                "pending"
+              ]
+            },
+            "notes": {
+              "type": "string"
+            }
+          }
+        },
+        "C": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "treatment",
+            "notes"
+          ],
+          "properties": {
+            "treatment": {
+              "enum": [
+                "retain_public",
+                "retain_public_with_conditions",
+                "aggregate_safe_only",
+                "private_only",
+                "remove",
+                "pending"
+              ]
+            },
+            "notes": {
+              "type": "string"
+            }
+          }
+        },
+        "D": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "treatment",
+            "notes"
+          ],
+          "properties": {
+            "treatment": {
+              "enum": [
+                "retain_public",
+                "retain_public_with_conditions",
+                "aggregate_safe_only",
+                "private_only",
+                "remove",
+                "pending"
+              ]
+            },
+            "notes": {
+              "type": "string"
+            }
+          }
+        },
+        "E": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "treatment",
+            "notes"
+          ],
+          "properties": {
+            "treatment": {
+              "enum": [
+                "retain_public",
+                "retain_public_with_conditions",
+                "aggregate_safe_only",
+                "private_only",
+                "remove",
+                "pending"
+              ]
+            },
+            "notes": {
+              "type": "string"
+            }
+          }
+        },
+        "F": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "treatment",
+            "notes"
+          ],
+          "properties": {
+            "treatment": {
+              "enum": [
+                "retain_public",
+                "retain_public_with_conditions",
+                "aggregate_safe_only",
+                "private_only",
+                "remove",
+                "pending"
+              ]
+            },
+            "notes": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "provider_dispositions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "provider_family",
+          "status",
+          "scope",
+          "reference"
+        ],
+        "properties": {
+          "provider_family": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "enum": [
+              "approved",
+              "approved_with_conditions",
+              "not_approved",
+              "not_applicable",
+              "pending"
+            ]
+          },
+          "scope": {
+            "type": "string"
+          },
+          "reference": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "approved_public_schema": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "replication_claim_wording_approved": {
+      "type": "boolean"
+    },
+    "archive_treatment_approved": {
+      "type": "boolean"
+    },
+    "private_evidence_boundary_approved": {
+      "type": "boolean"
+    },
+    "production_authorized": {
+      "const": false
+    }
+  }
+}
