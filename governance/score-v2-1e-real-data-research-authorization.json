@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "decision_status": "approved",
+  "decision_status": "hold",
   "methodology_version": "2.1E-design-candidate",
   "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/203",
   "design_merge_commit": "65e71695a3d99ed6a5584548652a61dc0e66006f",
@@ -17,8 +17,8 @@
     "H15/H15/RIFLGFCY10_N.B"
   ],
   "data_window": {
-    "start": "2013-01-01",
-    "end": "2026-10-23"
+    "start": null,
+    "end": null
   },
   "storage_policy": {
     "source_values": "ephemeral_only",
@@ -39,15 +39,15 @@
     ]
   },
   "authorizations": {
-    "real_data_fetch": true,
-    "real_data_research": true,
+    "real_data_fetch": false,
+    "real_data_research": false,
     "paid_data": false,
     "source_contract_acceptance": false,
     "research_ledger_mutation": false,
     "public_artifact_replacement": false,
     "production": false
   },
-  "approved_by": "usdimpact owner via Issue #209 approval comment 6477834394",
-  "approved_at": "2026-10-28T18:55:48Z",
-  "notes": "Explicit owner approval recorded in Issue #209 comment 6477834394. Scope is one-off private research only for 2013-01-01 through 2026-10-23, official Federal Reserve Board/BLS endpoints only, ephemeral raw/source values, no Production."
+  "approved_by": null,
+  "approved_at": null,
+  "notes": "One-off authorization consumed after official H.15 historical-vintage preflight failed closed under pipeline Issue #218; no further data fetch authorized. Original approved receipt preserved in governance/score-v2-1e-real-data-research-authorization-historical-approved-2026-10-28.json."
 }

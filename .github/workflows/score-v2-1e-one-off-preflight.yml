@@ -25,7 +25,7 @@ jobs:
 
       - name: Validate one-off authorization and dispatch
         run: |
-          python -m scripts.validate_score_v2_1e_research_authorization
+          python -m scripts.validate_score_v2_1e_research_authorization --require-active
           python - <<'PY'
           import json
           from pathlib import Path
