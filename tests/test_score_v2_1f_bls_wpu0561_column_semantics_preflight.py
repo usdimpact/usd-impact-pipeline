@@ -19,6 +19,17 @@ def _synthetic_html() -> bytes:
     """
 
 
+def _synthetic_html_unproven_05_61() -> bytes:
+    return b"""
+    <html><body>
+      <table>
+        <tr><th>Commodity</th><th>Index</th></tr>
+        <tr><td>Crude petroleum</td><td>05-61</td></tr>
+      </table>
+    </body></html>
+    """
+
+
 def _synthetic_xlsx() -> bytes:
     output = io.BytesIO()
     with zipfile.ZipFile(output, "w", zipfile.ZIP_DEFLATED) as archive:
@@ -73,6 +84,57 @@ def _synthetic_xlsx() -> bytes:
     return output.getvalue()
 
 
+def _synthetic_ambiguous_xlsx() -> bytes:
+    output = io.BytesIO()
+    with zipfile.ZipFile(output, "w", zipfile.ZIP_DEFLATED) as archive:
+        archive.writestr(
+            "xl/workbook.xml",
+            """<?xml version="1.0" encoding="UTF-8"?>
+            <workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"
+                      xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+              <sheets>
+                <sheet name="Ambiguous" sheetId="1" r:id="rId1"/>
+              </sheets>
+            </workbook>""",
+        )
+        archive.writestr(
+            "xl/_rels/workbook.xml.rels",
+            """<?xml version="1.0" encoding="UTF-8"?>
+            <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+              <Relationship Id="rId1"
+                Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet"
+                Target="worksheets/sheet1.xml"/>
+            </Relationships>""",
+        )
+        archive.writestr(
+            "xl/sharedStrings.xml",
+            """<?xml version="1.0" encoding="UTF-8"?>
+            <sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"
+                 count="3" uniqueCount="3">
+              <si><t>Commodity</t></si>
+              <si><t>Index code</t></si>
+              <si><t>Crude petroleum</t></si>
+            </sst>""",
+        )
+        archive.writestr(
+            "xl/worksheets/sheet1.xml",
+            """<?xml version="1.0" encoding="UTF-8"?>
+            <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+              <sheetData>
+                <row r="1">
+                  <c r="A1" t="s"><v>0</v></c>
+                  <c r="B1" t="s"><v>1</v></c>
+                </row>
+                <row r="2">
+                  <c r="A2" t="s"><v>2</v></c>
+                  <c r="B2"><v>561</v></c>
+                </row>
+              </sheetData>
+            </worksheet>""",
+        )
+    return output.getvalue()
+
+
 class ScoreV21FWpu0561ColumnSemanticsRunnerTests(unittest.TestCase):
     def test_design_only_state_refuses_before_network(self) -> None:
         with mock.patch.object(
@@ -116,6 +178,28 @@ class ScoreV21FWpu0561ColumnSemanticsRunnerTests(unittest.TestCase):
             ],
         )
         self.assertNotIn("123.45", repr(reports))
+
+    def test_html_05_61_without_proven_identifier_header_does_not_map(self) -> None:
+        reports = preflight._extract_html_semantics(_synthetic_html_unproven_05_61())
+        report = reports[0]
+        self.assertEqual(report["identifier_columns"], [])
+        self.assertEqual(report["economic_columns"], [2])
+        self.assertEqual(report["matches"][0]["identifiers"], [])
+        self.assertEqual(
+            report["matches"][0]["mapping_status"],
+            "description_only",
+        )
+
+    def test_index_code_header_is_ambiguous_and_numeric_561_is_not_retained(self) -> None:
+        reports = preflight._extract_xlsx_semantics(_synthetic_ambiguous_xlsx())
+        report = reports[0]
+        self.assertEqual(report["identifier_columns"], [])
+        self.assertEqual(report["ambiguous_columns"], [2])
+        match = report["matches"][0]
+        self.assertEqual(match["identifiers"], [])
+        self.assertEqual(match["identifier_fields"], [])
+        self.assertEqual(match["mapping_status"], "description_only")
+        self.assertNotIn("561", repr(match))
 
     def test_request_budget_is_hard_capped_at_two(self) -> None:
         budget = preflight.RequestBudget()

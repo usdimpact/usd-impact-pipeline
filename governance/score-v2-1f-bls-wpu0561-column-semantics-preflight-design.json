@@ -33,7 +33,11 @@
     "allowed_host": "www.bls.gov",
     "redirects": "reject_fail_closed",
     "transparent_contact_user_agent_required": true,
-    "access_control_stop_statuses": [401, 403, 429],
+    "access_control_stop_statuses": [
+      401,
+      403,
+      429
+    ],
     "challenge_detection_required": true
   },
   "runtime_parser_policy": {
@@ -44,7 +48,12 @@
     "external_parser_process": false
   },
   "identifier_policy": {
-    "allowed_identity_tokens": ["WPU0561", "0561", "05-61", "Crude petroleum"],
+    "allowed_identity_tokens": [
+      "WPU0561",
+      "0561",
+      "05-61",
+      "Crude petroleum"
+    ],
     "identifier_header_terms": [
       "commodity code",
       "series code",
@@ -64,7 +73,9 @@
       "value"
     ],
     "numeric_identifier_exception": "A numeric-looking cell may be retained only after its column is proven by a non-numeric header to be a commodity/series identifier field.",
-    "ambiguous_cell_behavior": "discard_value_emit_ambiguity_only"
+    "ambiguous_cell_behavior": "discard_value_emit_ambiguity_only",
+    "conflicting_header_behavior": "classify_ambiguous_never_identifier",
+    "row_wide_identifier_fallback": false
   },
   "allowed_ephemeral_processing": [
     "read the two fixed response bodies into memory",
@@ -82,6 +93,7 @@
     "identifier-column coordinates",
     "description-column coordinates",
     "economic-column classification without values",
+    "ambiguous-column classification without values",
     "commodity/series identifier token or normalized identifier",
     "Crude petroleum row coordinates",
     "preliminary/final/revised labels",
