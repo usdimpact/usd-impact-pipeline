@@ -53,7 +53,7 @@ def validate(repo_root: Path) -> dict[str, Any]:
     if prereg.get("state") != "preregistered_design_only":
         raise RuntimeError("v2.1F preregistration state changed")
 
-    if design.get("version") != 2:
+    if design.get("version") != 3:
         raise RuntimeError("Issue #258 hardened design version changed")
     if design.get("state") != "design_only_hold":
         raise RuntimeError("Issue #258 design must remain HOLD")
