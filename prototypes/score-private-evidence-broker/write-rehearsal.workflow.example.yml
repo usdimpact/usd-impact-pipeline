@@ -4,12 +4,6 @@ name: Score private evidence synthetic write rehearsal
 
 on:
   workflow_dispatch:
-    inputs:
-      synthetic_week:
-        description: Synthetic Friday (2099+ only)
-        required: true
-        default: '2099-01-02'
-        type: string
 
 permissions:
   contents: read
@@ -30,7 +24,7 @@ jobs:
         env:
           AUDIENCE: urn:usd-impact:score-private-evidence:write:development
           BROKER_URL: https://xakayexlzyrazuunqlxe.supabase.co/functions/v1/score-private-evidence-broker
-          SYNTHETIC_WEEK: ${{ inputs.synthetic_week }}
+          SYNTHETIC_WEEK: '2099-01-02'
         run: |
           set -euo pipefail
           fixture_root="$RUNNER_TEMP/score-private-evidence-synthetic"
