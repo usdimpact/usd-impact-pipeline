@@ -35,19 +35,15 @@ jobs:
           assert payload == {
               "version": 1,
               "state": "dispatch_once",
+              "attempt": 2,
               "phase": "vintage_feasibility_preflight",
               "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/211",
               "authorization_merge_commit": "bb9e4c4d2ef7d28938d670746b4a57f3fb1af587",
               "data_window": {"start": "2013-01-01", "end": "2026-10-23"},
               "production_authorized": False,
           }
-          print("One-off v2.1E preflight dispatch validated.")
+          print("One-off v2.1E preflight retry dispatch validated.")
           PY
-
-      - name: Verify local PDF text extractor
-        run: |
-          command -v pdftotext >/dev/null
-          pdftotext -v 2>&1 | head -n 1
 
       - name: Run official-source vintage feasibility preflight
         env:
@@ -88,8 +84,9 @@ jobs:
                   f"{row['parseable_samples']}/{row['sampled_releases']} sampled archives parseable"
               )
           print(
-              f"- BLS PPI detailed reports: {bls['detailed_report_count']} enumerated; "
-              f"{bls['wpu0561_parseable_samples']}/{bls['sampled_reports']} sampled WPU0561 reports parseable"
+              f"- BLS PPI archived news releases: {bls['archived_news_release_count']} enumerated; "
+              f"{bls['crude_petroleum_parseable_samples']}/{bls['sampled_releases']} "
+              "sampled crude-petroleum releases parseable"
           )
           print("- Source/raw values persisted: no")
           print("- Source/raw values logged: no")
