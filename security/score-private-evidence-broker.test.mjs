@@ -238,6 +238,8 @@ test('workflow examples are manual, secretless and least-privilege only', async 
     assert.match(source, /workflow_dispatch:/);
     assert.match(source, /contents:\s*read/);
     assert.match(source, /id-token:\s*write/);
+    assert.match(source, /SYNTHETIC_WEEK:\s*'2099-01-02'/);
+    assert.doesNotMatch(source, /inputs\.synthetic_week/);
     assert.match(source, /persist-credentials:\s*false/);
     assert.ok(source.includes(example.audience));
     assert.match(source, /xakayexlzyrazuunqlxe\.supabase\.co/);
