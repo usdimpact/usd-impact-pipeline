@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "state": "design_only_hold",
+  "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/245",
+  "controlling_rights_hold": "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
+  "active_authorization_receipt_expected_now": false,
+  "dispatch_marker_expected_now": false,
+  "request_budget": 2,
+  "max_numeric_observations_extracted": 2,
+  "current_state": {
+    "response_body_ephemeral_retrieval_authorized": false,
+    "representative_numeric_value_extraction_authorized": false,
+    "value_field_mapping_preflight_authorized": false,
+    "full_historical_reconstruction_authorized": false,
+    "candidate_score_computation_authorized": false,
+    "research_ledger_mutation_authorized": false,
+    "public_artifact_replacement_authorized": false,
+    "production_authorized": false
+  },
+  "stop_conditions": [
+    "no new explicit owner authorization under Issue #245",
+    "no separately reviewed dispatch marker",
+    "request count would exceed two",
+    "numeric observation count would exceed two total or one per resource",
+    "candidate field semantics are ambiguous",
+    "candidate field is a percent-change field rather than original-release index level",
+    "full response body persistence would occur",
+    "full historical reconstruction would begin",
+    "candidate Score or component calculations would begin",
+    "public artifact, research ledger, or Production would change"
+  ],
+  "next_allowed_action": "design_review_only_pending_new_owner_authorization",
+  "production_authorized": false
+}
