@@ -1,0 +1,301 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://usd-impact.com/schemas/score-v2-1e-real-data-research-authorization.schema.json",
+  "title": "Score v2.1E real-data research authorization receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "decision_status",
+    "methodology_version",
+    "issue",
+    "design_merge_commit",
+    "preregistration_merge_commit",
+    "execution_scope",
+    "exact_series",
+    "data_window",
+    "storage_policy",
+    "output_policy",
+    "authorizations",
+    "approved_by",
+    "approved_at",
+    "notes"
+  ],
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "decision_status": {
+      "enum": [
+        "hold",
+        "approved"
+      ]
+    },
+    "methodology_version": {
+      "const": "2.1E-design-candidate"
+    },
+    "issue": {
+      "const": "https://github.com/usdimpact/usd-impact-pipeline/issues/203"
+    },
+    "design_merge_commit": {
+      "const": "65e71695a3d99ed6a5584548652a61dc0e66006f"
+    },
+    "preregistration_merge_commit": {
+      "const": "b93ab1b4514e828561e74963b1a830421a104e29"
+    },
+    "execution_scope": {
+      "const": "one_off_private_research_only"
+    },
+    "exact_series": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "uniqueItems": true,
+      "prefixItems": [
+        {
+          "const": "H10/H10/JRXWTFB_N.B"
+        },
+        {
+          "const": "WPU0561"
+        },
+        {
+          "const": "H8/H8/B1001NCBA"
+        },
+        {
+          "const": "H41/H41/RESPPALDP_N.WW"
+        },
+        {
+          "const": "H41/H41/RESPPA_N.WW"
+        },
+        {
+          "const": "H15/H15/RIFLGFCY10_XII_N.B"
+        },
+        {
+          "const": "H15/H15/RIFLGFCY02_N.B"
+        },
+        {
+          "const": "H15/H15/RIFLGFCY10_N.B"
+        }
+      ],
+      "items": false
+    },
+    "data_window": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "start",
+        "end"
+      ],
+      "properties": {
+        "start": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "end": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        }
+      }
+    },
+    "storage_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_values",
+        "raw_responses",
+        "temporary_workspace",
+        "durable_private_storage"
+      ],
+      "properties": {
+        "source_values": {
+          "const": "ephemeral_only"
+        },
+        "raw_responses": {
+          "const": "ephemeral_only"
+        },
+        "temporary_workspace": {
+          "const": "isolated_non_public"
+        },
+        "durable_private_storage": {
+          "const": false
+        }
+      }
+    },
+    "output_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "public_repo_source_values",
+        "public_repo_component_values",
+        "allowed_persistent_outputs"
+      ],
+      "properties": {
+        "public_repo_source_values": {
+          "const": false
+        },
+        "public_repo_component_values": {
+          "const": false
+        },
+        "allowed_persistent_outputs": {
+          "const": [
+            "aggregate_diagnostics",
+            "pass_fail_gate_results",
+            "non_value_bearing_hashes",
+            "release_vintage_identifiers",
+            "coverage_statistics",
+            "correlation_and_redundancy_statistics"
+          ]
+        }
+      }
+    },
+    "authorizations": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "real_data_fetch",
+        "real_data_research",
+        "paid_data",
+        "source_contract_acceptance",
+        "research_ledger_mutation",
+        "public_artifact_replacement",
+        "production"
+      ],
+      "properties": {
+        "real_data_fetch": {
+          "type": "boolean"
+        },
+        "real_data_research": {
+          "type": "boolean"
+        },
+        "paid_data": {
+          "const": false
+        },
+        "source_contract_acceptance": {
+          "const": false
+        },
+        "research_ledger_mutation": {
+          "const": false
+        },
+        "public_artifact_replacement": {
+          "const": false
+        },
+        "production": {
+          "const": false
+        }
+      }
+    },
+    "approved_by": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1
+    },
+    "approved_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "decision_status": {
+            "const": "hold"
+          }
+        },
+        "required": [
+          "decision_status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "authorizations": {
+            "properties": {
+              "real_data_fetch": {
+                "const": false
+              },
+              "real_data_research": {
+                "const": false
+              }
+            }
+          },
+          "approved_by": {
+            "const": null
+          },
+          "approved_at": {
+            "const": null
+          },
+          "data_window": {
+            "properties": {
+              "start": {
+                "const": null
+              },
+              "end": {
+                "const": null
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "decision_status": {
+            "const": "approved"
+          }
+        },
+        "required": [
+          "decision_status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "authorizations": {
+            "properties": {
+              "real_data_fetch": {
+                "const": true
+              },
+              "real_data_research": {
+                "const": true
+              }
+            }
+          },
+          "approved_by": {
+            "type": "string",
+            "minLength": 1
+          },
+          "approved_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "data_window": {
+            "properties": {
+              "start": {
+                "type": "string",
+                "format": "date"
+              },
+              "end": {
+                "type": "string",
+                "format": "date"
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}
