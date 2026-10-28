@@ -11,7 +11,7 @@ RECEIPT = "governance/score-v2-1f-bls-wpu0561-row-presence-preflight-authorizati
 DISPATCH = "governance/score-v2-1f-bls-wpu0561-row-presence-preflight-dispatch.json"
 ISSUE = "https://github.com/usdimpact/usd-impact-pipeline/issues/236"
 EXPECTED_RESOURCES = [
-    "/ppi/detailed-report/ppi-detailed-report-april-2013.pdf",
+    "/news.release/archives/ppi_05152013.htm",
     "/ppi/detailed-report/ppi-detailed-report-april-2026.xlsx",
 ]
 
@@ -45,6 +45,9 @@ def validate(repo_root: Path) -> dict[str, Any]:
     workflow = (
         root / ".github/workflows/score-v2-1f-bls-wpu0561-row-presence-preflight.yml"
     ).read_text(encoding="utf-8")
+    capability_workflow = (
+        root / ".github/workflows/score-v2-1f-row-presence-runtime-capability-check.yml"
+    ).read_text(encoding="utf-8")
 
     for relative in (RECEIPT, DISPATCH):
         if (root / relative).exists():
@@ -62,6 +65,8 @@ def validate(repo_root: Path) -> dict[str, Any]:
     if prereg.get("state") != "preregistered_design_only":
         raise RuntimeError("v2.1F preregistration state changed")
 
+    if design.get("version") != 2:
+        raise RuntimeError("row-presence design must be v2")
     if design.get("state") != "design_only_hold":
         raise RuntimeError("row-presence design must remain HOLD")
     if design.get("owner_decision_issue") != ISSUE:
@@ -78,13 +83,22 @@ def validate(repo_root: Path) -> dict[str, Any]:
         item.get("path") for item in design.get("fixed_resources", [])
     ] != EXPECTED_RESOURCES:
         raise RuntimeError("row-presence fixed resources changed")
-    if design.get("runtime_capability_policy", {}).get(
-        "missing_pdftotext_behavior"
-    ) != "fail_before_first_network_request":
-        raise RuntimeError("missing PDF capability must fail before network")
+    parser_policy = design.get("runtime_parser_policy", {})
+    if parser_policy.get("html_parser") != "python_standard_library_html_parser_only":
+        raise RuntimeError("HTML parser policy changed")
+    if parser_policy.get("xlsx_parser") != "python_standard_library_zip_xml_only":
+        raise RuntimeError("XLSX parser policy changed")
+    if parser_policy.get("install_new_system_software") is not False:
+        raise RuntimeError("new system software must not be installed")
+    if parser_policy.get("install_new_python_dependency") is not False:
+        raise RuntimeError("new Python dependencies must not be installed")
+    if parser_policy.get("external_parser_process") is not False:
+        raise RuntimeError("external parser process must remain disabled")
     if any(design.get("current_authorizations", {}).values()):
         raise RuntimeError("all design-only authorizations must remain false")
 
+    if template.get("version") != 2:
+        raise RuntimeError("row-presence authorization template must be v2")
     if template.get("decision_status") != "hold":
         raise RuntimeError("row-presence authorization template must remain HOLD")
     if template.get("issue") != ISSUE:
@@ -102,6 +116,8 @@ def validate(repo_root: Path) -> dict[str, Any]:
     if any(template.get("authorizations", {}).values()):
         raise RuntimeError("HOLD template authorizations must remain false")
 
+    if contract.get("version") != 2:
+        raise RuntimeError("row-presence execution contract must be v2")
     if contract.get("state") != "design_only_hold":
         raise RuntimeError("row-presence execution contract must remain HOLD")
     if contract.get("active_authorization_receipt_expected_now") is not False:
@@ -110,6 +126,8 @@ def validate(repo_root: Path) -> dict[str, Any]:
         raise RuntimeError("dispatch must not be expected")
     if contract.get("request_budget") != 2:
         raise RuntimeError("contract request budget changed")
+    if contract.get("fixed_resources") != EXPECTED_RESOURCES:
+        raise RuntimeError("contract fixed resources changed")
     if any(contract.get("current_state", {}).values()):
         raise RuntimeError("all execution authorization flags must remain false")
     if contract.get("production_authorized") is not False:
@@ -118,17 +136,24 @@ def validate(repo_root: Path) -> dict[str, Any]:
     if "if: ${{ false }}" not in workflow:
         raise RuntimeError("row-presence workflow must remain inert")
     if "push:" in workflow:
-        raise RuntimeError("design-only workflow must not have a push trigger")
+        raise RuntimeError("design-only row-presence workflow must not have a push trigger")
+
+    if "if: ${{ false }}" not in capability_workflow:
+        raise RuntimeError("completed capability workflow must be inert")
+    if "push:" in capability_workflow:
+        raise RuntimeError("completed capability workflow must not retain a push trigger")
 
     return {
         "status": "passed",
         "state": "design_only_hold",
+        "version": 2,
         "issue": ISSUE,
         "request_budget": 2,
         "fixed_resources": EXPECTED_RESOURCES,
+        "standard_library_only": True,
         "active_receipt_present": False,
         "dispatch_present": False,
-        "report_body_ephemeral_retrieval_authorized": False,
+        "response_body_ephemeral_retrieval_authorized": False,
         "row_presence_preflight_authorized": False,
         "source_value_extraction_authorized": False,
         "candidate_score_computation_authorized": False,

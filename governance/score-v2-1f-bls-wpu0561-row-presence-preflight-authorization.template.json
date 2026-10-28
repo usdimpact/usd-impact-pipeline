@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "decision_status": "hold",
   "methodology_version": "2.1F-design-candidate",
   "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/236",
@@ -12,17 +12,17 @@
   "contact_user_agent": null,
   "allowed_host": "www.bls.gov",
   "fixed_resources": [
-    "/ppi/detailed-report/ppi-detailed-report-april-2013.pdf",
+    "/news.release/archives/ppi_05152013.htm",
     "/ppi/detailed-report/ppi-detailed-report-april-2026.xlsx"
   ],
   "storage_policy": {
-    "report_bodies": "ephemeral_memory_only",
+    "response_bodies": "ephemeral_memory_only",
     "numeric_source_values": "do_not_extract_log_or_persist",
     "credentials": "forbidden",
     "durable_private_storage": false
   },
   "authorizations": {
-    "report_body_ephemeral_retrieval": false,
+    "response_body_ephemeral_retrieval": false,
     "row_presence_preflight": false,
     "source_value_extraction": false,
     "real_data_research": false,
@@ -34,5 +34,5 @@
   },
   "approved_by": null,
   "approved_at": null,
-  "notes": "Template only. A new explicit owner decision under Issue #236 is required before an active receipt may be created."
+  "notes": "Template only. A new explicit owner decision under Issue #236 is required before an active receipt may be created. The prior PDF-based wording is superseded."
 }

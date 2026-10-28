@@ -17,7 +17,7 @@ def _synthetic_xlsx() -> bytes:
             <workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"
                       xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
               <sheets>
-                <sheet name="Table 2" sheetId="1" r:id="rId1"/>
+                <sheet name="Table 6" sheetId="1" r:id="rId1"/>
               </sheets>
             </workbook>""",
         )
@@ -55,6 +55,18 @@ def _synthetic_xlsx() -> bytes:
     return output.getvalue()
 
 
+def _synthetic_html() -> bytes:
+    return b"""
+    <html><body>
+      <table>
+        <tr><th>Grouping</th><th>Commodity code</th><th>Index</th></tr>
+        <tr><td>Natural gas</td><td>05-31</td><td>999.1</td></tr>
+        <tr><td>Crude petroleum</td><td>05-61</td><td>252.4</td></tr>
+      </table>
+    </body></html>
+    """
+
+
 class ScoreV21FWpu0561RowPresenceRunnerTests(unittest.TestCase):
     def test_design_only_state_refuses_before_network(self) -> None:
         with mock.patch.object(
@@ -76,15 +88,46 @@ class ScoreV21FWpu0561RowPresenceRunnerTests(unittest.TestCase):
 
     def test_only_two_fixed_resources_are_allowed(self) -> None:
         preflight._validate_request_path(
-            "/ppi/detailed-report/ppi-detailed-report-april-2013.pdf"
+            "/news.release/archives/ppi_05152013.htm"
         )
         preflight._validate_request_path(
             "/ppi/detailed-report/ppi-detailed-report-april-2026.xlsx"
         )
         with self.assertRaisesRegex(RuntimeError, "outside the two fixed"):
             preflight._validate_request_path(
-                "/ppi/detailed-report/ppi-detailed-report-may-2013.pdf"
+                "/ppi/detailed-report/ppi-detailed-report-april-2013.pdf"
             )
+
+    def test_html_parser_returns_table_row_and_tokens_only(self) -> None:
+        matches = preflight._extract_html_structural_matches(_synthetic_html())
+        self.assertEqual(
+            matches,
+            [
+                {
+                    "table": 1,
+                    "row": 3,
+                    "matched_identifiers": ["05-61", "Crude petroleum"],
+                }
+            ],
+        )
+        serialized = repr(matches)
+        self.assertNotIn("252.4", serialized)
+        self.assertNotIn("999.1", serialized)
+
+    def test_xlsx_parser_ignores_numeric_cells_and_returns_location_only(self) -> None:
+        matches = preflight._extract_xlsx_structural_matches(_synthetic_xlsx())
+        self.assertEqual(
+            matches,
+            [
+                {
+                    "sheet": "Table 6",
+                    "row": 27,
+                    "matched_identifiers": ["Crude petroleum", "WPU0561"],
+                }
+            ],
+        )
+        serialized = repr(matches)
+        self.assertNotIn("123.45", serialized)
 
     def test_structural_matcher_returns_identifiers_only(self) -> None:
         matches = preflight._matched_identifiers(
@@ -95,26 +138,6 @@ class ScoreV21FWpu0561RowPresenceRunnerTests(unittest.TestCase):
             ["05-61", "Crude petroleum", "WPU0561"],
         )
         self.assertNotIn("123.45", matches)
-
-    def test_xlsx_parser_ignores_numeric_cells_and_returns_location_only(self) -> None:
-        matches = preflight._extract_xlsx_structural_matches(_synthetic_xlsx())
-        self.assertEqual(
-            matches,
-            [
-                {
-                    "sheet": "Table 2",
-                    "row": 27,
-                    "matched_identifiers": ["Crude petroleum", "WPU0561"],
-                }
-            ],
-        )
-        serialized = repr(matches)
-        self.assertNotIn("123.45", serialized)
-
-    def test_missing_pdftotext_is_fail_closed(self) -> None:
-        with mock.patch.object(preflight.shutil, "which", return_value=None):
-            with self.assertRaisesRegex(RuntimeError, "before first network request"):
-                preflight._validate_local_capabilities()
 
 
 if __name__ == "__main__":

@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 """Fail-closed BLS WPU0561 row-presence preflight for Score v2.1F.
 
+Design v2 uses exactly two fixed official BLS resources:
+- the archived May 15, 2013 HTML release for April 2013;
+- the April 2026 Detailed Report XLSX.
+
 Current repository state is design-only/HOLD. A future live run requires a new
 explicit owner authorization under Issue #236, an active receipt, a separately
 reviewed dispatch marker, and an activated workflow.
 
-The runner may retrieve exactly two fixed official BLS report bodies only after
-authorization. Bodies are processed in memory only. Numeric economic values are
+Both response bodies are processed in memory only. Numeric economic values are
 never extracted, logged, persisted, or returned.
 """
 
@@ -16,9 +19,8 @@ import http.client
 import io
 import json
 import re
-import shutil
-import subprocess
 import zipfile
+from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any
 from xml.etree import ElementTree as ET
@@ -30,9 +32,9 @@ END = "2026-10-23"
 REQUEST_BUDGET = 2
 MAX_BODY_BYTES = 64 * 1024 * 1024
 
-PDF_PATH = "/ppi/detailed-report/ppi-detailed-report-april-2013.pdf"
+HTML_PATH = "/news.release/archives/ppi_05152013.htm"
 XLSX_PATH = "/ppi/detailed-report/ppi-detailed-report-april-2026.xlsx"
-FIXED_RESOURCES = [PDF_PATH, XLSX_PATH]
+FIXED_RESOURCES = [HTML_PATH, XLSX_PATH]
 
 ACTIVE_RECEIPT = (
     ROOT
@@ -48,7 +50,7 @@ CONTRACT = (
 )
 
 USER_AGENT_RE = re.compile(
-    r"^USD-Impact-Score-v2\.1F-WPU0561-row-presence/1\.0 \(contact: .+\)$"
+    r"^USD-Impact-Score-v2\.1F-WPU0561-row-presence/2\.0 \(contact: .+\)$"
 )
 STRUCTURAL_PATTERNS = {
     "WPU0561": re.compile(r"(?<![A-Za-z0-9])WPU0561(?![A-Za-z0-9])", re.IGNORECASE),
@@ -76,6 +78,53 @@ class RequestBudget:
         self.count += 1
 
 
+class HtmlTableRowParser(HTMLParser):
+    """Collect only structural token matches with table/row coordinates."""
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.table_index = 0
+        self.current_table: int | None = None
+        self.current_row = 0
+        self.in_row = False
+        self.row_parts: list[str] = []
+        self.matches: list[dict[str, object]] = []
+
+    def handle_starttag(self, tag: str, attrs) -> None:
+        lowered = tag.lower()
+        if lowered == "table":
+            self.table_index += 1
+            self.current_table = self.table_index
+            self.current_row = 0
+        elif lowered == "tr" and self.current_table is not None:
+            self.current_row += 1
+            self.in_row = True
+            self.row_parts = []
+
+    def handle_data(self, data: str) -> None:
+        if self.in_row:
+            self.row_parts.append(data)
+
+    def handle_endtag(self, tag: str) -> None:
+        lowered = tag.lower()
+        if lowered == "tr" and self.in_row and self.current_table is not None:
+            text = " ".join(self.row_parts)
+            identifiers = _matched_identifiers(text)
+            if identifiers:
+                self.matches.append(
+                    {
+                        "table": self.current_table,
+                        "row": self.current_row,
+                        "matched_identifiers": identifiers,
+                    }
+                )
+            self.in_row = False
+            self.row_parts = []
+        elif lowered == "table":
+            self.current_table = None
+            self.current_row = 0
+
+
 def _load(path: Path) -> dict[str, Any]:
     payload = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(payload, dict):
@@ -97,6 +146,8 @@ def _validate_authorization_and_dispatch() -> str:
     dispatch = _load(DISPATCH)
     contract = _load(CONTRACT)
 
+    if receipt.get("version") != 2:
+        raise RuntimeError("row-presence receipt version changed")
     if receipt.get("decision_status") != "approved":
         raise RuntimeError("row-presence receipt is not approved")
     if receipt.get("issue") != "https://github.com/usdimpact/usd-impact-pipeline/issues/236":
@@ -114,8 +165,8 @@ def _validate_authorization_and_dispatch() -> str:
 
     user_agent = _validate_contact_user_agent(receipt.get("contact_user_agent"))
     auth = receipt.get("authorizations", {})
-    if auth.get("report_body_ephemeral_retrieval") is not True:
-        raise RuntimeError("ephemeral report-body retrieval is not authorized")
+    if auth.get("response_body_ephemeral_retrieval") is not True:
+        raise RuntimeError("ephemeral response-body retrieval is not authorized")
     if auth.get("row_presence_preflight") is not True:
         raise RuntimeError("row-presence preflight is not authorized")
     for field in (
@@ -130,6 +181,8 @@ def _validate_authorization_and_dispatch() -> str:
         if auth.get(field) is not False:
             raise RuntimeError(f"{field} must remain false")
 
+    if contract.get("version") != 2:
+        raise RuntimeError("row-presence contract version changed")
     if contract.get("state") != "row_presence_preflight_authorized":
         raise RuntimeError("row-presence execution contract is not active")
     if contract.get("active_authorization_receipt_expected_now") is not True:
@@ -138,10 +191,12 @@ def _validate_authorization_and_dispatch() -> str:
         raise RuntimeError("row-presence dispatch is not expected")
     if contract.get("request_budget") != REQUEST_BUDGET:
         raise RuntimeError("row-presence contract request budget changed")
+    if contract.get("fixed_resources") != FIXED_RESOURCES:
+        raise RuntimeError("row-presence contract resources changed")
 
     current = contract.get("current_state", {})
-    if current.get("report_body_ephemeral_retrieval_authorized") is not True:
-        raise RuntimeError("ephemeral report-body retrieval contract flag is inactive")
+    if current.get("response_body_ephemeral_retrieval_authorized") is not True:
+        raise RuntimeError("ephemeral response-body retrieval contract flag is inactive")
     if current.get("row_presence_preflight_authorized") is not True:
         raise RuntimeError("row-presence contract flag is inactive")
     for field in (
@@ -182,14 +237,9 @@ def _validate_authorization_and_dispatch() -> str:
     return user_agent
 
 
-def _validate_local_capabilities() -> None:
-    if shutil.which("pdftotext") is None:
-        raise RuntimeError("pdftotext is unavailable; fail before first network request")
-
-
 def _validate_request_path(path: str) -> None:
     if path not in FIXED_RESOURCES:
-        raise RuntimeError("request is outside the two fixed BLS report resources")
+        raise RuntimeError("request is outside the two fixed BLS resources")
 
 
 def _challenge_detected(payload: bytes) -> bool:
@@ -224,21 +274,22 @@ def _request_once(
 
         length = response.getheader("Content-Length")
         if length is not None and int(length) > MAX_BODY_BYTES:
-            raise RuntimeError("BLS report body exceeds fixed in-memory size limit")
+            raise RuntimeError("BLS response body exceeds fixed in-memory size limit")
         payload = response.read(MAX_BODY_BYTES + 1)
         if len(payload) > MAX_BODY_BYTES:
-            raise RuntimeError("BLS report body exceeds fixed in-memory size limit")
-        if _challenge_detected(payload):
-            raise RuntimeError("BLS access challenge detected; fail closed")
+            raise RuntimeError("BLS response body exceeds fixed in-memory size limit")
 
         content_type = (response.getheader("Content-Type") or "").lower()
-        if path.endswith(".pdf"):
-            if not payload.startswith(b"%PDF-"):
-                raise RuntimeError("official PDF resource returned an unexpected file signature")
-            fmt = "pdf"
+        if path.endswith(".htm"):
+            if _challenge_detected(payload):
+                raise RuntimeError("BLS access challenge detected; fail closed")
+            prefix = payload[:65536].decode("utf-8", errors="ignore").lower()
+            if "html" not in content_type and "<html" not in prefix:
+                raise RuntimeError("official HTML resource returned unexpected content")
+            fmt = "html"
         elif path.endswith(".xlsx"):
             if not payload.startswith(b"PK"):
-                raise RuntimeError("official XLSX resource returned an unexpected file signature")
+                raise RuntimeError("official XLSX resource returned unexpected signature")
             fmt = "xlsx"
         else:
             raise RuntimeError("unsupported fixed resource format")
@@ -257,35 +308,16 @@ def _request_once(
 
 
 def _matched_identifiers(text: str) -> list[str]:
-    matches = [
+    return sorted(
         label for label, pattern in STRUCTURAL_PATTERNS.items() if pattern.search(text)
-    ]
-    return sorted(matches)
-
-
-def _extract_pdf_structural_matches(payload: bytes) -> list[dict[str, object]]:
-    proc = subprocess.run(
-        ["pdftotext", "-layout", "-", "-"],
-        input=payload,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        check=False,
     )
-    if proc.returncode != 0:
-        raise RuntimeError("pdftotext could not parse the authorized PDF resource")
 
-    decoded = proc.stdout.decode("utf-8", errors="replace")
-    matches: list[dict[str, object]] = []
-    for page_number, page_text in enumerate(decoded.split("\f"), start=1):
-        identifiers = _matched_identifiers(page_text)
-        if identifiers:
-            matches.append(
-                {
-                    "page": page_number,
-                    "matched_identifiers": identifiers,
-                }
-            )
-    return matches
+
+def _extract_html_structural_matches(payload: bytes) -> list[dict[str, object]]:
+    parser = HtmlTableRowParser()
+    parser.feed(payload.decode("utf-8", errors="replace"))
+    parser.close()
+    return parser.matches
 
 
 def _xlsx_shared_strings(archive: zipfile.ZipFile) -> list[str]:
@@ -304,7 +336,6 @@ def _xlsx_shared_strings(archive: zipfile.ZipFile) -> list[str]:
 
 def _xlsx_sheet_map(archive: zipfile.ZipFile) -> list[tuple[str, str]]:
     ns_main = {"m": "http://schemas.openxmlformats.org/spreadsheetml/2006/main"}
-    ns_rel = {"r": "http://schemas.openxmlformats.org/officeDocument/2006/relationships"}
     rel_ns = {"p": "http://schemas.openxmlformats.org/package/2006/relationships"}
 
     workbook = ET.fromstring(archive.read("xl/workbook.xml"))
@@ -356,7 +387,7 @@ def _xlsx_cell_string(
         value = cell.find("m:v", ns)
         return value.text if value is not None else None
 
-    # Numeric cells, formulas returning numbers, dates and booleans are deliberately ignored.
+    # Numeric cells, formulas returning numbers, dates and booleans are ignored.
     return None
 
 
@@ -393,16 +424,15 @@ def _extract_xlsx_structural_matches(payload: bytes) -> list[dict[str, object]]:
 
 def run_preflight() -> dict[str, object]:
     user_agent = _validate_authorization_and_dispatch()
-    _validate_local_capabilities()
     budget = RequestBudget()
 
-    pdf_meta, pdf_body = _request_once(
-        PDF_PATH,
+    html_meta, html_body = _request_once(
+        HTML_PATH,
         budget=budget,
         user_agent=user_agent,
     )
-    pdf_matches = _extract_pdf_structural_matches(pdf_body)
-    del pdf_body
+    html_matches = _extract_html_structural_matches(html_body)
+    del html_body
 
     xlsx_meta, xlsx_body = _request_once(
         XLSX_PATH,
@@ -416,15 +446,15 @@ def run_preflight() -> dict[str, object]:
         raise RuntimeError("row-presence preflight did not consume the exact request budget")
 
     return {
-        "status": "passed" if pdf_matches or xlsx_matches else "no_structural_match",
+        "status": "passed" if html_matches or xlsx_matches else "no_structural_match",
         "scope": "bls_wpu0561_row_presence_preflight_only",
         "data_window": {"start": START, "end": END},
         "request_count": budget.count,
-        "resources": [pdf_meta, xlsx_meta],
-        "pdf_structural_matches": pdf_matches,
+        "resources": [html_meta, xlsx_meta],
+        "html_structural_matches": html_matches,
         "xlsx_structural_matches": xlsx_matches,
-        "structurally_identifiable": bool(pdf_matches or xlsx_matches),
-        "report_bodies_persisted": False,
+        "structurally_identifiable": bool(html_matches or xlsx_matches),
+        "response_bodies_persisted": False,
         "numeric_source_values_extracted": False,
         "numeric_source_values_logged": False,
         "numeric_source_values_persisted": False,

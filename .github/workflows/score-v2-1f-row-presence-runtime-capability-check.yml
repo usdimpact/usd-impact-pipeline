@@ -1,76 +1,18 @@
-name: Score v2.1F row-presence runtime capability check
+name: Score v2.1F row-presence runtime capability check (completed)
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/score-v2-1f-row-presence-runtime-capability-check.yml'
+  workflow_dispatch:
 
 permissions:
   contents: read
-  issues: write
 
 jobs:
-  capability-check:
+  completed:
+    if: ${{ false }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 5
-
     steps:
-      - name: Inspect local parsing capabilities only
-        id: capability
-        shell: bash
+      - name: Completed capability evidence
         run: |
-          set -euo pipefail
-
-          {
-            echo "python_stdlib_zip_xml=true"
-            for tool in pdftotext pdfinfo mutool qpdf gs libreoffice strings file; do
-              if command -v "$tool" >/dev/null 2>&1; then
-                echo "$tool=true"
-              else
-                echo "$tool=false"
-              fi
-            done
-          } > "$RUNNER_TEMP/tools.txt"
-
-          python - <<'PY' > "$RUNNER_TEMP/python-modules.txt"
-          import importlib.util
-          modules = ["pypdf", "PyPDF2", "pdfplumber", "fitz", "pikepdf"]
-          for module in modules:
-              print(f"{module}={importlib.util.find_spec(module) is not None}")
-          PY
-
-          cat "$RUNNER_TEMP/tools.txt"
-          cat "$RUNNER_TEMP/python-modules.txt"
-
-      - name: Record local-only capability result
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          {
-            echo "### v2.1F row-presence local runtime capability check — expanded"
-            echo
-            echo "<!-- V2_1F_ROW_PRESENCE_RUNTIME_CAPABILITY_V2 -->"
-            echo
-            echo "- Run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
-            echo "- Runner: ubuntu-24.04"
-            echo "- BLS/network request performed: no"
-            echo "- Report body retrieved: no"
-            echo "- Source value retrieved: no"
-            echo
-            echo "#### Local CLI tools"
-            while IFS='=' read -r key value; do
-              echo "- \`$key\`: $value"
-            done < "$RUNNER_TEMP/tools.txt"
-            echo
-            echo "#### Preinstalled Python PDF modules"
-            while IFS='=' read -r key value; do
-              echo "- \`$key\`: $value"
-            done < "$RUNNER_TEMP/python-modules.txt"
-            echo
-            echo "This is local-runtime-only evidence. It does not authorize any Issue #236 BLS report-body request."
-          } > "$RUNNER_TEMP/comment.md"
-
-          gh issue comment 236 --repo "$GITHUB_REPOSITORY" --body-file "$RUNNER_TEMP/comment.md"
+          echo "Local runtime capability checks completed on 2026-10-28."
+          echo "PDF parser dependencies are not required by the superseding HTML + XLSX design."
+          echo "Issue #236 remains HOLD pending a new explicit owner authorization."
