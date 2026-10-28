@@ -53,7 +53,7 @@ def validate(repo_root: Path) -> dict[str, Any]:
     if prereg.get("state") != "preregistered_design_only":
         raise RuntimeError("v2.1F preregistration state changed")
 
-    if design.get("version") != 2:
+    if design.get("version") != 3:
         raise RuntimeError("Issue #258 hardened design version changed")
     if design.get("state") != "design_only_hold":
         raise RuntimeError("Issue #258 design must remain HOLD")
@@ -120,6 +120,24 @@ def validate(repo_root: Path) -> dict[str, Any]:
     if transport_policy.get("content_semantics_after_transport_failure") != "not_evaluated":
         raise RuntimeError("transport failure must not become content ambiguity")
 
+    execution_policy = design.get("execution_environment_policy", {})
+    if execution_policy.get("preferred_environment") != "github_actions_protected_main_lifecycle":
+        raise RuntimeError("Issue #258 live execution must prefer protected GitHub Actions")
+    if execution_policy.get("activation_audit_write_required_before_live_request") is not True:
+        raise RuntimeError("activation audit write must precede any live request")
+    if execution_policy.get("dispatch_audit_write_required_before_live_request") is not True:
+        raise RuntimeError("dispatch audit write must precede any live request")
+    if execution_policy.get("direct_local_execution_under_standard_issue_258_authorization") is not False:
+        raise RuntimeError("direct local fallback must remain forbidden")
+    if "do not bypass to direct local execution" not in execution_policy.get("github_write_unavailable_behavior", ""):
+        raise RuntimeError("GitHub write failure must remain fail-closed")
+    attempt_policy = execution_policy.get("independent_resource_attempt_policy", {})
+    if "other fixed resource retains its one separately authorized attempt" not in attempt_policy.get("dns_or_name_resolution_failure", ""):
+        raise RuntimeError("DNS failure resource-attempt semantics changed")
+    for key in ("http_401_403_429_or_challenge", "redirect", "other_non_200"):
+        if "global stop" not in attempt_policy.get(key, ""):
+            raise RuntimeError(f"{key} must remain a global stop")
+
     if any(design.get("current_authorizations", {}).values()):
         raise RuntimeError("all Issue #258 design authorizations must remain false")
     if template.get("decision_status") != "hold":
@@ -129,6 +147,8 @@ def validate(repo_root: Path) -> dict[str, Any]:
     if any(template.get("authorizations", {}).values()):
         raise RuntimeError("authorization template flags must remain false")
 
+    if contract.get("version") != 2:
+        raise RuntimeError("Issue #258 execution contract version changed")
     if contract.get("state") != "ambiguity_diagnostics_design_only_hold":
         raise RuntimeError("execution contract must remain design-only HOLD")
     if contract.get("active_authorization_receipt_expected_now") is not False:
@@ -141,6 +161,15 @@ def validate(repo_root: Path) -> dict[str, Any]:
         raise RuntimeError("contract authorization flags must all remain false")
     if contract.get("production_authorized") is not False:
         raise RuntimeError("Production must remain unauthorized")
+    contract_execution = contract.get("execution_environment_policy", {})
+    if contract_execution.get("activation_and_dispatch_writes_required_before_network") is not True:
+        raise RuntimeError("contract must require audit writes before network")
+    if contract_execution.get("github_write_unavailable_behavior") != "fail_closed_before_network_no_direct_local_fallback":
+        raise RuntimeError("contract GitHub-write fallback changed")
+    if contract_execution.get("dns_failure_on_one_resource_does_not_cancel_other_resource_single_attempt") is not True:
+        raise RuntimeError("contract DNS attempt policy changed")
+    if contract_execution.get("access_control_challenge_redirect_or_other_non_200_global_stop") is not True:
+        raise RuntimeError("contract global-stop policy changed")
 
     if ("if: $" + "{{ false }}") not in workflow:
         raise RuntimeError("Issue #258 workflow must remain inert")
@@ -156,6 +185,8 @@ def validate(repo_root: Path) -> dict[str, Any]:
         "layered_identity_preservation": True,
         "transport_failure_semantics": "not_evaluated",
         "multirow_header_support": True,
+        "preferred_execution_environment": "github_actions_protected_main_lifecycle",
+        "direct_local_fallback_authorized": False,
         "active_receipt_present": False,
         "dispatch_present": False,
         "live_request_authorized": False,
