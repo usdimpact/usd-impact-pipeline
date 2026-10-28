@@ -1,16 +1,17 @@
 {
   "version": 2,
-  "state": "row_presence_preflight_authorized_pending_dispatch",
+  "state": "row_presence_preflight_authorized",
   "methodology_version": "2.1F-design-candidate",
   "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/236",
   "controlling_rights_hold": "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
   "owner_approval_comment_id": 6481426895,
   "owner_approval_timestamp": "2026-10-28T21:44:04Z",
+  "authorization_activation_merge_commit": "2fa7232ced1f578b6d11bf1d58c464753b9dfdeb",
   "design_path": "governance/score-v2-1f-bls-wpu0561-row-presence-preflight-design.json",
   "active_authorization_receipt_path": "governance/score-v2-1f-bls-wpu0561-row-presence-preflight-authorization.json",
   "active_authorization_receipt_expected_now": true,
   "dispatch_marker_path": "governance/score-v2-1f-bls-wpu0561-row-presence-preflight-dispatch.json",
-  "dispatch_marker_expected_now": false,
+  "dispatch_marker_expected_now": true,
   "request_budget": 2,
   "contact_user_agent": "USD-Impact-Score-v2.1F-WPU0561-row-presence/2.0 (contact: https://usd-impact.com/support)",
   "fixed_resources": [
@@ -28,29 +29,6 @@
     "public_artifact_replacement_authorized": false,
     "production_authorized": false
   },
-  "execution_preconditions": [
-    "owner approval is recorded under Issue #236 comment 6481426895",
-    "active receipt pins the exact archived 2013 HTML and 2026 XLSX resources",
-    "contactable project User-Agent is pinned in the active receipt",
-    "all value extraction, full research, scoring, public-artifact and Production flags remain false",
-    "dispatch marker remains absent until a separate reviewed dispatch change",
-    "workflow remains inert until the separate dispatch change"
-  ],
-  "stop_conditions": [
-    "no dispatch marker",
-    "request budget would exceed two",
-    "any request is outside www.bls.gov",
-    "any request path differs from the two fixed resources",
-    "HTTP 401, 403 or 429",
-    "CAPTCHA, bot challenge or access-denied response",
-    "any redirect",
-    "unexpected HTML or XLSX signature/content type",
-    "numeric source values would be logged or persisted",
-    "WPU0561 values would be extracted",
-    "full historical reconstruction would begin",
-    "candidate Score, z-score or contribution would be computed",
-    "public artifact, research ledger or Production would change"
-  ],
-  "next_allowed_action": "separate_dispatch_review_after_activation_merge",
+  "next_allowed_action": "execute_one_off_row_presence_preflight_then_consume_authorization_fail_closed",
   "production_authorized": false
 }

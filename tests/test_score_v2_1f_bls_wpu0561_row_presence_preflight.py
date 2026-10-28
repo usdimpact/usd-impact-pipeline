@@ -3,7 +3,6 @@ from __future__ import annotations
 import io
 import unittest
 import zipfile
-from unittest import mock
 
 from scripts import run_score_v2_1f_bls_wpu0561_row_presence_preflight as preflight
 
@@ -68,15 +67,9 @@ def _synthetic_html() -> bytes:
 
 
 class ScoreV21FWpu0561RowPresenceRunnerTests(unittest.TestCase):
-    def test_design_only_state_refuses_before_network(self) -> None:
-        with mock.patch.object(
-            preflight,
-            "_request_once",
-            side_effect=AssertionError("network request occurred in HOLD state"),
-        ) as request:
-            with self.assertRaisesRegex(RuntimeError, "authorization is not active"):
-                preflight.run_preflight()
-            request.assert_not_called()
+    def test_dispatched_authorization_gate_validates_without_network(self) -> None:
+        user_agent = preflight._validate_authorization_and_dispatch()
+        self.assertIn("contact:", user_agent)
 
     def test_request_budget_is_hard_capped_at_two(self) -> None:
         budget = preflight.RequestBudget()
