@@ -1,9 +1,17 @@
 from __future__ import annotations
 
+import json
+import shutil
+import tempfile
 import unittest
 from datetime import date
+from pathlib import Path
+from unittest import mock
 
 from scripts import run_score_v2_1e_live_preflight as preflight
+from scripts import validate_score_v2_1e_research_authorization as authorization
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 class ScoreV21ELivePreflightTests(unittest.TestCase):
@@ -81,6 +89,58 @@ class ScoreV21ELivePreflightTests(unittest.TestCase):
                 (("bank credit",), ("commercial banks",)),
             )
         )
+
+
+    def test_consumed_one_off_preflight_refuses_before_any_network_call(self) -> None:
+        # Independent denial in the preflight runner; do not fetch live data.
+        with mock.patch.object(
+            preflight, "_get_fixed",
+            side_effect=AssertionError("source request after research consumption"),
+        ) as request:
+            with self.assertRaisesRegex(RuntimeError, "not active"):
+                preflight.run_preflight()
+            request.assert_not_called()
+
+    def test_consumption_marker_prevents_resurrection_of_old_receipt(self) -> None:
+        required = (
+            authorization.CONSUMPTION,
+            "governance/score-v2-1e-real-data-execution-contract.json",
+            "governance/score-v2-1e-real-data-research-authorization.template.json",
+            "governance/score-publication-rights-gate.json",
+        )
+        with tempfile.TemporaryDirectory(prefix="v21e-closeout-") as tmp:
+            root = Path(tmp)
+            for relative in required:
+                dst = root / relative
+                dst.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(ROOT / relative, dst)
+            self.assertEqual(
+                authorization.validate(root)["state"],
+                "one_off_private_research_consumed_fail_closed",
+            )
+            resurrected = root / authorization.ACTIVE_RECEIPT
+            resurrected.write_text('{"decision_status":"approved"}', encoding="utf-8")
+            with self.assertRaisesRegex(RuntimeError, "must not retain an active receipt"):
+                authorization.validate(root)
+            resurrected.unlink()
+
+            contract_file = root / "governance/score-v2-1e-real-data-execution-contract.json"
+            contract = json.loads(contract_file.read_text(encoding="utf-8"))
+            contract["current_state"]["real_data_fetch_authorized"] = True
+            contract_file.write_text(json.dumps(contract), encoding="utf-8")
+            with self.assertRaisesRegex(RuntimeError, "all execution authorizations must be false"):
+                authorization.validate(root)
+            shutil.copyfile(ROOT / "governance/score-v2-1e-real-data-execution-contract.json", contract_file)
+
+            consumption_file = root / authorization.CONSUMPTION
+            evidence = json.loads(consumption_file.read_text(encoding="utf-8"))
+            evidence["post_consumption_authorizations"]["real_data_research"] = True
+            consumption_file.write_text(json.dumps(evidence), encoding="utf-8")
+            with self.assertRaisesRegex(RuntimeError, "all post-consumption authorizations"):
+                authorization.validate(root)
+            consumption_file.unlink()
+            with self.assertRaises(FileNotFoundError):
+                authorization.validate(root)
 
 
 if __name__ == "__main__":
