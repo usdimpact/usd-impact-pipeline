@@ -160,7 +160,7 @@ def _html_text(payload: bytes) -> str:
 def extract_fed_release_dates(payload: bytes, code: str) -> list[date]:
     code = code.lower()
     text = payload.decode("utf-8", errors="replace")
-    pattern = re.compile(rf"(?i)(?:/releases/)?{re.escape(code)}/(20\d{{6}})(?:/|[.])")
+    pattern = re.compile(rf"(?i)(?:/releases/)?{re.escape(code)}/(20\d{{6}})\\b")
     found: set[date] = set()
     for raw in pattern.findall(text):
         try:
