@@ -1,0 +1,18 @@
+name: Score v2.1F BLS Detailed Report metadata preflight (HOLD)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  design-only-hold:
+    if: ${{ false }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Explicit owner authorization guard
+        run: |
+          echo "The BLS Detailed Report metadata preflight is design-only/HOLD."
+          echo "Issue #230 requires a new explicit owner authorization."
+          echo "No BLS network request is authorized by this workflow definition."
