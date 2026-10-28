@@ -185,6 +185,49 @@ jobs:
             echo "- Production change: false"
           } >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Validate locked reader compatibility from private bundle
+        shell: bash
+        env:
+          SYNTHETIC_WEEK: '2099-01-02'
+        run: |
+          set -euo pipefail
+          report="$RUNNER_TEMP/private-reader-compatibility-report.json"
+          python -m scripts.rehearse_score_private_reader_compatibility \
+            --bundle "$RUNNER_TEMP/repro_bundle.json" \
+            --expected-week "$SYNTHETIC_WEEK" \
+            --report-output "$report"
+
+          expected_sha="$(sha256sum "$RUNNER_TEMP/repro_bundle.json" | awk '{print $1}')"
+          REPORT="$report" EXPECTED_SHA="$expected_sha" python - <<'PY'
+          import json, os
+          from pathlib import Path
+
+          report = json.loads(Path(os.environ["REPORT"]).read_text())
+          if report.get("status") != "passed":
+              raise SystemExit("locked reader compatibility validation did not pass")
+          if report.get("bundle_sha256") != os.environ["EXPECTED_SHA"]:
+              raise SystemExit("locked reader compatibility SHA mismatch")
+          for field in ("predictive_score_equal", "predictive_dxy_equal", "v3_source_levels_equal"):
+              if report.get(field) is not True:
+                  raise SystemExit(f"locked reader compatibility mismatch: {field}")
+          if report.get("v3_driver_count") != 8:
+              raise SystemExit("locked V3 driver count mismatch")
+          if report.get("repository_public_paths_modified") is not False:
+              raise SystemExit("repository public paths were unexpectedly modified")
+          if report.get("locked_readers_modified") is not False:
+              raise SystemExit("locked readers were unexpectedly modified")
+          PY
+
+          {
+            echo "### Locked reader private-bundle compatibility"
+            echo
+            echo "- legacy materialization: runner-temporary only"
+            echo "- predictive Score/DXY equality: true"
+            echo "- V3 source-level equality: true"
+            echo "- locked readers modified: false"
+            echo "- repository public paths modified: false"
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Remove runner-temporary evidence
         if: always()
         shell: bash
@@ -193,4 +236,5 @@ jobs:
             "$RUNNER_TEMP/repro_bundle.json" \
             "$RUNNER_TEMP/headers.txt" \
             "$RUNNER_TEMP/private-research-migration-report.json" \
+            "$RUNNER_TEMP/private-reader-compatibility-report.json" \
             "$RUNNER_TEMP/oidc-token.txt"
