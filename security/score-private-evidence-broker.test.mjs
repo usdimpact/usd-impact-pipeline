@@ -7,6 +7,7 @@ import {
   objectPathForWeek,
   parseBearerToken,
   sha256Hex,
+  validateBucketMetadata,
   validateSyntheticBundleBytes,
   validateSyntheticWeek,
   WORKFLOW_REFS,
@@ -215,6 +216,34 @@ test('synthetic fixture passes while provider/source markers fail closed', async
   );
 });
 
+test('bucket policy must remain private, JSON-only and exactly 1 MiB', () => {
+  const safe = {
+    id: 'score-private-evidence',
+    name: 'score-private-evidence',
+    public: false,
+    file_size_limit: 1024 * 1024,
+    allowed_mime_types: ['application/json'],
+  };
+  assert.equal(validateBucketMetadata(safe), true);
+
+  assert.throws(
+    () => validateBucketMetadata({ ...safe, public: true }),
+    /bucket_policy_mismatch/,
+  );
+  assert.throws(
+    () => validateBucketMetadata({ ...safe, file_size_limit: 2 * 1024 * 1024 }),
+    /bucket_policy_mismatch/,
+  );
+  assert.throws(
+    () => validateBucketMetadata({ ...safe, allowed_mime_types: ['application/json', 'text/plain'] }),
+    /bucket_policy_mismatch/,
+  );
+  assert.throws(
+    () => validateBucketMetadata({ ...safe, id: 'library-pass-assets' }),
+    /bucket_policy_mismatch/,
+  );
+});
+
 test('bearer parser accepts only one compact token', () => {
   assert.equal(parseBearerToken('Bearer abc.def.ghi'), 'abc.def.ghi');
   assert.throws(() => parseBearerToken('Basic abc'), /Bearer token/);
@@ -257,10 +286,15 @@ test('edge wrapper has no list/delete/signed-url or legacy service-role escape h
   );
 
   assert.match(source, /upsert:\s*false/);
+  assert.match(source, /\.getBucket\s*\(/);
   assert.match(source, /SCORE_BROKER_MODE/);
   assert.match(source, /synthetic_bundle_rejected/);
   assert.doesNotMatch(source, /\.remove\s*\(/);
   assert.doesNotMatch(source, /\.list\s*\(/);
+  assert.doesNotMatch(source, /\.listBuckets\s*\(/);
+  assert.doesNotMatch(source, /\.createBucket\s*\(/);
+  assert.doesNotMatch(source, /\.updateBucket\s*\(/);
+  assert.doesNotMatch(source, /\.deleteBucket\s*\(/);
   assert.doesNotMatch(source, /createSignedUrl/);
   assert.doesNotMatch(source, /SUPABASE_SERVICE_ROLE_KEY/);
   assert.doesNotMatch(source, /Access-Control-Allow-Origin/i);
