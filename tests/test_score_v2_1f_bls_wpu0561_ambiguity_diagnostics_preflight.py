@@ -10,13 +10,13 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class ScoreV21FWpu0561AmbiguityDiagnosticsTests(unittest.TestCase):
-    def test_design_packet_is_hold_zero_value(self) -> None:
+    def test_activation_is_authorized_but_not_dispatched(self) -> None:
         report = validator.validate(ROOT)
         self.assertEqual(report["status"], "passed")
-        self.assertEqual(report["state"], "ambiguity_diagnostics_design_only_hold")
+        self.assertEqual(report["state"], "ambiguity_diagnostics_authorized_pending_dispatch")
         self.assertEqual(report["request_budget"], 2)
         self.assertEqual(report["max_economic_observations_total"], 0)
-        self.assertFalse(report["active_receipt_present"])
+        self.assertTrue(report["active_receipt_present"])
         self.assertFalse(report["dispatch_present"])
         self.assertFalse(report["live_request_authorized"])
         self.assertFalse(report["economic_value_read_authorized"])
