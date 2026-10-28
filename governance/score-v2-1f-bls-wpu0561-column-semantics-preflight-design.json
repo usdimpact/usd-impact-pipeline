@@ -1,0 +1,120 @@
+{
+  "version": 1,
+  "state": "design_only_hold",
+  "methodology_version": "2.1F-design-candidate",
+  "owner_decision_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/244",
+  "row_presence_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/236",
+  "controlling_rights_hold": "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
+  "research_window": {
+    "start": "2013-01-01",
+    "end": "2026-10-23"
+  },
+  "fixed_resources": [
+    {
+      "label": "april_2013_archived_html",
+      "method": "GET",
+      "host": "www.bls.gov",
+      "path": "/news.release/archives/ppi_05152013.htm",
+      "expected_format": "html"
+    },
+    {
+      "label": "april_2026_xlsx",
+      "method": "GET",
+      "host": "www.bls.gov",
+      "path": "/ppi/detailed-report/ppi-detailed-report-april-2026.xlsx",
+      "expected_format": "xlsx"
+    }
+  ],
+  "objective": "Determine whether non-economic schema evidence can map the Crude petroleum row unambiguously to WPU0561/0561 while separating identifier fields from index-level and percent-change fields.",
+  "request_policy": {
+    "request_budget": 2,
+    "concurrency": 1,
+    "automatic_retries": 0,
+    "allowed_host": "www.bls.gov",
+    "redirects": "reject_fail_closed",
+    "transparent_contact_user_agent_required": true,
+    "access_control_stop_statuses": [401, 403, 429],
+    "challenge_detection_required": true
+  },
+  "runtime_parser_policy": {
+    "html_parser": "python_standard_library_html_parser_only",
+    "xlsx_parser": "python_standard_library_zip_xml_only",
+    "install_new_system_software": false,
+    "install_new_python_dependency": false,
+    "external_parser_process": false
+  },
+  "identifier_policy": {
+    "allowed_identity_tokens": ["WPU0561", "0561", "05-61", "Crude petroleum"],
+    "identifier_header_terms": [
+      "commodity code",
+      "series code",
+      "series id",
+      "item code",
+      "code"
+    ],
+    "description_header_terms": [
+      "commodity",
+      "item",
+      "description"
+    ],
+    "economic_header_terms": [
+      "index",
+      "percent",
+      "change",
+      "value"
+    ],
+    "numeric_identifier_exception": "A numeric-looking cell may be retained only after its column is proven by a non-numeric header to be a commodity/series identifier field.",
+    "ambiguous_cell_behavior": "discard_value_emit_ambiguity_only"
+  },
+  "allowed_ephemeral_processing": [
+    "read the two fixed response bodies into memory",
+    "parse HTML headers, table/row/column coordinates and identifier fields",
+    "parse XLSX string headers and cell types/number formats",
+    "read a numeric-looking cell only under a proven identifier header",
+    "normalize identifier-only 561 to 0561 for identity testing",
+    "discard all economic index and percent-change values"
+  ],
+  "allowed_persistent_output": [
+    "pass/fail status",
+    "request count",
+    "resource path and format",
+    "header text and coordinates",
+    "identifier-column coordinates",
+    "description-column coordinates",
+    "economic-column classification without values",
+    "commodity/series identifier token or normalized identifier",
+    "Crude petroleum row coordinates",
+    "preliminary/final/revised labels",
+    "yes/no/ambiguous mapping to WPU0561"
+  ],
+  "forbidden": {
+    "response_body_persistence": true,
+    "economic_index_value_extraction": true,
+    "economic_percent_change_extraction": true,
+    "economic_value_logging": true,
+    "economic_value_persistence": true,
+    "full_historical_reconstruction": true,
+    "bls_api_call": true,
+    "bls_bulk_download": true,
+    "alternate_source": true,
+    "candidate_score_computation": true,
+    "component_zscore_computation": true,
+    "component_contribution_computation": true,
+    "research_ledger_mutation": true,
+    "public_artifact_replacement": true,
+    "production_change": true
+  },
+  "current_authorizations": {
+    "response_body_ephemeral_retrieval": false,
+    "column_semantics_preflight": false,
+    "numeric_identifier_field_read": false,
+    "economic_value_extraction": false,
+    "real_data_research": false,
+    "full_historical_reconstruction": false,
+    "candidate_score_computation": false,
+    "research_ledger_mutation": false,
+    "public_artifact_replacement": false,
+    "production": false
+  },
+  "next_gate": "new_explicit_owner_authorization_under_issue_244_required_before_any_live_request"
+}
