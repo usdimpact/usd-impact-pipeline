@@ -92,8 +92,10 @@ def validate(repo_root: Path) -> dict[str, Any]:
         raise RuntimeError("v2.1E preregistered transforms changed")
 
     energy = next(item for item in source_rules if item["slot"] == "ENERGY")
-    if energy.get("max_observation_age_calendar_days") != 50:
-        raise RuntimeError("BLS energy max-age boundary changed")
+    if energy.get("max_release_age_calendar_days") != 45:
+        raise RuntimeError("BLS energy release-age boundary changed")
+    if "measure staleness from the release date" not in energy.get("point_in_time_rule", ""):
+        raise RuntimeError("BLS staleness must be measured from release date")
     if energy.get("vintage_fallback") != "fail_closed_no_candidate_week":
         raise RuntimeError("BLS missing-vintage behavior must fail closed")
     if "Current revised history is not an allowed substitute" not in energy.get(
