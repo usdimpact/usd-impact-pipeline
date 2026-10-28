@@ -1,0 +1,284 @@
+{
+  "version": 1,
+  "state": "review_only",
+  "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/179",
+  "evaluations": [
+    {
+      "version": 1,
+      "state": "pending",
+      "driver": "DXY",
+      "candidate": {
+        "provider": null,
+        "product": null,
+        "delivery_method": null,
+        "commercial_contact_reference": null
+      },
+      "rights": {
+        "commercial_internal_use": "pending",
+        "retention": "pending",
+        "derived_internal_use": "pending",
+        "public_aggregate_output": "pending",
+        "public_component_output": "pending",
+        "machine_readable_publication": "pending",
+        "historical_archives": "pending"
+      },
+      "semantics": {
+        "instrument_identity": null,
+        "field_definition": null,
+        "units": null,
+        "calendar": null,
+        "timezone_date_boundary": null,
+        "revision_policy": null,
+        "history_start": null,
+        "adjustment_convention": null,
+        "futures_continuation": null
+      },
+      "parity": {
+        "synthetic_adapter": "not_run",
+        "daily_history": "not_run",
+        "weekly_levels": "not_run",
+        "score_components": "not_run",
+        "aggregate_score": "not_run",
+        "regime": "not_run"
+      },
+      "evidence_references": [],
+      "conditions": [],
+      "decision": {
+        "status": "pending",
+        "reason": ""
+      },
+      "production_authorized": false
+    },
+    {
+      "version": 1,
+      "state": "pending",
+      "driver": "WTI",
+      "candidate": {
+        "provider": null,
+        "product": null,
+        "delivery_method": null,
+        "commercial_contact_reference": null
+      },
+      "rights": {
+        "commercial_internal_use": "pending",
+        "retention": "pending",
+        "derived_internal_use": "pending",
+        "public_aggregate_output": "pending",
+        "public_component_output": "pending",
+        "machine_readable_publication": "pending",
+        "historical_archives": "pending"
+      },
+      "semantics": {
+        "instrument_identity": null,
+        "field_definition": null,
+        "units": null,
+        "calendar": null,
+        "timezone_date_boundary": null,
+        "revision_policy": null,
+        "history_start": null,
+        "adjustment_convention": null,
+        "futures_continuation": null
+      },
+      "parity": {
+        "synthetic_adapter": "not_run",
+        "daily_history": "not_run",
+        "weekly_levels": "not_run",
+        "score_components": "not_run",
+        "aggregate_score": "not_run",
+        "regime": "not_run"
+      },
+      "evidence_references": [],
+      "conditions": [],
+      "decision": {
+        "status": "pending",
+        "reason": ""
+      },
+      "production_authorized": false
+    },
+    {
+      "version": 1,
+      "state": "pending",
+      "driver": "SPX",
+      "candidate": {
+        "provider": null,
+        "product": null,
+        "delivery_method": null,
+        "commercial_contact_reference": null
+      },
+      "rights": {
+        "commercial_internal_use": "pending",
+        "retention": "pending",
+        "derived_internal_use": "pending",
+        "public_aggregate_output": "pending",
+        "public_component_output": "pending",
+        "machine_readable_publication": "pending",
+        "historical_archives": "pending"
+      },
+      "semantics": {
+        "instrument_identity": null,
+        "field_definition": null,
+        "units": null,
+        "calendar": null,
+        "timezone_date_boundary": null,
+        "revision_policy": null,
+        "history_start": null,
+        "adjustment_convention": null,
+        "futures_continuation": null
+      },
+      "parity": {
+        "synthetic_adapter": "not_run",
+        "daily_history": "not_run",
+        "weekly_levels": "not_run",
+        "score_components": "not_run",
+        "aggregate_score": "not_run",
+        "regime": "not_run"
+      },
+      "evidence_references": [],
+      "conditions": [],
+      "decision": {
+        "status": "pending",
+        "reason": ""
+      },
+      "production_authorized": false
+    },
+    {
+      "version": 1,
+      "state": "pending",
+      "driver": "VIX",
+      "candidate": {
+        "provider": null,
+        "product": null,
+        "delivery_method": null,
+        "commercial_contact_reference": null
+      },
+      "rights": {
+        "commercial_internal_use": "pending",
+        "retention": "pending",
+        "derived_internal_use": "pending",
+        "public_aggregate_output": "pending",
+        "public_component_output": "pending",
+        "machine_readable_publication": "pending",
+        "historical_archives": "pending"
+      },
+      "semantics": {
+        "instrument_identity": null,
+        "field_definition": null,
+        "units": null,
+        "calendar": null,
+        "timezone_date_boundary": null,
+        "revision_policy": null,
+        "history_start": null,
+        "adjustment_convention": null,
+        "futures_continuation": null
+      },
+      "parity": {
+        "synthetic_adapter": "not_run",
+        "daily_history": "not_run",
+        "weekly_levels": "not_run",
+        "score_components": "not_run",
+        "aggregate_score": "not_run",
+        "regime": "not_run"
+      },
+      "evidence_references": [],
+      "conditions": [],
+      "decision": {
+        "status": "pending",
+        "reason": ""
+      },
+      "production_authorized": false
+    },
+    {
+      "version": 1,
+      "state": "pending",
+      "driver": "BTC",
+      "candidate": {
+        "provider": null,
+        "product": null,
+        "delivery_method": null,
+        "commercial_contact_reference": null
+      },
+      "rights": {
+        "commercial_internal_use": "pending",
+        "retention": "pending",
+        "derived_internal_use": "pending",
+        "public_aggregate_output": "pending",
+        "public_component_output": "pending",
+        "machine_readable_publication": "pending",
+        "historical_archives": "pending"
+      },
+      "semantics": {
+        "instrument_identity": null,
+        "field_definition": null,
+        "units": null,
+        "calendar": null,
+        "timezone_date_boundary": null,
+        "revision_policy": null,
+        "history_start": null,
+        "adjustment_convention": null,
+        "futures_continuation": null
+      },
+      "parity": {
+        "synthetic_adapter": "not_run",
+        "daily_history": "not_run",
+        "weekly_levels": "not_run",
+        "score_components": "not_run",
+        "aggregate_score": "not_run",
+        "regime": "not_run"
+      },
+      "evidence_references": [],
+      "conditions": [],
+      "decision": {
+        "status": "pending",
+        "reason": ""
+      },
+      "production_authorized": false
+    },
+    {
+      "version": 1,
+      "state": "pending",
+      "driver": "GOLD",
+      "candidate": {
+        "provider": null,
+        "product": null,
+        "delivery_method": null,
+        "commercial_contact_reference": null
+      },
+      "rights": {
+        "commercial_internal_use": "pending",
+        "retention": "pending",
+        "derived_internal_use": "pending",
+        "public_aggregate_output": "pending",
+        "public_component_output": "pending",
+        "machine_readable_publication": "pending",
+        "historical_archives": "pending"
+      },
+      "semantics": {
+        "instrument_identity": null,
+        "field_definition": null,
+        "units": null,
+        "calendar": null,
+        "timezone_date_boundary": null,
+        "revision_policy": null,
+        "history_start": null,
+        "adjustment_convention": null,
+        "futures_continuation": null
+      },
+      "parity": {
+        "synthetic_adapter": "not_run",
+        "daily_history": "not_run",
+        "weekly_levels": "not_run",
+        "score_components": "not_run",
+        "aggregate_score": "not_run",
+        "regime": "not_run"
+      },
+      "evidence_references": [],
+      "conditions": [],
+      "decision": {
+        "status": "pending",
+        "reason": ""
+      },
+      "production_authorized": false
+    }
+  ],
+  "production_authorized": false
+}
