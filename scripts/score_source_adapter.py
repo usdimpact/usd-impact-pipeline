@@ -47,7 +47,10 @@ def normalize_daily_frame(raw: pd.DataFrame, spec: AdapterSpec) -> pd.DataFrame:
     frame = raw[[spec.date_column, *spec.column_map.keys()]].copy()
     frame[spec.date_column] = pd.to_datetime(frame[spec.date_column], errors="raise")
     if frame[spec.date_column].dt.tz is not None:
-        frame[spec.date_column] = frame[spec.date_column].dt.tz_convert("UTC").dt.tz_localize(None)
+        frame[spec.date_column] = (
+            frame[spec.date_column].dt.tz_convert("UTC").dt.tz_localize(None)
+        )
+    frame[spec.date_column] = frame[spec.date_column].dt.normalize()
 
     frame = frame.set_index(spec.date_column).sort_index()
     if frame.index.has_duplicates:
