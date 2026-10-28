@@ -40,7 +40,17 @@ jobs:
           node-version: '22'
 
       - name: Test Cloudflare public-only Score perimeter
-        run: node --test security/score-pages-public-only.test.mjs
+        run: |
+          node --test \
+            security/score-pages-public-only.test.mjs \
+            security/score-public-rights-surface.test.mjs
+
+      - name: Test review-only private evidence OIDC broker
+        run: |
+          node --test \
+            security/score-private-evidence-broker.test.mjs \
+            security/score-private-evidence-integration.test.mjs \
+            security/score-private-evidence-development-execution.test.mjs
 
       - name: Validate private member asset publisher without remote writes
         env:

@@ -1,0 +1,135 @@
+{
+  "version": 1,
+  "state": "hold",
+  "effective_date": "2026-10-28",
+  "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
+  "source_inventory": "docs/score-public-allowlist-rights-inventory-2026-10-28.md",
+  "classes": {
+    "A": {
+      "label": "aggregate_or_operational",
+      "default_treatment": "retain_unless_separate_issue"
+    },
+    "B": {
+      "label": "methodology_or_source_contract",
+      "default_treatment": "review_wording_and_attribution"
+    },
+    "C": {
+      "label": "direct_component_derived_release_evidence",
+      "default_treatment": "migrate_private_evidence_then_narrow_public_output"
+    },
+    "D": {
+      "label": "aggregate_research_with_provider_provenance",
+      "default_treatment": "retain_aggregate_results_and_review_provenance"
+    },
+    "E": {
+      "label": "component_derived_diagnostic_research",
+      "default_treatment": "derived_data_rights_review_required"
+    },
+    "F": {
+      "label": "component_revision_research",
+      "default_treatment": "derived_data_rights_review_required"
+    }
+  },
+  "static_paths": [
+    {
+      "path": "/member-required",
+      "class": "A"
+    },
+    {
+      "path": "/member-required.html",
+      "class": "A"
+    },
+    {
+      "path": "/robots.txt",
+      "class": "A"
+    },
+    {
+      "path": "/favicon.ico",
+      "class": "A"
+    },
+    {
+      "path": "/data/backtest_results.json",
+      "class": "A"
+    },
+    {
+      "path": "/data/score_v2_data_semantics.json",
+      "class": "B"
+    },
+    {
+      "path": "/data/score_v2_data_semantics.schema.json",
+      "class": "B"
+    },
+    {
+      "path": "/data/score_v2_methodology.json",
+      "class": "B"
+    },
+    {
+      "path": "/data/score_v2_methodology.schema.json",
+      "class": "B"
+    },
+    {
+      "path": "/data/research/independent_replication_protocol.json",
+      "class": "B"
+    },
+    {
+      "path": "/data/score_repro_bundle_latest.json",
+      "class": "C"
+    },
+    {
+      "path": "/data/usd_impact_score_v2.csv",
+      "class": "C"
+    },
+    {
+      "path": "/data/usd_impact_score_v2.json",
+      "class": "C"
+    },
+    {
+      "path": "/data/weekly_input_latest.json",
+      "class": "C"
+    },
+    {
+      "path": "/data/research/score_v2_point_in_time_latest.json",
+      "class": "D"
+    },
+    {
+      "path": "/data/research/score_v2_robustness_latest.json",
+      "class": "E"
+    },
+    {
+      "path": "/data/research/score_v2_vintage_comparison_latest.csv",
+      "class": "F"
+    },
+    {
+      "path": "/data/research/score_v2_vintage_comparison_latest.json",
+      "class": "F"
+    },
+    {
+      "path": "/data/research/score_v2_vintage_comparison_latest.html",
+      "class": "F"
+    },
+    {
+      "path": "/data/research/score_v2_vintage_comparison_latest",
+      "class": "F"
+    }
+  ],
+  "dated_archive_patterns": [
+    {
+      "regex": "^/archive/\\d{4}-\\d{2}-\\d{2}/(?:score|weekly_input|repro_bundle)\\.json$",
+      "class": "C",
+      "examples": [
+        "/archive/2026-10-23/score.json",
+        "/archive/2026-10-23/weekly_input.json",
+        "/archive/2026-10-23/repro_bundle.json"
+      ]
+    }
+  ],
+  "priority_order": [
+    "C",
+    "E",
+    "F",
+    "D",
+    "B",
+    "A"
+  ],
+  "production_change_authorized": false
+}

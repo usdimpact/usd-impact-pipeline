@@ -1,0 +1,132 @@
+name: Score private evidence synthetic read rehearsal
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: score-private-evidence-synthetic-read
+  cancel-in-progress: false
+
+jobs:
+  synthetic-read:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout reviewed main
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Confirm rights HOLD remains active
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          gate = json.loads(Path("governance/score-publication-rights-gate.json").read_text())
+          surface = json.loads(Path("governance/score-public-rights-surface.json").read_text())
+          if gate.get("state") != "hold":
+              raise SystemExit("Score publication gate is not HOLD")
+          if gate.get("decision_receipt") is not None:
+              raise SystemExit("Score publication gate has a decision receipt")
+          if surface.get("state") != "hold":
+              raise SystemExit("Score public rights surface is not HOLD")
+          if surface.get("production_change_authorized") is not False:
+              raise SystemExit("Production change is unexpectedly authorized")
+          PY
+
+      - name: Request week-bound GitHub OIDC token
+        shell: bash
+        env:
+          SYNTHETIC_WEEK: '2099-01-02'
+        run: |
+          set -euo pipefail
+          audience="urn:usd-impact:score-private-evidence:read:development:${SYNTHETIC_WEEK}"
+          encoded_audience="$(AUDIENCE="$audience" python - <<'PY'
+          import os, urllib.parse
+          print(urllib.parse.quote(os.environ["AUDIENCE"], safe=""))
+          PY
+          )"
+
+          oidc_response="$(curl --fail --silent --show-error \
+            -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=${encoded_audience}")"
+
+          OIDC_RESPONSE="$oidc_response" python - <<'PY' > "$RUNNER_TEMP/oidc-token.txt"
+          import json, os
+          value = json.loads(os.environ["OIDC_RESPONSE"]).get("value")
+          if not isinstance(value, str) or not value:
+              raise SystemExit("missing OIDC token")
+          print(value)
+          PY
+          chmod 600 "$RUNNER_TEMP/oidc-token.txt"
+
+      - name: Read and validate exact synthetic object
+        shell: bash
+        env:
+          BROKER_URL: https://xakayexlzyrazuunqlxe.supabase.co/functions/v1/score-private-evidence-broker
+          SYNTHETIC_WEEK: '2099-01-02'
+        run: |
+          set -euo pipefail
+          oidc_token="$(cat "$RUNNER_TEMP/oidc-token.txt")"
+          output="$RUNNER_TEMP/repro_bundle.json"
+          headers="$RUNNER_TEMP/headers.txt"
+
+          curl --fail --silent --show-error \
+            -X POST "$BROKER_URL" \
+            -H "Authorization: Bearer $oidc_token" \
+            -H "x-score-operation: read" \
+            -H "x-score-week: $SYNTHETIC_WEEK" \
+            -D "$headers" \
+            -o "$output"
+
+          unset oidc_token
+          rm -f "$RUNNER_TEMP/oidc-token.txt"
+
+          expected_sha="$(awk 'BEGIN{IGNORECASE=1} /^x-score-content-sha256:/ {gsub("\r","",$2); print $2}' "$headers")"
+          actual_sha="$(sha256sum "$output" | awk '{print $1}')"
+          test -n "$expected_sha"
+          test "$actual_sha" = "$expected_sha"
+
+          OUTPUT="$output" python - <<'PY'
+          import json, os
+          from pathlib import Path
+
+          payload = json.loads(Path(os.environ["OUTPUT"]).read_text())
+          if payload.get("synthetic_rehearsal") is not True:
+              raise SystemExit("stored bundle is not synthetic")
+          if payload.get("do_not_publish") is not True:
+              raise SystemExit("stored bundle lacks do-not-publish marker")
+          if payload.get("score_week") != "2099-01-02":
+              raise SystemExit("stored bundle week mismatch")
+          if payload.get("pipeline_git_sha") != "0" * 40:
+              raise SystemExit("stored bundle has non-synthetic pipeline SHA")
+          if payload.get("requirements_lock_sha256") != "0" * 64:
+              raise SystemExit("stored bundle has non-synthetic requirements hash")
+          PY
+
+          {
+            echo "### Synthetic private evidence read rehearsal"
+            echo
+            echo "- week: `2099-01-02`"
+            echo "- SHA-256: `$actual_sha`"
+            echo "- source: Development private broker"
+            echo "- provider-derived values: false"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Remove runner-temporary evidence
+        if: always()
+        shell: bash
+        run: |
+          rm -f \
+            "$RUNNER_TEMP/repro_bundle.json" \
+            "$RUNNER_TEMP/headers.txt" \
+            "$RUNNER_TEMP/oidc-token.txt"
