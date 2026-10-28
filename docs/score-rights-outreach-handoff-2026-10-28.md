@@ -85,6 +85,26 @@ Requested clarification:
 - aggregate Score/regime publication;
 - machine-readable history/archive restrictions.
 
+## Immediate S&P acknowledgment
+
+An automated S&P DJI response arrived shortly after send.
+
+- message: `1a1806f3f91ec24b`
+- subject: `Regarding 01036004 USD Impact Score — request for data/derived-output licensing clarification`
+- case/reference: `01036004`
+- sender: `no-replyspdjisfdc@spglobal.com`
+
+Treatment:
+- **do not record this as rights approval**;
+- it states full data services are subscription-based;
+- it repeats that Index Data must not be modified, used to create derivative works/derived indices, reproduced or redistributed without prior written consent;
+- it directs other inquiries to S&P DJI regional/contact channels;
+- sender is a no-reply address, so do not reply to that mailbox.
+
+Next step for S&P:
+- wait for a substantive case response if one follows, or route through the official regional/contact channel with reference `01036004`;
+- any substantive answer must still be scoped into the decision receipt.
+
 ## Yahoo / yfinance status
 
 No Yahoo/yfinance inquiry was sent.
