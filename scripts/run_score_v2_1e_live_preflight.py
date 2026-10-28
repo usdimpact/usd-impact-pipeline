@@ -150,6 +150,26 @@ class _VisibleTextParser(HTMLParser):
             self.parts.append(data)
 
 
+class _HrefParser(HTMLParser):
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.hrefs: list[str] = []
+
+    def handle_starttag(self, tag: str, attrs) -> None:
+        if tag.lower() != "a":
+            return
+        for key, value in attrs:
+            if key.lower() == "href" and isinstance(value, str):
+                self.hrefs.append(value.strip())
+
+
+def _hrefs(payload: bytes) -> list[str]:
+    parser = _HrefParser()
+    parser.feed(payload.decode("utf-8", errors="replace"))
+    parser.close()
+    return parser.hrefs
+
+
 def _html_text(payload: bytes) -> str:
     parser = _VisibleTextParser()
     parser.feed(payload.decode("utf-8", errors="replace"))
@@ -159,16 +179,26 @@ def _html_text(payload: bytes) -> str:
 
 def extract_fed_release_dates(payload: bytes, code: str) -> list[date]:
     code = code.lower()
-    text = payload.decode("utf-8", errors="replace")
-    pattern = re.compile(rf"(?i)(?:/releases/)?{re.escape(code)}/(20\d{{6}})\b")
+    family_pattern = re.compile(
+        rf"(?i)(?:^|/)releases/{re.escape(code)}/(20\d{{6}})(?:$|[/?#])"
+    )
+    relative_pattern = re.compile(r"(?i)^(?:\./)?(20\d{6})(?:$|[/?#])")
     found: set[date] = set()
-    for raw in pattern.findall(text):
+
+    for href in _hrefs(payload):
+        family_match = family_pattern.search(href)
+        relative_match = relative_pattern.search(href)
+        match = family_match or relative_match
+        if not match:
+            continue
+        raw = match.group(1)
         try:
             value = date(int(raw[:4]), int(raw[4:6]), int(raw[6:8]))
         except ValueError:
             continue
         if START <= value <= END:
             found.add(value)
+
     return sorted(found)
 
 
