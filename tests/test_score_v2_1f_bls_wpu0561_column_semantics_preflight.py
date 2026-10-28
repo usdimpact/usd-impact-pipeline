@@ -136,7 +136,7 @@ def _synthetic_ambiguous_xlsx() -> bytes:
 
 
 class ScoreV21FWpu0561ColumnSemanticsRunnerTests(unittest.TestCase):
-    def test_design_only_state_refuses_before_network(self) -> None:
+    def test_activated_without_dispatch_refuses_before_network(self) -> None:
         with mock.patch.object(
             preflight,
             "_request_once",
