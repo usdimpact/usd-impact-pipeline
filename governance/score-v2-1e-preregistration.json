@@ -1,0 +1,261 @@
+{
+  "version": 1,
+  "state": "preregistered_design_only",
+  "methodology_version": "2.1E-design-candidate",
+  "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/201",
+  "controlling_hold": "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
+  "budget_constraint": "zero_paid_market_data_budget",
+  "authorizations": {
+    "source_approval": false,
+    "real_data_fetch": false,
+    "real_data_research": false,
+    "methodology_activation": false,
+    "public_artifact_replacement": false,
+    "research_ledger_mutation": false,
+    "production": false
+  },
+  "evaluation_clock": {
+    "timezone": "America/New_York",
+    "cutoff": "Friday 23:59:59",
+    "observation_date_is_not_release_date": true,
+    "release_date_is_not_vintage_identity": true,
+    "rule": "Every weekly input must be traceable to the exact published release/vintage actually available by the Friday cutoff."
+  },
+  "source_rules": [
+    {
+      "slot": "USD",
+      "exact_series_id": "H10/H10/JRXWTFB_N.B",
+      "transform": "level",
+      "release_rule": "H.10 Monday 16:15 ET for previous business week's daily observations.",
+      "point_in_time_rule": "Use only daily observations contained in an H.10 release published by cutoff.",
+      "max_observation_age_calendar_days": 10,
+      "historical_vintage_rule": "Bind the Board release date/version containing the selected observation; no future methodology vintage may be silently projected backward."
+    },
+    {
+      "slot": "ENERGY",
+      "exact_series_id": "WPU0561",
+      "transform": "natural_log_level",
+      "release_rule": "Monthly BLS PPI scheduled release at 08:30 ET.",
+      "point_in_time_rule": "Use the WPU0561 vintage published in the most recent BLS PPI release available by cutoff. Carry that released vintage across weekly Score dates only until a newer eligible BLS PPI release appears; measure staleness from the release date, not the reference-month date.",
+      "historical_vintage_rule": "Archived BLS PPI release evidence is mandatory because PPI values can be revised for four months. Current revised history is not an allowed substitute.",
+      "vintage_fallback": "fail_closed_no_candidate_week",
+      "max_release_age_calendar_days": 45
+    },
+    {
+      "slot": "FIN_CONDITIONS",
+      "exact_series_id": "H8/H8/B1001NCBA",
+      "transform": "negative_log_change_13_weeks",
+      "release_rule": "H.8 Friday generally 16:15 ET; holiday Friday shifts to Thursday.",
+      "point_in_time_rule": "Use only the seasonally adjusted bank-credit observation present in the H.8 release published by cutoff.",
+      "max_observation_age_calendar_days": 10,
+      "historical_vintage_rule": "Release-vintage snapshot is mandatory because H.8 is subject to benchmark revisions, reclassifications and corrections. Latest revised history is not an allowed substitute.",
+      "vintage_fallback": "fail_closed_no_candidate_week"
+    },
+    {
+      "slot": "FIN_STRESS",
+      "exact_series_id": "H41/H41/RESPPALDP_N.WW",
+      "transform": "log1p_level",
+      "release_rule": "H.4.1 Thursday generally 16:30 ET; Wednesday level is eligible only after release.",
+      "point_in_time_rule": "Use only the Primary Credit Wednesday level contained in the H.4.1 release available by cutoff.",
+      "max_observation_age_calendar_days": 4,
+      "historical_vintage_rule": "Bind release provenance; corrections after the historical cutoff cannot replace the originally available value without an explicit vintage record."
+    },
+    {
+      "slot": "LIQUIDITY",
+      "exact_series_id": "H41/H41/RESPPA_N.WW",
+      "transform": "log_change_13_weeks",
+      "release_rule": "H.4.1 Thursday generally 16:30 ET; Wednesday level is eligible only after release.",
+      "point_in_time_rule": "Use only the Total Assets Wednesday level contained in the H.4.1 release available by cutoff.",
+      "max_observation_age_calendar_days": 4,
+      "historical_vintage_rule": "Bind release provenance; corrections after the historical cutoff cannot silently replace the originally available value."
+    },
+    {
+      "slot": "REAL_YIELD",
+      "exact_series_id": "H15/H15/RIFLGFCY10_XII_N.B",
+      "transform": "level",
+      "release_rule": "H.15 business days 16:15 ET.",
+      "point_in_time_rule": "Use the latest observation included in an H.15 release posted by cutoff; do not infer same-day availability.",
+      "max_observation_age_calendar_days": 4,
+      "historical_vintage_rule": "Bind release provenance."
+    },
+    {
+      "slot": "UST_2Y",
+      "exact_series_id": "H15/H15/RIFLGFCY02_N.B",
+      "transform": "level",
+      "release_rule": "H.15 business days 16:15 ET.",
+      "point_in_time_rule": "Use the latest observation included in an H.15 release posted by cutoff.",
+      "max_observation_age_calendar_days": 4,
+      "historical_vintage_rule": "Bind release provenance."
+    },
+    {
+      "slot": "UST_10Y",
+      "exact_series_id": "H15/H15/RIFLGFCY10_N.B",
+      "transform": "level",
+      "release_rule": "H.15 business days 16:15 ET.",
+      "point_in_time_rule": "Use the latest observation included in an H.15 release posted by cutoff.",
+      "max_observation_age_calendar_days": 4,
+      "historical_vintage_rule": "Bind release provenance."
+    }
+  ],
+  "weekly_matrix": {
+    "target_start": "2015-01-02",
+    "history_seed_start": "2013-01-01",
+    "required_prior_complete_weeks": 104,
+    "complete_case_history": true,
+    "missing_slot_policy": "fail_closed_no_score",
+    "dynamic_reweighting": false,
+    "proxy_autofill": false,
+    "latest_revised_history_fallback": false
+  },
+  "transformation_formulas": {
+    "USD": "x_t",
+    "ENERGY": "ln(x_t), x_t > 0",
+    "FIN_CONDITIONS": "-ln(x_t / x_{t-13w}), x_t > 0 and x_{t-13w} > 0",
+    "FIN_STRESS": "ln(1 + x_t), x_t >= 0",
+    "LIQUIDITY": "ln(x_t / x_{t-13w}), x_t > 0 and x_{t-13w} > 0",
+    "REAL_YIELD": "x_t",
+    "UST_2Y": "x_t",
+    "UST_10Y": "x_t"
+  },
+  "normalization": {
+    "method": "expanding_point_in_time_zscore",
+    "history_scope": "strictly prior complete candidate weeks only",
+    "minimum_prior_complete_weeks": 104,
+    "standard_deviation": "sample ddof=1",
+    "clip": 3.5,
+    "current_week_excluded_from_own_normalization": true,
+    "full_sample_normalization_for_candidate": false
+  },
+  "score": {
+    "weights": {
+      "USD": 0.125,
+      "ENERGY": -0.125,
+      "FIN_CONDITIONS": 0.125,
+      "FIN_STRESS": 0.125,
+      "LIQUIDITY": -0.125,
+      "REAL_YIELD": 0.125,
+      "UST_2Y": 0.125,
+      "UST_10Y": 0.125
+    },
+    "formula": "sum(clipped_point_in_time_zscore * weight)",
+    "regime_bands": [
+      {
+        "low": 1,
+        "high": null,
+        "label": "Strong dollar regime"
+      },
+      {
+        "low": 0.3,
+        "high": 1,
+        "label": "Firm dollar regime"
+      },
+      {
+        "low": -0.3,
+        "high": 0.3,
+        "label": "Neutral / transitional"
+      },
+      {
+        "low": -1,
+        "high": -0.3,
+        "label": "Soft dollar regime"
+      },
+      {
+        "low": null,
+        "high": -1,
+        "label": "Weak dollar regime"
+      }
+    ],
+    "regime_bands_status": "frozen_for_first_candidate_research_only"
+  },
+  "hard_acceptance_gates": {
+    "source_scope_documented_for_all_slots": true,
+    "zero_lookahead_violations": true,
+    "exact_release_vintage_provenance_for_all_used_values": true,
+    "current_revised_history_used_as_historical_vintage": false,
+    "transform_domain_errors": 0,
+    "required_prior_complete_weeks": 104,
+    "evaluated_week_complete_slot_coverage_min": 0.975,
+    "each_slot_eligible_week_coverage_min": 0.98,
+    "maximum_consecutive_missing_candidate_weeks": 2,
+    "maximum_absolute_pairwise_spearman": 0.95,
+    "maximum_variance_inflation_factor": 12,
+    "maximum_first_principal_component_variance_share": 0.7,
+    "primary_credit_minimum_unique_transformed_values_per_104_weeks": 5,
+    "primary_credit_maximum_single_value_share_per_104_weeks": 0.95,
+    "historical_anchor_windows_minimum_with_sign_hit_rate_at_least_0_55": 4,
+    "historical_anchor_window_minimum_allowed_sign_hit_rate": 0.35,
+    "thresholds_fixed_before_results_visible": true
+  },
+  "review_gates": {
+    "pairwise_absolute_spearman_review_above": 0.85,
+    "variance_inflation_factor_review_above": 8,
+    "first_principal_component_variance_share_review_above": 0.6,
+    "primary_credit_single_value_share_review_above": 0.8,
+    "primary_credit_unique_transformed_values_per_104_weeks_review_below": 10,
+    "neutral_regime_share_review_above": 0.7,
+    "any_single_regime_share_review_above": 0.75,
+    "positive_non_neutral_share_review_below": 0.05,
+    "negative_non_neutral_share_review_below": 0.05,
+    "leave_one_slot_out_regime_change_share_review_above": 0.3
+  },
+  "historical_anchor_windows": [
+    {
+      "start": "2015-07-01",
+      "end": "2016-02-01",
+      "expected_sign": 1,
+      "name": "2015-16 oil/EM stress"
+    },
+    {
+      "start": "2018-06-01",
+      "end": "2018-12-31",
+      "expected_sign": 1,
+      "name": "2018 Fed tightening"
+    },
+    {
+      "start": "2020-03-01",
+      "end": "2020-03-23",
+      "expected_sign": 1,
+      "name": "2020 COVID funding stress phase 1"
+    },
+    {
+      "start": "2020-04-01",
+      "end": "2021-10-01",
+      "expected_sign": -1,
+      "name": "2020-21 post-Fed liquidity phase 2"
+    },
+    {
+      "start": "2022-02-01",
+      "end": "2023-03-01",
+      "expected_sign": 1,
+      "name": "2022 tightening cycle"
+    }
+  ],
+  "mandatory_outputs": [
+    "release_vintage_eligibility_audit",
+    "bls_wpu0561_vintage_reconstruction_report",
+    "h8_vintage_reconstruction_report",
+    "weekly_coverage_report",
+    "primary_credit_sparsity_report",
+    "pairwise_pearson_matrix",
+    "pairwise_spearman_matrix",
+    "variance_inflation_factors",
+    "principal_component_variance_shares",
+    "score_distribution",
+    "regime_distribution",
+    "historical_anchor_window_report",
+    "leave_one_slot_out_sensitivity",
+    "candidate_vs_v2_aggregate_descriptive_comparison_if_rights_allow"
+  ],
+  "anti_tuning_rules": [
+    "No transform may change after candidate results are viewed without a new preregistration version.",
+    "No hard acceptance threshold may be relaxed after results are viewed.",
+    "No slot may be dropped or reweighted to rescue a failed candidate.",
+    "No current revised BLS or H.8 history may substitute for the historical release vintage in a point-in-time study.",
+    "No replacement proxy may be introduced without a new preregistration.",
+    "No current-week observation may enter its own normalization history.",
+    "No predictive investment-performance claim is authorized."
+  ],
+  "next_step_if_all_preconditions_met": "separate_owner_authorization_for_real_data_research",
+  "real_data_research_authorized": false,
+  "production_authorized": false
+}
