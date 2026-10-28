@@ -1,103 +1,17 @@
-name: Score v2.1F one-off vintage feasibility preflight
+name: Score v2.1F one-off vintage feasibility preflight (consumed)
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'governance/score-v2-1f-live-vintage-preflight-dispatch.json'
+  workflow_dispatch:
 
 permissions:
   contents: read
-  issues: write
-
-concurrency:
-  group: score-v2-1f-one-off-vintage-preflight
-  cancel-in-progress: false
 
 jobs:
-  preflight:
+  consumed:
+    if: ${{ false }}
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-
-      - name: Run authorized official-source feasibility preflight
-        env:
-          PYTHONUNBUFFERED: "1"
+      - name: Consumed authorization guard
         run: |
-          python -m scripts.run_score_v2_1f_live_preflight             --output "$RUNNER_TEMP/score-v2-1f-preflight.json"
-
-      - name: Record safe aggregate preflight result
-        if: success()
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          python - "$RUNNER_TEMP/score-v2-1f-preflight.json" > "$RUNNER_TEMP/comment.md" <<'PY'
-          import json
-          import os
-          import sys
-          from pathlib import Path
-
-          report = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
-          fed = report["federal_reserve"]
-          bls = report["bls"]
-          run_url = (
-              f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/actions/runs/"
-              f"{os.environ['GITHUB_RUN_ID']}"
-          )
-
-          print("### v2.1F live historical-vintage feasibility preflight — PASS")
-          print()
-          print("<!-- V2_1F_PREFLIGHT_COMPLETED -->")
-          print(f"- Run: {run_url}")
-          print(
-              f"- Authorized window: {report['authorized_data_window']['start']} "
-              f"through {report['authorized_data_window']['end']}"
-          )
-          print(f"- Exact series count: {report['exact_series_count']}")
-          for family in ("H10", "H8", "H41"):
-              row = fed[family]
-              print(
-                  f"- {family}: official release surface verified; "
-                  f"{row['parseable_samples']}/{row['sampled_releases']} "
-                  "fixed historical archives parseable"
-              )
-          print(
-              f"- BLS PPI archived news releases: {bls['archived_news_release_count']} enumerated; "
-              f"{bls['crude_petroleum_parseable_samples']}/{bls['sampled_releases']} "
-              "fixed crude-petroleum archives parseable"
-          )
-          print("- Source/raw values persisted: no")
-          print("- Source/component values logged: no")
-          print("- Candidate Score computed: no")
-          print("- Full candidate research authorized: no")
-          print("- Production authorized: no")
-          print()
-          print(
-              "Preflight passed. This result does not authorize full v2.1F research, "
-              "public changes, research-ledger mutation or Production."
-          )
-          PY
-          gh issue comment 224 --body-file "$RUNNER_TEMP/comment.md"
-
-      - name: Record fail-closed preflight failure
-        if: failure()
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          cat > "$RUNNER_TEMP/failure.md" <<EOF
-          ### v2.1F live historical-vintage feasibility preflight — FAIL CLOSED
-
-          <!-- V2_1F_PREFLIGHT_FAILED -->
-
-          - Run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
-          - The preflight stopped before candidate Score computation.
-          - No source/component values are attached to this issue comment.
-          - No public artifact, research ledger, or Production state was modified.
-
-          Review only the archive/parseability blocker. Do not substitute current revised
-          history or broaden the source boundary under this authorization.
-          EOF
-          gh issue comment 224 --body-file "$RUNNER_TEMP/failure.md"
+          echo "The 2026-10-28 v2.1F Stage 1 authorization is consumed."
+          echo "A new explicit owner authorization and reviewed activation are required."
