@@ -1,0 +1,324 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://usd-impact.com/schemas/score-source-candidate-evaluation.schema.json",
+  "title": "Score source candidate evaluation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "state",
+    "driver",
+    "candidate",
+    "rights",
+    "semantics",
+    "parity",
+    "decision",
+    "production_authorized"
+  ],
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "state": {
+      "enum": [
+        "pending",
+        "under_review",
+        "rejected",
+        "eligible_for_development_rehearsal"
+      ]
+    },
+    "driver": {
+      "enum": [
+        "DXY",
+        "WTI",
+        "SPX",
+        "VIX",
+        "BTC",
+        "GOLD"
+      ]
+    },
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provider",
+        "product",
+        "delivery_method",
+        "commercial_contact_reference"
+      ],
+      "properties": {
+        "provider": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "product": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "delivery_method": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "commercial_contact_reference": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "rights": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "commercial_internal_use",
+        "retention",
+        "derived_internal_use",
+        "public_aggregate_output",
+        "public_component_output",
+        "machine_readable_publication",
+        "historical_archives"
+      ],
+      "properties": {
+        "commercial_internal_use": {
+          "enum": [
+            "pending",
+            "permitted",
+            "permitted_with_conditions",
+            "not_permitted",
+            "not_applicable"
+          ]
+        },
+        "retention": {
+          "enum": [
+            "pending",
+            "permitted",
+            "permitted_with_conditions",
+            "not_permitted",
+            "not_applicable"
+          ]
+        },
+        "derived_internal_use": {
+          "enum": [
+            "pending",
+            "permitted",
+            "permitted_with_conditions",
+            "not_permitted",
+            "not_applicable"
+          ]
+        },
+        "public_aggregate_output": {
+          "enum": [
+            "pending",
+            "permitted",
+            "permitted_with_conditions",
+            "not_permitted",
+            "not_applicable"
+          ]
+        },
+        "public_component_output": {
+          "enum": [
+            "pending",
+            "permitted",
+            "permitted_with_conditions",
+            "not_permitted",
+            "not_applicable"
+          ]
+        },
+        "machine_readable_publication": {
+          "enum": [
+            "pending",
+            "permitted",
+            "permitted_with_conditions",
+            "not_permitted",
+            "not_applicable"
+          ]
+        },
+        "historical_archives": {
+          "enum": [
+            "pending",
+            "permitted",
+            "permitted_with_conditions",
+            "not_permitted",
+            "not_applicable"
+          ]
+        }
+      }
+    },
+    "semantics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "instrument_identity",
+        "field_definition",
+        "units",
+        "calendar",
+        "timezone_date_boundary",
+        "revision_policy",
+        "history_start",
+        "adjustment_convention",
+        "futures_continuation"
+      ],
+      "properties": {
+        "instrument_identity": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "field_definition": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "units": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "calendar": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "timezone_date_boundary": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "revision_policy": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "history_start": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "adjustment_convention": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "futures_continuation": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "parity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "synthetic_adapter",
+        "daily_history",
+        "weekly_levels",
+        "score_components",
+        "aggregate_score",
+        "regime"
+      ],
+      "properties": {
+        "synthetic_adapter": {
+          "enum": [
+            "not_run",
+            "pass",
+            "fail",
+            "not_applicable"
+          ]
+        },
+        "daily_history": {
+          "enum": [
+            "not_run",
+            "pass",
+            "fail",
+            "not_applicable"
+          ]
+        },
+        "weekly_levels": {
+          "enum": [
+            "not_run",
+            "pass",
+            "fail",
+            "not_applicable"
+          ]
+        },
+        "score_components": {
+          "enum": [
+            "not_run",
+            "pass",
+            "fail",
+            "not_applicable"
+          ]
+        },
+        "aggregate_score": {
+          "enum": [
+            "not_run",
+            "pass",
+            "fail",
+            "not_applicable"
+          ]
+        },
+        "regime": {
+          "enum": [
+            "not_run",
+            "pass",
+            "fail",
+            "not_applicable"
+          ]
+        }
+      }
+    },
+    "evidence_references": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "conditions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "reason"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "pending",
+            "reject",
+            "hold",
+            "eligible_for_development_rehearsal"
+          ]
+        },
+        "reason": {
+          "type": "string"
+        }
+      }
+    },
+    "production_authorized": {
+      "const": false
+    }
+  }
+}
