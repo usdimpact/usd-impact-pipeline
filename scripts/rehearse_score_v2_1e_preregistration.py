@@ -34,7 +34,6 @@ WEIGHTS = {
 }
 MAX_AGE = {
     "USD": 10,
-    "ENERGY": 50,
     "FIN_CONDITIONS": 10,
     "FIN_STRESS": 4,
     "LIQUIDITY": 4,
@@ -42,6 +41,7 @@ MAX_AGE = {
     "UST_2Y": 4,
     "UST_10Y": 4,
 }
+ENERGY_MAX_RELEASE_AGE = 45
 MIN_HISTORY = 104
 CLIP = 3.5
 
@@ -68,14 +68,16 @@ def add_months(value: date, months: int) -> date:
 
 def latest_eligible(events: list[Event], slot: str, friday: date) -> Event | None:
     cutoff = friday_cutoff(friday)
-    eligible = [
-        event
-        for event in events
-        if event.slot == slot
-        and event.released_at <= cutoff
-        and event.observation_date <= friday
-        and (friday - event.observation_date).days <= MAX_AGE[slot]
-    ]
+    eligible = []
+    for event in events:
+        if event.slot != slot or event.released_at > cutoff or event.observation_date > friday:
+            continue
+        if slot == "ENERGY":
+            if (friday - event.released_at.date()).days > ENERGY_MAX_RELEASE_AGE:
+                continue
+        elif (friday - event.observation_date).days > MAX_AGE[slot]:
+            continue
+        eligible.append(event)
     if not eligible:
         return None
 
