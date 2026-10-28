@@ -22,12 +22,12 @@ jobs:
       - name: Fetch exact synthetic evidence into runner temp
         shell: bash
         env:
-          AUDIENCE: urn:usd-impact:score-private-evidence:read:development
           BROKER_URL: https://xakayexlzyrazuunqlxe.supabase.co/functions/v1/score-private-evidence-broker
           SYNTHETIC_WEEK: '2099-01-02'
         run: |
           set -euo pipefail
-          encoded_audience="$(python - <<'PY'
+          audience="urn:usd-impact:score-private-evidence:read:development:${SYNTHETIC_WEEK}"
+          encoded_audience="$(AUDIENCE="$audience" python - <<'PY'
           import os, urllib.parse
           print(urllib.parse.quote(os.environ['AUDIENCE'], safe=''))
           PY
