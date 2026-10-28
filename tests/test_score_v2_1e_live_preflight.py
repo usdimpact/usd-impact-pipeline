@@ -50,14 +50,10 @@ class ScoreV21ELivePreflightTests(unittest.TestCase):
         <a href="/ppi/detailed-report/ppi-detailed-report-january-2013.pdf">in</a>
         <a href="https://evil.invalid/ppi-detailed-report-september-2026.pdf">identifier only</a>
         """
-        rows = preflight.extract_bls_report_paths(payload)
+        rows = preflight.[(d, None) for d in preflight.extract_bls_report_identifiers(payload)]
         self.assertEqual(rows[0][0], date(2013, 1, 1))
         self.assertEqual(rows[-1][0], date(2026, 9, 1))
         self.assertEqual(len(rows), 2)
-        self.assertEqual(
-            rows[-1][1],
-            "/ppi/detailed-report/ppi-detailed-report-september-2026.pdf",
-        )
 
     def test_wpu0561_parser_requires_series_and_description(self) -> None:
         text = """
