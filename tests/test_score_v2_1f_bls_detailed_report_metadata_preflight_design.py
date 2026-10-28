@@ -9,59 +9,76 @@ from scripts import validate_score_v2_1f_bls_detailed_report_metadata_preflight 
 ROOT = Path(__file__).resolve().parents[1]
 
 
-class ScoreV21FBlsDetailedReportMetadataPreflightDispatchTests(unittest.TestCase):
-    def test_packet_is_dispatched_but_narrow(self) -> None:
+class ScoreV21FBlsDetailedReportMetadataPreflightConsumptionTests(unittest.TestCase):
+    def test_authorization_is_consumed_fail_closed(self) -> None:
         report = validator.validate(ROOT)
         self.assertEqual(report["status"], "passed")
-        self.assertEqual(report["state"], "metadata_preflight_authorized")
-        self.assertEqual(
-            report["activation_merge_commit"],
-            "59cd5e6b1cd47f3d04eec6588697d252ff93cff2",
-        )
-        self.assertEqual(report["request_budget"], 4)
-        self.assertEqual(report["allowed_host"], "www.bls.gov")
-        self.assertTrue(report["active_receipt_present"])
-        self.assertTrue(report["dispatch_present"])
-        self.assertTrue(report["network_metadata_fetch_authorized"])
-        self.assertTrue(report["bls_metadata_preflight_authorized"])
+        self.assertEqual(report["state"], "metadata_preflight_consumed_fail_closed")
+        self.assertEqual(report["preflight_conclusion"], "success")
+        self.assertEqual(report["request_count"], 4)
+        self.assertTrue(report["report_resource_2013_present"])
+        self.assertTrue(report["report_resource_2026_present"])
+        self.assertTrue(report["october_2025_not_available_label_seen"])
+        self.assertTrue(report["february_2016_correction_label_seen"])
+        self.assertFalse(report["active_receipt_present"])
+        self.assertFalse(report["dispatch_present"])
+        self.assertFalse(report["network_metadata_fetch_authorized"])
+        self.assertFalse(report["bls_metadata_preflight_authorized"])
         self.assertFalse(report["candidate_score_computation_authorized"])
         self.assertFalse(report["production_authorized"])
         self.assertTrue(report["rights_hold"])
 
-    def test_dispatch_is_pinned_to_activation_and_forbids_broader_work(self) -> None:
-        dispatch = json.loads(
+    def test_consumption_record_preserves_success_evidence(self) -> None:
+        record = json.loads(
             (
                 ROOT
-                / "governance/score-v2-1f-bls-detailed-report-metadata-preflight-dispatch.json"
+                / "governance/score-v2-1f-bls-detailed-report-metadata-preflight-consumption-2026-10-28.json"
             ).read_text(encoding="utf-8")
         )
-        self.assertEqual(dispatch["state"], "approved_dispatch")
+        self.assertEqual(record["owner_approval_comment_id"], 6480432536)
         self.assertEqual(
-            dispatch["authorization_activation_merge_commit"],
+            record["authorization_activation_merge_commit"],
             "59cd5e6b1cd47f3d04eec6588697d252ff93cff2",
         )
-        self.assertEqual(dispatch["request_budget"], 4)
-        self.assertEqual(dispatch["allowed_host"], "www.bls.gov")
-        self.assertFalse(dispatch["report_body_download_authorized"])
-        self.assertFalse(dispatch["source_value_retrieval_authorized"])
-        self.assertFalse(dispatch["real_data_research_authorized"])
-        self.assertFalse(dispatch["candidate_score_computation_authorized"])
-        self.assertFalse(dispatch["production_authorized"])
+        self.assertEqual(
+            record["dispatch_merge_commit"],
+            "8348c276ecc12053501f444d9a55e1c6572612f5",
+        )
+        self.assertEqual(
+            record["preflight_run"],
+            "https://github.com/usdimpact/usd-impact-pipeline/actions/runs/40768295606",
+        )
+        self.assertEqual(record["preflight_conclusion"], "success")
+        self.assertEqual(record["sanitized_result"]["request_count"], 4)
+        self.assertFalse(record["sanitized_result"]["report_bodies_downloaded"])
+        self.assertFalse(record["sanitized_result"]["source_values_retrieved"])
+        self.assertFalse(record["sanitized_result"]["candidate_score_computed"])
+        self.assertTrue(
+            record["new_owner_authorization_required_for_any_future_live_request"]
+        )
 
-    def test_receipt_preserves_exact_owner_approval(self) -> None:
-        receipt = json.loads(
+    def test_every_post_consumption_authorization_is_false(self) -> None:
+        record = json.loads(
+            (
+                ROOT
+                / "governance/score-v2-1f-bls-detailed-report-metadata-preflight-consumption-2026-10-28.json"
+            ).read_text(encoding="utf-8")
+        )
+        self.assertFalse(any(record["post_consumption_authorizations"].values()))
+
+    def test_active_receipt_and_dispatch_are_absent(self) -> None:
+        self.assertFalse(
             (
                 ROOT
                 / "governance/score-v2-1f-bls-detailed-report-metadata-preflight-authorization.json"
-            ).read_text(encoding="utf-8")
+            ).exists()
         )
-        self.assertEqual(
-            receipt["approved_by"],
-            "usdimpact owner via Issue #230 approval comment 6480432536",
+        self.assertFalse(
+            (
+                ROOT
+                / "governance/score-v2-1f-bls-detailed-report-metadata-preflight-dispatch.json"
+            ).exists()
         )
-        self.assertEqual(receipt["approved_at"], "2026-10-28T20:53:16Z")
-        self.assertEqual(receipt["request_budget"], 4)
-        self.assertIn("support@usd-impact.com", receipt["contact_user_agent"])
 
 
 if __name__ == "__main__":
