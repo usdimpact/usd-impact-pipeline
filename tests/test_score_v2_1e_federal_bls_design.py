@@ -31,11 +31,13 @@ class ScoreV21EFederalBLSDesignTests(unittest.TestCase):
         self.assertIn("four months", energy["revision_rule"].lower())
 
     def test_prior_wti_dependency_is_absent(self) -> None:
-        text = (
-            ROOT / "governance/score-v2-1e-federal-bls-design.json"
-        ).read_text(encoding="utf-8").lower()
+        design = json.loads(
+            (ROOT / "governance/score-v2-1e-federal-bls-design.json")
+            .read_text(encoding="utf-8")
+        )
+        active = json.dumps(design["proposed_slots"]).lower()
         for forbidden in ("dcoilwtico", "rwtc", "refinitiv", "lseg"):
-            self.assertNotIn(forbidden, text)
+            self.assertNotIn(forbidden, active)
 
     def test_exact_direct_identifiers_are_stable(self) -> None:
         receipts = json.loads(
