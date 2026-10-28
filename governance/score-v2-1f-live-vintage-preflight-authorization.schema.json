@@ -1,0 +1,176 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://usd-impact.com/schemas/score-v2-1f-live-vintage-preflight-authorization.schema.json",
+  "title": "Score v2.1F live historical-vintage preflight authorization receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "decision_status",
+    "methodology_version",
+    "issue",
+    "design_merge_commit",
+    "preregistration_merge_commit",
+    "execution_scope",
+    "exact_series",
+    "data_window",
+    "storage_policy",
+    "output_policy",
+    "authorizations",
+    "approved_by",
+    "approved_at",
+    "notes"
+  ],
+  "properties": {
+    "version": {"const": 1},
+    "decision_status": {"enum": ["hold", "approved"]},
+    "methodology_version": {"const": "2.1F-design-candidate"},
+    "issue": {"const": "https://github.com/usdimpact/usd-impact-pipeline/issues/224"},
+    "design_merge_commit": {"const": "e14aec35142b9536b5b889d0fae4eab9a94faf88"},
+    "preregistration_merge_commit": {"const": "bcf473e2bbcb36fa1080a3a56f77a3796d74ccaa"},
+    "execution_scope": {"const": "live_historical_vintage_feasibility_preflight_only"},
+    "exact_series": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "uniqueItems": true,
+      "prefixItems": [
+        {"const": "H10/H10/JRXWTFB_N.B"},
+        {"const": "WPU0561"},
+        {"const": "H8/H8/B1001NCBA"},
+        {"const": "H41/H41/RESPPALDP_N.WW"},
+        {"const": "H41/H41/RESPPA_N.WW"}
+      ],
+      "items": false
+    },
+    "data_window": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["start", "end"],
+      "properties": {
+        "start": {"type": ["string", "null"], "format": "date"},
+        "end": {"type": ["string", "null"], "format": "date"}
+      }
+    },
+    "storage_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_values",
+        "raw_responses",
+        "temporary_workspace",
+        "durable_private_storage"
+      ],
+      "properties": {
+        "source_values": {"const": "ephemeral_only"},
+        "raw_responses": {"const": "ephemeral_only"},
+        "temporary_workspace": {"const": "isolated_non_public"},
+        "durable_private_storage": {"const": false}
+      }
+    },
+    "output_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_values_in_logs",
+        "component_values_in_logs",
+        "candidate_score_output",
+        "public_repo_source_values",
+        "allowed_persistent_outputs"
+      ],
+      "properties": {
+        "source_values_in_logs": {"const": false},
+        "component_values_in_logs": {"const": false},
+        "candidate_score_output": {"const": false},
+        "public_repo_source_values": {"const": false},
+        "allowed_persistent_outputs": {
+          "const": [
+            "aggregate_feasibility_status",
+            "aggregate_release_counts",
+            "release_identifiers_without_values",
+            "non_value_bearing_hashes"
+          ]
+        }
+      }
+    },
+    "authorizations": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "real_data_fetch",
+        "live_vintage_preflight",
+        "real_data_research",
+        "candidate_score_computation",
+        "paid_data",
+        "source_contract_acceptance",
+        "research_ledger_mutation",
+        "public_artifact_replacement",
+        "production"
+      ],
+      "properties": {
+        "real_data_fetch": {"type": "boolean"},
+        "live_vintage_preflight": {"type": "boolean"},
+        "real_data_research": {"const": false},
+        "candidate_score_computation": {"const": false},
+        "paid_data": {"const": false},
+        "source_contract_acceptance": {"const": false},
+        "research_ledger_mutation": {"const": false},
+        "public_artifact_replacement": {"const": false},
+        "production": {"const": false}
+      }
+    },
+    "approved_by": {"type": ["string", "null"], "minLength": 1},
+    "approved_at": {"type": ["string", "null"], "format": "date-time"},
+    "notes": {"type": "string"}
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {"decision_status": {"const": "hold"}},
+        "required": ["decision_status"]
+      },
+      "then": {
+        "properties": {
+          "authorizations": {
+            "properties": {
+              "real_data_fetch": {"const": false},
+              "live_vintage_preflight": {"const": false}
+            }
+          },
+          "approved_by": {"const": null},
+          "approved_at": {"const": null},
+          "data_window": {
+            "properties": {
+              "start": {"const": null},
+              "end": {"const": null}
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {"decision_status": {"const": "approved"}},
+        "required": ["decision_status"]
+      },
+      "then": {
+        "properties": {
+          "authorizations": {
+            "properties": {
+              "real_data_fetch": {"const": true},
+              "live_vintage_preflight": {"const": true}
+            }
+          },
+          "approved_by": {"type": "string", "minLength": 1},
+          "approved_at": {"type": "string", "format": "date-time"},
+          "data_window": {
+            "properties": {
+              "start": {"const": "2013-01-01"},
+              "end": {"const": "2026-10-23"}
+            }
+          }
+        }
+      }
+    }
+  ]
+}
