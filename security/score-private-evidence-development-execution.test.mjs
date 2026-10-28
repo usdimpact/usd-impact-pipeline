@@ -110,7 +110,13 @@ test('rehearsal workflows are manual-only and least privilege', async () => {
     assert.doesNotMatch(source, /^\s*pull_request(?:_target)?:/m);
     assert.doesNotMatch(source, /secrets\./);
     assert.doesNotMatch(source, /SUPABASE_(?:SERVICE_ROLE|SECRET|ACCESS)_KEY/);
-    assert.doesNotMatch(source, /production/i);
+
+    const brokerUrls = [...source.matchAll(/https:\/\/[^\s"'\\]+\/functions\/v1\/score-private-evidence-broker/g)]
+      .map((match) => match[0]);
+    assert.deepEqual(
+      [...new Set(brokerUrls)],
+      ['https://xakayexlzyrazuunqlxe.supabase.co/functions/v1/score-private-evidence-broker'],
+    );
 
     if (workflow.operation === 'write') {
       assert.match(
