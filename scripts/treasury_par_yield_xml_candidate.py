@@ -64,14 +64,38 @@ def _percent(value: str, field: str) -> Decimal:
 
 def parse_treasury_par_yield_atom(
     xml_payload: bytes | str,
+    *,
+    selected_period: str | None = None,
 ) -> tuple[TreasuryParYieldObservation, ...]:
     """Parse one candidate Treasury XML response entirely in memory.
 
-    This function accepts ONLY the documented Atom + OData namespaces and
-    required NEW_DATE, BC_2YEAR and BC_10YEAR fields. It intentionally has
-    no network/file I/O. Entries are sorted and dates must be unique.
-    An observation date is NOT evidence of a release/availability timestamp.
+    This function accepts ONLY the expected Atom + OData namespaces,
+    required NEW_DATE, BC_2YEAR and BC_10YEAR fields, and an explicit
+    YYYY or YYYYMM selection. Treasury's paginated 'all' API is UNSUPPORTED.
+    A next-page link or mismatched inline count causes a hard failure.
+    It intentionally has no network/file I/O. Entries are sorted and dates
+    must be unique. An observation date is NOT a release timestamp.
+    Absence of a next-page link does not independently prove feed completeness.
     """
+    # Treasury's 'all' feed is paginated by an explicit page number, and its
+    # 2022 developer notice says to increment until an empty feed. No single
+    # nonempty XML page is proof that an 'all' feed is complete. We deliberately
+    # require an explicitly selected year or month, and do not support 'all'.
+    if not isinstance(selected_period, str) or not re.fullmatch(
+        r"[0-9]{4}(?:[0-9]{2})?", selected_period
+    ):
+        raise TreasuryXMLContractError(
+            "explicit YYYY or YYYYMM period required; paginated 'all' unsupported"
+        )
+    year = int(selected_period[:4])
+    month: int | None = None
+    if len(selected_period) == 6:
+        month = int(selected_period[4:])
+        if not 1 <= month <= 12:
+            raise TreasuryXMLContractError("invalid selected month")
+    if not 1 <= year <= 9999:
+        raise TreasuryXMLContractError("invalid selected year")
+
     if isinstance(xml_payload, str):
         payload = xml_payload.encode("utf-8")
     elif isinstance(xml_payload, bytes):
@@ -89,9 +113,28 @@ def parse_treasury_par_yield_atom(
     if root.tag != ATOM + "feed":
         raise TreasuryXMLContractError("expected Atom feed root")
 
+    # Reject explicit OData/Atom next-page links. This prevents silently
+    # treating a known truncated page as a complete requested period.
+    # Absence of such a link alone is NOT proof of full yearly coverage.
+    for link in root.iter(ATOM + "link"):
+        relation = (link.attrib.get("rel") or "").strip().lower()
+        if relation == "next" or relation.endswith(("/next", "#next")):
+            raise TreasuryXMLContractError("paginated continuation must not be ignored")
+
     entries = root.findall(ATOM + "entry")
     if not 1 <= len(entries) <= MAX_ENTRIES_PER_PAGE:
         raise TreasuryXMLContractError("empty page or excessive entry count")
+
+    # If server-side inline-count metadata is supplied, its count must match
+    # this response. A larger count is evidence of an incomplete page.
+    counts = root.findall(META + "count")
+    if len(counts) > 1:
+        raise TreasuryXMLContractError("multiple OData count markers")
+    if counts:
+        raw_count = (counts[0].text or "").strip()
+        if not re.fullmatch(r"[0-9]{1,6}", raw_count) or int(raw_count) != len(entries):
+            raise TreasuryXMLContractError("OData count mismatch or partial page")
+
 
     by_date: dict[date, TreasuryParYieldObservation] = {}
     for entry in entries:
@@ -106,6 +149,8 @@ def parse_treasury_par_yield_atom(
             observed = date.fromisoformat(raw_date[:10])
         except ValueError as exc:
             raise TreasuryXMLContractError("invalid observation date") from exc
+        if observed.year != year or (month is not None and observed.month != month):
+            raise TreasuryXMLContractError("observation outside explicit period")
         if observed in by_date:
             raise TreasuryXMLContractError("duplicate observation date")
 
