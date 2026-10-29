@@ -61,6 +61,7 @@ class V13ScopedApprovalContractTests(unittest.TestCase):
             "review_only_no_dispatch_or_live_receipt",
             "owner_activation_pending_dispatch",
             "approved_one_off_active",
+            "consumed_after_failed_structural_preflight_invalid_page_count",
         ))
         auth = self.contract["authorization_state"]
         receipt = transport.RECEIPT.is_file()
@@ -77,6 +78,14 @@ class V13ScopedApprovalContractTests(unittest.TestCase):
             self.assertTrue(auth["receipt_created"])
             self.assertFalse(auth["current_live_BLS_GET"])
             self.assertFalse(auth["dispatch_marker_created"])
+        elif state == "consumed_after_failed_structural_preflight_invalid_page_count":
+            self.assertFalse(receipt)
+            self.assertFalse(dispatch)
+            self.assertFalse(auth["receipt_created"])
+            self.assertFalse(auth["dispatch_marker_created"])
+            self.assertFalse(auth["current_live_BLS_GET"])
+            self.assertTrue(auth["claim_written"])
+            self.assertEqual(self.contract["request_budget_remaining_now"], 0)
         else:
             self.assertTrue(receipt)
             self.assertTrue(dispatch)
@@ -101,6 +110,28 @@ class V13ScopedApprovalContractTests(unittest.TestCase):
         # No Git claim or HTTP request here. Only validate protected approval
         # and SHA-256 binding of dispatch to exact receipt bytes.
         transport.validate_preclaim_gate(trusted_event)
+
+    def test_consumed_preflight_is_immutable_hold(self) -> None:
+        if self.contract["state"] != "consumed_after_failed_structural_preflight_invalid_page_count":
+            return
+        gov = Path(__file__).resolve().parents[1] / "governance"
+        ledger = json.loads(
+            (gov / "score-v2-1f-wpu0561-pdf-v13-consumption-2026-10-29.json").read_text()
+        )
+        self.assertEqual(ledger["status"], "fail_closed")
+        self.assertEqual(ledger["reason_codes"], ["invalid_page_count"])
+        self.assertEqual(ledger["consumed_claim_commit"],
+                         "82adf0b250871887e82123ed56f641d09fa14ba0")
+        self.assertEqual(ledger["request_attempt_budget"], 1)
+        self.assertTrue(ledger["authorization_consumed_even_on_failure"])
+        self.assertTrue(ledger["rerun_forbidden"])
+        self.assertFalse(ledger["economic_values_retained"])
+        self.assertFalse(ledger["identifier_values_retained"])
+        self.assertFalse(ledger["score_calculated"])
+        self.assertFalse(ledger["production_modified"])
+        self.assertIsNone(ledger["pdf_actual_page_count"])
+        self.assertTrue(all(v is False for v in
+                            ledger["current_post_consumption_permissions"].values()))
 
     def test_old_v8_receipt_never_reactivated(self) -> None:
         p = Path(__file__).resolve().parents[1] / "governance"
