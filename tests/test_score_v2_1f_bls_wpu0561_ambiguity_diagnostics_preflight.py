@@ -10,20 +10,22 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class ScoreV21FWpu0561AmbiguityDiagnosticsTests(unittest.TestCase):
-    def test_v6_exact_label_context_design_is_hold(self) -> None:
+    def test_v7_header_gap_design_is_hold(self) -> None:
         report = validator.validate(ROOT)
         self.assertEqual(report["status"], "passed")
         self.assertEqual(
             report["state"],
-            "ambiguity_diagnostics_v6_exact_label_context_design_only_hold",
+            "ambiguity_diagnostics_v7_header_gap_design_only_hold",
         )
-        self.assertEqual(report["design_version"], 6)
+        self.assertEqual(report["design_version"], 7)
         self.assertEqual(report["v5_html_candidates"], 3)
         self.assertEqual(report["v5_xlsx_candidates"], 29)
         self.assertEqual(report["v6_html_exact_label_survivors"], 1)
         self.assertEqual(report["v6_xlsx_exact_label_survivors"], 2)
         self.assertEqual(report["v6_xlsx_direct_commodity_survivors"], 1)
         self.assertEqual(report["v6_xlsx_stage_demand_survivors"], 1)
+        self.assertEqual(report["v7_header_gap_max_preceding_rows"], 32)
+        self.assertEqual(report["v7_header_gap_max_cells"], 128)
         self.assertFalse(report["active_receipt_present"])
         self.assertFalse(report["dispatch_present"])
         self.assertFalse(report["live_request_authorized"])
@@ -296,6 +298,72 @@ class ScoreV21FWpu0561AmbiguityDiagnosticsTests(unittest.TestCase):
             diagnostic.classify_exact_target_context(first, 4)["context_status"],
             diagnostic.classify_exact_target_context(shifted, 24)["context_status"],
         )
+
+    def test_v7_header_gap_inventory_redacts_identifier_and_economic_values(self) -> None:
+        rows = [
+            ["Table title 2026"],
+            ["Commodity", "Series code", "Index"],
+            ["Unprocessed nonfood materials", "", ""],
+            ["Coal", "9999", "250.1"],
+            ["Natural gas", "8888", "175.2"],
+            ["Crude petroleum(<num>)", "WPU0561", "252.4"],
+        ]
+        report = diagnostic.candidate_local_header_gap_inventory(rows, 6)
+        encoded = repr(report)
+        self.assertIn("Table title <num>", encoded)
+        self.assertIn("Commodity", encoded)
+        self.assertIn("Series code", encoded)
+        self.assertIn("Index", encoded)
+        self.assertIn("Unprocessed nonfood materials", encoded)
+        self.assertNotIn("2026", encoded)
+        self.assertNotIn("9999", encoded)
+        self.assertNotIn("8888", encoded)
+        self.assertNotIn("WPU0561", encoded)
+        self.assertNotIn("250.1", encoded)
+        self.assertNotIn("175.2", encoded)
+        self.assertNotIn("252.4", encoded)
+
+    def test_v7_header_gap_inventory_reports_nearest_recognized_header_distance(self) -> None:
+        rows = [
+            ["Intro"],
+            ["Commodity", "Series code", "Index"],
+            [""],
+            ["Unprocessed nonfood materials"],
+            ["Coal"],
+            ["Natural gas"],
+            ["Crude petroleum(<num>)"],
+        ]
+        report = diagnostic.candidate_local_header_gap_inventory(rows, 7)
+        self.assertEqual(report["nearest_recognized_header_row"], 2)
+        self.assertEqual(report["nearest_recognized_header_distance"], 5)
+        self.assertIn(3, report["blank_separator_rows"])
+        self.assertFalse(report["truncated"])
+
+    def test_v7_header_gap_inventory_is_hard_bounded(self) -> None:
+        rows = [[f"label {i}"] for i in range(1, 40)] + [["Crude petroleum(<num>)"]]
+        report = diagnostic.candidate_local_header_gap_inventory(rows, 40)
+        self.assertEqual(report["window_start_row"], 8)
+        self.assertEqual(report["window_end_row"], 39)
+        with self.assertRaisesRegex(ValueError, "must remain 32"):
+            diagnostic.candidate_local_header_gap_inventory(
+                rows,
+                40,
+                max_preceding_rows=31,
+            )
+        with self.assertRaisesRegex(ValueError, "must remain 128"):
+            diagnostic.candidate_local_header_gap_inventory(
+                rows,
+                40,
+                max_cells=127,
+            )
+
+    def test_v7_header_gap_inventory_requires_exact_target_candidate(self) -> None:
+        rows = [
+            ["Commodity", "Series code", "Index"],
+            ["Crude petroleum (domestic production)"],
+        ]
+        with self.assertRaisesRegex(ValueError, "exact target label"):
+            diagnostic.candidate_local_header_gap_inventory(rows, 2)
 
     def test_identifier_normalization_is_conservative_but_handles_structural_variants(self) -> None:
         for value in ("05-61", "05 61", "0561", "561", "WPU0561", "05–61"):

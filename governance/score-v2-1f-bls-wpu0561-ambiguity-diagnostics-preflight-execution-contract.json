@@ -1,6 +1,6 @@
 {
-  "version": 12,
-  "state": "ambiguity_diagnostics_v6_exact_label_context_design_only_hold",
+  "version": 13,
+  "state": "ambiguity_diagnostics_v7_header_gap_design_only_hold",
   "methodology_version": "2.1F-design-candidate",
   "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/258",
   "predecessor_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/252",
@@ -32,16 +32,17 @@
   "stop_conditions": [
     "the design-v5 Issue #258 candidate-context authorization has been consumed",
     "any future live BLS request is attempted without a new explicit owner authorization",
-    "row numbers are used as a selector rather than coordinates/audit evidence",
-    "the exact-label rule is treated as identity proof",
-    "the v6 context discriminator is treated as identifier proof without a separate authorized verification",
-    "any identifier value or economic value would be read or persisted",
+    "v6 exact-label/context prerequisites are bypassed",
+    "row numbers are used as selection semantics rather than coordinates",
+    "more than 32 preceding rows are inspected for a selected candidate",
+    "more than 128 sanitized text cells are persisted for a selected candidate",
+    "an identifier value or economic value would be read or persisted",
     "response body would be persisted",
     "full historical reconstruction would begin",
     "candidate Score, z-score or contribution would be computed",
     "public artifact, research ledger or Production would change"
   ],
-  "next_allowed_action": "design_only_validate_and_merge_v6_exact_label_context_rule_then_new_owner_authorization_required_before_any_live_verification",
+  "next_allowed_action": "design_only_validate_and_merge_v7_header_gap_rule_then_new_owner_authorization_required_before_any_live_header_gap_inventory",
   "production_authorized": false,
   "execution_environment_policy": {
     "preferred_environment": "github_actions_protected_main_lifecycle",

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate Issue #258 v6 design-only exact-label/context state."""
+"""Validate Issue #258 v7 design-only candidate-local header-gap state."""
 
 from __future__ import annotations
 
@@ -37,7 +37,7 @@ def validate(repo_root: Path | None = None) -> dict[str, Any]:
 
     for relative in (RECEIPT.relative_to(ROOT), DISPATCH.relative_to(ROOT)):
         if (root / relative).exists():
-            raise RuntimeError(f"v6 design-only state must not retain {relative}")
+            raise RuntimeError(f"v7 design-only state must not retain {relative}")
 
     if rights.get("state") != "hold":
         raise RuntimeError("Issue #155 rights gate must remain HOLD")
@@ -68,8 +68,8 @@ def validate(repo_root: Path | None = None) -> dict[str, Any]:
     if consumption.get("new_owner_authorization_required_for_any_future_live_request") is not True:
         raise RuntimeError("future live BLS work must require new owner authorization")
 
-    if design.get("version") != 6 or design.get("state") != "design_only_hold":
-        raise RuntimeError("Issue #258 v6 design changed")
+    if design.get("version") != 7 or design.get("state") != "design_only_hold":
+        raise RuntimeError("Issue #258 v7 design changed")
     if design.get("owner_decision_issue") != ISSUE:
         raise RuntimeError("Issue #258 design issue changed")
     if design.get("future_live_budget", {}).get("request_budget") != 2:
@@ -77,7 +77,7 @@ def validate(repo_root: Path | None = None) -> dict[str, Any]:
     if design.get("future_live_budget", {}).get("max_economic_observations_total") != 0:
         raise RuntimeError("future economic observation budget changed")
     if any(design.get("current_authorizations", {}).values()):
-        raise RuntimeError("all v6 design authorization flags must remain false")
+        raise RuntimeError("all v7 design authorization flags must remain false")
 
     evidence = design.get("known_consumed_evidence", {})
     expected_evidence = {
@@ -135,10 +135,32 @@ def validate(repo_root: Path | None = None) -> dict[str, Any]:
     if discriminator.get("live_verification_status") != "not_authorized":
         raise RuntimeError("v6 live verification must remain unauthorized")
 
-    if contract.get("version") != 12:
-        raise RuntimeError("v6 contract version changed")
-    if contract.get("state") != "ambiguity_diagnostics_v6_exact_label_context_design_only_hold":
-        raise RuntimeError("v6 contract must remain design-only HOLD")
+    header_gap = design.get("candidate_local_header_gap_policy", {})
+    if header_gap.get("state") != "design_only_not_live_authorized":
+        raise RuntimeError("v7 header-gap policy must remain design-only")
+    if header_gap.get("maximum_preceding_rows") != 32:
+        raise RuntimeError("v7 header-gap row bound changed")
+    if header_gap.get("following_rows") != 0:
+        raise RuntimeError("v7 header-gap following-row bound changed")
+    if header_gap.get("maximum_persisted_text_cells_per_selected_candidate") != 128:
+        raise RuntimeError("v7 header-gap cell bound changed")
+    if header_gap.get("row_number_as_selector") is not False:
+        raise RuntimeError("v7 row numbers must remain coordinates only")
+    if header_gap.get("identifier_values") != "forbidden":
+        raise RuntimeError("v7 identifier-value policy changed")
+    if header_gap.get("economic_values") != "forbidden":
+        raise RuntimeError("v7 economic-value policy changed")
+    if header_gap.get("response_body_persistence") is not False:
+        raise RuntimeError("v7 response-body persistence must remain false")
+    if header_gap.get("identity_proven_by_this_rule") is not False:
+        raise RuntimeError("v7 header-gap inventory must not prove identity")
+    if header_gap.get("live_verification_status") != "not_authorized":
+        raise RuntimeError("v7 live verification must remain unauthorized")
+
+    if contract.get("version") != 13:
+        raise RuntimeError("v7 contract version changed")
+    if contract.get("state") != "ambiguity_diagnostics_v7_header_gap_design_only_hold":
+        raise RuntimeError("v7 contract must remain design-only HOLD")
     if contract.get("active_authorization_receipt_expected_now") is not False:
         raise RuntimeError("active receipt must not be expected")
     if contract.get("dispatch_marker_expected_now") is not False:
@@ -151,12 +173,12 @@ def validate(repo_root: Path | None = None) -> dict[str, Any]:
     if ("if: $" + "{{ false }}") not in workflow:
         raise RuntimeError("workflow must remain inert")
     if "push:" in workflow:
-        raise RuntimeError("v6 design-only workflow must not have a push trigger")
+        raise RuntimeError("v7 design-only workflow must not have a push trigger")
 
     return {
         "status": "passed",
-        "state": "ambiguity_diagnostics_v6_exact_label_context_design_only_hold",
-        "design_version": 6,
+        "state": "ambiguity_diagnostics_v7_header_gap_design_only_hold",
+        "design_version": 7,
         "v5_preflight_run": V5_RUN,
         "v5_html_candidates": 3,
         "v5_xlsx_candidates": 29,
@@ -164,6 +186,8 @@ def validate(repo_root: Path | None = None) -> dict[str, Any]:
         "v6_xlsx_exact_label_survivors": 2,
         "v6_xlsx_direct_commodity_survivors": 1,
         "v6_xlsx_stage_demand_survivors": 1,
+        "v7_header_gap_max_preceding_rows": 32,
+        "v7_header_gap_max_cells": 128,
         "active_receipt_present": False,
         "dispatch_present": False,
         "live_request_authorized": False,

@@ -1,5 +1,5 @@
 {
-  "version": 6,
+  "version": 7,
   "state": "design_only_hold",
   "methodology_version": "2.1F-design-candidate",
   "owner_decision_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/258",
@@ -22,7 +22,7 @@
       "expected_format": "xlsx"
     }
   ],
-  "objective": "Use only consumed v5 numeric-redacted context to preregister an exact-label candidate filter and semantic context discriminator that separates direct commodity context from stage/intermediate-demand context without reading identifiers or economic values.",
+  "objective": "Preregister a candidate-local header-gap inventory that runs only after the v6 exact-label/context narrowing succeeds, so the governing non-economic header vocabulary and distance can be diagnosed without reading identifier or economic values.",
   "known_consumed_evidence": {
     "issue_244_html_crude_petroleum_matches": 3,
     "issue_244_xlsx_crude_petroleum_matches": 29,
@@ -210,7 +210,7 @@
     "public_artifact_replacement": false,
     "production": false
   },
-  "next_gate": "new_explicit_owner_authorization_under_issue_258_required_before_any_live_v6_structural_verification_or_identifier/value_read",
+  "next_gate": "new_explicit_owner_authorization_under_issue_258_required_before_any_live_v7_header_gap_inventory_or_identifier/value_read",
   "execution_environment_policy": {
     "preferred_environment": "github_actions_protected_main_lifecycle",
     "rationale": "prior protected GitHub Actions BLS preflights completed HTTP retrieval while the later local runtime encountered DNS resolution failure; future live execution should use the auditable environment with demonstrated BLS reachability",
@@ -291,6 +291,40 @@
     "row_number_as_selector": false,
     "identifier_read_required": false,
     "economic_value_read_required": false,
+    "identity_proven_by_this_rule": false,
+    "live_verification_status": "not_authorized"
+  },
+  "candidate_local_header_gap_policy": {
+    "state": "design_only_not_live_authorized",
+    "prerequisite_html": "exact-label filter yields exactly one HTML candidate",
+    "prerequisite_xlsx": "exact-label filter yields exactly two XLSX candidates and context discriminator yields exactly one commodity_unprocessed_nonfood_context candidate plus one stage_intermediate_demand_context candidate",
+    "selected_candidates": "HTML exact-label survivor and XLSX direct-commodity-context survivor only",
+    "row_number_as_selector": false,
+    "maximum_preceding_rows": 32,
+    "following_rows": 0,
+    "maximum_persisted_text_cells_per_selected_candidate": 128,
+    "persistent_fields": [
+      "candidate coordinate",
+      "window coordinates",
+      "numeric-redacted non-economic text",
+      "recognized header role or null",
+      "blank separator row coordinates",
+      "nearest recognized header-role row coordinate and distance",
+      "truncation flag"
+    ],
+    "numeric_token_policy": "same as v5: standalone numeric tokens -> <num>; alphanumeric tokens containing digits -> <alnum-redacted>; numeric-only and placeholder-only cells omitted",
+    "identifier_values": "forbidden",
+    "economic_values": "forbidden",
+    "response_body_persistence": false,
+    "stop_conditions": [
+      "v6 exact-label counts differ from 1 HTML and 2 XLSX",
+      "XLSX v6 context classification does not yield exactly one direct-commodity and one stage-demand candidate",
+      "selected candidate is chosen by row number instead of semantic rules",
+      "more than 32 preceding rows would be inspected",
+      "more than 128 text cells would be persisted for either selected candidate",
+      "identifier or economic numeric value would be read or persisted"
+    ],
+    "output_goal": "determine whether the actual governing header row is farther than the v5 8-row window and capture the smallest non-economic vocabulary needed for a later identifier/index-field verification",
     "identity_proven_by_this_rule": false,
     "live_verification_status": "not_authorized"
   }

@@ -504,6 +504,90 @@ def classify_exact_target_candidates(
     ]
 
 
+
+HEADER_GAP_MAX_PRECEDING_ROWS = 32
+HEADER_GAP_MAX_CELLS = 128
+
+
+def candidate_local_header_gap_inventory(
+    rows: list[list[str]],
+    candidate_row: int,
+    *,
+    max_preceding_rows: int = HEADER_GAP_MAX_PRECEDING_ROWS,
+    max_cells: int = HEADER_GAP_MAX_CELLS,
+) -> dict[str, object]:
+    """Collect a bounded numeric-redacted header-gap window for one exact target.
+
+    This helper never reads identifier/economic numeric values. It records only
+    sanitized text, coordinates, recognized semantic roles, and blank-row
+    separator coordinates. Candidate row numbers are coordinates only.
+    """
+    if max_preceding_rows != HEADER_GAP_MAX_PRECEDING_ROWS:
+        raise ValueError("max_preceding_rows must remain 32")
+    if max_cells != HEADER_GAP_MAX_CELLS:
+        raise ValueError("max_cells must remain 128")
+    if candidate_row < 1 or candidate_row > len(rows):
+        raise ValueError("candidate_row is outside rows")
+    if not any(is_exact_target_label(cell) for cell in rows[candidate_row - 1]):
+        raise ValueError("candidate_row must contain the exact target label")
+
+    start_row = max(1, candidate_row - max_preceding_rows)
+    cells: list[dict[str, object]] = []
+    blank_rows: list[int] = []
+    recognized_rows: list[dict[str, object]] = []
+    truncated = False
+
+    for row_number in range(start_row, candidate_row):
+        row = rows[row_number - 1]
+        if is_blank_row(row):
+            blank_rows.append(row_number)
+            continue
+
+        row_roles: list[str] = []
+        for column, raw in enumerate(row, start=1):
+            safe = context_safe_text(raw)
+            if safe is None:
+                continue
+            if len(cells) >= max_cells:
+                truncated = True
+                break
+            role = header_role(safe)
+            cells.append(
+                {
+                    "row": row_number,
+                    "column": column,
+                    "text": safe,
+                    "role": role,
+                }
+            )
+            if role is not None:
+                row_roles.append(role)
+        if row_roles:
+            recognized_rows.append(
+                {
+                    "row": row_number,
+                    "roles": tuple(row_roles),
+                }
+            )
+        if truncated:
+            break
+
+    nearest_row = recognized_rows[-1]["row"] if recognized_rows else None
+    return {
+        "candidate_row": candidate_row,
+        "window_start_row": start_row,
+        "window_end_row": candidate_row - 1,
+        "cells": cells,
+        "blank_separator_rows": tuple(blank_rows),
+        "recognized_header_role_rows": recognized_rows,
+        "nearest_recognized_header_row": nearest_row,
+        "nearest_recognized_header_distance": (
+            candidate_row - int(nearest_row) if nearest_row is not None else None
+        ),
+        "truncated": truncated,
+    }
+
+
 def resource_reason_summary(blocks: list[LocalBlock]) -> dict[str, int]:
     summary: dict[str, int] = {}
     for block in blocks:
