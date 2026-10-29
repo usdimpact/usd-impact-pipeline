@@ -201,6 +201,9 @@ def check_queue_unapproved(queue: dict) -> None:
     assert set(queue["owner_decision_prompts"]) == EXPECTED_OWNER_DECISIONS
     assert tuple(g["name"] for g in queue["gate_order"]) == EXPECTED_GATE_NAMES
     assert set(queue["approval_receipts"]) == EXPECTED_APPROVAL_RECEIPTS
+    # Reject an unknown ID with the contract's AssertionError, never an
+    # incidental KeyError from indexing the expected identity dictionary.
+    assert tuple(s["id"] for s in queue["sources"]) == SOURCE_IDS
     for source in queue["sources"]:
         assert set(source) == EXPECTED_SOURCE_FIELDS
         expected = EXPECTED_SOURCE_IDENTITIES[source["id"]]
@@ -216,7 +219,6 @@ def check_queue_unapproved(queue: dict) -> None:
         assert set(owner_choice) == {"decision", "evidence_receipt", "authorization"}
     for gate in queue["gate_order"]:
         assert set(gate) == {"step", "name", "ready", "evidence"}
-    assert tuple(s["id"] for s in queue["sources"]) == SOURCE_IDS
     assert set(queue["rights_decision_dimensions"]) == RIGHTS_DIMENSIONS
     for source in queue["sources"]:
         assert set(source["exact_permission_dimensions"]) == RIGHTS_DIMENSIONS
