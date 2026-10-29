@@ -44,7 +44,18 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Evaluate Score publication rights gate
+        id: rights
+        run: |
+          python -m scripts.score_publication_rights_gate --github-output "$GITHUB_OUTPUT"
+
+      - name: Record rights-review reproduction rehearsal hold
+        if: steps.rights.outputs.hold == 'true'
+        run: |
+          echo "Live Score v2 reproduction rehearsal is HOLD under issue #155; no provider retrieval, temporary evidence, or release archive rehearsal was attempted." >> "$GITHUB_STEP_SUMMARY"
+
       - name: Set up Python 3.11
+        if: steps.rights.outputs.hold != 'true'
         uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: '3.11'
@@ -52,15 +63,18 @@ jobs:
           cache-dependency-path: runtime/requirements-2026-10-05.lock
 
       - name: Install locked dependencies
+        if: steps.rights.outputs.hold != 'true'
         run: |
           python -m pip install --upgrade pip==26.2.1
           python -m pip install -r runtime/requirements-2026-10-05.lock
           python -m pip check
 
       - name: Verify machine-readable methodology contract
+        if: steps.rights.outputs.hold != 'true'
         run: python -m scripts.validate_methodology_contract --json
 
       - name: Rehearse full release bundle and archive path
+        if: steps.rights.outputs.hold != 'true'
         env:
           PYTHONUNBUFFERED: 1
           USD_IMPACT_REHEARSAL_ACTIVE_RUNTIME: 1
@@ -110,7 +124,7 @@ jobs:
             --report "$RUNNER_TEMP/score-v2-rehearsal-report.json"
 
       - name: Record rehearsal evidence in job summary
-        if: always()
+        if: steps.rights.outputs.hold != 'true' && always()
         run: |
           if [ -f "$RUNNER_TEMP/score-v2-rehearsal-report.json" ]; then
             python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
