@@ -140,6 +140,16 @@ class TreasuryXMLCandidateTests(unittest.TestCase):
         for key, approved in contract["safety"].items():
             with self.subTest(control=key):
                 self.assertIs(approved, False)
+        pagination = contract["pagination_scope"]
+        self.assertEqual(pagination["required_selection"], "YYYY or YYYYMM")
+        for key in (
+            "all_time_page_traversal_supported",
+            "explicit_next_links_accepted",
+            "inline_count_mismatch_accepted",
+            "full_coverage_verified",
+        ):
+            with self.subTest(pagination_control=key):
+                self.assertIs(pagination[key], False)
 
     def test_valid_synthetic_atom_page_maps_and_sorts_only_target_fields(self) -> None:
         observations = _parse(_valid().encode("utf-8"))
