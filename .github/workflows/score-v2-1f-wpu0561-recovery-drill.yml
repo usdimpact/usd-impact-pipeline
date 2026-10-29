@@ -6,6 +6,9 @@ on:
     paths:
       - 'governance/score-v2-1f-bls-wpu0561-2026-source-boundary-review-v10-*'
       - 'governance/score-v2-1f-wpu0561-v10-recovery-manifest.json'
+      - 'governance/score-v2-1f-bls-wpu0561-pdf-structural-preflight-v11-design.json'
+      - 'scripts/validate_score_v2_1f_wpu0561_pdf_v11.py'
+      - 'tests/test_score_v2_1f_wpu0561_pdf_v11.py'
       - 'docs/recovery/score-v2-1f-wpu0561-v10-backup-and-restore.md'
       - 'scripts/validate_score_v2_1f_wpu0561_recovery.py'
       - 'tests/test_score_v2_1f_wpu0561_recovery.py'
@@ -31,6 +34,11 @@ jobs:
 
       - name: Verify pinned v9 governance state and rehearsal without remote writes
         run: python3 scripts/validate_score_v2_1f_wpu0561_recovery.py --verify-git --drill
+
+      - name: Validate inert v11 PDF preflight and synthetic-only refusal cases
+        run: |
+          python3 -m unittest discover -s tests -p 'test_score_v2_1f_wpu0561_pdf_v11.py' -v
+          python3 scripts/validate_score_v2_1f_wpu0561_pdf_v11.py
 
       - name: Confirm that this workflow never restores live environments
         run: |
