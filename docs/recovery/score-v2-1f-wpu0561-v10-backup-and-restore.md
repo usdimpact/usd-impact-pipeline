@@ -150,3 +150,29 @@ The v12 parser is **not approved to read real PDFs**. pypdf documentation notes 
 6. Do not claim an offsite backup, provider data recovery or Vercel rollback solely from these Git references.
 
 **Approval boundary:** fixture-only parser security research and methodology design, not a real PDF request. No new authorization receipt, active dispatch, production mutation or public Score release is part of this phase.
+
+## 9. v13 one-off activation and consumption incident response
+
+**Owner scope approved; protected live dispatch is currently INACTIVE.** The v13 scope decision is in governance/score-v2-1f-wpu0561-pdf-v13-owner-decision.json, with a separate reviewed execution contract. The actual network request remains blocked until independent receipt and dispatch PRs reach protected main. These files do not exist in the current draft. No BLS PDF data has been fetched.
+
+### Required activation sequence (not accomplished by design approval alone)
+
+1. Confirm the exact head and CI of this PR, backup snapshot hashes, and continued v9 authority/Issue #155 HOLD.
+2. Merge the inert runner code only through protected review, with a skip marker for unrelated site build/deployment integrations where supported.
+3. In a separate reviewed activation PR, create one exact scoped receipt and set the v13 contract to a pending state; the authorization cannot be reused or linked to v8.
+4. In a second reviewed dispatch PR, bind the marker to the cryptographic SHA-256 of the *exact receipt bytes*, activate the v13 contract and include the dispatch marker as the only push-triggered path.
+5. A protected-main push containing the exact marker triggers one GitHub Action. Before contacting BLS, a dedicated GitHub-token job validates the receipt and obtains a **non-overwritable fixed Git tag claim**: refs/tags/score-v2-1f-wpu0561-pdf-v13-oneoff-2026-10-29.
+6. Claim creation fails if the tag already exists. A rerun with GITHUB_RUN_ATTEMPT greater than 1 cannot reach BLS. The claim is consumed whether the PDF request succeeds, fails or the parser rejects the document.
+7. The fetch job has read-only Git credentials; source bytes remain in memory and go through stdin to a networkless, read-only, non-root, memory/PID/CPU-limited parser. No raw PDF/text/economic values are stored or logged. The output is a fixed sanitized structural schema.
+8. The audit job records only status and finite reason codes on Issue #258; then a corrective cleanup PR returns the active receipt/dispatch/workflow to a non-operational state. Git branches and provider services are not automatically rolled back.
+
+### Failure and recovery
+
+- **Preclaim check fails:** no claim tag and no BLS request. Do not repair by removing a guard from the same workflow; review the exact protected commits first.
+- **Claim API is rejected:** no BLS request; retain the failure and original approval record. Any new attempt requires an independent decision rather than retrying the same authorization.
+- **Claim succeeds but environment, network, 403/429, size bound or parser fails:** authorization is consumed. Keep the fixed claim tag, stop without alternate-source fallback or retries, and preserve the audited status; create a new PR that disables the activation/dispatch files.
+- **Numeric content leaks to logs/artifacts:** stop and treat as a separate data-handling incident. A Git revert cannot undo prior disclosure.
+- **An incorrect PR merges:** restore only affected files from the pinned v12 or v9 commit using a reviewed corrective PR, without force-pushing main; do not remove the consumed claim tag or rewrite the incident record.
+- **No original-release or exact-series evidence:** the BLS PDF remains *unusable for historical-vintage Score* even if a structural test succeeded. No score/reconstruction/public write is allowed.
+
+The new workflow is not a backup of Supabase, Cloudflare, Vercel, Render, Resend, or external provider states. No such provider rollback is authorized. A successful Git recovery drill proves only the tested repository-level procedure.
