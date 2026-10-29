@@ -58,7 +58,8 @@
     "tests/test_score_v2_1f_wpu0561_pdf_v13.py",
     ".github/workflows/score-v2-1f-wpu0561-pdf-v13-oneoff.yml",
     "governance/score-v2-1f-wpu0561-pdf-v13-live-authorization.json",
-    "governance/score-v2-1f-wpu0561-pdf-v13-dispatch.json"
+    "governance/score-v2-1f-wpu0561-pdf-v13-dispatch.json",
+    "governance/score-v2-1f-wpu0561-pdf-v13-consumption-2026-10-29.json"
   ],
   "authorizations": {
     "bLS_live_request": false,
@@ -107,7 +108,7 @@
     "rights_issue_155_closed": false
   },
   "v13": {
-    "state": "owner_one_off_dispatch_staged_active_only_on_protected_merge",
+    "state": "consumed_preflight_fail_closed_invalid_page_count",
     "owner_approval": "governance/score-v2-1f-wpu0561-pdf-v13-owner-decision.json",
     "execution_contract": "governance/score-v2-1f-wpu0561-pdf-v13-execution-contract.json",
     "one_off_workflow": ".github/workflows/score-v2-1f-wpu0561-pdf-v13-oneoff.yml",
@@ -115,13 +116,23 @@
     "parser": "scripts/score_v2_1f_wpu0561_pdf_v13_parser.py",
     "test": "tests/test_score_v2_1f_wpu0561_pdf_v13.py",
     "claim_ref": "refs/tags/score-v2-1f-wpu0561-pdf-v13-oneoff-2026-10-29",
-    "activation_file_exists": true,
-    "dispatch_file_exists": true,
-    "live_request_executed": false,
-    "request_budget_remaining_now": 1,
-    "real_PDF_looked_at": false,
+    "activation_file_exists": false,
+    "dispatch_file_exists": false,
+    "live_request_executed": true,
+    "request_budget_remaining_now": 0,
+    "real_PDF_looked_at": true,
     "rights_155_still_hold": true,
     "public_changed": false,
-    "production_changed": false
+    "production_changed": false,
+    "consumption_ledger": "governance/score-v2-1f-wpu0561-pdf-v13-consumption-2026-10-29.json",
+    "preflight_run": "https://github.com/usdimpact/usd-impact-pipeline/actions/runs/40924080468",
+    "claim_consumed": true,
+    "claim_preserved": true,
+    "sanitized_failure_reason": "invalid_page_count",
+    "no_future_run_without_new_approval": true,
+    "source_structural_feasibility_proven": false,
+    "original_release_pdf_vintage_proven": false,
+    "economic_values_retained": false,
+    "identifier_values_retained": false
   }
 }
