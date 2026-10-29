@@ -234,6 +234,40 @@ class IndependentMacroContextSyntheticTests(unittest.TestCase):
         self.assertEqual(dict(original_panel.dial_labels)["dollar_breadth"], "UP")
         self.assertEqual(dict(revised_panel.dial_labels)["dollar_breadth"], "DOWN")
 
+    def test_revision_lineage_rejects_ambiguous_receipts_on_either_friday(self) -> None:
+        # Both source weeks rely on the Phase B synthetic validator. Forged
+        # receipt histories must raise instead of reaching descriptive labels.
+        for changed_week in (PREV, WEEK):
+            for issue in ("snapshot_reuse", "first_release_drift"):
+                with self.subTest(week=changed_week, issue=issue):
+                    receipts, observations = fixture()
+                    original = next(
+                        item for item in receipts
+                        if item.reference_week == changed_week
+                        and item.source_id == "fed_h10_nominal_broad"
+                    )
+                    receipts.append(replace(
+                        original,
+                        revision=1,
+                        record_id=f"SYNTHETIC:H10-{changed_week}-R1-{issue}",
+                        snapshot_id=(
+                            original.snapshot_id if issue == "snapshot_reuse"
+                            else f"SYNTHETIC:H10-{changed_week}-NEW-R1"
+                        ),
+                        initial_release_at=(
+                            original.initial_release_at if issue == "snapshot_reuse"
+                            else original.initial_release_at + timedelta(minutes=1)
+                        ),
+                        version_published_at=stamp(18, 12),
+                        first_seen_at=stamp(18, 12, 1),
+                    ))
+                    with self.assertRaisesRegex(
+                        ValueError, "snapshot ID reused|conflicting synthetic initial release"
+                    ):
+                        evaluate_synthetic_context(
+                            receipts, observations, WEEK, stamp(18, 12, 2)
+                        )
+
     def test_unchanged_dials_and_inverted_curve(self) -> None:
         r, o = fixture()
         o = [

@@ -227,6 +227,24 @@ def evaluate_synthetic_asof(
         seen_versions.add(key)
         grouped[item.source_id].append(item)
 
+    # One source/week has one initial publication instant. A correction
+    # must preserve that first-publication receipt and use a NEW immutable
+    # snapshot ID. Otherwise as-of versions cannot be distinguished safely,
+    # including when a later revision is not yet visible at the cutoff.
+    # Compare UTC instants rather than requiring identical timezone text.
+    for revisions in grouped.values():
+        if len(revisions) < 2:
+            continue
+        first_releases = {
+            _utc(item.initial_release_at, "initial_release_at")
+            for item in revisions
+        }
+        if len(first_releases) != 1:
+            raise ValueError("conflicting synthetic initial release across revisions")
+        snapshots = [item.snapshot_id for item in revisions]
+        if len(snapshots) != len(set(snapshots)):
+            raise ValueError("synthetic snapshot ID reused across revisions")
+
     selected: dict[str, SyntheticReceipt] = {}
     blockers: list[str] = []
     for source_id in sorted(REQUIRED_IDS):
