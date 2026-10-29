@@ -10,21 +10,22 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class ScoreV21FWpu0561AmbiguityDiagnosticsTests(unittest.TestCase):
-    def test_v8_container_header_band_is_dispatched_and_zero_value(self) -> None:
+    def test_v8_container_header_band_consumed_state_is_fail_closed(self) -> None:
         report = validator.validate(ROOT)
         self.assertEqual(report["status"], "passed")
         self.assertEqual(
             report["state"],
-            "ambiguity_diagnostics_v8_container_header_band_authorized",
+            "ambiguity_diagnostics_v8_container_header_band_consumed_fail_closed",
         )
         self.assertEqual(report["design_version"], 8)
-        self.assertEqual(report["request_budget"], 2)
-        self.assertEqual(report["max_economic_observations_total"], 0)
-        self.assertEqual(report["v8_header_band_top_rows"], 32)
-        self.assertEqual(report["v8_header_band_max_cells"], 128)
-        self.assertTrue(report["active_receipt_present"])
-        self.assertTrue(report["dispatch_present"])
-        self.assertTrue(report["live_request_authorized"])
+        self.assertEqual(report["request_attempt_count"], 2)
+        self.assertFalse(report["identifier_values_retained"])
+        self.assertFalse(report["economic_values_retained"])
+        self.assertTrue(report["html_index_level_header_observed"])
+        self.assertFalse(report["xlsx_index_level_header_observed"])
+        self.assertFalse(report["active_receipt_present"])
+        self.assertFalse(report["dispatch_present"])
+        self.assertFalse(report["live_request_authorized"])
         self.assertFalse(report["identifier_value_read_authorized"])
         self.assertFalse(report["economic_value_read_authorized"])
         self.assertFalse(report["production_authorized"])
