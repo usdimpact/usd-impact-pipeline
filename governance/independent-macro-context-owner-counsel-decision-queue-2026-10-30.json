@@ -1,0 +1,440 @@
+{
+  "schema_version": "independent-macro-context-owner-counsel-review-queue-v1",
+  "prepared_on": "2026-10-30",
+  "status": "REQUEST_FOR_DECISIONS_ONLY_NO_RELEASE_OR_EXECUTION",
+  "budget_policy": "ZERO_PAID_MARKET_DATA_LICENSE_BUDGET",
+  "market_data_paid_budget_usd": 0,
+  "controlling_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/313",
+  "legacy_score_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
+  "fred_rights_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/282",
+  "governing_records": {
+    "exact_series_rights": "governance/score-four-source-exact-series-rights-matrix-2026-10-29.json",
+    "independent_model_draft": "governance/independent-macro-context-fallback-draft-2026-10-30.json",
+    "synthetic_phase_b": "governance/score-public-source-phase-b-design-2026-10-29.json",
+    "active_legacy_score_gate": "governance/score-publication-rights-gate.json",
+    "legacy_rights_successor": "governance/score-v2-successor-rights-readiness-2026-10-29.json",
+    "fred_clauses": "governance/fred-terms-clause-crosswalk-2026-10-29.json"
+  },
+  "non_authoritative": true,
+  "not_a_rights_grant": true,
+  "not_a_runtime_approval_source": true,
+  "canonical_rights_matrix_must_remain_denied": true,
+  "separate_products": {
+    "old_score_v2": {
+      "status": "HOLD",
+      "original_eight_driver_methodology_unchanged": true,
+      "existing_score_history_may_be_spliced": false,
+      "release_approved": false,
+      "release_issue": 155
+    },
+    "proposed_panel": {
+      "status": "SYNTHETIC_ONLY_DESIGN_HOLD",
+      "working_title_only": true,
+      "distinct_three_dials_four_qualitative_labels": true,
+      "no_composite_score": true,
+      "no_weights_or_backtest": true,
+      "methodology_owner_approved": false,
+      "publication_approved": false,
+      "release_issue": 313
+    }
+  },
+  "rights_decision_dimensions": [
+    "commercial_internal_ingestion",
+    "commercial_non_display_transformation",
+    "transient_processing",
+    "provider_content_retention",
+    "observations_archival",
+    "logs_and_cache_retention",
+    "backup_and_disaster_recovery_retention",
+    "revision_vintage_receipt_retention",
+    "public_aggregate_distribution",
+    "public_component_distribution",
+    "public_history_distribution",
+    "ai_ml_processing",
+    "downstream_redistribution",
+    "live_source_retrieval"
+  ],
+  "source_count": 4,
+  "sources": [
+    {
+      "original_publisher": "Federal Reserve Board",
+      "role": "Nominal trade-weighted Broad Dollar Index (not ICE DXY)",
+      "display_name": "H.10 nominal Broad Dollar Index",
+      "publisher_series_or_table": "H10/H10/JRXWTFB_N.B",
+      "publisher_identifier_status": "DOCUMENTED_WITH_2019_SEMANTIC_BREAK",
+      "publisher_terms": [
+        "https://www.federalreserve.gov/disclaimer.htm",
+        "https://www.federalreserve.gov/releases/h10/h10_technical_qa.htm",
+        "https://www.federalreserve.gov/data/data-download-fred-information.htm"
+      ],
+      "documented_facts": [
+        "Board-authored site material generally public-domain except non-Board material and rights; cite the Board",
+        "Feb 4 2019 Broad index methodology changed goods-only to goods-and-services under reused JRXWTFB_N mnemonic",
+        "Jun 24 2019 daily index base changed; later historical backcasts do not establish original first-seen vintage",
+        "Build Your Package retirement scheduled week Nov 9 2026; release-page historical XML remains publisher documented"
+      ],
+      "priority_legal_questions": [
+        "Is the exact nominal Broad Index, including the trade-weight/currency input material, free of separately protected third-party rights for the proposed commercial computation?",
+        "Is weekly display of only UP/DOWN/UNCHANGED derived from the index permitted publicly, privately for members and in historical archives?",
+        "What rights apply to storing index observations, backcasts, original release and corrected versions, logs, receipts and backups?",
+        "What direct-publisher access frequency, permitted automated route, attribution and logo restrictions apply?"
+      ],
+      "priority_technical_questions": [
+        "Resolve 2019 mnemonic methodological discontinuity and changed daily base with as-published vintage receipts",
+        "Verify Board-owned release-page XML transport after the November 2026 DDP transition; no FRED automatic switch",
+        "Document publication timing, holiday delays and August 12 2026 correction without assuming stored vintage exists"
+      ],
+      "missing_evidence": [
+        "Exact publisher-only rights attribution and contributor exclusions",
+        "Documented direct transport usage scope, historical version availability and allowed receipt retention",
+        "Signed counsel/source-specific legal disposition and owner data-scope decision"
+      ],
+      "id": "fed_h10_nominal_broad",
+      "exact_permission_dimensions": {
+        "commercial_internal_ingestion": "UNREVIEWED",
+        "commercial_non_display_transformation": "UNREVIEWED",
+        "transient_processing": "UNREVIEWED",
+        "provider_content_retention": "UNREVIEWED",
+        "observations_archival": "UNREVIEWED",
+        "logs_and_cache_retention": "UNREVIEWED",
+        "backup_and_disaster_recovery_retention": "UNREVIEWED",
+        "revision_vintage_receipt_retention": "UNREVIEWED",
+        "public_aggregate_distribution": "UNREVIEWED",
+        "public_component_distribution": "UNREVIEWED",
+        "public_history_distribution": "UNREVIEWED",
+        "ai_ml_processing": "UNREVIEWED",
+        "downstream_redistribution": "UNREVIEWED",
+        "live_source_retrieval": "UNREVIEWED"
+      },
+      "formal_source_or_counsel_rights_receipt": null,
+      "project_owner_scoped_rights_decision_receipt": null,
+      "source_rights_state": "NO_DECISION_NO_ACCESS",
+      "source_license_cost_approval": false,
+      "transport_test_approved": false
+    },
+    {
+      "original_publisher": "U.S. Energy Information Administration",
+      "role": "Weekly commercial U.S. crude inventories excluding SPR; NOT WTI or futures",
+      "display_name": "EIA weekly crude stocks excluding SPR",
+      "publisher_series_or_table": "WCESTUS1",
+      "publisher_identifier_status": "DOCUMENTED_LABEL_ONLY_CROSS_SERIES_PARITY_UNVERIFIED",
+      "publisher_terms": [
+        "https://www.eia.gov/about/copyrights_reuse.php",
+        "https://www.eia.gov/about/privacy_security_policy.php",
+        "https://www.eia.gov/petroleum/supply/weekly/schedule.php"
+      ],
+      "documented_facts": [
+        "EIA generally permits reuse of government-produced data with attribution and publication date, excluding protected privately supplied content",
+        "WCESTUS1 is weekly crude ending stocks excluding SPR, in thousand barrels",
+        "EIA including-lease-stock and excluding-lease-stock table labels are distinct; time-series/vintage parity not proved",
+        "WPSR downloads can be staged; normal Wednesday 10:30 ET report date is not proof of precise first-seen source receipt",
+        "Automated retrieval policy disallows excessive bots and may block robots lacking owner contact"
+      ],
+      "priority_legal_questions": [
+        "Is this exact WPSR survey series entirely EIA-created information or does it contain protected third-party input subject to restrictions?",
+        "May USD Impact commercially compute a binary BUILD/DRAW/UNCHANGED qualitative label and show that label publicly, to members and as dated history?",
+        "May observations, release corrections and first-seen evidence, logs, caches and backups be retained?",
+        "What citation wording and publication date must accompany public outputs; what bot/API use and data-rate policy applies?"
+      ],
+      "priority_technical_questions": [
+        "Reconcile WCESTUS1, excluding-lease-stock and historical including-lease-stock tables without equating non-identical definitions",
+        "Determine whether source-specific machine transport, late files, holiday dates and original/revised versions are obtainable with lawful retention",
+        "Do not infer WTI spot/futures direction from inventory build/draw labels"
+      ],
+      "missing_evidence": [
+        "Proven exact survey original owner and upstream exceptions",
+        "Vintage-consistent source/table definitions, direct automated route and bounded access conditions",
+        "Signed source-specific reuse/storage/public-derived rights determination and publisher citation plan"
+      ],
+      "id": "eia_crude_stocks_weekly",
+      "exact_permission_dimensions": {
+        "commercial_internal_ingestion": "UNREVIEWED",
+        "commercial_non_display_transformation": "UNREVIEWED",
+        "transient_processing": "UNREVIEWED",
+        "provider_content_retention": "UNREVIEWED",
+        "observations_archival": "UNREVIEWED",
+        "logs_and_cache_retention": "UNREVIEWED",
+        "backup_and_disaster_recovery_retention": "UNREVIEWED",
+        "revision_vintage_receipt_retention": "UNREVIEWED",
+        "public_aggregate_distribution": "UNREVIEWED",
+        "public_component_distribution": "UNREVIEWED",
+        "public_history_distribution": "UNREVIEWED",
+        "ai_ml_processing": "UNREVIEWED",
+        "downstream_redistribution": "UNREVIEWED",
+        "live_source_retrieval": "UNREVIEWED"
+      },
+      "formal_source_or_counsel_rights_receipt": null,
+      "project_owner_scoped_rights_decision_receipt": null,
+      "source_rights_state": "NO_DECISION_NO_ACCESS",
+      "source_license_cost_approval": false,
+      "transport_test_approved": false
+    },
+    {
+      "original_publisher": "U.S. Department of the Treasury",
+      "role": "2Y nominal par constant-maturity yield, not FRED DGS2 transport",
+      "display_name": "Treasury 2Y nominal par",
+      "publisher_series_or_table": "BC_2YEAR (official historical XML illustration)",
+      "publisher_identifier_status": "STATIC_SCHEMA_VERIFIED_LIVE_FIELD_AND_SERIES_ID_UNVERIFIED",
+      "publisher_terms": [
+        "https://home.treasury.gov/treasury-daily-interest-rate-xml-feed",
+        "https://catalog.data.gov/dataset/interest-rate-statistics-daily-treasury-yield-curve-rates",
+        "https://home.treasury.gov/policy-issues/financing-the-government/interest-rate-statistics/treasury-yield-curve-methodology"
+      ],
+      "documented_facts": [
+        "Treasury example XML contains BC_2YEAR, but a live feed payload/version and native series ID are unverified",
+        "The Data.gov nominal yield-curve entry 015-DO-020 displays CC0, which is catalog evidence not an unconditional commercial grant",
+        "Par yields use Treasury calculations with indicative FRBNY-sourced input quotes; upstream rights and technical transport scope require review",
+        "Usually published by 18:00 ET, potentially later; data/observation date alone is not a publication receipt"
+      ],
+      "priority_legal_questions": [
+        "Does Data.gov CC0 cover the actual Treasury-published 2Y par yield and proposed calculations and public labels, considering any upstream market quotation rights?",
+        "Can commercial internal computations, public curve direction/classification, revisions, immutable full curve vintage, source receipts and backups be retained/distributed?",
+        "What conditions apply to direct Treasury XML access, citation and OData aggregation; does any provider/distributor impose different terms?"
+      ],
+      "priority_technical_questions": [
+        "Verify BC_2YEAR in an authorized live response, rather than overinterpreting a publisher illustration",
+        "Require exact same immutable Treasury nominal curve snapshot as BC_10YEAR on both reference Fridays",
+        "Prove initial release/version/first-seen time for the chosen as-of cutoff, rather than inferring from 18:00 ET"
+      ],
+      "missing_evidence": [
+        "Exact upstream input-rights and commercial storage/public distribution disposition",
+        "Legally authorized live XML field mapping and timing proof",
+        "Same-vintage 2Y/10Y receipt and revision retention conditions"
+      ],
+      "id": "treasury_direct_2yr_par",
+      "exact_permission_dimensions": {
+        "commercial_internal_ingestion": "UNREVIEWED",
+        "commercial_non_display_transformation": "UNREVIEWED",
+        "transient_processing": "UNREVIEWED",
+        "provider_content_retention": "UNREVIEWED",
+        "observations_archival": "UNREVIEWED",
+        "logs_and_cache_retention": "UNREVIEWED",
+        "backup_and_disaster_recovery_retention": "UNREVIEWED",
+        "revision_vintage_receipt_retention": "UNREVIEWED",
+        "public_aggregate_distribution": "UNREVIEWED",
+        "public_component_distribution": "UNREVIEWED",
+        "public_history_distribution": "UNREVIEWED",
+        "ai_ml_processing": "UNREVIEWED",
+        "downstream_redistribution": "UNREVIEWED",
+        "live_source_retrieval": "UNREVIEWED"
+      },
+      "formal_source_or_counsel_rights_receipt": null,
+      "project_owner_scoped_rights_decision_receipt": null,
+      "source_rights_state": "NO_DECISION_NO_ACCESS",
+      "source_license_cost_approval": false,
+      "transport_test_approved": false
+    },
+    {
+      "original_publisher": "U.S. Department of the Treasury",
+      "role": "10Y nominal par constant-maturity yield, not FRED DGS10 transport",
+      "display_name": "Treasury 10Y nominal par",
+      "publisher_series_or_table": "BC_10YEAR (official historical XML illustration)",
+      "publisher_identifier_status": "STATIC_SCHEMA_VERIFIED_LIVE_FIELD_AND_SERIES_ID_UNVERIFIED",
+      "publisher_terms": [
+        "https://home.treasury.gov/treasury-daily-interest-rate-xml-feed",
+        "https://catalog.data.gov/dataset/interest-rate-statistics-daily-treasury-yield-curve-rates",
+        "https://home.treasury.gov/policy-issues/financing-the-government/interest-rate-statistics/treasury-yield-curve-methodology"
+      ],
+      "documented_facts": [
+        "Treasury example XML contains BC_10YEAR, but a live feed payload/version and native series ID are unverified",
+        "Data.gov nominal yield-curve catalog CC0 applies as catalog-level licensing evidence only, not a signed USD Impact scope approval",
+        "A par yield from Treasury market-quote input cannot be assumed identical in timestamp or historical vintage to FRED/Board delivery",
+        "2Y and 10Y observations for a given week must be from the same curve snapshot and source release version"
+      ],
+      "priority_legal_questions": [
+        "Confirm that exact 10Y par data, underlying input quotations and proposed slope/steepening public output are within usable and retainable commercial scope",
+        "Determine allowed stored two-tenor curve snapshots, release timestamps, revision receipts, backups and public history including subscriber outputs",
+        "Confirm attribution, derived-value display and direct Treasury transport conditions separately from FRED or H.15"
+      ],
+      "priority_technical_questions": [
+        "Verify BC_10YEAR in an authorized live source without manufacturing native series IDs",
+        "Do not mix separately corrected 2Y and 10Y yields; use one captured curve version for each reference Friday",
+        "Prove actual first-publication and first-seen receipts for the evaluation cutoff; no look-ahead"
+      ],
+      "missing_evidence": [
+        "Exact series-specific rights and up-stream market quote disposition",
+        "Live direct XML mapping and source vintage chain",
+        "Permitted receipt/observation retention and public label/history scope"
+      ],
+      "id": "treasury_direct_10yr_par",
+      "exact_permission_dimensions": {
+        "commercial_internal_ingestion": "UNREVIEWED",
+        "commercial_non_display_transformation": "UNREVIEWED",
+        "transient_processing": "UNREVIEWED",
+        "provider_content_retention": "UNREVIEWED",
+        "observations_archival": "UNREVIEWED",
+        "logs_and_cache_retention": "UNREVIEWED",
+        "backup_and_disaster_recovery_retention": "UNREVIEWED",
+        "revision_vintage_receipt_retention": "UNREVIEWED",
+        "public_aggregate_distribution": "UNREVIEWED",
+        "public_component_distribution": "UNREVIEWED",
+        "public_history_distribution": "UNREVIEWED",
+        "ai_ml_processing": "UNREVIEWED",
+        "downstream_redistribution": "UNREVIEWED",
+        "live_source_retrieval": "UNREVIEWED"
+      },
+      "formal_source_or_counsel_rights_receipt": null,
+      "project_owner_scoped_rights_decision_receipt": null,
+      "source_rights_state": "NO_DECISION_NO_ACCESS",
+      "source_license_cost_approval": false,
+      "transport_test_approved": false
+    }
+  ],
+  "owner_decision_prompts": {
+    "approve_distinct_product_direction": {
+      "decision": "PENDING_OWNER",
+      "evidence_receipt": null,
+      "authorization": false
+    },
+    "approve_descriptive_three_dial_four_label_methodology": {
+      "decision": "PENDING_OWNER",
+      "evidence_receipt": null,
+      "authorization": false
+    },
+    "approve_non_predictive_educational_framing": {
+      "decision": "PENDING_OWNER",
+      "evidence_receipt": null,
+      "authorization": false
+    },
+    "approve_working_or_final_name": {
+      "decision": "PENDING_OWNER",
+      "evidence_receipt": null,
+      "authorization": false
+    },
+    "approve_audience_public_vs_member": {
+      "decision": "PENDING_OWNER",
+      "evidence_receipt": null,
+      "authorization": false
+    },
+    "approve_reporting_schedule_after_verified_wpsr_and_h10": {
+      "decision": "PENDING_OWNER",
+      "evidence_receipt": null,
+      "authorization": false
+    },
+    "approve_missing_or_revised_data_HOLD_without_labels": {
+      "decision": "PENDING_OWNER",
+      "evidence_receipt": null,
+      "authorization": false
+    },
+    "approve_explicit_public_schema_and_attributions": {
+      "decision": "PENDING_OWNER",
+      "evidence_receipt": null,
+      "authorization": false
+    },
+    "approve_historical_first_seen_and_revision_protocol": {
+      "decision": "PENDING_OWNER",
+      "evidence_receipt": null,
+      "authorization": false
+    },
+    "approve_independent_methodology_evaluation": {
+      "decision": "PENDING_OWNER",
+      "evidence_receipt": null,
+      "authorization": false
+    },
+    "approve_one_off_rights_scoped_transport_proof": {
+      "decision": "PENDING_OWNER",
+      "evidence_receipt": null,
+      "authorization": false
+    },
+    "approve_eventual_production_publication": {
+      "decision": "PENDING_OWNER",
+      "evidence_receipt": null,
+      "authorization": false
+    }
+  },
+  "review_roles": [
+    "PROJECT_OWNER",
+    "SOURCE_OWNER_OR_RIGHTSHOLDER",
+    "LEGAL_COUNSEL_OR_AUTHORIZED_RIGHTS_REVIEWER",
+    "ENGINEERING_SECURITY",
+    "EDUCATIONAL_COMPLIANCE"
+  ],
+  "signed_legal_opinions_in_public_repo": false,
+  "private_correspondence_or_personal_identifiers_in_public_repo": false,
+  "gate_order": [
+    {
+      "step": 1,
+      "name": "SOURCE_ORIGINAL_OWNER_AND_TRANSPORT_IDENTIFICATION",
+      "ready": false,
+      "evidence": "each source exact scope and original owner from primary documentation; contributor exceptions"
+    },
+    {
+      "step": 2,
+      "name": "SCOPED_REUSE_AND_COMMERCIAL_RIGHTS_DISPOSITION",
+      "ready": false,
+      "evidence": "written per-dimension review of original publisher/transport, including attribution and upstream rights"
+    },
+    {
+      "step": 3,
+      "name": "ARCHIVE_CACHE_LOG_AND_VINTAGE_RETENTION_DISPOSITION",
+      "ready": false,
+      "evidence": "versioning and historical first-seen/archival rules plus private evidence handling"
+    },
+    {
+      "step": 4,
+      "name": "INDEPENDENT_OWNER_METHOD_DISPLAY_AND_SCHEDULE_DECISION",
+      "ready": false,
+      "evidence": "approved distinct non-predictive methodology, missing-data HOLD, name, audience and weekly lag"
+    },
+    {
+      "step": 5,
+      "name": "NARROW_NONPRODUCTION_REAL_SOURCE_PROOF_APPROVAL",
+      "ready": false,
+      "evidence": "new scoped data-access authorization, route, security, rate limit and retention plan"
+    },
+    {
+      "step": 6,
+      "name": "PROSPECTIVE_AS_OF_AND_CORRECTION_VALIDATION",
+      "ready": false,
+      "evidence": "lawfully retained source receipts for both Fridays and consistent Treasury curve revisions"
+    },
+    {
+      "step": 7,
+      "name": "INDEPENDENT_PUBLIC_RIGHTS_SCHEMA_SECURITY_COMPLIANCE",
+      "ready": false,
+      "evidence": "permitted public/member labels/history and citation, no original Score components or archival contamination"
+    },
+    {
+      "step": 8,
+      "name": "SEPARATE_OWNER_PRODUCTION_RELEASE",
+      "ready": false,
+      "evidence": "explicit versioned release authority plus exact-head protected CI and verified rollback"
+    }
+  ],
+  "external_actions_authorized": {
+    "new_provider_contact": false,
+    "paid_license_or_subscription": false,
+    "real_observation_get_or_head": false,
+    "download_real_history_or_backtest": false,
+    "commercial_internal_real_data_calculation": false,
+    "real_data_storage_logs_cache_or_backups": false,
+    "retained_first_seen_receipts": false,
+    "new_supabase_or_external_database_writes": false,
+    "web_scraping_or_polling": false,
+    "switch_to_fred_or_h15": false,
+    "source_adapter_or_model_formula_change": false,
+    "change_existing_score_v1_v2_or_617_week_history": false,
+    "publish_public_or_member_artifacts": false,
+    "change_website_or_cloudflare_vercel_render_resend": false,
+    "purge_or_rewrite_historical_git_pages_archives": false,
+    "authorize_product_name_or_weights": false,
+    "modify_active_rights_gate": false,
+    "turn_on_production": false
+  },
+  "no_sender_messages_or_sales_case_reopen": true,
+  "decisions_are_not_guessed_from_federal_domain_or_cc0": true,
+  "publisher_docs_not_equal_to_signed_use_scope": true,
+  "archived_historical_content_must_not_be_deleted_without_legal_preservation_plan": true,
+  "legal_history_or_consumer_repair_requires_separate_original_score_authorization": true,
+  "static_publisher_metadata_only": true,
+  "no_market_observation_values_copied": true,
+  "publication_status": "HOLD",
+  "approval_receipts": {
+    "exact_series_or_upstream": null,
+    "counsel_retention": null,
+    "owner_methodology": null,
+    "one_off_transport": null,
+    "public_output": null,
+    "production": null
+  }
+}
