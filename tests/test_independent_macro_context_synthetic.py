@@ -422,6 +422,136 @@ class IndependentMacroContextSyntheticTests(unittest.TestCase):
         self.assertNotIn("CANDIDATE:EIA_", rendered)
         self.assertNotIn("yield_percent", rendered)
 
+    def _direct_preview(self) -> SyntheticContextPanel:
+        receipts, observations = fixture()
+        return evaluate_synthetic_context(
+            receipts, observations, WEEK, stamp(17, 11)
+        )
+
+    def _direct_hold(self) -> SyntheticContextPanel:
+        receipts, observations = fixture()
+        return evaluate_synthetic_context(
+            receipts, observations, WEEK, stamp(17, 10, 30)
+        )
+
+    def test_direct_complete_preview_is_closed_and_synthetic(self) -> None:
+        preview = self._direct_preview()
+        self.assertEqual(preview.status, "SYNTHETIC_ONLY_COMPLETE")
+        self.assertEqual(tuple(name for name, _ in preview.dial_labels), DIALS)
+        self.assertEqual(preview.blockers, ())
+        self.assertFalse(preview.publish_authorized)
+
+    def test_direct_hold_has_no_labels_and_known_blockers(self) -> None:
+        preview = self._direct_hold()
+        self.assertEqual(preview.status, "SYNTHETIC_ONLY_HOLD")
+        self.assertEqual(preview.dial_labels, ())
+        self.assertTrue(preview.blockers)
+        self.assertTrue(all(line.startswith("2099-") for line in preview.blockers))
+
+    def test_direct_result_rejects_real_week_even_with_synthetic_marker(self) -> None:
+        for field in ("reference_week", "previous_week"):
+            with self.subTest(field=field):
+                with self.assertRaisesRegex(ValueError, "synthetic year-2099"):
+                    replace(self._direct_preview(), **{field: "2026-10-30"})
+
+    def test_direct_result_rejects_malformed_or_impossible_calendar_week(self) -> None:
+        for invalid in ("2099-02-30", "2099/06/12", "real provider date"):
+            with self.subTest(invalid=invalid):
+                with self.assertRaisesRegex(ValueError, "calendar date|YYYY-MM-DD"):
+                    replace(self._direct_preview(), reference_week=invalid)
+
+    def test_direct_result_rejects_non_friday_reference_period(self) -> None:
+        with self.assertRaisesRegex(ValueError, "synthetic year-2099"):
+            replace(self._direct_preview(), reference_week="2099-06-13")
+
+    def test_direct_result_rejects_wrong_previous_week_even_if_both_fridays(self) -> None:
+        with self.assertRaisesRegex(ValueError, "seven days"):
+            replace(self._direct_preview(), previous_week="2099-05-29")
+
+    def test_direct_complete_rejects_unreviewed_labels_and_injections(self) -> None:
+        original = self._direct_preview()
+        for injected in (
+            '=IMPORTDATA("https://example.invalid")',
+            "Strong dollar BUY",
+            "Secret=PRIVATE_VALUE",
+            "STRONG_DOLLAR_REGIME",
+        ):
+            with self.subTest(label=injected):
+                labels = list(original.dial_labels)
+                labels[0] = ("dollar_breadth", injected)
+                with self.assertRaisesRegex(ValueError, "unapproved synthetic dial"):
+                    replace(original, dial_labels=tuple(labels))
+
+    def test_direct_complete_rejects_malformed_dial_names_and_order(self) -> None:
+        p = self._direct_preview()
+        tests = [
+            tuple(reversed(p.dial_labels)),
+            tuple(p.dial_labels[:3]),
+            p.dial_labels + (("unreviewed", "UP"),),
+            (p.dial_labels[0],) * 4,
+            (("weekly_score", "UP"),) + p.dial_labels[1:],
+        ]
+        for labels in tests:
+            with self.subTest(labels=labels):
+                with self.assertRaisesRegex(ValueError, "four dial labels|unapproved"):
+                    replace(p, dial_labels=labels)
+
+    def test_direct_complete_rejects_freeform_list_labels(self) -> None:
+        with self.assertRaisesRegex(ValueError, "must be a tuple"):
+            replace(self._direct_preview(), dial_labels=list(self._direct_preview().dial_labels))
+
+    def test_direct_complete_rejects_any_blockers(self) -> None:
+        with self.assertRaisesRegex(ValueError, "COMPLETE must not contain blockers"):
+            replace(self._direct_preview(), blockers=(
+                "2099-06-12:INCOMPLETE_FOUR_SOURCE_SET",
+            ))
+
+    def test_direct_hold_rejects_display_labels(self) -> None:
+        held = self._direct_hold()
+        with self.assertRaisesRegex(ValueError, "HOLD must have blockers and no labels"):
+            replace(held, dial_labels=self._direct_preview().dial_labels)
+
+    def test_direct_hold_rejects_missing_blockers(self) -> None:
+        with self.assertRaisesRegex(ValueError, "HOLD must have blockers and no labels"):
+            replace(self._direct_hold(), blockers=())
+
+    def test_direct_hold_rejects_freeform_or_proprietary_error_text(self) -> None:
+        invalid = (
+            "2099-06-12:REAL_PRICE=12345",
+            "2099-06-12:fed_h10_nominal_broad:BUY_NOW",
+            "2099-06-12:BTC_USD_PRICE:NOT_FIRST_SEEN_BY_CUTOFF",
+            "2099-06-12:NOT_FIRST_SEEN_BY_CUTOFF\\nSECRET",
+            "https://provider.example.invalid/?token=secret",
+        )
+        for text in invalid:
+            with self.subTest(text=text):
+                with self.assertRaisesRegex(ValueError, "unrecognized synthetic blocker"):
+                    replace(self._direct_hold(), blockers=(text,))
+
+    def test_direct_hold_rejects_duplicate_or_unsorted_blockers(self) -> None:
+        p = self._direct_hold()
+        with self.assertRaisesRegex(ValueError, "unique and sorted"):
+            replace(p, blockers=p.blockers + p.blockers)
+        if len(p.blockers) > 1:
+            with self.assertRaisesRegex(ValueError, "unique and sorted"):
+                replace(p, blockers=tuple(reversed(p.blockers)))
+
+    def test_direct_hold_rejects_non_string_or_unbounded_blockers(self) -> None:
+        with self.assertRaisesRegex(ValueError, "blocker codes must be strings"):
+            replace(self._direct_hold(), blockers=(12,))
+        with self.assertRaisesRegex(ValueError, "bounded tuple"):
+            replace(
+                self._direct_hold(),
+                blockers=("2099-06-12:INCOMPLETE_FOUR_SOURCE_SET",) * 33,
+            )
+
+    def test_direct_cannot_coerce_integer_zero_into_rights_false(self) -> None:
+        for field in ("rights_cleared", "real_data_fetch_authorized",
+                      "publish_authorized", "production_authorized"):
+            with self.subTest(field=field):
+                with self.assertRaisesRegex(ValueError, "cannot grant"):
+                    replace(self._direct_preview(), **{field: 0})
+
     def test_no_results_can_claim_rights_or_production(self) -> None:
         kwargs = dict(status="SYNTHETIC_ONLY_COMPLETE", reference_week=str(WEEK),
                       previous_week=str(PREV), panel_id=PANEL_ID, dial_labels=(),
