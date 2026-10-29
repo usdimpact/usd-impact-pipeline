@@ -61,6 +61,19 @@ def validate_live_gate(environ: dict[str, str] | None = None) -> None:
     receipt, dispatch = load_json(RECEIPT), load_json(DISPATCH)
     if c.get("version") != 13 or approval.get("version") != 13:
         raise GlobalStop("wrong_contract_version")
+    if c.get("state") != "approved_one_off_active":
+        raise GlobalStop("contract_not_activated")
+    live = c.get("authorization_state", {})
+    if any(live.get(field) is not True for field in (
+        "current_live_BLS_GET", "receipt_created", "dispatch_marker_created",
+    )):
+        raise GlobalStop("execution_contract_not_live")
+    for field in (
+        "identifier_read", "economic_value_read", "score_or_reconstruction",
+        "research_ledger_change", "public_write", "production_change",
+    ):
+        if live.get(field) is not False:
+            raise GlobalStop("forbidden_scope_activated")
     if c.get("one_off_network", {}).get("target") != PDF_URL:
         raise GlobalStop("different_url_in_contract")
     if approval.get("approval", {}).get("one_off_live_structural_preflight_after_separate_protected_activation") is not True:
