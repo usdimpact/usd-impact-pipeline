@@ -243,6 +243,21 @@ Actual [2026-10-28 run #40706972876](https://github.com/usdimpact/usd-impact-pip
 
 **Residual HOLD boundaries:** Public Class C/E/F component-derived release files remain anonymously accessible on the root Pages and custom Production domains; historical Git objects and prior releases, Action logs, CDN caches, downstream backups and public copies require separate preservation/retention planning. The main Score rights gate still has `state=hold`, `decision_receipt=null`, `approved_by=null`. Legal/provider decisions, a public-safe output schema, private evidence rights/storage, archive/consumer compatibility and **separate** Production authorization remain required. Neither a successful CI check nor an owner's approval of workflow hardening is approval to commercialize, migrate or delete these artifacts.
 
+## Development private-evidence current-state cross-check (2026-10-29, read-only)
+
+The old 2026-10-28 [Development private-evidence execution packet](docs/score-private-evidence-development-execution-packet-2026-10-28.md) is **historically stale** where it says not yet provisioned. A new [draft documentation correction PR #293](https://github.com/usdimpact/usd-impact-pipeline/pull/293) preserves the original packet while adding a dated superseding checkpoint. This work **did not provision or modify Supabase**.
+
+**Provider readback, strictly Development:** Project `xakayexlzyrazuunqlxe` is ACTIVE_HEALTHY. It has one `score-private-evidence` Storage bucket (`public=false`, 1 MiB limit, JSON-only), one existing synthetic `2099-01-02` object at `rehearsal/score-v2/archive/2099-01-02/repro_bundle.json` (1,748 bytes by metadata), zero public-schema tables, and no Supabase security-advisor notices. The function `score-private-evidence-broker` is ACTIVE version 1. Its three deployed module source strings **exactly match** the GitHub-reviewed files; the `verify_jwt=false` provider setting is deliberately paired with the broker's own GitHub OIDC signature/claim verification.
+
+**Historical GitHub Actions receipts:**
+
+- [2026-10-28 synthetic write #40617195348](https://github.com/usdimpact/usd-impact-pipeline/actions/runs/40617195348): **success**, OIDC audience bound to fixed week + fixture hash; created object and cleaned runner temporaries.
+- [2026-10-28 repeat write #40617289043](https://github.com/usdimpact/usd-impact-pipeline/actions/runs/40617289043): **expected HTTP 409** from create-only archive; no overwrite; cleanup ran.
+- [2026-10-28 synthetic read #40617383435](https://github.com/usdimpact/usd-impact-pipeline/actions/runs/40617383435): **success**, week-bound OIDC, read and synthetic/hash checks.
+- [2026-10-28 private research adapter + locked reader #40620133144](https://github.com/usdimpact/usd-impact-pipeline/actions/runs/40620133144): **success**, aggregate-safe synthetic reader compatibility and temporary cleanup.
+
+**Governance:** `governance/score-private-research-migration-contract.json` records `development_synthetic_rehearsal_authorized=true`, but `real_provider_evidence_authorized=false`, `public_replacement_authorized=false` and `production_change_authorized=false`. Do not write current/real FRED or Yahoo evidence into the synthetic private store or rely on a synthetic pass as a source-rights decision. Preserve its one fixed fixture as audit evidence; **do not rerun the create-only write**. The outstanding work is source/retention approval, read-path migration of real evidence after approval, historical public-archive treatment, and a separate Production decision.
+
 ## Risk gates and next executable checks
 
 1. **No additional live FRED fetch for this audit.** Use repository metadata and synthetic fixtures; never include actual provider-derived numeric values in issues, logs or PR descriptions.
@@ -260,6 +275,8 @@ Actual [2026-10-28 run #40706972876](https://github.com/usdimpact/usd-impact-pip
 - [x] Mapped current source-level Friday, archive, Git publication, Pages allowlist and rehearsal flow; confirmed public endpoint reachability.
 - [x] Sampled pre-HOLD live jobs and retrievable job logs; checked artifact listings and sampled Pages preview endpoints.
 - [ ] Completed all historical job-log/backup/CDN/cache, historical preview and downstream persistence inventory.
+- [x] Independently verified existing Development synthetic private bucket, broker source parity, immutable write, read and locked-reader acceptance; no new provisioning required.
+- [ ] Approved use/retention of **real** provider-derived evidence in the private system and completed real-reader production migration.
 - [ ] Confirmed retained value classes and rights interpretation.
 - [x] Identified Treasury-origin XML candidate and public Board disclaimer with original Treasury provenance.
 - [ ] Confirmed direct Board/Treasury rights and exact-source parity feasibility.
