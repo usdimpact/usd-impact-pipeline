@@ -432,6 +432,183 @@ class IndependentMacroContextSyntheticTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "cannot grant"):
                     SyntheticContextPanel(**kwargs, **{field: True})
 
+    def test_direct_panel_construction_accepts_only_bounded_synthetic_labels(self) -> None:
+        # This is only a *format* check, not evaluator proof or a release.
+        panel = SyntheticContextPanel(
+            status="SYNTHETIC_ONLY_COMPLETE",
+            reference_week=WEEK.isoformat(),
+            previous_week=PREV.isoformat(),
+            panel_id=PANEL_ID,
+            dial_labels=(
+                ("dollar_breadth", "UP"),
+                ("crude_inventory", "DRAW"),
+                ("treasury_curve_level", "POSITIVE"),
+                ("treasury_curve_direction", "FLATTENING"),
+            ),
+            blockers=(),
+        )
+        self.assertEqual(panel.status, "SYNTHETIC_ONLY_COMPLETE")
+        self.assertEqual(tuple(name for name, _ in panel.dial_labels), DIALS)
+        self.assertFalse(panel.publish_authorized)
+        self.assertFalse(panel.real_data_fetch_authorized)
+        self.assertFalse(panel.rights_cleared)
+        self.assertFalse(panel.production_authorized)
+
+        hold = replace(
+            panel,
+            status="SYNTHETIC_ONLY_HOLD",
+            dial_labels=(),
+            blockers=(f"{WEEK}:INCOMPLETE_FOUR_SOURCE_SET",),
+        )
+        self.assertEqual(hold.dial_labels, ())
+        self.assertEqual(hold.status, "SYNTHETIC_ONLY_HOLD")
+
+    def test_direct_panel_construction_rejects_bad_or_historical_dates(self) -> None:
+        valid = dict(
+            status="SYNTHETIC_ONLY_COMPLETE",
+            reference_week=WEEK.isoformat(),
+            previous_week=PREV.isoformat(),
+            panel_id=PANEL_ID,
+            dial_labels=(
+                ("dollar_breadth", "UP"),
+                ("crude_inventory", "DRAW"),
+                ("treasury_curve_level", "POSITIVE"),
+                ("treasury_curve_direction", "FLATTENING"),
+            ),
+            blockers=(),
+        )
+        for field, invalid in (
+            ("reference_week", "2026-10-30"),
+            ("reference_week", "2099-W23-5"),
+            ("reference_week", "2099-06-13"),
+            ("reference_week", "not-a-date"),
+            ("reference_week", None),
+            ("previous_week", "2026-10-23"),
+            ("previous_week", "2099-05-29"),
+            ("previous_week", date(2099, 6, 5)),
+            ("previous_week", "2099-06-13"),
+        ):
+            with self.subTest(field=field, invalid=invalid):
+                with self.assertRaisesRegex(ValueError, "synthetic preview"):
+                    SyntheticContextPanel(**{**valid, field: invalid})
+        # Friday 2099-01-02 is an invented Friday but its predecessor is 2098.
+        with self.assertRaisesRegex(ValueError, "2099"):
+            SyntheticContextPanel(
+                **{
+                    **valid,
+                    "reference_week": "2099-01-02",
+                    "previous_week": "2098-12-26",
+                }
+            )
+
+    def test_direct_panel_construction_rejects_arbitrary_labels(self) -> None:
+        labels = (
+            ("dollar_breadth", "UP"),
+            ("crude_inventory", "DRAW"),
+            ("treasury_curve_level", "POSITIVE"),
+            ("treasury_curve_direction", "FLATTENING"),
+        )
+        panel = SyntheticContextPanel(
+            status="SYNTHETIC_ONLY_COMPLETE",
+            reference_week=WEEK.isoformat(),
+            previous_week=PREV.isoformat(),
+            panel_id=PANEL_ID,
+            dial_labels=labels,
+            blockers=(),
+        )
+        altered = (
+            labels[:-1],
+            labels + (("arbitrary_score", "BUY"),),
+            (("score", "UP"),) + labels[1:],
+            (("dollar_breadth", "BUY"),) + labels[1:],
+            (("dollar_breadth", "UP"), ("dollar_breadth", "DOWN")) + labels[2:],
+            (labels[1], labels[0], labels[2], labels[3]),
+            (["dollar_breadth", "UP"],) + labels[1:],
+            list(labels),
+            "UP",
+        )
+        for bad in altered:
+            with self.subTest(bad=repr(bad)[:100]):
+                with self.assertRaisesRegex(ValueError, "synthetic preview|complete synthetic"):
+                    replace(panel, dial_labels=bad)
+
+    def test_direct_panel_construction_rejects_status_label_mismatch(self) -> None:
+        labels = (
+            ("dollar_breadth", "UP"),
+            ("crude_inventory", "DRAW"),
+            ("treasury_curve_level", "POSITIVE"),
+            ("treasury_curve_direction", "FLATTENING"),
+        )
+        valid = dict(
+            status="SYNTHETIC_ONLY_COMPLETE",
+            reference_week=WEEK.isoformat(),
+            previous_week=PREV.isoformat(),
+            panel_id=PANEL_ID,
+            dial_labels=labels,
+            blockers=(),
+        )
+        bad = (
+            {"status": "SYNTHETIC_ONLY_COMPLETE", "dial_labels": ()},
+            {"status": "SYNTHETIC_ONLY_COMPLETE", "blockers": (f"{WEEK}:INCOMPLETE_FOUR_SOURCE_SET",)},
+            {"status": "SYNTHETIC_ONLY_HOLD", "dial_labels": labels, "blockers": (f"{WEEK}:INCOMPLETE_FOUR_SOURCE_SET",)},
+            {"status": "SYNTHETIC_ONLY_HOLD", "dial_labels": (), "blockers": ()},
+            {"status": None},
+            {"status": []},
+        )
+        for changes in bad:
+            with self.subTest(changes=repr(changes)[:120]):
+                with self.assertRaisesRegex(ValueError, "synthetic|complete"):
+                    SyntheticContextPanel(**(valid | changes))
+
+    def test_direct_panel_hold_blocks_fake_or_unscoped_reasons(self) -> None:
+        valid = dict(
+            status="SYNTHETIC_ONLY_HOLD",
+            reference_week=WEEK.isoformat(),
+            previous_week=PREV.isoformat(),
+            panel_id=PANEL_ID,
+            dial_labels=(),
+            blockers=(f"{WEEK}:INCOMPLETE_FOUR_SOURCE_SET",),
+        )
+        bad_reasons = (
+            ("PUBLISH_APPROVED",),
+            (f"{WEEK}:BUY_NOW",),
+            (f"{WEEK}:ICE_DXY:NOT_FIRST_SEEN_BY_CUTOFF",),
+            (f"{WEEK}:fed_h10_nominal_broad:BUY",),
+            ("2026-10-30:INCOMPLETE_FOUR_SOURCE_SET",),
+            ("2099-05-29:INCOMPLETE_FOUR_SOURCE_SET",),
+            (f"{WEEK}:INCOMPLETE_FOUR_SOURCE_SET",) * 2,
+            (f"{WEEK}:INCOMPLETE_FOUR_SOURCE_SET", []),
+            [f"{WEEK}:INCOMPLETE_FOUR_SOURCE_SET"],
+        )
+        for blockers in bad_reasons:
+            with self.subTest(blockers=repr(blockers)[:110]):
+                with self.assertRaisesRegex(ValueError, "synthetic"):
+                    SyntheticContextPanel(**{**valid, "blockers": blockers})
+
+    def test_direct_panel_falsy_authority_values_cannot_hide_grants(self) -> None:
+        labels = (
+            ("dollar_breadth", "UP"),
+            ("crude_inventory", "DRAW"),
+            ("treasury_curve_level", "POSITIVE"),
+            ("treasury_curve_direction", "FLATTENING"),
+        )
+        valid = dict(
+            status="SYNTHETIC_ONLY_COMPLETE",
+            reference_week=WEEK.isoformat(),
+            previous_week=PREV.isoformat(),
+            panel_id=PANEL_ID,
+            dial_labels=labels,
+            blockers=(),
+        )
+        for field in (
+            "rights_cleared", "real_data_fetch_authorized",
+            "publish_authorized", "production_authorized",
+        ):
+            for invalid in (None, 0, "", [], 1, True):
+                with self.subTest(field=field, value=repr(invalid)):
+                    with self.assertRaisesRegex(ValueError, "cannot grant"):
+                        SyntheticContextPanel(**{**valid, field: invalid})
+
     def test_four_input_ids_are_exact_existing_earlier_phase_B_ids(self) -> None:
         self.assertEqual(set(SOURCE_UNITS), set(REQUIRED_IDS))
         self.assertEqual(set(SOURCE_BASIS_IDS), set(REQUIRED_IDS))
