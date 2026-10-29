@@ -1,6 +1,6 @@
 {
-  "version": 5,
-  "state": "ambiguity_diagnostics_consumed_fail_closed",
+  "version": 6,
+  "state": "ambiguity_diagnostics_v4_recheck_authorized_pending_dispatch",
   "methodology_version": "2.1F-design-candidate",
   "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/258",
   "predecessor_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/252",
@@ -8,7 +8,7 @@
   "design_path": "governance/score-v2-1f-bls-wpu0561-ambiguity-diagnostics-preflight-design.json",
   "authorization_template_path": "governance/score-v2-1f-bls-wpu0561-ambiguity-diagnostics-preflight-authorization.template.json",
   "active_authorization_receipt_path": "governance/score-v2-1f-bls-wpu0561-ambiguity-diagnostics-preflight-authorization.json",
-  "active_authorization_receipt_expected_now": false,
+  "active_authorization_receipt_expected_now": true,
   "dispatch_marker_path": "governance/score-v2-1f-bls-wpu0561-ambiguity-diagnostics-preflight-dispatch.json",
   "dispatch_marker_expected_now": false,
   "request_budget": 2,
@@ -19,9 +19,9 @@
     "/ppi/detailed-report/ppi-detailed-report-april-2026.xlsx"
   ],
   "current_state": {
-    "response_body_ephemeral_retrieval_authorized": false,
-    "ambiguity_diagnostics_preflight_authorized": false,
-    "numeric_identifier_field_read_authorized": false,
+    "response_body_ephemeral_retrieval_authorized": true,
+    "ambiguity_diagnostics_preflight_authorized": true,
+    "numeric_identifier_field_read_authorized": true,
     "economic_value_read_authorized": false,
     "full_historical_reconstruction_authorized": false,
     "candidate_score_computation_authorized": false,
@@ -30,15 +30,17 @@
     "production_authorized": false
   },
   "stop_conditions": [
-    "the latest Issue #258 one-off authorization has been consumed",
-    "any future live BLS request is attempted without a new explicit owner authorization",
+    "dispatch marker is absent",
+    "any live BLS request would occur before a separately reviewed dispatch merge reaches protected main",
     "any economic index-level, percent-change, or unrelated numeric value would be read",
     "response body would be persisted",
+    "request leaves www.bls.gov",
+    "request path differs from the two fixed resources",
     "full historical reconstruction would begin",
     "candidate Score, z-score or contribution would be computed",
     "public artifact, research ledger or Production would change"
   ],
-  "next_allowed_action": "design_only_analyze_no_local_header_anchor_then_new_owner_authorization_required_for_any_live_request",
+  "next_allowed_action": "separate_dispatch_review_after_activation_merge",
   "production_authorized": false,
   "execution_environment_policy": {
     "preferred_environment": "github_actions_protected_main_lifecycle",
@@ -47,11 +49,7 @@
     "dns_failure_on_one_resource_does_not_cancel_other_resource_single_attempt": true,
     "access_control_challenge_redirect_or_other_non_200_global_stop": true
   },
-  "owner_approval_comment_id": 6483711604,
-  "owner_approval_timestamp": "2026-10-28T23:46:03Z",
-  "authorization_activation_merge_commit": "f67d925e5bc35575f822ae6e22566b0155fbf00f",
-  "consumption_record_path": "governance/score-v2-1f-bls-wpu0561-ambiguity-diagnostics-preflight-consumption-2026-10-29.json",
-  "completed_preflight_run": "https://github.com/usdimpact/usd-impact-pipeline/actions/runs/40790532286",
-  "completed_preflight_workflow_conclusion": "success",
-  "completed_preflight_result_status": "completed"
+  "owner_approval_comment_id": 6483993388,
+  "owner_approval_timestamp": "2026-10-29T00:03:08Z",
+  "prior_consumption_record_path": "governance/score-v2-1f-bls-wpu0561-ambiguity-diagnostics-preflight-consumption-2026-10-29.json"
 }
