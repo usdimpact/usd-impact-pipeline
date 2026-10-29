@@ -172,7 +172,7 @@ def configured_sandbox_command(environ: dict[str, str] | None = None) -> list[st
     if not root.is_dir() or not wheel.is_dir():
         raise GlobalStop("pinned_wheel_or_checkout_unavailable")
     return [
-        "docker", "run", "--rm",
+        "docker", "run", "-i", "--rm",
         "--network", "none",
         "--read-only",
         "--cap-drop", "ALL",
