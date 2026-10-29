@@ -142,6 +142,30 @@ def load_policy(path: Path) -> dict[str, Any]:
     return evaluate_policy(raw)
 
 
+# A direct Python invocation need not originate from GitHub Actions, and
+# may run from a different current working directory. Never read a relative
+# caller-supplied policy for provider access.
+CANONICAL_REPOSITORY_POLICY = Path(__file__).resolve().parent.parent / DEFAULT_POLICY
+
+
+def require_score_provider_rights() -> None:
+    """Reject provider-consuming entrypoints unless the reviewed rights gate clears.
+
+    This intentionally uses the same canonical evaluation as the existing
+    Actions workflow. The current v1 gate cannot authorize any provider
+    retrieval, even with a plausible GitHub receipt or an 'allow' state.
+    A future v2 clearance requires its own reviewed, separate implementation.
+    No network requests or output files are created by this check.
+    """
+    decision = load_policy(CANONICAL_REPOSITORY_POLICY)
+    if decision.get("hold") is not False:
+        raise PermissionError(
+            "USD Impact Score provider operations are on rights HOLD. "
+            "No provider retrieval or retained real-data processing is permitted. "
+            f"Review {ISSUE_URL}."
+        )
+
+
 def write_github_output(result: dict[str, Any], path: Path) -> None:
     lines = [
         f"hold={'true' if result['hold'] else 'false'}",
