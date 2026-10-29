@@ -1,6 +1,6 @@
 {
-  "version": 18,
-  "state": "ambiguity_diagnostics_v8_container_header_band_authorized_pending_dispatch",
+  "version": 19,
+  "state": "ambiguity_diagnostics_v8_container_header_band_authorized",
   "methodology_version": "2.1F-design-candidate",
   "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/258",
   "predecessor_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/252",
@@ -10,7 +10,7 @@
   "active_authorization_receipt_path": "governance/score-v2-1f-bls-wpu0561-ambiguity-diagnostics-preflight-authorization.json",
   "active_authorization_receipt_expected_now": true,
   "dispatch_marker_path": "governance/score-v2-1f-bls-wpu0561-ambiguity-diagnostics-preflight-dispatch.json",
-  "dispatch_marker_expected_now": false,
+  "dispatch_marker_expected_now": true,
   "request_budget": 2,
   "max_economic_observations_total": 0,
   "max_economic_observations_per_resource": 0,
@@ -45,7 +45,7 @@
     "candidate Score, z-score or contribution would be computed",
     "public artifact, research ledger or Production would change"
   ],
-  "next_allowed_action": "separate_dispatch_review_after_v8_activation_merge",
+  "next_allowed_action": "execute_one_off_v8_container_header_band_inventory_then_consume_authorization_fail_closed",
   "production_authorized": false,
   "execution_environment_policy": {
     "preferred_environment": "github_actions_protected_main_lifecycle",
@@ -57,7 +57,7 @@
   "owner_approval_comment_id": 6500606721,
   "owner_approval_timestamp": "2026-10-29T15:15:37Z",
   "prior_consumption_record_path": "governance/score-v2-1f-bls-wpu0561-ambiguity-diagnostics-preflight-consumption-2026-10-29.json",
-  "authorization_activation_merge_commit": "771bf87d381fda9f72adad5f5456331916195533",
+  "authorization_activation_merge_commit": "312a90e51ccbd91deff543af271bafc6d02247cb",
   "v4_recheck_consumption_record_path": "governance/score-v2-1f-bls-wpu0561-ambiguity-diagnostics-v4-recheck-consumption-2026-10-29.json",
   "completed_preflight_run": "https://github.com/usdimpact/usd-impact-pipeline/actions/runs/40897338145",
   "completed_preflight_workflow_conclusion": "success",
