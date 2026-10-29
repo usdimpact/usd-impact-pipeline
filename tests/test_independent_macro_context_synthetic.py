@@ -14,7 +14,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from scripts.independent_macro_context_synthetic import (
-    DIALS, PANEL_ID, SOURCE_UNITS,
+    DIALS, PANEL_ID, SOURCE_BASIS_IDS, SOURCE_UNITS,
     SyntheticContextPanel, SyntheticObservation, evaluate_synthetic_context,
 )
 from scripts.score_public_source_phase_b_synthetic import (
@@ -70,8 +70,12 @@ def fixture() -> tuple[list[SyntheticReceipt], list[SyntheticObservation]]:
     }
     values = prev | {}
     observations = [
-        SyntheticObservation(r.source_id, r.reference_week, r.snapshot_id,
-                             (prev if r.reference_week == PREV else curr)[r.source_id])
+        SyntheticObservation(
+            r.source_id, r.reference_week, r.snapshot_id,
+            (prev if r.reference_week == PREV else curr)[r.source_id],
+            unit=SOURCE_UNITS[r.source_id],
+            basis_id=SOURCE_BASIS_IDS[r.source_id],
+        )
         for r in receipts
     ]
     return receipts, observations
@@ -191,6 +195,8 @@ class IndependentMacroContextSyntheticTests(unittest.TestCase):
         o.append(SyntheticObservation(
             "fed_h10_nominal_broad", WEEK,
             "SYNTHETIC:H10-2099-06-12-REVISION", 99.0,
+            unit=SOURCE_UNITS["fed_h10_nominal_broad"],
+            basis_id=SOURCE_BASIS_IDS["fed_h10_nominal_broad"],
         ))
         original_panel = evaluate_synthetic_context(r, o, WEEK, stamp(18, 11, 59))
         revised_panel = evaluate_synthetic_context(r, o, WEEK, stamp(18, 12, 2))
@@ -303,6 +309,88 @@ class IndependentMacroContextSyntheticTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "unrecognized candidate source"):
             evaluate_synthetic_context(r, o, WEEK, stamp(17, 11))
 
+    def test_source_contract_covers_exact_four_candidates(self) -> None:
+        self.assertEqual(set(SOURCE_UNITS), set(REQUIRED_IDS))
+        self.assertEqual(set(SOURCE_BASIS_IDS), set(REQUIRED_IDS))
+        for identifier in REQUIRED_IDS:
+            self.assertTrue(SOURCE_BASIS_IDS[identifier].startswith("CANDIDATE:"))
+            self.assertTrue(SOURCE_UNITS[identifier])
+
+    def test_rejects_mismatched_eia_stock_units(self) -> None:
+        r, o = fixture()
+        idx = next(i for i, x in enumerate(o) if (
+            x.reference_week == WEEK and
+            x.source_id == "eia_crude_stocks_weekly"
+        ))
+        o[idx] = replace(o[idx], unit="million_barrels", value=498.0)
+        with self.assertRaisesRegex(ValueError, "unit does not match"):
+            evaluate_synthetic_context(r, o, WEEK, stamp(17, 11))
+
+    def test_rejects_mismatched_treasury_curve_unit(self) -> None:
+        r, o = fixture()
+        idx = next(i for i, x in enumerate(o) if (
+            x.reference_week == PREV and
+            x.source_id == "treasury_direct_2yr_par"
+        ))
+        o[idx] = replace(o[idx], unit="basis_points", value=400.0)
+        with self.assertRaisesRegex(ValueError, "unit does not match"):
+            evaluate_synthetic_context(r, o, WEEK, stamp(17, 11))
+
+    def test_rejects_old_goods_only_h10_basis(self) -> None:
+        r, o = fixture()
+        o[0] = replace(
+            o[0], basis_id="CANDIDATE:H10_NOMINAL_BROAD_OLD_GOODS_ONLY_PRE_2019"
+        )
+        with self.assertRaisesRegex(ValueError, "measurement basis"):
+            evaluate_synthetic_context(r, o, WEEK, stamp(17, 11))
+
+    def test_rejects_eia_lease_stock_definition_substitution(self) -> None:
+        r, o = fixture()
+        idx = next(i for i, x in enumerate(o) if (
+            x.reference_week == WEEK and
+            x.source_id == "eia_crude_stocks_weekly"
+        ))
+        o[idx] = replace(
+            o[idx], basis_id="CANDIDATE:EIA_LEGACY_LEASE_INCLUSIVE_STOCKS"
+        )
+        with self.assertRaisesRegex(ValueError, "measurement basis"):
+            evaluate_synthetic_context(r, o, WEEK, stamp(17, 11))
+
+    def test_rejects_real_yields_substituted_for_nominal_treasury(self) -> None:
+        r, o = fixture()
+        idx = next(i for i, x in enumerate(o) if (
+            x.reference_week == WEEK and
+            x.source_id == "treasury_direct_10yr_par"
+        ))
+        o[idx] = replace(
+            o[idx], basis_id="CANDIDATE:TREASURY_REAL_TIPS_10YR"
+        )
+        with self.assertRaisesRegex(ValueError, "measurement basis"):
+            evaluate_synthetic_context(r, o, WEEK, stamp(17, 11))
+
+    def test_rejects_missing_or_nonstring_source_metadata(self) -> None:
+        for field in ("unit", "basis_id"):
+            with self.subTest(field=field):
+                r, o = fixture()
+                o[0] = replace(o[0], **{field: None})
+                with self.assertRaisesRegex(ValueError, "unit|measurement basis"):
+                    evaluate_synthetic_context(r, o, WEEK, stamp(17, 11))
+
+    def test_valid_labels_still_do_not_disclose_observation_metadata(self) -> None:
+        r, o = fixture()
+        output = asdict(evaluate_synthetic_context(r, o, WEEK, stamp(17, 11)))
+        self.assertEqual(output["status"], "SYNTHETIC_ONLY_COMPLETE")
+        self.assertEqual(set(output), {
+            "status", "reference_week", "previous_week", "panel_id",
+            "dial_labels", "blockers", "fixture_marker", "rights_cleared",
+            "real_data_fetch_authorized", "publish_authorized",
+            "production_authorized",
+        })
+        rendered = json.dumps(output)
+        self.assertNotIn("thousand_barrels", rendered)
+        self.assertNotIn("CANDIDATE:EIA_", rendered)
+        self.assertNotIn("yield_percent", rendered)
+
     def test_no_results_can_claim_rights_or_production(self) -> None:
         kwargs = dict(status="SYNTHETIC_ONLY_COMPLETE", reference_week=str(WEEK),
                       previous_week=str(PREV), panel_id=PANEL_ID, dial_labels=(),
@@ -315,6 +403,7 @@ class IndependentMacroContextSyntheticTests(unittest.TestCase):
 
     def test_four_input_ids_are_exact_existing_earlier_phase_B_ids(self) -> None:
         self.assertEqual(set(SOURCE_UNITS), set(REQUIRED_IDS))
+        self.assertEqual(set(SOURCE_BASIS_IDS), set(REQUIRED_IDS))
         self.assertEqual(set(DIALS), {
             "dollar_breadth", "crude_inventory",
             "treasury_curve_level", "treasury_curve_direction",
