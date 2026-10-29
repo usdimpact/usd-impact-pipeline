@@ -206,7 +206,7 @@ Actual [2026-10-28 run #40706972876](https://github.com/usdimpact/usd-impact-pip
 - Complete historic GitHub Actions run logs, artifacts, cache inventories, runner-local retention and cleanup proofs; Cloudflare cache coverage/TTL and alternate domain variants; Vercel/Supabase downstream copies; object storage/backups; old Git history/reflogs and third-party mirrors. The workflow commands and selected live Pages endpoints were verified above.
 - Whether hashes, normalization moments, mixed-source aggregates, and independently computed non-reversible aggregate history qualify as FRED Content or prohibited derived works. **Do not assume either permission or prohibition; obtain written interpretation.**
 - Whether the same H.15 observations can be sourced directly from the Federal Reserve Board, whether its license/terms permit the required retention/commercial use, and whether source and calendar parity can be demonstrated without changing Score methodology.
-- Current workflow configuration is scheduled and rights-gated, but actual upcoming trigger outcomes and all external runners cannot be guaranteed merely from source inspection. The non-publishing live reproduction rehearsal gap is addressed **in draft only** by PR #285.
+- Current workflow configuration is scheduled and rights-gated, but actual upcoming trigger outcomes and all external runners cannot be guaranteed merely from source inspection. The non-publishing live reproduction rehearsal gap is now closed on protected `main` by [merged PR #285](https://github.com/usdimpact/usd-impact-pipeline/pull/285). Its live steps require `hold == 'false'`. Additional rights-gated workflow hardening was merged via [PR #291](https://github.com/usdimpact/usd-impact-pipeline/pull/291). This does not prove every manual/external entry point is gated.
 
 
 ## Direct Federal Reserve Board H.15 candidate (public-source desk review)
@@ -220,6 +220,28 @@ Actual [2026-10-28 run #40706972876](https://github.com/usdimpact/usd-impact-pip
 - The [Treasury XML developer change notice](https://home.treasury.gov/developer-notice-xml-changes) notes that this is an API feed rather than a browser-rendered page and details feed pagination and URL changes made in 2022. Treat endpoint version/change monitoring, schema and year coverage as specific acceptance tests.
 - **No live Treasury/Board/FRED provider-data retrieval or parity computation has been performed in this audit.** Before proposing any replacement, verify exact data-series equivalence (value, as-of calendar, observation/availability date, vintages/revisions, gaps, units), copyright/service terms including commercial archival and redistribution rights, attribution, rate limits and continuity. Keep unknowns as HOLD.
 - Future synthetic tests should validate daily date alignment, missing days, holiday handling, release timestamps, unit conventions, revision/vintage expectations, and strict fail-closed response parsing. **No live retrieval or activation in this PR.**
+
+## Post-merge safeguard and licensing reconciliation (2026-10-29)
+
+**Review-only dated audit addendum.** This section updates the historical "draft" descriptions above without deleting the original investigation sequence. Rights and private-evidence decisions still require their own approvals.
+
+| Change / evidence | Verified result | Important limit |
+|---|---|---|
+| [PR #288](https://github.com/usdimpact/usd-impact-pipeline/pull/288) | Merged at `662e8dfd80d1aae3be6365562f145a6adaef939d`; [Pages monitor push run 40921274786](https://github.com/usdimpact/usd-impact-pipeline/actions/runs/40921274786) passed | Checks operational 403 premium denial, 410 retired redemption, 200 HEAD methodology on two Pages root domains; does not remove provider-derived JSON |
+| [PR #285](https://github.com/usdimpact/usd-impact-pipeline/pull/285) | Merged at `9cef78c307057ca6872a5705f1ca8f646a88dd96`; only explicit `hold == 'false'` permits live reproduction | Rehearsal under current HOLD records no-op; no provider download or temporary reproduction evidence |
+| [PR #291](https://github.com/usdimpact/usd-impact-pipeline/pull/291) | Merged at `ca0879ad994ed93c3d0d5b9ff34aafd4d4c38801` after fresh protected-base validation | Tightens seven additional existing workflows; do not generalize to unrelated manual/third-party entrypoints |
+| [Post-merge Weekly Score quality](https://github.com/usdimpact/usd-impact-pipeline/actions/runs/40925618640) | Completed success on PR #291 merge commit | Unit and synthetic QA, not a rights decision |
+| [Post-merge Python security](https://github.com/usdimpact/usd-impact-pipeline/actions/runs/40925618499) | Completed success on PR #291 merge commit | CodeQL/dependency workflows, not a market-data license |
+| [Post-merge research validation](https://github.com/usdimpact/usd-impact-pipeline/actions/runs/40925618462) | Completed success; rights HOLD step ran and provider-research generation, validation, publication PR steps skipped | No live data processed |
+| Cloudflare Pages project readback | Canonical successful Production deployment remained `c5e8e9a9-3a7e-418e-99bd-109128cf973d`, source SHA `7770bd0cc64438b4cb03353ec8f486d84de62948`; new skip-tagged deployment records idle | GitHub `main` changed for CI safeguards but no verified new Pages Production release |
+| [Draft PR #287](https://github.com/usdimpact/usd-impact-pipeline/pull/287) | Synthetic-only direct Treasury XML candidate parser and tests remain draft | No real-source comparison, download, license conclusion, or Score source switch |
+| [Draft PR #284](https://github.com/usdimpact/usd-impact-pipeline/pull/284) | This audit remains an unmerged reference document | No production, data-deletion, publication or provider-side mutation |
+
+**Read-only source-rights correspondence reconciliation:** A 2026-10-29 FRED staff reply permits the specifically described commercial use of series tagged public domain **subject to FRED legal terms, citation to FRED and the originating source, and disposal after use**, while confirming **no storage or retention permission**. This is not a blanket authorization to retain, archive, publish detailed derived histories or use copyrighted series. The existing 2026-10-28 S&P DJI (case 01036004) and Cboe replies route toward sales/permissions rather than grant usage rights; a fresh relevant-mail search located no later signed clearance for S&P, Cboe, CME, Yahoo or ICE. Do not reproduce private staff correspondence verbatim or identifying personal details in repository records.
+
+**Official public-source verification:** [FRED current terms](https://fred.stlouisfed.org/legal/terms/) distinguish General Services prohibition (p) for storage/caching/archive from (q) for derivative works, and API restriction (l) separately addresses storage. [U.S. Treasury XML documentation](https://home.treasury.gov/treasury-daily-interest-rate-xml-feed) describes an official yield-curve feed with 1990+ coverage, but no authorized real-data/rights/parity review has been completed. Do not substitute Treasury feeds silently for the current frozen Score methodology.
+
+**Residual HOLD boundaries:** Public Class C/E/F component-derived release files remain anonymously accessible on the root Pages and custom Production domains; historical Git objects and prior releases, Action logs, CDN caches, downstream backups and public copies require separate preservation/retention planning. The main Score rights gate still has `state=hold`, `decision_receipt=null`, `approved_by=null`. Legal/provider decisions, a public-safe output schema, private evidence rights/storage, archive/consumer compatibility and **separate** Production authorization remain required. Neither a successful CI check nor an owner's approval of workflow hardening is approval to commercialize, migrate or delete these artifacts.
 
 ## Risk gates and next executable checks
 
@@ -241,8 +263,11 @@ Actual [2026-10-28 run #40706972876](https://github.com/usdimpact/usd-impact-pip
 - [ ] Confirmed retained value classes and rights interpretation.
 - [x] Identified Treasury-origin XML candidate and public Board disclaimer with original Treasury provenance.
 - [ ] Confirmed direct Board/Treasury rights and exact-source parity feasibility.
-- [x] Draft PR #285 adds a workflow-policy regression test and demonstrates a safe no-fetch Actions rehearsal.
-- [ ] Independent review and merge of PR #285; comprehensive source-rights gate / synthetic fixture tests.
+- [x] Merged PR #285 after protected branch update and exact-head checks; confirmed reproduction rehearsal live provider steps are skipped under rights HOLD.
+- [x] Merged PR #288; verified first post-merge daily Cloudflare Pages security monitor passed against current 403/410/200 public-only contract.
+- [x] Merged PR #291 after protected branch update and exact-head checks; all eight inventoried rights-gated Score workflows require explicit `hold == 'false'` to process.
+- [x] Post-merge PR #291 CI: Weekly Score quality, Python security and research validation all succeeded; research provider generation, validation and publication were skipped under HOLD.
+- [ ] Completed executable/manual/external entry-point inventory beyond these eight workflows and demonstrated no unauthorized provider retrieval paths.
 - [ ] Obtained explicit legal/provider and release approvals.
 
 This is a **review artifact only**. Issue #155 HOLD remains active. No existing data, workflows, public artifacts, method, credentials, entitlements, or production config are changed by this document.
