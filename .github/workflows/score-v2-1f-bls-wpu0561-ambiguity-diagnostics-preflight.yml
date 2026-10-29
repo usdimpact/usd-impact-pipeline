@@ -1,19 +1,113 @@
-name: Score v2.1F BLS WPU0561 candidate-local header-gap inventory v7 (consumed)
+name: Score v2.1F BLS WPU0561 container header-band inventory v8
 
 on:
-  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'governance/score-v2-1f-bls-wpu0561-ambiguity-diagnostics-preflight-dispatch.json'
 
 permissions:
   contents: read
+  issues: write
+
+concurrency:
+  group: score-v2-1f-bls-wpu0561-container-header-band-v8
+  cancel-in-progress: false
 
 jobs:
-  consumed:
-    if: ${{ false }}
+  container-header-band-inventory:
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
+
     steps:
-      - name: Consumed authorization guard
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Run owner-authorized v8 container header-band inventory
+        id: inventory
+        env:
+          PYTHONUNBUFFERED: "1"
         run: |
-          echo "The Issue #258 design-v7 header-gap authorization has been consumed."
-          echo "Run 40897338145 completed 2/2 fixed attempts with zero identifier/economic values."
-          echo "No recognized header-role row was found within 32 preceding rows for either selected candidate."
-          echo "A new explicit owner authorization is required for any future live BLS request."
+          set +e
+          python -m scripts.run_score_v2_1f_bls_wpu0561_ambiguity_diagnostics_preflight \
+            > "$RUNNER_TEMP/container-header-band.json"
+          code=$?
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Record sanitized container-header-band result
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - "$RUNNER_TEMP/container-header-band.json" > "$RUNNER_TEMP/comment.md" <<'PY'
+          import json
+          import os
+          import sys
+          from pathlib import Path
+
+          result_path = Path(sys.argv[1])
+          run_url = (
+              f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/actions/runs/"
+              f"{os.environ['GITHUB_RUN_ID']}"
+          )
+          try:
+              report = json.loads(result_path.read_text(encoding="utf-8"))
+          except Exception:
+              report = {
+                  "status": "fail_closed",
+                  "global_stop_reason": "runner_result_unavailable",
+                  "identifier_values_retained": False,
+                  "economic_values_retained": False,
+              }
+
+          lines = []
+          def add(value=""):
+              lines.append(str(value))
+
+          add(f"### v2.1F WPU0561 container header-band inventory v8 — {str(report.get('status', 'unknown')).upper()}")
+          add()
+          add("<!-- V2_1F_WPU0561_CONTAINER_HEADER_BAND_V8_COMPLETED -->")
+          add(f"- Run: {run_url}")
+          add(f"- Request attempts: {report.get('request_attempt_count', 'stopped')}/2")
+          add(f"- Identifier values retained: {str(bool(report.get('identifier_values_retained', False))).lower()}")
+          add(f"- Economic values retained: {str(bool(report.get('economic_values_retained', False))).lower()}")
+          if report.get("global_stop_reason"):
+              add(f"- Global stop reason: {report['global_stop_reason']}")
+          if report.get("semantic_stop_reason"):
+              add(f"- Semantic stop reason: {report['semantic_stop_reason']}")
+
+          for item in report.get("transport", []):
+              add(f"- Transport {item.get('resource_path')}: {item.get('transport_status')} / {item.get('semantic_status')}")
+
+          for selected in report.get("selected_containers", []):
+              add()
+              add(f"#### {selected.get('resource_path')} — {selected.get('container')}")
+              add(f"- Band rows: {selected.get('band_start_row')}-{selected.get('band_end_row')}")
+              add(f"- First/last nonempty rows: {selected.get('first_nonempty_row')} / {selected.get('last_nonempty_row')}")
+              add(f"- Blank rows: {selected.get('blank_rows', [])}")
+              add(f"- Recognized header-role rows: {selected.get('recognized_header_role_rows', [])}")
+              add(f"- Truncated: {str(bool(selected.get('truncated'))).lower()}")
+              for cell in selected.get("cells", []):
+                  safe_text = str(cell.get("text", "")).replace("`", "'")
+                  role = cell.get("role")
+                  add(
+                      f"  - r{cell.get('row')} c{cell.get('column')}: "
+                      f"{safe_text} | role={role if role is not None else 'null'}"
+                  )
+
+          add()
+          add("Safeguards: zero identifier/economic values retained; no alternate sources, reconstruction, scoring, public/research-ledger mutation, or Production change.")
+          add("This one-off v8 authorization is consumed by this run regardless of result.")
+
+          body = "\n".join(lines)
+          max_chars = 60000
+          if len(body) > max_chars:
+              body = body[:max_chars] + "\n\n[Sanitized comment clipped at GitHub-safe output limit.]"
+          print(body)
+          PY
+          gh issue comment 258 --repo "$GITHUB_REPOSITORY" --body-file "$RUNNER_TEMP/comment.md"
+
+      - name: Preserve fail-closed workflow conclusion
+        if: steps.inventory.outputs.exit_code != '0'
+        run: exit 1
