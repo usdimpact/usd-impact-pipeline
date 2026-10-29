@@ -124,3 +124,29 @@ A new **inert design** lives at governance/score-v2-1f-bls-wpu0561-pdf-structura
 - Revalidate recovery guard, synthetic PDF refusal tests, CodeQL, dependencies and validate-release on exact corrective-PR head.
 
 **Execution gate still closed:** no numeric identifier/economic-value reads, PDF GET, Score v2.1F, research ledger or public writes. The recovery branch/manifest protect the Git state but are not independent offsite snapshots.
+
+## 8. v12 parser fixture isolation and recovery (approved design only)
+
+**Status: design and synthetic-only CI approved; NO live BLS PDF access or parser authority.**
+
+The v12 contract in governance/score-v2-1f-bls-wpu0561-pdf-parser-security-v12-design.json fixes a single official April 2026 archive-linked BLS URL. It selects pypdf **6.21.4** as the **synthetic-fixture-only candidate**, pinned in governance/score-v2-1f-wpu0561-pdf-v12-parser.lock to the published wheel SHA-256. The Score production requirements and runtime are unchanged.
+
+The PR-only job named isolated-pdf-synthetic-only:
+
+- Downloads only the exact hash-pinned wheel on the unprivileged CI host without dependencies; this PyPI package install is not a BLS data request.
+- Runs generated-in-memory PDF fixtures in an isolated pinned Python container with **network none**, read-only filesystem, all Linux capabilities dropped, non-root UID, a 256-MiB memory limit, CPU/PID limits and no secrets/credential mounts.
+- Mounts only the source checkout and pinned parser package read-only. It does not accept PDF URLs, file paths or arbitrary external bytes.
+- Tests exact synthetic table-title/role matching and negative cases. It never sends the real BLS PDF to the parser, never stores a source body or economic values, and never modifies GitHub main or Production.
+
+The v12 parser is **not approved to read real PDFs**. pypdf documentation notes that extraction processes full content streams and can amplify memory usage dramatically; checking the decompressed size only *after* decompression is not a safe gate for untrusted real PDFs. A separately approved future production-like design must put a bounded ephemeral retrieval broker and parser behind independent policy, resource limits, error handling and numeric-value-access authorization. The 10-MiB response-byte ceiling proposed in v11 is insufficient by itself.
+
+### Restoring from a v12 design regression
+
+1. Preserve the failing PR commit/CI log and verify protected main and the independent rights gate have not changed.
+2. Compare against the immutable **v11** recovery commit 92a5e86e8ce9f147e7eef9a8bf284691ae358c73 and branch backup/score-v2-1f-v11-preregistered-2026-10-29.
+3. Keep the existing v11 design and recovery guard intact. Create a separate reviewed corrective branch/PR that removes or fixes only the v12 parser/security/lock/test additions. Do not force-move main or rewrite unrelated files.
+4. Run exact-head release validation, existing synthetic recovery/v11 tests, the v12 isolated job if retained, CodeQL and dependency audit before merge.
+5. If a future live preflight ever executes in error, stop that authorization, preserve logs and apply the prior incident process. A Git restore cannot undo a PDF download or leaked content.
+6. Do not claim an offsite backup, provider data recovery or Vercel rollback solely from these Git references.
+
+**Approval boundary:** fixture-only parser security research and methodology design, not a real PDF request. No new authorization receipt, active dispatch, production mutation or public Score release is part of this phase.
