@@ -10,13 +10,13 @@ from scripts import run_score_v2_1f_bls_wpu0561_ambiguity_diagnostics_preflight 
 
 
 class ScoreV21FWpu0561AmbiguityDiagnosticsRunnerTests(unittest.TestCase):
-    def test_consumed_state_refuses_before_network(self) -> None:
+    def test_activation_state_refuses_before_network_without_dispatch(self) -> None:
         with mock.patch.object(
             runner,
             "_request_once",
-            side_effect=AssertionError("network request occurred in consumed state"),
+            side_effect=AssertionError("network request occurred before dispatch"),
         ) as request:
-            with self.assertRaisesRegex(RuntimeError, "authorization is not active"):
+            with self.assertRaisesRegex(RuntimeError, "dispatch is not active"):
                 runner.run_preflight()
             request.assert_not_called()
 
