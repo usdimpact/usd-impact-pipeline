@@ -131,6 +131,26 @@ The two old preview URL tests demonstrate protection beyond only future previews
 
 **Status:** preview protection **verified on sampled old URLs**; Production/root public data exposure **unresolved**. No additional Cloudflare settings were changed, no data deleted, and no rights/publication decision inferred.
 
+## Follow-up independent TinyFish anonymous-origin recheck (2026-10-29)
+
+The owner explicitly requested TinyFish to continue the audit. A fresh TinyFish fetch with no authentication and no market data excerpts in the audit output independently rechecked the security boundary.
+
+| Anonymous URL (hostname and path only) | Result | Classification |
+|---|---|---|
+| `ca9ec248.usd-impact-pipeline.pages.dev/en/` | `login_required` | Protected preview HTML |
+| `ca9ec248.usd-impact-pipeline.pages.dev/data/score_repro_bundle_latest.json` | `login_required` | Protected preview strict evidence |
+| `c7a03949.usd-impact-pipeline.pages.dev/data/weekly_input_latest.json` | `login_required` | Protected preview weekly bridge |
+| `score.usd-impact.com/data/weekly_input_latest.json` | anonymous JSON served | Unresolved custom-domain Class C |
+| `score.usd-impact.com/data/score_repro_bundle_latest.json` | anonymous JSON served | Unresolved custom-domain Class C |
+| `usd-impact-pipeline.pages.dev/data/weekly_input_latest.json` | anonymous JSON served | Unresolved root-domain Class C |
+| `usd-impact-pipeline.pages.dev/archive/2026-10-23/repro_bundle.json` | anonymous JSON served | Unresolved root-domain dated Class C |
+
+No provider numeric values are copied to the issue, PR, or this document. This is a **sample of specific known URLs**, not a full historical URL or cache inventory. It confirms preview protection persisted after the owner's activation and is not just a screenshot-based assertion. Historical Cloudflare deployment records, public Git history, root-domain endpoints, CI logs and cached clones remain distinct exposures.
+
+**Authenticated user journey not yet tested in TinyFish:** no TinyFish browser context profile reported an existing signed-in Cloudflare/Access session. Do not guess a reviewer identity, attempt to bypass login or request a one-time code in chat. If the owner authorizes a TinyFish authenticated browser QA session, use a newly verified, user-signed-in profile; otherwise ask owner to test login in an incognito browser using the policy-allowed email.
+
+**Decision gates remain unchanged:** source-level rights approval, approved private evidence retention boundary, aggregate-safe publication schema, full historical treatment/backup plan and separate Production authorization. Do not put Cloudflare Access in front of the customer Production domain in lieu of a rights decision, do not purge without preservation, and do not claim private preview URLs have cleared the ongoing redistribution risk on public root domains.
+
 ## Scope not yet verified
 
 - Complete historic GitHub Actions run logs, artifacts, cache inventories, runner-local retention and cleanup proofs; Cloudflare cache coverage/TTL and alternate domain variants; Vercel/Supabase downstream copies; object storage/backups; old Git history/reflogs and third-party mirrors. The workflow commands and selected live Pages endpoints were verified above.
