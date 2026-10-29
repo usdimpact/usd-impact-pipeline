@@ -1,0 +1,49 @@
+{
+  "schema_version": "treasury-par-yield-xml-candidate-v1",
+  "review_date": "2026-10-29",
+  "status": "synthetic_only_unapproved",
+  "controlling_rights_hold": "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
+  "research_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/282",
+  "source_owner": "U.S. Department of the Treasury",
+  "source_documentation": "https://home.treasury.gov/treasury-daily-interest-rate-xml-feed",
+  "transport_endpoint_documented": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml",
+  "dataset_parameter": "daily_treasury_yield_curve",
+  "data_fields": {
+    "observation_date": "NEW_DATE",
+    "ust_2y_percent": "BC_2YEAR",
+    "ust_10y_percent": "BC_10YEAR"
+  },
+  "expected_feed_model": "Atom feed with OData data + metadata XML namespaces",
+  "units": "percent per annum, direct published nominal Treasury par yields; must be independently verified for specific feed",
+  "parser": "scripts/treasury_par_yield_xml_candidate.py",
+  "tests": "tests/test_treasury_par_yield_xml_candidate.py",
+  "safety": {
+    "network_access_performed": false,
+    "remote_data_retrieval_authorized": false,
+    "provider_derived_values_stored": false,
+    "ai_or_ml_training_authorized": false,
+    "comparison_with_real_h15_authorized": false,
+    "public_data_migration_authorized": false,
+    "source_switch_authorized": false,
+    "score_formula_weight_change_authorized": false,
+    "production_deployment_authorized": false
+  },
+  "deliberately_unverified": [
+    "exact live Treasury feed XML field names, tags and namespace compatibility",
+    "source-specific commercial data retention, caching, storage and derivative dissemination permissions",
+    "Treasury observations versus Board H.15 and FRED DGS2/DGS10 semantic/data-calendar parity",
+    "first-published release timestamp versus observation date for every record",
+    "revisions, correction propagation and point-in-time vintage reconstruction",
+    "full date coverage, gaps, nil values, ordering and pagination after permitted source read",
+    "source uptime, rate limits, and retirement/change notices",
+    "behavior of upstream OTC quotations versus federally published derived yields",
+    "public artifact rights and handling of historical FRED-source versions"
+  ],
+  "allowed_while_hold": [
+    "synthetic fixtures",
+    "pure parsing unit tests",
+    "documentation review",
+    "offline safety validation"
+  ],
+  "go_no_go": "NO_GO_PENDING_RIGHTS_TIMING_PARITY_AND_OWNER_RELEASE_AUTHORIZATION"
+}
