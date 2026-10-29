@@ -1,0 +1,209 @@
+{
+  "schema_version": "score-provider-rights-followup-queue-v1",
+  "snapshot_date": "2026-10-29",
+  "state": "RIGHTS_HOLD_RESEARCH_ONLY",
+  "controlling_issues": [
+    "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
+    "https://github.com/usdimpact/usd-impact-pipeline/issues/282"
+  ],
+  "contact_policy": {
+    "commercial_context": "USD Impact is an educational/commercial product; no paid market-data licensing budget authorized",
+    "no_duplicate_outreach": true,
+    "no_new_paid_service": true,
+    "sensitive_provider_personal_details_public": false,
+    "no_automatic_sending": true
+  },
+  "requested_use": {
+    "processing_class": "commercial_internal_score_calculation",
+    "requested_public_output": "week/date, non-reversible aggregate Score, regime, aggregate history; no component weekly levels, z-scores or normalization moments"
+  },
+  "authorizations": {
+    "new_provider_fetch": false,
+    "real_evidence_retention": false,
+    "public_derivatives_or_history": false,
+    "archive_removal_or_purge": false,
+    "source_switch": false,
+    "production_release": false,
+    "AI_ML_training_on_provider_content": false
+  },
+  "providers": [
+    {
+      "id": "fred_dgs2_dgs10",
+      "family": "FRED transport / public-domain-tagged DGS2 and DGS10",
+      "instruments": [
+        "DGS2",
+        "DGS10"
+      ],
+      "latest_contact": "conditional_reply_received_2026-10-29",
+      "rights_state": "conditional_transient_processing_only",
+      "unresolved": [
+        "FRED Services and API retention/disposal applied to historical derived values and hashes",
+        "non-reversible aggregate Score/history publication",
+        "incidental logs/cache/backups and corrections/revisions",
+        "separate original-source and H.15 attribution"
+      ],
+      "next_action": "seek counsel disposition on what existing derived artifacts qualify as restricted FRED Content before changing archives; avoid resending the already-answered generic permission request",
+      "public_reference": "https://fred.stlouisfed.org/legal/terms/",
+      "grants": {
+        "commercial_transient_use": "conditional_public_domain_series_with_citation_and_disposal",
+        "retention": "unapproved",
+        "public_aggregate_distribution": "unapproved",
+        "public_component_distribution": "unapproved",
+        "machine_learning_training": "unapproved"
+      }
+    },
+    {
+      "id": "yahoo_delivery",
+      "family": "Yahoo Finance / yfinance transport",
+      "instruments": [
+        "DX-Y.NYB",
+        "CL=F",
+        "^GSPC",
+        "^VIX",
+        "BTC-USD",
+        "GC=F"
+      ],
+      "latest_contact": "no_affirmative_provider_rights_reply_verified",
+      "rights_state": "pending",
+      "unresolved": [
+        "commercial automated retrieval via yfinance/Yahoo route",
+        "vendor versus original exchange/index owner terms",
+        "internal history retention and permitted transient lifetime",
+        "public non-reversible aggregate history, diagnostic outputs and historical treatment"
+      ],
+      "next_action": "identify exact data delivery and owner contracts before a targeted rights inquiry; no assumptions from library availability",
+      "public_reference": "https://legal.yahoo.com/us/en/yahoo/guidelines/ydn/index.html",
+      "grants": {
+        "commercial_transient_use": "unverified",
+        "retention": "unapproved",
+        "public_aggregate_distribution": "unapproved",
+        "public_component_distribution": "unapproved",
+        "machine_learning_training": "unapproved"
+      }
+    },
+    {
+      "id": "sp_dji_sp500",
+      "family": "S&P Dow Jones Indices / S&P 500",
+      "instruments": [
+        "^GSPC"
+      ],
+      "latest_contact": "sales_referral_2026-10-28_no_license",
+      "rights_state": "pending",
+      "unresolved": [
+        "derived-data treatment of eight-driver aggregate Score/regime",
+        "S&P contribution/z-score diagnostic disclosure",
+        "commercial internal historical observations and retention",
+        "source naming/attribution and past public artifact disposition"
+      ],
+      "next_action": "await existing sales referral; request narrow written yes/no for no-fee aggregate-only use rather than opening another case",
+      "public_reference": "https://www.spglobal.com/en/terms-of-use",
+      "grants": {
+        "commercial_transient_use": "unverified",
+        "retention": "unapproved",
+        "public_aggregate_distribution": "unapproved",
+        "public_component_distribution": "unapproved",
+        "machine_learning_training": "unapproved"
+      }
+    },
+    {
+      "id": "cboe_vix",
+      "family": "Cboe / VIX",
+      "instruments": [
+        "^VIX"
+      ],
+      "latest_contact": "no_cost_use_case_question_sent_2026-10-28_awaiting_reply",
+      "rights_state": "pending",
+      "unresolved": [
+        "whether non-reversible multi-driver aggregate is licensable at no cost",
+        "index-derived transformed values and z-scores",
+        "commercial non-display internal use/retention",
+        "historical redistribution and permitted attribution"
+      ],
+      "next_action": "await response to existing zero-budget aggregate-only question; do not send private KYC/business information or purchase terms without owner review",
+      "public_reference": "https://www.cboe.com/data/global-indices-feed/",
+      "grants": {
+        "commercial_transient_use": "unverified",
+        "retention": "unapproved",
+        "public_aggregate_distribution": "unapproved",
+        "public_component_distribution": "unapproved",
+        "machine_learning_training": "unapproved"
+      }
+    },
+    {
+      "id": "cme_wti_gold",
+      "family": "CME Group / WTI and Gold futures",
+      "instruments": [
+        "CL=F",
+        "GC=F"
+      ],
+      "latest_contact": "rights_query_sent_2026-10-27_no_clearance_found",
+      "rights_state": "pending",
+      "unresolved": [
+        "which CME product licenses apply through Yahoo delivery",
+        "non-reversible index-like aggregate or regime derived outputs",
+        "internal historical normalization and public diagnostics",
+        "web/API/archived release storage and attribution"
+      ],
+      "next_action": "review existing outreach for a reply; prepare concise follow-up only after appropriate interval; do not purchase a derived-work subscription",
+      "public_reference": "https://www.cmegroup.com/market-data/browse-data/derived-data.html",
+      "grants": {
+        "commercial_transient_use": "unverified",
+        "retention": "unapproved",
+        "public_aggregate_distribution": "unapproved",
+        "public_component_distribution": "unapproved",
+        "machine_learning_training": "unapproved"
+      }
+    },
+    {
+      "id": "ice_usdx",
+      "family": "ICE Data Indices / U.S. Dollar Index",
+      "instruments": [
+        "DX-Y.NYB"
+      ],
+      "latest_contact": "no_direct_license_reply_verified",
+      "rights_state": "pending",
+      "unresolved": [
+        "confirm exact USDX series owner and Yahoo route mapping",
+        "commercial internal derived analytics and storage",
+        "non-reversible aggregate Score use and public references to USDX",
+        "historical rights remediation"
+      ],
+      "next_action": "identify appropriate ICE rights/permissions contact and no-fee use exception before sending a new inquiry; do not assume publicly quoted index levels can be licensed for free",
+      "public_reference": "https://www.ice.com/products/194/US-Dollar-Index-Futures/",
+      "grants": {
+        "commercial_transient_use": "unverified",
+        "retention": "unapproved",
+        "public_aggregate_distribution": "unapproved",
+        "public_component_distribution": "unapproved",
+        "machine_learning_training": "unapproved"
+      }
+    },
+    {
+      "id": "treasury_h15_direct",
+      "family": "U.S. Treasury source / Federal Reserve Board H.15 republisher",
+      "instruments": [
+        "Treasury nominal 2Y par yield",
+        "Treasury nominal 10Y par yield"
+      ],
+      "latest_contact": "official_feed_documentation_review_only_no_live_source_test",
+      "rights_state": "pending",
+      "unresolved": [
+        "originator versus H.15 republisher versus FRED transport rights",
+        "direct-source commercial retention and public aggregate use",
+        "release/availability timestamp, revisions and historical parity",
+        "full XML year/month feed compatibility and complete coverage"
+      ],
+      "next_action": "continue synthetic-only parser/citation review; request exact rights interpretation before any real-data comparison or source switch",
+      "public_reference": "https://home.treasury.gov/treasury-daily-interest-rate-xml-feed",
+      "grants": {
+        "commercial_transient_use": "unverified",
+        "retention": "unapproved",
+        "public_aggregate_distribution": "unapproved",
+        "public_component_distribution": "unapproved",
+        "machine_learning_training": "unapproved"
+      }
+    }
+  ],
+  "decision_record": "governance/score-rights-decision-receipt.template.json",
+  "note": "The review queue records provider correspondence/status and questions, not an authorization or legal conclusion. Do not insert provider private emails or identifiable staff details into the public repository."
+}
