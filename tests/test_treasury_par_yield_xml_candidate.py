@@ -6,7 +6,9 @@ No test may call Treasury, FRED, H.15 or any other network endpoint.
 
 from __future__ import annotations
 
+import json
 import unittest
+from pathlib import Path
 from datetime import date, timedelta
 from decimal import Decimal
 
@@ -48,6 +50,30 @@ def _valid() -> str:
 
 
 class TreasuryXMLCandidateTests(unittest.TestCase):
+    def test_governance_contract_remains_fail_closed(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        contract = json.loads(
+            (root / "governance/treasury-par-yield-xml-candidate-2026-10-29.json")
+            .read_text(encoding="utf-8")
+        )
+        self.assertEqual(contract["status"], "synthetic_only_unapproved")
+        self.assertEqual(
+            contract["go_no_go"],
+            "NO_GO_PENDING_RIGHTS_TIMING_PARITY_AND_OWNER_RELEASE_AUTHORIZATION",
+        )
+        self.assertEqual(contract["dataset_parameter"], "daily_treasury_yield_curve")
+        self.assertEqual(
+            contract["data_fields"],
+            {
+                "observation_date": "NEW_DATE",
+                "ust_2y_percent": "BC_2YEAR",
+                "ust_10y_percent": "BC_10YEAR",
+            },
+        )
+        for key, approved in contract["safety"].items():
+            with self.subTest(control=key):
+                self.assertIs(approved, False)
+
     def test_valid_synthetic_atom_page_maps_and_sorts_only_target_fields(self) -> None:
         observations = parse_treasury_par_yield_atom(_valid().encode("utf-8"))
         self.assertEqual(len(observations), 2)
