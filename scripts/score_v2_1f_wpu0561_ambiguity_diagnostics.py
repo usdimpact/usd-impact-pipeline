@@ -403,6 +403,107 @@ def candidate_context_inventory(
     return output
 
 
+
+EXACT_TARGET_LABEL_RE = re.compile(
+    r"^Crude\\s+petroleum(?:\\s*\\(\\s*<num>\\s*\\))?$",
+    re.IGNORECASE,
+)
+STAGE_INTERMEDIATE_DEMAND_RE = re.compile(
+    r"\\bStage\\s+<num>\\s+intermediate\\s+demand(?:\\s+goods)?\\b",
+    re.IGNORECASE,
+)
+UNPROCESSED_NONFOOD_RE = re.compile(
+    r"\\bUnprocessed\\s+nonfood\\s+materials\\b",
+    re.IGNORECASE,
+)
+
+
+def is_exact_target_label(value: str) -> bool:
+    """Match only the numeric-redacted direct Crude petroleum label."""
+    return bool(EXACT_TARGET_LABEL_RE.fullmatch(re.sub(r"\\s+", " ", value).strip()))
+
+
+def exact_target_rows(rows: list[list[str]]) -> tuple[int, ...]:
+    """Return rows containing the exact target label after numeric redaction."""
+    return tuple(
+        row_number
+        for row_number, row in enumerate(rows, start=1)
+        if any(is_exact_target_label(cell) for cell in row)
+    )
+
+
+def classify_exact_target_context(
+    rows: list[list[str]],
+    candidate_row: int,
+    *,
+    lookback_rows: int = 8,
+) -> dict[str, object]:
+    """Classify an exact-label candidate using only nearby sanitized text.
+
+    Row numbers are coordinates only and must never act as selection criteria.
+    The classifier deliberately distinguishes direct commodity context from
+    stage/intermediate-demand context while failing closed on mixed or unknown
+    context.
+    """
+    if lookback_rows < 0 or lookback_rows > 8:
+        raise ValueError("lookback_rows must be between 0 and 8")
+    if candidate_row < 1 or candidate_row > len(rows):
+        raise ValueError("candidate_row is outside rows")
+
+    row = rows[candidate_row - 1]
+    exact_cells = [cell for cell in row if is_exact_target_label(cell)]
+    if not exact_cells:
+        return {
+            "candidate_row": candidate_row,
+            "exact_label": False,
+            "context_status": "not_exact_target",
+            "stage_intermediate_demand_context": False,
+            "unprocessed_nonfood_context": False,
+        }
+
+    start_row = max(1, candidate_row - lookback_rows)
+    context_cells = [
+        cell
+        for row_number in range(start_row, candidate_row)
+        for cell in rows[row_number - 1]
+        if cell.strip()
+    ]
+    stage_context = any(STAGE_INTERMEDIATE_DEMAND_RE.search(cell) for cell in context_cells)
+    commodity_context = any(UNPROCESSED_NONFOOD_RE.search(cell) for cell in context_cells)
+
+    if stage_context and commodity_context:
+        status = "ambiguous_mixed_context"
+    elif stage_context:
+        status = "stage_intermediate_demand_context"
+    elif commodity_context:
+        status = "commodity_unprocessed_nonfood_context"
+    else:
+        status = "exact_label_unclassified_context"
+
+    return {
+        "candidate_row": candidate_row,
+        "exact_label": True,
+        "exact_label_cell_count": len(exact_cells),
+        "window_start_row": start_row,
+        "window_end_row": candidate_row,
+        "context_status": status,
+        "stage_intermediate_demand_context": stage_context,
+        "unprocessed_nonfood_context": commodity_context,
+    }
+
+
+def classify_exact_target_candidates(
+    rows: list[list[str]],
+    *,
+    lookback_rows: int = 8,
+) -> list[dict[str, object]]:
+    """Classify every exact-label candidate without reading identifiers/values."""
+    return [
+        classify_exact_target_context(rows, row_number, lookback_rows=lookback_rows)
+        for row_number in exact_target_rows(rows)
+    ]
+
+
 def resource_reason_summary(blocks: list[LocalBlock]) -> dict[str, int]:
     summary: dict[str, int] = {}
     for block in blocks:
