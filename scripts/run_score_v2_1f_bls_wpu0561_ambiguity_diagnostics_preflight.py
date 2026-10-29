@@ -136,7 +136,7 @@ def _validate_authorization_and_dispatch() -> str:
     if dispatch.get("production_authorized") is not False:
         raise RuntimeError("Production must remain unauthorized")
 
-    if contract.get("state") != "ambiguity_diagnostics_authorized":
+    if contract.get("state") != "ambiguity_diagnostics_v4_recheck_authorized":
         raise RuntimeError("Issue #258 execution contract is not dispatched-active")
     if contract.get("active_authorization_receipt_expected_now") is not True:
         raise RuntimeError("Issue #258 active receipt must be expected")
