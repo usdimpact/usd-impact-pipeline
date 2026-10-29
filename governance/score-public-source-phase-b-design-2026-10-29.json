@@ -1,0 +1,232 @@
+{
+  "schema_version": "score-public-source-phase-b-v1",
+  "date": "2026-10-29",
+  "status": "SYNTHETIC_DESIGN_REVIEW_ONLY_HOLD",
+  "parent_phase_a": "governance/score-zero-license-phase-a-feasibility-2026-10-29.json",
+  "controlling_issues": [
+    "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
+    "https://github.com/usdimpact/usd-impact-pipeline/issues/282"
+  ],
+  "decision": {
+    "approve_new_four_source_model": false,
+    "approve_name": false,
+    "approve_weights": false,
+    "approve_backtest": false,
+    "approve_real_data_fetch": false,
+    "approve_commercial_use": false,
+    "approve_retention": false,
+    "approve_public_aggregate_or_history": false,
+    "approve_production": false,
+    "reason": "Source-specific rights, actual first-publication timestamps/revisions, transport continuity and a distinct economic methodology remain open."
+  },
+  "legacy_contract": {
+    "driver_count": 8,
+    "signs_weights_unchanged": true,
+    "existing_score_history_may_be_spliced": false,
+    "same_friday_publication_guaranteed": false
+  },
+  "synthetic_contract": {
+    "marker": "SYNTHETIC_DO_NOT_PUBLISH",
+    "min_synthetic_reference_year": 2099,
+    "required_source_ids": [
+      "fed_h10_nominal_broad",
+      "eia_crude_stocks_weekly",
+      "treasury_direct_2yr_par",
+      "treasury_direct_10yr_par"
+    ],
+    "reference_week_friday_required": true,
+    "explicit_first_publication_receipt_required": true,
+    "source_version_first_seen_receipt_required": true,
+    "timezone_aware_UTC_comparison_required": true,
+    "holiday_schedule_is_only_a_projection": true,
+    "revision_vintage_must_be_selected_asof": true,
+    "treasury_tenors_same_curve_snapshot_required": true,
+    "publish_authorized": false,
+    "external_fetch_allowed": false,
+    "real_price_series_allowed": false,
+    "writer_file_io_allowed": false
+  },
+  "source_rights_terms": {
+    "federal_reserve": "Board page content generally public domain unless indicated otherwise; attribution and third-party exceptions; exact Broad Index source must be confirmed.",
+    "eia": "Government-created EIA data generally reusable with acknowledgment; privately contributed material exceptions; only WPSR surveyed crude inventories candidate, never infer Refinitiv WTI spot clearance.",
+    "treasury": "Treasury par-yield rates are official government-published calculations from indicative market bid quotations; exact commercial transport, retention and third-party rights require counsel/source review.",
+    "none_of_four_authorized_for_real_observation_retrieval": true
+  },
+  "sources": [
+    {
+      "id": "fed_h10_nominal_broad",
+      "source": "Federal Reserve Board H.10",
+      "question": "Does Board-original daily Broad Dollar Index publication carry independent unrestricted commercial internal processing and publication rights for this exact series, without FRED or private inputs?",
+      "evidence": "Unless otherwise indicated, Board-authored website information is public domain with credit; non-Board material can be restricted.",
+      "cite": [
+        "https://www.federalreserve.gov/disclaimer.htm",
+        "https://www.federalreserve.gov/releases/h10/",
+        "https://www.federalreserve.gov/datadownload/Choose.aspx?rel=H10"
+      ],
+      "rights": "CONDITIONAL_GOVERNMENT_SITE_LICENSE_CHECK",
+      "third_party": "Board site explicitly excepts copyrighted non-Board sources; inspect exact index release and metadata.",
+      "cadence": {
+        "reference_week_day": "Friday",
+        "normal_release_day": "following Monday",
+        "normal_release_clock": "16:15",
+        "zone": "America/New_York",
+        "holiday_rule": "Following business day; actual date/time override mandatory",
+        "revisions": "Observed Aug 10 H.10 release included errors corrected Aug 12, 2026",
+        "current_transport": "Board release and official XML; avoid automatic FRED fallback",
+        "risk": "Board DDP Build Your Package scheduled for removal during week of 2026-11-09"
+      },
+      "parity": "NOT_ICE_DXY",
+      "cleared": false
+    },
+    {
+      "id": "eia_crude_stocks_weekly",
+      "source": "Energy Information Administration Weekly Petroleum Status Report",
+      "question": "Are the specific WPSR survey-based US commercial crude oil stocks excluding SPR fully government-created, reusable for commercial non-display computation and public aggregate outputs under EIA reuse policy? Verify exact series, units and revision process.",
+      "evidence": "Government-created EIA material generally reusable with acknowledgment; EIA expressly excludes private licensed contributions.",
+      "cite": [
+        "https://www.eia.gov/about/copyrights_reuse.php",
+        "https://www.eia.gov/petroleum/supply/weekly/",
+        "https://www.eia.gov/petroleum/supply/weekly/schedule.php",
+        "https://www.eia.gov/dnav/pet/PET_STOC_WSTK_A_EPC0_SAX_MBBL_W.htm"
+      ],
+      "rights": "CONDITIONAL_GOVERNMENT_SURVEY_SOURCE_REVIEW",
+      "third_party": "Use survey stocks, NOT EIA historical WTI/Brent spot prices purchased from Refinitiv. Verify exact material provenance and attribution.",
+      "cadence": {
+        "reference_week_day": "Friday",
+        "normal_release_day": "following Wednesday",
+        "normal_release_clock": "10:30",
+        "zone": "America/New_York",
+        "holiday_rule": "EIA explicitly publishes changed holiday dates/times; scheduled day cannot substitute actual publication proof",
+        "revisions": "Corrections/survey revisions require version-preserving as-of receipts",
+        "current_transport": "Official EIA WPSR and original survey statistic; confirm specific official machine-readable product"
+      },
+      "parity": "NOT_CME_WTI_FUTURES_PRICE",
+      "cleared": false
+    },
+    {
+      "id": "treasury_direct_2yr_par",
+      "source": "U.S. Treasury Daily Nominal Par Yield Curve",
+      "question": "Are Treasury's own published 2-year nominal par yields, constructed from indicative FRBNY quotes, lawful to process commercially, retain historically and use in derivative public aggregates without FRED API or private upstream constraints?",
+      "evidence": "Official Treasury provides CMT par-yield information, but exact commercial reuse/retention and original quote rights require confirmation.",
+      "cite": [
+        "https://home.treasury.gov/treasury-daily-interest-rate-xml-feed",
+        "https://home.treasury.gov/policy-issues/financing-the-government/interest-rate-statistics/treasury-yield-curve-methodology",
+        "https://home.treasury.gov/developer-notice-xml-changes"
+      ],
+      "rights": "TREASURY_RIGHTS_UPSTREAM_REVIEW",
+      "third_party": "Curve is constructed from indicative market quotations; status of upstream quote rights and commercial storage/derivative use unresolved.",
+      "cadence": {
+        "reference_week_day": "Friday latest available trading observation (not guaranteed)",
+        "normal_release_day": "each trading day",
+        "normal_release_clock": "18:00 (usually, may be later)",
+        "zone": "America/New_York",
+        "holiday_rule": "Observe Treasury actual release and source correction notices, never infer by trading calendar",
+        "revisions": "2021 curve methodology change; later corrections or revised vintages to be independently logged",
+        "current_transport": "Direct Treasury year/month XML; synthetic-only parser rejects all-history pagination"
+      },
+      "parity": "NEAR_SUBJECT_NOT_FRED_DGS2_ASOF_PARITY_PROVEN",
+      "cleared": false,
+      "coherent_curve_snapshot_required": true
+    },
+    {
+      "id": "treasury_direct_10yr_par",
+      "source": "U.S. Treasury Daily Nominal Par Yield Curve",
+      "question": "Are Treasury's own published 10-year nominal par yields, constructed from indicative FRBNY quotes, lawful to process commercially, retain historically and use in derivative public aggregates without FRED API or private upstream constraints?",
+      "evidence": "Same official Treasury source and legal boundary as 2-year tenor; do not assume DGS10 time-of-availability or vintages are equal.",
+      "cite": [
+        "https://home.treasury.gov/treasury-daily-interest-rate-xml-feed",
+        "https://home.treasury.gov/policy-issues/financing-the-government/interest-rate-statistics/treasury-yield-curve-methodology",
+        "https://home.treasury.gov/policy-issues/financing-the-government/interest-rate-statistics/interest-rates-frequently-asked-questions"
+      ],
+      "rights": "TREASURY_RIGHTS_UPSTREAM_REVIEW",
+      "third_party": "Potential upstream quotation rights and redistribution retention restrictions unresolved.",
+      "cadence": {
+        "reference_week_day": "Friday latest available trading observation (not guaranteed)",
+        "normal_release_day": "each trading day",
+        "normal_release_clock": "18:00 (usually, may be later)",
+        "zone": "America/New_York",
+        "holiday_rule": "Actual publication proof and version required",
+        "revisions": "Use exact curve snapshot/version shared with 2Y, not mixed 2Y/10Y vintage",
+        "current_transport": "Direct Treasury year/month XML; no live data tests"
+      },
+      "parity": "NEAR_SUBJECT_NOT_FRED_DGS10_ASOF_PARITY_PROVEN",
+      "cleared": false,
+      "coherent_curve_snapshot_required": true
+    }
+  ],
+  "special_2026_events": [
+    {
+      "source_id": "fed_h10_nominal_broad",
+      "date": "2026-08-12",
+      "event": "Board H.10 corrected erroneous August 3 data previously included in August 10 release; historical as-of runs must distinguish published vintages.",
+      "url": "https://www.federalreserve.gov/feeds/h10.html"
+    },
+    {
+      "source_id": "fed_h10_nominal_broad",
+      "date": "2026-11-09",
+      "event": "Board announced DDP Build Your Package removal during week of this date; direct future delivery contract remains unverified.",
+      "url": "https://www.federalreserve.gov/datadownload/Choose.aspx?rel=H10"
+    }
+  ],
+  "general_restrictions": {
+    "no_fred_transport_shortcut": true,
+    "no_eia_refinitiv_wti_reuse_inference": true,
+    "no_methodology_or_score_name_continuity_claim": true,
+    "no_legacy_history_backfill": true,
+    "no_public_member_or_payment_changes": true,
+    "no_new_provider_contact_or_paid_subscription": true,
+    "no_history_purge": true
+  },
+  "acceptance_gates": [
+    "Provider/owner legal reuse and archival/third-party provenance by exact series (written clearance if ambiguous)",
+    "Actual first-published timestamp, first-seen snapshot and correction provenance as-of desired cutoff",
+    "Holiday/cadence continuity and late-release treatment across America/New_York daylight saving changes",
+    "Same curve snapshot/version for Treasury 2Y and 10Y observations",
+    "Explicit independent owner decision whether four-signal macro research model is warranted; new name, signs, weights, scales and risk note",
+    "Synthetic offline point-in-time validator, schema consumer and non-look-ahead tests",
+    "Before any real data: separately documented source-specific rights and owner fetch approval",
+    "Before any release: legal-safe archival treatment, protected CI, separate Production authorization"
+  ],
+  "source_evidence": [
+    {
+      "url": "https://www.federalreserve.gov/disclaimer.htm",
+      "claim": "Board information generally public domain unless indicated otherwise; credit and third-party warnings"
+    },
+    {
+      "url": "https://www.federalreserve.gov/releases/h10/",
+      "claim": "H10 official Monday publication of previous week's daily data and holiday shifts"
+    },
+    {
+      "url": "https://www.federalreserve.gov/datadownload/Choose.aspx?rel=H10",
+      "claim": "Aug 12 H10 correction and DDP Build Your Package sunset notice"
+    },
+    {
+      "url": "https://www.eia.gov/about/copyrights_reuse.php",
+      "claim": "EIA reuse of government-created datasets and third-party exception"
+    },
+    {
+      "url": "https://www.eia.gov/petroleum/supply/weekly/schedule.php",
+      "claim": "EIA Wednesday schedule and exceptions"
+    },
+    {
+      "url": "https://www.eia.gov/petroleum/supply/weekly/",
+      "claim": "EIA official WPSR source pages and releases"
+    },
+    {
+      "url": "https://home.treasury.gov/policy-issues/financing-the-government/interest-rate-statistics/treasury-yield-curve-methodology",
+      "claim": "Treasury indicative quotes, 2021 method change and 18 ET usual publication"
+    },
+    {
+      "url": "https://home.treasury.gov/treasury-daily-interest-rate-xml-feed",
+      "claim": "Treasury direct XML selection and service"
+    },
+    {
+      "url": "https://home.treasury.gov/developer-notice-xml-changes",
+      "claim": "Treasury API pagination and year-specific queries"
+    },
+    {
+      "url": "https://www.eia.gov/analysis/handbook/pdf/STEO_Crude_Oil_Price.pdf",
+      "claim": "EIA separately republishes licensed private WTI spot data; exclude this as survey-statistics reuse"
+    }
+  ]
+}
