@@ -5,7 +5,7 @@
 ## Evidence and scope
 
 - FRED support reply dated 2026-10-29 to the USD Impact DGS2/DGS10 commercial/derived-use inquiry: permitted commercial use for appropriately labelled Public Domain datasets, with citation and disposal; states FRED terms do not permit retention/storage.
-- [FRED legal terms, prohibited uses (q)](https://fred.stlouisfed.org/legal/#prohibitions) restrict storing, caching, archiving FRED content and incorporating it in databases or compilations. The separate FRED API clause (l) also addresses API caching/storage. The public-domain label is not a waiver of service terms.
+- [FRED legal terms, general prohibitions (p) and (q)](https://fred.stlouisfed.org/legal/terms/) distinguish **(p) storing/caching/archiving or incorporating FRED Content in a database** from **(q) derivative works or modification of FRED Services**; the separate FRED API prohibitions **(k) AI/model development and (l) storage/caching/archiving** also apply where relevant. The public-domain series label is not a blanket waiver of service terms. This is a terms quotation/classification, not counsel's conclusion about a specific derivative.
 - Existing [source-retention-policy.md](source-retention-policy.md) is last reviewed 2026-08-24. It prohibits raw response retention but describes provider-derived weekly evidence and public component artifacts. The Oct 29 support reply requires a more granular lineage and retention review.
 - Existing [Score provider rights matrix](score-v2-provider-rights-evidence-matrix-2026-10-28.md), [containment plan](score-v2-public-rights-containment-plan-2026-10-27.md), [zero-budget fallback](score-zero-budget-fallback-2026-10-28.md), and [issue #155](https://github.com/usdimpact/usd-impact-pipeline/issues/155) remain controlling research/hold references.
 
@@ -56,9 +56,34 @@ These tests prove the stated endpoints were reachable/denied during inspection; 
 
 ## Source-specific legal guardrails (not a legal conclusion)
 
-- The current [FRED Terms of Use](https://fred.stlouisfed.org/legal/terms/) prohibit storing/caching/archiving FRED Content in full Terms clause **(q)** and separately address API caching in clause **(l)**. They also address AI/model development/training in clauses **(p)** and API **(k)**. Do not feed provider-derived observations into model-development workflows without separately established permission.
+- The current [FRED Terms of Use](https://fred.stlouisfed.org/legal/terms/) prohibit storing/caching/archiving in the general FRED Services prohibitions **(p)** and API prohibitions **(l)**; general prohibitions **(q)** separately address modifying/copying/creating derivative works of FRED Services. The API's **(k)** expressly addresses AI/model development or training. Do not treat different clauses as interchangeable, nor use provider-derived observations for AI training without explicit authorization.
 - FRED staff's 2026-10-29 email permits the described commercial use of properly tagged Public Domain datasets **subject to the full terms, source citations and disposal**. It is not permission for all series or all public derivatives.
 - [Federal Reserve Board DDP transition notice](https://www.federalreserve.gov/data/data-download-fred-information.htm) confirms removal of custom **Build Your Package** the week of Nov 9, 2026, with preformatted packages to be retired subsequently; historical release XML remains a possible direct-source candidate. Ownership, exact automated-access license, retention, parity and continuity are **not approved**.
+
+## Historical execution evidence and preview exposures (2026-10-29, read-only)
+
+The following are sampled, **not a complete historical enumeration**:
+
+| Source / run | Observation | Limit |
+|---|---|---|
+| [Friday release run #40044029286](https://github.com/usdimpact/usd-impact-pipeline/actions/runs/40044029286) (2026-10-24 UTC) | Pipeline succeeded; job logs confirm a FRED DGS2/DGS10 retrieval and a Yahoo retrieval, temporary same-run 617-week matrix, fingerprint receipt and calculation normalization output | Runner-local artifact TTL and downstream cached copies not proved by log access |
+| [Friday release run #38984976938](https://github.com/usdimpact/usd-impact-pipeline/actions/runs/38984976938) (2026-10-17 UTC) | Equivalent pre-HOLD provider fetch, temporary weekly input matrix and normalization/log statements | Does not establish all older versions or all historical CI runs |
+| [Rights-gated PR rehearsal run #40905286366](https://github.com/usdimpact/usd-impact-pipeline/actions/runs/40905286366) (2026-10-29 UTC) | Rights gate succeeded; provider fetch, Python setup, dependency installation and rehearsal output steps were **skipped** | Validates draft PR #285 behavior at its branch only, not main |
+| GitHub Actions artifact listing for the above three runs | Returned zero GitHub-uploaded artifacts in each sampled run | Not evidence of cache absence, logfile deletion, runner deletion, Git history removal or third-party replicas |
+
+The October 17 and October 24 logs were retrievable on October 29 and contain numeric-derived calculation statements. No such values were copied into this audit document. The CI pipeline uses `actions/setup-python` pip dependency cache; **package cache** should not be conflated with provider-data retention without inspecting its actual contents and any custom cache paths. The connector did not expose the GitHub Actions cache-list API, so cache contents and retention are currently **unverified**.
+
+The linked Cloudflare account's Pages project `usd-impact-pipeline` has Production branch `main` and the domains `score.usd-impact.com` and `usd-impact-pipeline.pages.dev`; the provider returned a project-level lifetime listing of **1,803** Pages deployments. **That is a count of deployment records, not a count of proven accessible or data-exposing deployments.**
+
+Independent URL reads confirmed two development **preview** deployments also serve pre-existing provider-derived JSON without authentication:
+
+- `https://ca9ec248.usd-impact-pipeline.pages.dev/data/score_repro_bundle_latest.json` (audit-docs PR #284 preview) — reproduction bundle served.
+- `https://c7a03949.usd-impact-pipeline.pages.dev/data/weekly_input_latest.json` (rehearsal-safeguard PR #285 preview) — bridge JSON served.
+- `https://ca9ec248.usd-impact-pipeline.pages.dev/en/` — HTTP 403, dashboard HTML protected.
+
+Preview deployment copies therefore remain a separate public dissemination surface even when a PR edits documentation or CI only. The Cloudflare account exposed Pages project/deployment metadata but **no zone records** for this domain; actual CDN cache rules, per-object cache lifetimes, and purge coverage were not accessible. A separate container-based HTTP header check failed at DNS resolution and cannot be treated as evidence about live Cache-Control headers.
+
+**Containment requirement:** before any cleanup, verify both deployment classes, explicit public-path allowlist, preview-build strategy, Git source history, retained logs/artifacts, private stores, edge caches and backups. Do not delete historical evidence, alter Pages deployment/protection, or purge CDN without documented rights, preservation and deployment approvals. For draft-only documentation commits, use the existing `[CF-Pages-Skip]` convention to reduce additional preview builds, but do not assume a skipped build revokes previous preview URLs.
 
 ## Scope not yet verified
 
@@ -95,7 +120,8 @@ These tests prove the stated endpoints were reachable/denied during inspection; 
 - [x] Confirmed committed weekly and public archive data-file pathways.
 - [x] Established material difference between public-domain series status and FRED delivery/retention terms.
 - [x] Mapped current source-level Friday, archive, Git publication, Pages allowlist and rehearsal flow; confirmed public endpoint reachability.
-- [ ] Completed historical job-log/backup/CDN and downstream persistence inventory.
+- [x] Sampled pre-HOLD live jobs and retrievable job logs; checked artifact listings and sampled Pages preview endpoints.
+- [ ] Completed all historical job-log/backup/CDN/cache, historical preview and downstream persistence inventory.
 - [ ] Confirmed retained value classes and rights interpretation.
 - [x] Identified Treasury-origin XML candidate and public Board disclaimer with original Treasury provenance.
 - [ ] Confirmed direct Board/Treasury rights and exact-source parity feasibility.
