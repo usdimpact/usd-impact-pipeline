@@ -1,0 +1,261 @@
+{
+  "schema_version": "score-seven-provider-coverage-v1",
+  "date_recorded": "2026-10-29",
+  "state": "DESIGN_ONLY_COVERAGE_GAP_HOLD",
+  "source_commit_at_creation": "8402573f57413aa8ba84dbd15c85e57e0e5f965b",
+  "controlling_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
+  "related_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/282",
+  "scope": "Reconcile every current eight-driver Score transport AND upstream data owner with a separately documented rights decision. No new license/permission claim.",
+  "legacy_receipt": {
+    "path": "governance/score-rights-decision-receipt.template.json",
+    "frozen_git_blob_sha": "833e8e3498188286c9eb5954d2f9280e53d3ee83",
+    "historical_state": "hold",
+    "historical_provider_rows": 5,
+    "coverage_complete": false,
+    "missing_decision_relationships": [
+      "ice_usdx",
+      "treasury_h15_direct"
+    ],
+    "do_not_silently_promote_to_approval": true,
+    "historical_template_must_not_be_overwritten": true
+  },
+  "canonical_provider_source": "governance/score-provider-rights-followup-queue-2026-10-29.json",
+  "provider_count": 7,
+  "providers": [
+    {
+      "id": "fred_dgs2_dgs10",
+      "display_name": "FRED / government-series delivery",
+      "relationship": "federal_data_transport",
+      "present_in_legacy_five_provider_receipt": true,
+      "source_queue_id": "fred_dgs2_dgs10",
+      "current_status": "conditional_transient_processing_only_not_a_general_release",
+      "specific_signed_rights_disposition_received": false,
+      "evidence_review_owner_status": "pending_counsel_or_provider_confirmation",
+      "fields": {
+        "commercial_internal_retrieval": "unapproved",
+        "transient_computation": "unapproved",
+        "private_evidence_retention": "unapproved",
+        "public_aggregate_distribution": "unapproved",
+        "public_component_distribution": "unapproved",
+        "historical_archive_treatment": "unapproved",
+        "source_naming_attribution": "unapproved",
+        "automated_access_and_delivery": "unapproved"
+      },
+      "required_decision_evidence": "separately scoped written provider/counsel determination before any new data retention, aggregate publication or source activation"
+    },
+    {
+      "id": "yahoo_delivery",
+      "display_name": "Yahoo Finance / yfinance delivery path",
+      "relationship": "commercial_transport",
+      "present_in_legacy_five_provider_receipt": true,
+      "source_queue_id": "yahoo_delivery",
+      "current_status": "pending_written_permission",
+      "specific_signed_rights_disposition_received": false,
+      "evidence_review_owner_status": "pending_counsel_or_provider_confirmation",
+      "fields": {
+        "commercial_internal_retrieval": "unapproved",
+        "transient_computation": "unapproved",
+        "private_evidence_retention": "unapproved",
+        "public_aggregate_distribution": "unapproved",
+        "public_component_distribution": "unapproved",
+        "historical_archive_treatment": "unapproved",
+        "source_naming_attribution": "unapproved",
+        "automated_access_and_delivery": "unapproved"
+      },
+      "required_decision_evidence": "separately scoped written provider/counsel determination before any new data retention, aggregate publication or source activation"
+    },
+    {
+      "id": "sp_dji_sp500",
+      "display_name": "S&P Dow Jones Indices / S&P 500",
+      "relationship": "index_owner",
+      "present_in_legacy_five_provider_receipt": true,
+      "source_queue_id": "sp_dji_sp500",
+      "current_status": "pending_written_permission",
+      "specific_signed_rights_disposition_received": false,
+      "evidence_review_owner_status": "pending_counsel_or_provider_confirmation",
+      "fields": {
+        "commercial_internal_retrieval": "unapproved",
+        "transient_computation": "unapproved",
+        "private_evidence_retention": "unapproved",
+        "public_aggregate_distribution": "unapproved",
+        "public_component_distribution": "unapproved",
+        "historical_archive_treatment": "unapproved",
+        "source_naming_attribution": "unapproved",
+        "automated_access_and_delivery": "unapproved"
+      },
+      "required_decision_evidence": "separately scoped written provider/counsel determination before any new data retention, aggregate publication or source activation"
+    },
+    {
+      "id": "cboe_vix",
+      "display_name": "Cboe Global Indices / VIX",
+      "relationship": "index_owner",
+      "present_in_legacy_five_provider_receipt": true,
+      "source_queue_id": "cboe_vix",
+      "current_status": "pending_written_permission",
+      "specific_signed_rights_disposition_received": false,
+      "evidence_review_owner_status": "pending_counsel_or_provider_confirmation",
+      "fields": {
+        "commercial_internal_retrieval": "unapproved",
+        "transient_computation": "unapproved",
+        "private_evidence_retention": "unapproved",
+        "public_aggregate_distribution": "unapproved",
+        "public_component_distribution": "unapproved",
+        "historical_archive_treatment": "unapproved",
+        "source_naming_attribution": "unapproved",
+        "automated_access_and_delivery": "unapproved"
+      },
+      "required_decision_evidence": "separately scoped written provider/counsel determination before any new data retention, aggregate publication or source activation"
+    },
+    {
+      "id": "cme_wti_gold",
+      "display_name": "CME Group / WTI and Gold futures",
+      "relationship": "market_data_owner",
+      "present_in_legacy_five_provider_receipt": true,
+      "source_queue_id": "cme_wti_gold",
+      "current_status": "pending_written_permission",
+      "specific_signed_rights_disposition_received": false,
+      "evidence_review_owner_status": "pending_counsel_or_provider_confirmation",
+      "fields": {
+        "commercial_internal_retrieval": "unapproved",
+        "transient_computation": "unapproved",
+        "private_evidence_retention": "unapproved",
+        "public_aggregate_distribution": "unapproved",
+        "public_component_distribution": "unapproved",
+        "historical_archive_treatment": "unapproved",
+        "source_naming_attribution": "unapproved",
+        "automated_access_and_delivery": "unapproved"
+      },
+      "required_decision_evidence": "separately scoped written provider/counsel determination before any new data retention, aggregate publication or source activation"
+    },
+    {
+      "id": "ice_usdx",
+      "display_name": "ICE U.S. Dollar Index / DXY",
+      "relationship": "index_owner",
+      "present_in_legacy_five_provider_receipt": false,
+      "source_queue_id": "ice_usdx",
+      "current_status": "pending_written_permission",
+      "specific_signed_rights_disposition_received": false,
+      "evidence_review_owner_status": "pending_counsel_or_provider_confirmation",
+      "fields": {
+        "commercial_internal_retrieval": "unapproved",
+        "transient_computation": "unapproved",
+        "private_evidence_retention": "unapproved",
+        "public_aggregate_distribution": "unapproved",
+        "public_component_distribution": "unapproved",
+        "historical_archive_treatment": "unapproved",
+        "source_naming_attribution": "unapproved",
+        "automated_access_and_delivery": "unapproved"
+      },
+      "required_decision_evidence": "separately scoped written provider/counsel determination before any new data retention, aggregate publication or source activation"
+    },
+    {
+      "id": "treasury_h15_direct",
+      "display_name": "U.S. Treasury / Federal Reserve H.15 direct published outputs",
+      "relationship": "direct_source_and_republisher",
+      "present_in_legacy_five_provider_receipt": false,
+      "source_queue_id": "treasury_h15_direct",
+      "current_status": "pending_written_permission",
+      "specific_signed_rights_disposition_received": false,
+      "evidence_review_owner_status": "pending_counsel_or_provider_confirmation",
+      "fields": {
+        "commercial_internal_retrieval": "unapproved",
+        "transient_computation": "unapproved",
+        "private_evidence_retention": "unapproved",
+        "public_aggregate_distribution": "unapproved",
+        "public_component_distribution": "unapproved",
+        "historical_archive_treatment": "unapproved",
+        "source_naming_attribution": "unapproved",
+        "automated_access_and_delivery": "unapproved"
+      },
+      "required_decision_evidence": "separately scoped written provider/counsel determination before any new data retention, aggregate publication or source activation"
+    }
+  ],
+  "field_rights_dimensions": [
+    "commercial_internal_retrieval",
+    "transient_computation",
+    "private_evidence_retention",
+    "public_aggregate_distribution",
+    "public_component_distribution",
+    "historical_archive_treatment",
+    "source_naming_attribution",
+    "automated_access_and_delivery"
+  ],
+  "public_surface": {
+    "class_source": "governance/score-public-rights-surface.json",
+    "classes": [
+      "A",
+      "B",
+      "C",
+      "D",
+      "E",
+      "F"
+    ],
+    "class_status": {
+      "A": "pending_authority_review",
+      "B": "pending_authority_review",
+      "C": "pending_authority_review",
+      "D": "pending_authority_review",
+      "E": "pending_authority_review",
+      "F": "pending_authority_review"
+    },
+    "current_tree_inventory": "governance/score-current-tree-exposure-inventory-2026-10-29.json",
+    "historical_metadata_inventory_classC_files": 54,
+    "historical_metadata_inventory_dated_dirs": 27,
+    "public_aggregate_schema_prototype": "schemas/score_public_safe.schema.json",
+    "public_aggregate_schema_approved": false,
+    "private_real_provider_evidence_retention_approved": false,
+    "historical_git_pages_cdn_and_external_copies_disposition_approved": false,
+    "content_files_or_provider_values_read_for_this_register": false,
+    "historical_counts_are_repository_metadata_not_verified_live_exposure": true
+  },
+  "zero_paid_license_alternatives": {
+    "reference": "governance/score-zero-license-phase-a-feasibility-2026-10-29.json",
+    "all_eight_driver_equivalent_rights_safe_replacement_proven": false,
+    "four_signal_alternative_is_new_model_only": true,
+    "original_617_week_series_cannot_be_presumed_comparable": true,
+    "source_parity_verified": false,
+    "new_model_adopted": false
+  },
+  "communications": {
+    "provider_mailbox_status_reconciled_read_only": true,
+    "affirmative_new_publication_permission_found": false,
+    "last_known_fred_response": "conditional_public_domain_transient_use_with_citation_and_disposal_not_retention",
+    "S_and_P_referral_pending": true,
+    "Cboe_no_cost_question_pending": true,
+    "avoid_duplicate_outreach": true,
+    "outreach_email_sent_by_this_work": false,
+    "subscription_or_purchase_authorized": false,
+    "personal_contact_details_persisted": false
+  },
+  "release_readiness": {
+    "seven_provider_coverage_completed_in_inventory": true,
+    "seven_provider_written_decisions_completed": false,
+    "class_A_to_F_dispositions_completed": false,
+    "historic_archive_preservation_approved": false,
+    "current_public_aggregate_legal_basis_approved": false,
+    "member_and_research_consumer_migration_approved": false,
+    "private_storage_of_real_data_approved": false,
+    "separate_production_release_approved": false,
+    "publish_or_rewrite_existing_score": false
+  },
+  "authorizations": {
+    "live_source_GET_or_HEAD": false,
+    "source_switch": false,
+    "provider_mail_outreach": false,
+    "paid_license_purchase": false,
+    "real_provider_evidence_retention": false,
+    "source_derived_aggregate_publication": false,
+    "component_derived_publication": false,
+    "public_aggregate_schema_activation": false,
+    "public_archive_delete_or_rewrite": false,
+    "Git_history_rewrite": false,
+    "CDN_or_Pages_purge": false,
+    "member_page_or_website_change": false,
+    "public_artifact_replacement": false,
+    "research_ledger_mutation": false,
+    "production_deployment": false,
+    "rights_gate_state_change": false
+  },
+  "result": "INCOMPLETE_RIGHTS_DISPOSITIONS_HOLD",
+  "next_external_hinge": "Written provider/counsel decision for 7 source/transport relationships and A-F field classes, plus explicit historical preservation and Production release plan."
+}
