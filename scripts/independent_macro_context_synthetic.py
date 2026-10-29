@@ -149,7 +149,7 @@ class SyntheticContextPanel:
             raise ValueError("synthetic context panel cannot grant real-data or publication rights")
         if self.panel_id != PANEL_ID or self.fixture_marker != SYNTHETIC_MARKER:
             raise ValueError("unrecognized synthetic panel")
-        if self.status not in {"SYNTHETIC_ONLY_HOLD", "SYNTHETIC_ONLY_COMPLETE"}:
+        if type(self.status) is not str or self.status not in {"SYNTHETIC_ONLY_HOLD", "SYNTHETIC_ONLY_COMPLETE"}:
             raise ValueError("invalid synthetic-only state")
 
         current = _canonical_synthetic_friday(self.reference_week)
@@ -168,14 +168,15 @@ class SyntheticContextPanel:
             if self.blockers or len(self.dial_labels) != len(DIALS):
                 raise ValueError("complete synthetic preview requires four labels and no blockers")
             for (name, label), expected_name in zip(self.dial_labels, DIALS):
-                if name != expected_name or type(label) is not str or label not in DIAL_LABEL_VALUES[expected_name]:
+                if type(name) is not str or name != expected_name or type(label) is not str or label not in DIAL_LABEL_VALUES[expected_name]:
                     raise ValueError("unrecognized synthetic preview label or dial order")
         else:
             if self.dial_labels or not self.blockers:
                 raise ValueError("synthetic HOLD must have blockers and no labels")
             allowed_weeks = frozenset((self.reference_week, self.previous_week))
             if (
-                self.blockers != tuple(sorted(set(self.blockers)))
+                any(type(item) is not str for item in self.blockers)
+                or self.blockers != tuple(sorted(set(self.blockers)))
                 or not all(_valid_panel_blocker(item, allowed_weeks) for item in self.blockers)
             ):
                 raise ValueError("synthetic HOLD contains invalid or unscoped blockers")
