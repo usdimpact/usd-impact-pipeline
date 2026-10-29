@@ -137,7 +137,7 @@ def evaluate_policy(raw: Any) -> dict[str, Any]:
 def load_policy(path: Path) -> dict[str, Any]:
     try:
         raw = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
+    except (OSError, UnicodeError, json.JSONDecodeError):
         return evaluate_policy(None)
     return evaluate_policy(raw)
 
