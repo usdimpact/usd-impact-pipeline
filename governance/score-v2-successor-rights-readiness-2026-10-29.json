@@ -1,0 +1,555 @@
+{
+  "schema_version": "score-v2-rights-successor-readiness-draft-v0",
+  "recorded_date": "2026-10-29",
+  "state": "DRAFT_ONLY_HOLD_NO_RUNTIME",
+  "scope": "Legacy eight-driver USD Impact Score v2 source/transport rights and already-distributed public derivative artifacts; NOT distinct four-signal government macro study",
+  "controlling_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
+  "related_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/282",
+  "created_against_main": "4fa72d2e147de2e98c59690b6a24019f25be41f2",
+  "active_policy_path": "governance/score-publication-rights-gate.json",
+  "active_policy_expected_state": "hold",
+  "active_legacy_v1_policy_version": 1,
+  "future_positive_release_contract_exists": false,
+  "new_live_release_mechanism_enabled": false,
+  "provider_queue_source": "governance/score-provider-rights-followup-queue-2026-10-29.json",
+  "prior_seven_coverage_source": "governance/score-rights-seven-provider-coverage-2026-10-29.json",
+  "frozen_model_source_path": "usd_impact_score_v2.py",
+  "input_count": 8,
+  "active_inputs": [
+    {
+      "driver": "DXY",
+      "transport": "yahoo",
+      "ticker": "DX-Y.NYB",
+      "source_relationship_ids": [
+        "yahoo_delivery",
+        "ice_usdx"
+      ],
+      "original_model_preserved": true,
+      "live_source_change_authorized": false
+    },
+    {
+      "driver": "WTI",
+      "transport": "yahoo",
+      "ticker": "CL=F",
+      "source_relationship_ids": [
+        "yahoo_delivery",
+        "cme_wti_gold"
+      ],
+      "original_model_preserved": true,
+      "live_source_change_authorized": false
+    },
+    {
+      "driver": "SPX",
+      "transport": "yahoo",
+      "ticker": "^GSPC",
+      "source_relationship_ids": [
+        "yahoo_delivery",
+        "sp_dji_sp500"
+      ],
+      "original_model_preserved": true,
+      "live_source_change_authorized": false
+    },
+    {
+      "driver": "VIX",
+      "transport": "yahoo",
+      "ticker": "^VIX",
+      "source_relationship_ids": [
+        "yahoo_delivery",
+        "cboe_vix"
+      ],
+      "original_model_preserved": true,
+      "live_source_change_authorized": false
+    },
+    {
+      "driver": "BTC",
+      "transport": "yahoo",
+      "ticker": "BTC-USD",
+      "source_relationship_ids": [
+        "yahoo_delivery",
+        "btc_usd_historical_price_origin"
+      ],
+      "original_model_preserved": true,
+      "live_source_change_authorized": false
+    },
+    {
+      "driver": "GOLD",
+      "transport": "yahoo",
+      "ticker": "GC=F",
+      "source_relationship_ids": [
+        "yahoo_delivery",
+        "cme_wti_gold"
+      ],
+      "original_model_preserved": true,
+      "live_source_change_authorized": false
+    },
+    {
+      "driver": "UST_2Y",
+      "transport": "fred",
+      "ticker": "DGS2",
+      "source_relationship_ids": [
+        "fred_dgs2_dgs10",
+        "treasury_h15_direct"
+      ],
+      "original_model_preserved": true,
+      "live_source_change_authorized": false
+    },
+    {
+      "driver": "UST_10Y",
+      "transport": "fred",
+      "ticker": "DGS10",
+      "source_relationship_ids": [
+        "fred_dgs2_dgs10",
+        "treasury_h15_direct"
+      ],
+      "original_model_preserved": true,
+      "live_source_change_authorized": false
+    }
+  ],
+  "relationship_count": 8,
+  "relationships": [
+    {
+      "id": "fred_dgs2_dgs10",
+      "display_label": "FRED DGS2/DGS10 delivery",
+      "role": "published_series_transport",
+      "matched_to_earlier_seven_queue": true,
+      "owner_identity_proved_for_exact_historical_values": false,
+      "binding_executed_license_or_counsel_disposition_found": false,
+      "effective_written_rights_reference": null,
+      "rights": {
+        "commercial_internal_ingestion": false,
+        "commercial_non_display_transformation": false,
+        "transient_processing": false,
+        "provider_content_retention": false,
+        "observations_archival": false,
+        "logs_and_cache_retention": false,
+        "backup_and_disaster_recovery_retention": false,
+        "revision_vintage_receipt_retention": false,
+        "public_aggregate_distribution": false,
+        "public_component_distribution": false,
+        "public_history_distribution": false,
+        "ai_ml_processing": false,
+        "downstream_redistribution": false,
+        "live_source_retrieval": false,
+        "source_attribution_and_trademark": false,
+        "automated_delivery": false
+      },
+      "status": "limited_public_domain_tagged_transient_conditional_not_release"
+    },
+    {
+      "id": "yahoo_delivery",
+      "display_label": "Yahoo Finance/yfinance historical delivery",
+      "role": "delivery_transport",
+      "matched_to_earlier_seven_queue": true,
+      "owner_identity_proved_for_exact_historical_values": false,
+      "binding_executed_license_or_counsel_disposition_found": false,
+      "effective_written_rights_reference": null,
+      "rights": {
+        "commercial_internal_ingestion": false,
+        "commercial_non_display_transformation": false,
+        "transient_processing": false,
+        "provider_content_retention": false,
+        "observations_archival": false,
+        "logs_and_cache_retention": false,
+        "backup_and_disaster_recovery_retention": false,
+        "revision_vintage_receipt_retention": false,
+        "public_aggregate_distribution": false,
+        "public_component_distribution": false,
+        "public_history_distribution": false,
+        "ai_ml_processing": false,
+        "downstream_redistribution": false,
+        "live_source_retrieval": false,
+        "source_attribution_and_trademark": false,
+        "automated_delivery": false
+      },
+      "status": "unresolved"
+    },
+    {
+      "id": "sp_dji_sp500",
+      "display_label": "S&P Dow Jones Indices S&P 500",
+      "role": "index_owner",
+      "matched_to_earlier_seven_queue": true,
+      "owner_identity_proved_for_exact_historical_values": false,
+      "binding_executed_license_or_counsel_disposition_found": false,
+      "effective_written_rights_reference": null,
+      "rights": {
+        "commercial_internal_ingestion": false,
+        "commercial_non_display_transformation": false,
+        "transient_processing": false,
+        "provider_content_retention": false,
+        "observations_archival": false,
+        "logs_and_cache_retention": false,
+        "backup_and_disaster_recovery_retention": false,
+        "revision_vintage_receipt_retention": false,
+        "public_aggregate_distribution": false,
+        "public_component_distribution": false,
+        "public_history_distribution": false,
+        "ai_ml_processing": false,
+        "downstream_redistribution": false,
+        "live_source_retrieval": false,
+        "source_attribution_and_trademark": false,
+        "automated_delivery": false
+      },
+      "status": "unresolved"
+    },
+    {
+      "id": "cboe_vix",
+      "display_label": "Cboe VIX",
+      "role": "index_owner",
+      "matched_to_earlier_seven_queue": true,
+      "owner_identity_proved_for_exact_historical_values": false,
+      "binding_executed_license_or_counsel_disposition_found": false,
+      "effective_written_rights_reference": null,
+      "rights": {
+        "commercial_internal_ingestion": false,
+        "commercial_non_display_transformation": false,
+        "transient_processing": false,
+        "provider_content_retention": false,
+        "observations_archival": false,
+        "logs_and_cache_retention": false,
+        "backup_and_disaster_recovery_retention": false,
+        "revision_vintage_receipt_retention": false,
+        "public_aggregate_distribution": false,
+        "public_component_distribution": false,
+        "public_history_distribution": false,
+        "ai_ml_processing": false,
+        "downstream_redistribution": false,
+        "live_source_retrieval": false,
+        "source_attribution_and_trademark": false,
+        "automated_delivery": false
+      },
+      "status": "unresolved"
+    },
+    {
+      "id": "cme_wti_gold",
+      "display_label": "CME WTI and gold futures",
+      "role": "futures_owner",
+      "matched_to_earlier_seven_queue": true,
+      "owner_identity_proved_for_exact_historical_values": false,
+      "binding_executed_license_or_counsel_disposition_found": false,
+      "effective_written_rights_reference": null,
+      "rights": {
+        "commercial_internal_ingestion": false,
+        "commercial_non_display_transformation": false,
+        "transient_processing": false,
+        "provider_content_retention": false,
+        "observations_archival": false,
+        "logs_and_cache_retention": false,
+        "backup_and_disaster_recovery_retention": false,
+        "revision_vintage_receipt_retention": false,
+        "public_aggregate_distribution": false,
+        "public_component_distribution": false,
+        "public_history_distribution": false,
+        "ai_ml_processing": false,
+        "downstream_redistribution": false,
+        "live_source_retrieval": false,
+        "source_attribution_and_trademark": false,
+        "automated_delivery": false
+      },
+      "status": "unresolved"
+    },
+    {
+      "id": "ice_usdx",
+      "display_label": "ICE USDX",
+      "role": "index_owner",
+      "matched_to_earlier_seven_queue": true,
+      "owner_identity_proved_for_exact_historical_values": false,
+      "binding_executed_license_or_counsel_disposition_found": false,
+      "effective_written_rights_reference": null,
+      "rights": {
+        "commercial_internal_ingestion": false,
+        "commercial_non_display_transformation": false,
+        "transient_processing": false,
+        "provider_content_retention": false,
+        "observations_archival": false,
+        "logs_and_cache_retention": false,
+        "backup_and_disaster_recovery_retention": false,
+        "revision_vintage_receipt_retention": false,
+        "public_aggregate_distribution": false,
+        "public_component_distribution": false,
+        "public_history_distribution": false,
+        "ai_ml_processing": false,
+        "downstream_redistribution": false,
+        "live_source_retrieval": false,
+        "source_attribution_and_trademark": false,
+        "automated_delivery": false
+      },
+      "status": "unresolved"
+    },
+    {
+      "id": "treasury_h15_direct",
+      "display_label": "U.S. Treasury/Board H.15 yield-source lineage",
+      "role": "underlying_source_and_republisher",
+      "matched_to_earlier_seven_queue": true,
+      "owner_identity_proved_for_exact_historical_values": false,
+      "binding_executed_license_or_counsel_disposition_found": false,
+      "effective_written_rights_reference": null,
+      "rights": {
+        "commercial_internal_ingestion": false,
+        "commercial_non_display_transformation": false,
+        "transient_processing": false,
+        "provider_content_retention": false,
+        "observations_archival": false,
+        "logs_and_cache_retention": false,
+        "backup_and_disaster_recovery_retention": false,
+        "revision_vintage_receipt_retention": false,
+        "public_aggregate_distribution": false,
+        "public_component_distribution": false,
+        "public_history_distribution": false,
+        "ai_ml_processing": false,
+        "downstream_redistribution": false,
+        "live_source_retrieval": false,
+        "source_attribution_and_trademark": false,
+        "automated_delivery": false
+      },
+      "status": "unresolved"
+    },
+    {
+      "id": "btc_usd_historical_price_origin",
+      "display_label": "Yahoo BTC-USD historical OHLC underlying source",
+      "role": "unverified_data_origin",
+      "matched_to_earlier_seven_queue": false,
+      "owner_identity_proved_for_exact_historical_values": false,
+      "binding_executed_license_or_counsel_disposition_found": false,
+      "effective_written_rights_reference": null,
+      "rights": {
+        "commercial_internal_ingestion": false,
+        "commercial_non_display_transformation": false,
+        "transient_processing": false,
+        "provider_content_retention": false,
+        "observations_archival": false,
+        "logs_and_cache_retention": false,
+        "backup_and_disaster_recovery_retention": false,
+        "revision_vintage_receipt_retention": false,
+        "public_aggregate_distribution": false,
+        "public_component_distribution": false,
+        "public_history_distribution": false,
+        "ai_ml_processing": false,
+        "downstream_redistribution": false,
+        "live_source_retrieval": false,
+        "source_attribution_and_trademark": false,
+        "automated_delivery": false
+      },
+      "status": "unresolved"
+    }
+  ],
+  "permission_dimensions": [
+    "commercial_internal_ingestion",
+    "commercial_non_display_transformation",
+    "transient_processing",
+    "provider_content_retention",
+    "observations_archival",
+    "logs_and_cache_retention",
+    "backup_and_disaster_recovery_retention",
+    "revision_vintage_receipt_retention",
+    "public_aggregate_distribution",
+    "public_component_distribution",
+    "public_history_distribution",
+    "ai_ml_processing",
+    "downstream_redistribution",
+    "live_source_retrieval",
+    "source_attribution_and_trademark",
+    "automated_delivery"
+  ],
+  "btc_provenance_caveat": {
+    "driver": "BTC",
+    "ticker": "BTC-USD",
+    "relationship_id": "btc_usd_historical_price_origin",
+    "historical_OHLC_underlying_owner_identified": false,
+    "exact_historical_close_calculation_and_data_lineage_verified": false,
+    "coinmarketcap_yahoo_partnership_official_public_evidence": true,
+    "partnership_is_not_legacy_OHLC_ownership_or_usd_impact_license": true,
+    "public_evidence_links": [
+      "https://coinmarketcap.com/academy/article/how-yahoo-finance-powers-its-crypto-data-with-coinmarketcap-api",
+      "https://help.yahoo.com/kb/SLN2310.html",
+      "https://coinmarketcap.com/terms/",
+      "https://coinmarketcap.com/api/pricing/",
+      "https://pro.coinmarketcap.com/user-agreement-commercial/"
+    ],
+    "free_or_paid_CMC_API_is_not_approval_for_yahoo_delivered_historical_OHLC": true,
+    "rights_decision_pending": true
+  },
+  "publication_classes": [
+    {
+      "id": "A",
+      "rights_decision": "pending",
+      "historical_archive_treatment": "pending",
+      "aggregate_safe_transform_not_legal_clearance": true
+    },
+    {
+      "id": "B",
+      "rights_decision": "pending",
+      "historical_archive_treatment": "pending",
+      "aggregate_safe_transform_not_legal_clearance": true
+    },
+    {
+      "id": "C",
+      "rights_decision": "pending",
+      "historical_archive_treatment": "pending",
+      "aggregate_safe_transform_not_legal_clearance": true
+    },
+    {
+      "id": "D",
+      "rights_decision": "pending",
+      "historical_archive_treatment": "pending",
+      "aggregate_safe_transform_not_legal_clearance": true
+    },
+    {
+      "id": "E",
+      "rights_decision": "pending",
+      "historical_archive_treatment": "pending",
+      "aggregate_safe_transform_not_legal_clearance": true
+    },
+    {
+      "id": "F",
+      "rights_decision": "pending",
+      "historical_archive_treatment": "pending",
+      "aggregate_safe_transform_not_legal_clearance": true
+    }
+  ],
+  "historical_snapshot": {
+    "source": "governance/score-current-tree-exposure-inventory-2026-10-29.json",
+    "current_tree_class_C_file_count": 54,
+    "dated_archive_directory_count": 27,
+    "scope": "current_Git_paths_only_not_live_endpoint_or_historical_access_proof",
+    "preservation_surfaces": [
+      {
+        "id": "current_public_git_tree",
+        "rights_review_complete": false,
+        "disposition": "not_approved",
+        "remediation_authorized": false
+      },
+      {
+        "id": "historical_git_commits_and_clones",
+        "rights_review_complete": false,
+        "disposition": "not_approved",
+        "remediation_authorized": false
+      },
+      {
+        "id": "cloudflare_pages_production_deployments",
+        "rights_review_complete": false,
+        "disposition": "not_approved",
+        "remediation_authorized": false
+      },
+      {
+        "id": "cloudflare_pages_preview_deployments",
+        "rights_review_complete": false,
+        "disposition": "not_approved",
+        "remediation_authorized": false
+      },
+      {
+        "id": "cloudflare_cdn_and_edge_caches",
+        "rights_review_complete": false,
+        "disposition": "not_approved",
+        "remediation_authorized": false
+      },
+      {
+        "id": "github_actions_logs_artifacts_and_caches",
+        "rights_review_complete": false,
+        "disposition": "not_approved",
+        "remediation_authorized": false
+      },
+      {
+        "id": "off_platform_backups_and_external_copies",
+        "rights_review_complete": false,
+        "disposition": "not_approved",
+        "remediation_authorized": false
+      }
+    ],
+    "deletion_or_history_rewrite_authorized": false,
+    "real_provider_copy_to_private_storage_authorized": false
+  },
+  "consumer_migration": [
+    {
+      "id": "weekly_score_generation",
+      "compatibility_approved": false,
+      "cutover_authorized": false
+    },
+    {
+      "id": "score_v2_predictive_ingestion",
+      "compatibility_approved": false,
+      "cutover_authorized": false
+    },
+    {
+      "id": "score_v3_shadow_ingestion",
+      "compatibility_approved": false,
+      "cutover_authorized": false
+    },
+    {
+      "id": "research_validation_and_vintage",
+      "compatibility_approved": false,
+      "cutover_authorized": false
+    },
+    {
+      "id": "independent_reproduction_and_attestation",
+      "compatibility_approved": false,
+      "cutover_authorized": false
+    },
+    {
+      "id": "website_methodology_public_links",
+      "compatibility_approved": false,
+      "cutover_authorized": false
+    },
+    {
+      "id": "member_dashboard_and_archive_routes",
+      "compatibility_approved": false,
+      "cutover_authorized": false
+    }
+  ],
+  "S_and_P_vendor_followup": {
+    "existing_case_status": "provider_offered_week_of_2026_11_02_discussion",
+    "commercial_or_derived_publication_license_granted": false,
+    "user_availability_confirmed": false,
+    "outbound_reply_sent_by_this_work": false,
+    "meeting_invitation_or_booking_created": false,
+    "no_duplicate_case": true,
+    "personal_correspondence_or_contact_details_included": false
+  },
+  "related_research": {
+    "phase_A": "governance/score-zero-license-phase-a-feasibility-2026-10-29.json",
+    "four_source_study": "governance/score-four-source-exact-series-rights-matrix-2026-10-29.json",
+    "like_for_like_eight_source_zero_cost_parity_cleared": false,
+    "four_source_study_is_distinct_model_only": true,
+    "automated_source_substitution_approved": false,
+    "current_617_week_history_may_be_spliced": false
+  },
+  "external_authority_gates": {
+    "complete_source_and_transport_authorities": false,
+    "rights_for_aggregate_publication": false,
+    "rights_for_components_and_research_publication": false,
+    "rights_for_commercial_internal_use": false,
+    "rights_for_retention_or_required_disposal": false,
+    "lawful_historical_archive_disposition": false,
+    "approved_public_artifact_schema": false,
+    "approved_private_real_evidence_boundary": false,
+    "research_and_site_consumer_migration": false,
+    "verified_nonproduction_preview": false,
+    "exact_head_release_ci": false,
+    "separate_owner_production_receipt": false
+  },
+  "decision": {
+    "status": "HOLD_NO_RELEASE",
+    "authority": null,
+    "decision_at": null,
+    "counsel_or_provider_rights_receipt": null,
+    "owner_production_release_receipt": null,
+    "approved_public_schema": null,
+    "approved_historical_treatment": null,
+    "proposed_future_policy_protocol": "separate_explicitly_reviewed_v2_contract_not_implemented_here"
+  },
+  "authorizations": {
+    "provider_get_or_head": false,
+    "new_provider_outreach": false,
+    "new_licenses_or_purchases": false,
+    "live_or_historical_real_data_fetch": false,
+    "commercial_public_derived_release": false,
+    "public_component_or_history_release": false,
+    "source_formula_or_weight_change": false,
+    "site_member_or_research_consumer_change": false,
+    "real_provider_evidence_storage": false,
+    "historical_archive_rewrite_or_purge": false,
+    "cloudflare_pages_or_cdn_change": false,
+    "production_or_publication_activation": false,
+    "legacy_v1_policy_change": false
+  },
+  "next_human_boundary": "Resolve S&P meeting availability and collect provider/counsel decisions, including BTC-USD original historical OHLC source, before proposing separately approved active v2 release contract. No provider contact or Production action has been authorized by this register."
+}
