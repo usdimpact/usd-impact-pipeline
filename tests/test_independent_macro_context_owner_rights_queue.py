@@ -124,6 +124,8 @@ EXPECTED_SOURCE_IDENTITIES = {
     "fed_h10_nominal_broad": (
         "Federal Reserve Board", "H10/H10/JRXWTFB_N.B",
         "DOCUMENTED_WITH_2019_SEMANTIC_BREAK",
+        "H.10 nominal Broad Dollar Index",
+        "Nominal trade-weighted Broad Dollar Index (not ICE DXY)",
         (
             "https://www.federalreserve.gov/disclaimer.htm",
             "https://www.federalreserve.gov/releases/h10/h10_technical_qa.htm",
@@ -133,6 +135,8 @@ EXPECTED_SOURCE_IDENTITIES = {
     "eia_crude_stocks_weekly": (
         "U.S. Energy Information Administration", "WCESTUS1",
         "DOCUMENTED_LABEL_ONLY_CROSS_SERIES_PARITY_UNVERIFIED",
+        "EIA weekly crude stocks excluding SPR",
+        "Weekly commercial U.S. crude inventories excluding SPR; NOT WTI or futures",
         (
             "https://www.eia.gov/about/copyrights_reuse.php",
             "https://www.eia.gov/about/privacy_security_policy.php",
@@ -143,6 +147,8 @@ EXPECTED_SOURCE_IDENTITIES = {
         "U.S. Department of the Treasury",
         "BC_2YEAR (official historical XML illustration)",
         "STATIC_SCHEMA_VERIFIED_LIVE_FIELD_AND_SERIES_ID_UNVERIFIED",
+        "Treasury 2Y nominal par",
+        "2Y nominal par constant-maturity yield, not FRED DGS2 transport",
         (
             "https://home.treasury.gov/treasury-daily-interest-rate-xml-feed",
             "https://catalog.data.gov/dataset/interest-rate-statistics-daily-treasury-yield-curve-rates",
@@ -153,6 +159,8 @@ EXPECTED_SOURCE_IDENTITIES = {
         "U.S. Department of the Treasury",
         "BC_10YEAR (official historical XML illustration)",
         "STATIC_SCHEMA_VERIFIED_LIVE_FIELD_AND_SERIES_ID_UNVERIFIED",
+        "Treasury 10Y nominal par",
+        "10Y nominal par constant-maturity yield, not FRED DGS10 transport",
         (
             "https://home.treasury.gov/treasury-daily-interest-rate-xml-feed",
             "https://catalog.data.gov/dataset/interest-rate-statistics-daily-treasury-yield-curve-rates",
@@ -200,6 +208,8 @@ def check_queue_unapproved(queue: dict) -> None:
             source["original_publisher"],
             source["publisher_series_or_table"],
             source["publisher_identifier_status"],
+            source["display_name"],
+            source["role"],
             tuple(source["publisher_terms"]),
         ) == expected
     for owner_choice in queue["owner_decision_prompts"].values():
@@ -472,6 +482,8 @@ class MacroContextCounselOwnerQueueTests(unittest.TestCase):
         mutations = (
             (0, "publisher_series_or_table", "DXY_INDEX"),
             (0, "publisher_identifier_status", "LIVE_FULLY_RIGHTS_CLEARED"),
+            (1, "role", "WTI futures closing prices"),
+            (2, "display_name", "FRED DGS2 official value"),
             (1, "publisher_series_or_table", "WTI_SPOT_PRICE"),
             (2, "publisher_series_or_table", "FRED_DGS2"),
             (3, "original_publisher", "FRED"),
