@@ -14,6 +14,10 @@ on:
       - 'docs/research/score-v2-1f-wpu0561-v15-methodology-decision-packet.md'
       - 'scripts/score_v2_1f_wpu0561_v15_methodology_guard.py'
       - 'tests/test_score_v2_1f_wpu0561_v15_methodology.py'
+      - 'governance/score-v2-1f-wpu0561-v16-owner-option-a-decision.json'
+      - 'docs/research/score-v2-1f-wpu0561-v16-option-a-owner-decision.md'
+      - 'scripts/score_v2_1f_wpu0561_v16_option_a_guard.py'
+      - 'tests/test_score_v2_1f_wpu0561_v16_option_a.py'
       - 'governance/score-v2-1f-bls-wpu0561-pdf-structural-preflight-v11-design.json'
       - 'scripts/validate_score_v2_1f_wpu0561_pdf_v11.py'
       - 'tests/test_score_v2_1f_wpu0561_pdf_v11.py'
@@ -66,6 +70,12 @@ jobs:
           set -euo pipefail
           python3 -m unittest discover -s tests -p 'test_score_v2_1f_wpu0561_v15_methodology.py' -v
           python3 -m scripts.score_v2_1f_wpu0561_v15_methodology_guard
+
+      - name: Verify dated v16 owner Option A closure and 42 refusal cases (offline only)
+        run: |
+          set -euo pipefail
+          python3 -m unittest discover -s tests -p 'test_score_v2_1f_wpu0561_v16_option_a.py' -v
+          python3 -m scripts.score_v2_1f_wpu0561_v16_option_a_guard
 
       - name: Verify pinned v9 governance state and rehearsal without remote writes
         run: python3 scripts/validate_score_v2_1f_wpu0561_recovery.py --verify-git --drill
