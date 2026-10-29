@@ -160,6 +160,8 @@ class SyntheticContextPanel:
             raise ValueError("synthetic dial labels must be a tuple")
         if not isinstance(self.blockers, tuple) or len(self.blockers) > 32:
             raise ValueError("synthetic blockers must be a bounded tuple")
+        if not all(isinstance(item, str) for item in self.blockers):
+            raise ValueError("synthetic blocker codes must be strings")
         if self.blockers != tuple(sorted(set(self.blockers))):
             raise ValueError("synthetic blockers must be unique and sorted")
         weeks = {self.previous_week, self.reference_week}
