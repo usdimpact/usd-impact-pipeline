@@ -28,7 +28,7 @@ Primary metadata-only evidence:
 
 The two sources in (1) and (2) establish only publication and table purpose, NOT that an April 2026 original-release WPU0561 index-level row is present in the PDF. The archived release in (3) is dating/provenance context only, NOT an automatic data fallback.
 
-**Exact PDF resource URL:** unresolved and not preregistered. The official archived index entry is a human-readable locator, not authorization to download. Do not infer a URL from the XLSX filename or another month's PDF.
+**Exact PDF href in the archive listing (metadata-only):** https://www.bls.gov/ppi/detailed-report/ppi-detailed-report-april-2026.pdf. The href was extracted from the *official April 2026 PDF anchor* in the BLS HTML archive listing without following the PDF link. This verifies link metadata only, not HTTP availability, contents, a cryptographic digest, or original-release vintage. The PDF has **not** been downloaded or parsed and remains unauthorized as a data source.
 
 **Candidate document fetched/parsed during this proposal:** NO.  
 **PDF field/header observed:** NO.  
@@ -95,7 +95,7 @@ Metadata evidence distinctions:
 | BLS April 2026 PPI release was dated May 13, 2026 | Yes, archived news release | No |
 | BLS defines Table 9 as a detailed commodity/service index table | Yes, table directory | No |
 | An **earlier March 2026 PDF** Table 9 exposes unadjusted index columns | Search-indexed example only: https://www.bls.gov/ppi/detailed-report/ppi-detailed-report-march-2026.pdf | No — other month |
-| Exact April 2026 PDF href and first-release immutability | Not established | No |
+| Exact April 2026 PDF href / first-release immutability | BLS HTML href now established; original-release immutability NOT established | No |
 | The specific April Table 9 WPU0561 direct-commodity row exists | Not established | No |
 | Matching historical-vintage unadjusted level exists and is comparable to 2013 | Not established | No |
 
@@ -124,8 +124,8 @@ The numbered adversarial cases and their required HOLD outcomes are maintained i
 | Stage | Intended work | Current state | New separate approval required? |
 | --- | --- | --- | --- |
 | S0 | Record published metadata and design candidate without fetching PDF | Completed as proposal | No live access |
-| S1 | Owner decides whether one official April 2026 archived PDF may enter a new methodology design | **HOLD** | **Yes — methodology change only** |
-| S2 | Register the exact immutable BLS PDF URL, method, parser bounds and first-release provenance | **HOLD** | Yes — new contract/design review |
+| S1 | Owner permits candidate-specific PDF methodology DESIGN, not adoption or retrieval | **DESIGN-ONLY APPROVED 2026-10-29** | No live request or source-adoption approval |
+| S2 | Validate the archive-linked PDF provenance, original-release identity and parser bounds; preregister any new execution contract | **HOLD** | Yes — separately reviewed contract and exact-resource gate |
 | S3 | Run one bounded structural-only preflight under explicit activation/dispatch/consumption lifecycle | **NOT AUTHORIZED** | Yes — one-off live preflight |
 | S4 | Verify source-code/series identity and later any economic level | **NOT AUTHORIZED** | Yes — independently for each category of read |
 | S5 | Evaluate historical reconstruction, normalization or Score v2.1F | **NOT AUTHORIZED** | Yes — separate methodology/computation review |
@@ -141,4 +141,21 @@ The old v8 network allowance was already consumed. None of S1–S6 is approved b
 
 **C. Defer the source-boundary decision:** retain v9 and PR #286 as draft; do not schedule or dispatch any preflight.
 
-Pending an explicit separate methodology decision, the operationally effective choice is **C (HOLD)**. This is not a legal determination. Issue #155 remains HOLD independently.
+The owner approved **B only for design-phase continuation on 2026-10-29**. This is not adoption of C1, not authorization to fetch the PDF or read numbers, and not authorization to merge/release. Operational execution remains **HOLD**. Issue #155 remains HOLD independently.
+
+## 11. Approved design-only metadata follow-up and audited recovery points
+
+**Approval boundary (2026-10-29):** candidate-specific design research, archive link metadata and offline recovery preparation only. It does not authorize any PDF GET, BLS identifier/economic read, scoring, source substitution, rights clearance or Production change.
+
+**Exact BLS archive href now identified:** https://www.bls.gov/ppi/detailed-report/ppi-detailed-report-april-2026.pdf. Obtained from the archive page's HTML outgoing links without accessing the PDF. The document content, hash, date-frozen provenance, corrections and Table 9 row/schema remain **unverified**. An exact URL is not itself an eligible source.
+
+**Two Git recovery anchors created and compare-verified to be identical to their pinned commits:**
+
+- Protected v9 HOLD tree: 0c420f495e6196d34d195d441edf7b707da4f35a; branch backup/score-v2-1f-v9-hold-2026-10-29.
+- Original v10 draft tree: 698fb0c0d069c598909cc10e875a28cb711d1ea5; branch backup/score-v2-1f-v10-review-2026-10-29.
+
+**Offline recovery controls drafted (not a live rollback):** governance/score-v2-1f-wpu0561-v10-recovery-manifest.json pins six frozen governance blob hashes; scripts/validate_score_v2_1f_wpu0561_recovery.py checks that rights/authorization/workflow guards remain HOLD; tests/test_score_v2_1f_wpu0561_recovery.py exercises synthetic failure cases; .github/workflows/score-v2-1f-wpu0561-recovery-drill.yml runs an unprivileged PR-time synthetic restore rehearsal. docs/recovery/score-v2-1f-wpu0561-v10-backup-and-restore.md documents PR-only recovery and independently authorized provider-specific rollbacks.
+
+Git branches are mutable pointers, not independent offsite backups. The new workflow cannot restore Production or a provider database and requires its own default-branch merge before manual workflow_dispatch is available. All actual restores require separate incident review.
+
+**Current gate:** review PDF first-release identity, exact Table 9 semantics and potential Crude Petroleum (Domestic Production) naming mismatch in a future *independently authorized* bounded source assessment. No further BLS fetch is allowed under this design-only approval.
