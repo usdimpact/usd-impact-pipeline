@@ -10,14 +10,14 @@ from scripts import run_score_v2_1f_bls_wpu0561_ambiguity_diagnostics_preflight 
 
 
 class ScoreV21FWpu0561HeaderBandRunnerTests(unittest.TestCase):
-    def test_dispatched_gate_validates_without_network(self) -> None:
+    def test_consumed_state_refuses_before_network(self) -> None:
         with mock.patch.object(
             runner,
             "_request_once",
-            side_effect=AssertionError("network request occurred during gate validation"),
+            side_effect=AssertionError("network request occurred after consumption"),
         ) as request:
-            user_agent = runner._validate_authorization_and_dispatch()
-            self.assertIn("support@usd-impact.com", user_agent)
+            with self.assertRaisesRegex(RuntimeError, "authorization is not active"):
+                runner.run_preflight()
             request.assert_not_called()
 
     def test_v8_selects_html_and_direct_xlsx_containers_semantically(self) -> None:
