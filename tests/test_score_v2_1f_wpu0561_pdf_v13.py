@@ -61,6 +61,7 @@ class V13ScopedApprovalContractTests(unittest.TestCase):
             "review_only_no_dispatch_or_live_receipt",
             "owner_activation_pending_dispatch",
             "approved_one_off_active",
+            "consumed_after_failed_structural_preflight_invalid_page_count",
         ))
         auth = self.contract["authorization_state"]
         receipt = transport.RECEIPT.is_file()
@@ -77,6 +78,14 @@ class V13ScopedApprovalContractTests(unittest.TestCase):
             self.assertTrue(auth["receipt_created"])
             self.assertFalse(auth["current_live_BLS_GET"])
             self.assertFalse(auth["dispatch_marker_created"])
+        elif state == "consumed_after_failed_structural_preflight_invalid_page_count":
+            self.assertFalse(receipt)
+            self.assertFalse(dispatch)
+            self.assertFalse(auth["receipt_created"])
+            self.assertFalse(auth["dispatch_marker_created"])
+            self.assertFalse(auth["current_live_BLS_GET"])
+            self.assertTrue(auth["claim_written"])
+            self.assertEqual(self.contract["request_budget_remaining_now"], 0)
         else:
             self.assertTrue(receipt)
             self.assertTrue(dispatch)
@@ -88,6 +97,72 @@ class V13ScopedApprovalContractTests(unittest.TestCase):
             "research_ledger_change", "public_write", "production_change",
         ):
             self.assertFalse(auth[field])
+
+    def test_live_dispatch_matches_exact_receipt_before_network(self) -> None:
+        if self.contract["state"] != "approved_one_off_active":
+            return  # Inert and authorization-only stages have no dispatch
+        trusted_event = {
+            "GITHUB_REPOSITORY": "usdimpact/usd-impact-pipeline",
+            "GITHUB_REF": "refs/heads/main",
+            "GITHUB_EVENT_NAME": "push",
+            "GITHUB_RUN_ATTEMPT": "1",
+        }
+        # No Git claim or HTTP request here. Only validate protected approval
+        # and SHA-256 binding of dispatch to exact receipt bytes.
+        transport.validate_preclaim_gate(trusted_event)
+
+    def test_consumed_preflight_is_immutable_hold(self) -> None:
+        if self.contract["state"] != "consumed_after_failed_structural_preflight_invalid_page_count":
+            return
+        gov = Path(__file__).resolve().parents[1] / "governance"
+        ledger = json.loads(
+            (gov / "score-v2-1f-wpu0561-pdf-v13-consumption-2026-10-29.json").read_text()
+        )
+        self.assertEqual(ledger["status"], "fail_closed")
+        self.assertEqual(ledger["reason_codes"], ["invalid_page_count"])
+        self.assertEqual(ledger["consumed_claim_commit"],
+                         "82adf0b250871887e82123ed56f641d09fa14ba0")
+        self.assertEqual(ledger["request_attempt_budget"], 1)
+        self.assertTrue(ledger["authorization_consumed_even_on_failure"])
+        self.assertTrue(ledger["rerun_forbidden"])
+        self.assertFalse(ledger["economic_values_retained"])
+        self.assertFalse(ledger["identifier_values_retained"])
+        self.assertFalse(ledger["score_calculated"])
+        self.assertFalse(ledger["production_modified"])
+        self.assertIsNone(ledger["pdf_actual_page_count"])
+        self.assertTrue(all(v is False for v in
+                            ledger["current_post_consumption_permissions"].values()))
+
+    def test_consumed_one_off_workflow_has_no_live_trigger(self) -> None:
+        if self.contract["state"] != "consumed_after_failed_structural_preflight_invalid_page_count":
+            return
+        root = Path(__file__).resolve().parents[1]
+        workflow = (
+            root / ".github/workflows/score-v2-1f-wpu0561-pdf-v13-oneoff.yml"
+        ).read_text(encoding="utf-8")
+        self.assertNotIn("  push:", workflow)
+        self.assertIn("if: $" + "{{ false }}", workflow)
+        self.assertNotIn("consume-before-http:", workflow)
+        self.assertNotIn("gh api -X POST", workflow)
+        self.assertNotIn("python3 -m scripts.score_v2_1f_wpu0561_pdf_v13_transport", workflow)
+
+    def test_consumed_manifest_retains_rights_and_claim(self) -> None:
+        if self.contract["state"] != "consumed_after_failed_structural_preflight_invalid_page_count":
+            return
+        gov = Path(__file__).resolve().parents[1] / "governance"
+        manifest = json.loads(
+            (gov / "score-v2-1f-wpu0561-v10-recovery-manifest.json").read_text()
+        )
+        v13 = manifest["v13"]
+        self.assertEqual(v13["state"], "consumed_preflight_fail_closed_invalid_page_count")
+        self.assertTrue(v13["claim_preserved"])
+        self.assertTrue(v13["claim_consumed"])
+        self.assertFalse(v13["activation_file_exists"])
+        self.assertFalse(v13["dispatch_file_exists"])
+        self.assertEqual(v13["request_budget_remaining_now"], 0)
+        self.assertTrue(v13["rights_155_still_hold"])
+        self.assertFalse(v13["public_changed"])
+        self.assertFalse(v13["production_changed"])
 
     def test_old_v8_receipt_never_reactivated(self) -> None:
         p = Path(__file__).resolve().parents[1] / "governance"
