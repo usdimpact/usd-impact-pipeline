@@ -235,6 +235,19 @@ def evaluate_synthetic_asof(
     for revisions in grouped.values():
         if len(revisions) < 2:
             continue
+        # Preserve the prior out-of-order failure for contradictory revision
+        # chronology before evaluating first-publication and snapshot identity.
+        by_publication = sorted(
+            revisions,
+            key=lambda item: (
+                _utc(item.version_published_at, "version_published_at"),
+                item.revision,
+            ),
+        )
+        if [item.revision for item in by_publication] != sorted(
+            item.revision for item in by_publication
+        ):
+            raise ValueError("out-of-order synthetic revision numbering")
         first_releases = {
             _utc(item.initial_release_at, "initial_release_at")
             for item in revisions
@@ -271,19 +284,6 @@ def evaluate_synthetic_asof(
                 item.revision,
             ),
         )
-        # Revision ordering must agree with publication chronology. Otherwise
-        # old/new as-of versions cannot be selected with a reliable rule.
-        all_by_version = sorted(
-            versions,
-            key=lambda item: (
-                _utc(item.version_published_at, "version_published_at"),
-                item.revision,
-            ),
-        )
-        if [item.revision for item in all_by_version] != sorted(
-            item.revision for item in all_by_version
-        ):
-            raise ValueError("out-of-order synthetic revision numbering")
         selected[source_id] = winner
 
     if TREASURY_IDS.issubset(selected):
