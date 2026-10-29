@@ -1,0 +1,193 @@
+{
+  "version": 14,
+  "state": "owner_approved_design_only_hold",
+  "recorded_date": "2026-10-29",
+  "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/258",
+  "rights_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
+  "scope": "Offline forensic reasoning, synthetic parser boundary tests, recovery assurance, and methodological decision design. No BLS or PDF network requests.",
+  "baseline": {
+    "protected_main_at_branch_creation": "03137b4486db47bb329a35b9c7251512616d411b",
+    "v9_original_fixed_resource_infeasible": true,
+    "v13_consumed_cleanup_commit": "1ed8934b5e99e493606a0d23dd4206a6f5f9fe76",
+    "v13_immutable_claim": "refs/tags/score-v2-1f-wpu0561-pdf-v13-oneoff-2026-10-29",
+    "v13_claim_sha": "82adf0b250871887e82123ed56f641d09fa14ba0",
+    "v13_consumption_file": "governance/score-v2-1f-wpu0561-pdf-v13-consumption-2026-10-29.json",
+    "v13_one_off_run": "https://github.com/usdimpact/usd-impact-pipeline/actions/runs/40924080468",
+    "v13_one_off_issue_comment": "https://github.com/usdimpact/usd-impact-pipeline/issues/258#issuecomment-6504080848",
+    "v13_consumed_backup": "backup/score-v2-1f-v13-consumed-2026-10-29"
+  },
+  "exact_root_cause_evidence": {
+    "source_file": "scripts/score_v2_1f_wpu0561_pdf_v13_parser.py",
+    "relevant_code": "count = len(pdf.pages); if count < 1 or count > MAX_PAGES: return result({'invalid_page_count'})",
+    "max_pages_at_v13": 200,
+    "actual_pdf_page_count": null,
+    "observed_reason": "invalid_page_count",
+    "observer": "pypdf.PdfReader.pages sequence length",
+    "reader_constructed_and_page_count_evaluated": true,
+    "exception_during_initial_pdf_load_reported": false,
+    "count_less_than_one_possible": true,
+    "count_more_than_200_possible": true,
+    "count_within_1_to_200_consistent_with_observation": false,
+    "exact_branch_identified": false,
+    "api_note": "pypdf pages is a sequence whose length represents parsed page count. The v13 reason deliberately collapses both out-of-range branches.",
+    "source_role": "v13 parser and consumed sanitized Issue #258 audit; no live source content",
+    "confidence": "High in conditional code-path interpretation; unknown which bound was violated.",
+    "source_file_blob_sha": "8a70409b0b5928e99de04930714dfc25774631ae"
+  },
+  "external_documentation": {
+    "pypdf_reader": "https://pypdf.readthedocs.io/en/stable/modules/PdfReader.html",
+    "pypdf_extraction_memory": "https://pypdf.readthedocs.io/en/stable/user/extract-text.html",
+    "source_pdf_was_accessed_for_v14": false,
+    "other_BLS_resource_requested_for_v14": false
+  },
+  "v13_controls": {
+    "execution_contract": "governance/score-v2-1f-wpu0561-pdf-v13-execution-contract.json",
+    "contract_state": "consumed_after_failed_structural_preflight_invalid_page_count",
+    "receipt_file_absent": true,
+    "dispatch_file_absent": true,
+    "request_budget_remaining": 0,
+    "one_off_workflow_inert": true,
+    "one_off_claim_must_remain": true,
+    "economic_values_retained": 0,
+    "numeric_identifiers_retained": 0,
+    "table9_schema_proven": false,
+    "original_pdf_release_vintage_proven": false,
+    "wpu0561_pdf_row_identity_proven": false,
+    "basis_comparability_proven": false,
+    "public_redistribution_rights_hold": true
+  },
+  "v14_only_actions": {
+    "inspect_repo_source": true,
+    "review_static_audit": true,
+    "inspect_official_pypdf_docs": true,
+    "generate_synthetic_boundary_cases": true,
+    "run_offline_CI_tests": true,
+    "update_design_and_recovery_docs": true,
+    "create_reviewed_draft_PR": true,
+    "BLS_pdf_GET": false,
+    "BLS_pdf_HEAD": false,
+    "BLS_page_scan": false,
+    "third_party_pdf_or_mirror_fetch": false,
+    "source_fallback": false,
+    "page_cap_increase": false,
+    "numeric_identifier_read": false,
+    "economic_value_read": false,
+    "score_reconstruction": false,
+    "score_calculation": false,
+    "rights_release": false,
+    "research_ledger_change": false,
+    "public_artifact_write": false,
+    "production_change": false
+  },
+  "synthetic_cases": [
+    {
+      "id": "s01",
+      "fake_count": 0,
+      "expected_v13_reason": "invalid_page_count",
+      "page_content_scan": false,
+      "significance": "lower bound branch"
+    },
+    {
+      "id": "s02",
+      "fake_count": 1,
+      "expected_v13_reason": "not_invalid_page_count",
+      "page_content_scan": "synthetic_missing_table_only",
+      "significance": "accepted minimum boundary"
+    },
+    {
+      "id": "s03",
+      "fake_count": 200,
+      "expected_v13_reason": "not_invalid_page_count",
+      "page_content_scan": "synthetic_missing_table_only",
+      "significance": "accepted maximum boundary"
+    },
+    {
+      "id": "s04",
+      "fake_count": 201,
+      "expected_v13_reason": "invalid_page_count",
+      "page_content_scan": false,
+      "significance": "upper bound branch"
+    },
+    {
+      "id": "s05",
+      "fake_count": null,
+      "parser_raises": true,
+      "expected_v13_reason": "pdf_load_failed",
+      "page_content_scan": false,
+      "significance": "reader error is a different status"
+    }
+  ],
+  "review_risks": [
+    {
+      "id": "R1",
+      "issue": "One failure code collapses 0 pages and more than 200 pages.",
+      "response": "Document that both remain possible; do not infer actual count."
+    },
+    {
+      "id": "R2",
+      "issue": "The report could exceed 200 pages, but this is not established by permitted evidence.",
+      "response": "No expanded cap or source retrieval without new methodology."
+    },
+    {
+      "id": "R3",
+      "issue": "The raw-PDF-byte limit does not bound decompression and page extraction memory.",
+      "response": "Maintain isolated memory cap and separately review any future page-wise parser."
+    },
+    {
+      "id": "R4",
+      "issue": "Repeated Table 9 titles on multi-page report could trigger false ambiguity.",
+      "response": "Test invented continuation fixtures before changing semantics; do not loosen uniqueness rules."
+    },
+    {
+      "id": "R5",
+      "issue": "Exact lexical Crude petroleum text can be semantically different from WPU0561.",
+      "response": "Keep code/concept equivalence unresolved and reject domestic-production/extraction/stage variants."
+    },
+    {
+      "id": "R6",
+      "issue": "An archived report URL does not prove unchanged original May 2026 edition.",
+      "response": "Independent provenance/correction/revision review required."
+    },
+    {
+      "id": "R7",
+      "issue": "Source feasibility does not establish public redistribution rights.",
+      "response": "Keep Issue #155 HOLD."
+    },
+    {
+      "id": "R8",
+      "issue": "A Git rollback cannot reverse BLS requests or recreate external database state.",
+      "response": "Preserve claim, run, recovery refs; no automatic provider rollback."
+    }
+  ],
+  "decision_options": {
+    "freeze_v9_resource_failure": {
+      "status": "valid_immediate_closed_option",
+      "outcome": "Conclude original fixed 2026 XLSX lacks eligible index level and do not introduce WPU0561 into Score v2.1F; retain research HOLD."
+    },
+    "design_new_source_review": {
+      "status": "separate_owner_methodology_gate_required",
+      "steps": [
+        "Adjudicate zero-vs-over-cap only with a new separately authorized metadata/structural request, if scientifically necessary.",
+        "Prove May 2026 first-release PDF provenance and exact official source boundary.",
+        "Review report pagination and cgroup resource/byte exposure before choosing a new cap.",
+        "Test deterministic Table 9/commodity concept/period schema with synthetic fixtures.",
+        "Require independent one-use authorization after all design reviews."
+      ],
+      "current_request_budget": 0
+    },
+    "defer": {
+      "status": "hold_if_evidence_insufficient",
+      "outcome": "Do not retry, widen selectors, reconstruct values, or change Score/Production."
+    }
+  },
+  "next_gate": "Review a methodologically grounded proposal for how to distinguish 0 vs >200 pages without hidden expansion, including parser exposure/rights; no live implementation unless separately approved.",
+  "authorization": {
+    "v14_design_only": true,
+    "new_BLS_request": false,
+    "page_bound_relaxation": false,
+    "economic_fields": false,
+    "publication": false,
+    "production": false
+  },
+  "synthetic_only_tests_note": "Mocking the original unmodified v13 parser is independent of v14's hypothetical classifier. Repeated-table and phrase-overlap mock cases diagnose future-stage risks only; they are not observations about real PDF pages."
+}

@@ -37,7 +37,8 @@
     "full date coverage, gaps, nil values, ordering and pagination after permitted source read",
     "source uptime, rate limits, and retirement/change notices",
     "behavior of upstream OTC quotations versus federally published derived yields",
-    "public artifact rights and handling of historical FRED-source versions"
+    "public artifact rights and handling of historical FRED-source versions",
+    "a single selected-year or selected-month page cannot guarantee full period coverage solely from absence of rel=next; independent authorized source manifest and completeness check required"
   ],
   "allowed_while_hold": [
     "synthetic fixtures",
@@ -45,5 +46,12 @@
     "documentation review",
     "offline safety validation"
   ],
-  "go_no_go": "NO_GO_PENDING_RIGHTS_TIMING_PARITY_AND_OWNER_RELEASE_AUTHORIZATION"
+  "go_no_go": "NO_GO_PENDING_RIGHTS_TIMING_PARITY_AND_OWNER_RELEASE_AUTHORIZATION",
+  "pagination_scope": {
+    "required_selection": "YYYY or YYYYMM",
+    "all_time_page_traversal_supported": false,
+    "explicit_next_links_accepted": false,
+    "inline_count_mismatch_accepted": false,
+    "full_coverage_verified": false
+  }
 }

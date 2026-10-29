@@ -6,6 +6,10 @@ on:
     paths:
       - 'governance/score-v2-1f-bls-wpu0561-2026-source-boundary-review-v10-*'
       - 'governance/score-v2-1f-wpu0561-v10-recovery-manifest.json'
+      - 'governance/score-v2-1f-wpu0561-v14-pagecount-forensic-design.json'
+      - 'docs/research/score-v2-1f-wpu0561-v14-pagecount-forensic-review.md'
+      - 'scripts/score_v2_1f_wpu0561_pdf_v14_offline_diagnostics.py'
+      - 'tests/test_score_v2_1f_wpu0561_pdf_v14.py'
       - 'governance/score-v2-1f-bls-wpu0561-pdf-structural-preflight-v11-design.json'
       - 'scripts/validate_score_v2_1f_wpu0561_pdf_v11.py'
       - 'tests/test_score_v2_1f_wpu0561_pdf_v11.py'
@@ -47,6 +51,11 @@ jobs:
 
       - name: Validate v13 scoped approval and mock-only single-request transport (no PDF packages needed)
         run: python3 -m unittest discover -s tests -p 'test_score_v2_1f_wpu0561_pdf_v13.py' -v
+
+      - name: Check consumed v13 invariants and invented-only v14 page-count scenarios
+        run: |
+          python3 -m unittest discover -s tests -p 'test_score_v2_1f_wpu0561_pdf_v14.py' -v
+          python3 scripts/score_v2_1f_wpu0561_pdf_v14_offline_diagnostics.py
 
       - name: Verify pinned v9 governance state and rehearsal without remote writes
         run: python3 scripts/validate_score_v2_1f_wpu0561_recovery.py --verify-git --drill
@@ -124,6 +133,24 @@ jobs:
             "$image" \
             python -m unittest discover \
               -s tests -p 'test_score_v2_1f_wpu0561_pdf_v13.py' -v
+          docker run --rm \
+            --network none \
+            --read-only \
+            --cap-drop ALL \
+            --security-opt no-new-privileges \
+            --pids-limit 64 \
+            --memory 256m \
+            --cpus 1 \
+            --user 65534:65534 \
+            --tmpfs /tmp:rw,nosuid,nodev,noexec,size=16m,uid=65534,gid=65534 \
+            --env PYTHONPATH=/parser:/repo \
+            --env PYTHONDONTWRITEBYTECODE=1 \
+            --volume "$GITHUB_WORKSPACE:/repo:ro" \
+            --volume "$RUNNER_TEMP/pypdf-v12-synthetic-only:/parser:ro" \
+            --workdir /repo \
+            "$image" \
+            python -m unittest discover \
+              -s tests -p 'test_score_v2_1f_wpu0561_pdf_v14.py' -v
 
       - name: Confirm no live-PDF input or restore was available
         run: |
