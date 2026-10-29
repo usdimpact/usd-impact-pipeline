@@ -605,9 +605,12 @@
     "precise_eia_api_route_or_history_parity_verified": false,
     "commercial_rights_reviewed_and_granted": false,
     "source_requests_performed": false,
-    "real_observations_fetched_or_stored": false,
     "all_permissions_still_false": true,
     "source_modification_or_pipeline_switch_authorized": false,
-    "production_release_authorized": false
+    "production_release_authorized": false,
+    "dedicated_source_data_feed_requests_performed": false,
+    "real_observation_values_ingested_computed_or_stored": false,
+    "official_metadata_pages_may_contain_incidental_numeric_examples": true,
+    "no_observation_values_reproduced_in_governance_record": true
   }
 }
