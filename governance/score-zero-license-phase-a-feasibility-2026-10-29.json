@@ -1,0 +1,487 @@
+{
+  "schema_version": "score-zero-additional-license-phase-a-feasibility-v1",
+  "review_date": "2026-10-29",
+  "state": "RESEARCH_ONLY_HOLD",
+  "source_repo": "usdimpact/usd-impact-pipeline",
+  "reference_main_commit": "1c66580dbff811d2ba033254de9df483f62620c9",
+  "controlling_issues": [
+    "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
+    "https://github.com/usdimpact/usd-impact-pipeline/issues/282"
+  ],
+  "original_model": {
+    "name": "USD Impact Score v2",
+    "drivers": 8,
+    "weights_magnitude": 0.125,
+    "target_frequency": "weekly, completed Friday",
+    "historical_comparison": "617 weeks in prior provenance; no values fetched in this feasibility",
+    "parity_claim": "UNVERIFIED",
+    "source_change_approved": false
+  },
+  "decision": {
+    "exact_zero_license_eight_driver_equivalent_feasible": false,
+    "identified_complete_eight_driver_license_safe_pipeline": false,
+    "alternative_macro_study_only": true,
+    "reason": "Named ICE/S&P/Cboe/CME/BTC USD price sources have no established zero-cost commercial derived/public rights, while government candidates change market semantics, frequency or data timing."
+  },
+  "authorizations": {
+    "provider_observations_fetch": false,
+    "production_source_switch": false,
+    "provider_derived_history_storage": false,
+    "public_aggregate_publish": false,
+    "public_component_publish": false,
+    "existing_history_delete_or_purge": false,
+    "new_paid_data_agreement": false,
+    "weights_or_formula_change": false,
+    "production_release": false
+  },
+  "candidate_classifications": [
+    "RESEARCH_CANDIDATE_NOT_EQUIVALENT",
+    "RESEARCH_CANDIDATE_NEW_MODEL_ONLY",
+    "RESEARCH_CANDIDATE_RIGHTS_AND_PARITY_PENDING",
+    "BLOCKED_THIRD_PARTY_RIGHTS",
+    "BLOCKED_EMBEDDED_PROPRIETARY_INPUTS",
+    "BLOCKED_SOURCE_RIGHTS_UNVERIFIED",
+    "EXCLUDE_FREE_COMMERCIAL",
+    "NOT_A_WEEKLY_MARKET_SUBSTITUTE",
+    "NOT_A_PRICE_SUBSTITUTE",
+    "BLOCKED_SOURCE_SPECIFIC_RIGHTS_AND_CADENCE"
+  ],
+  "drivers": [
+    {
+      "driver": "DXY",
+      "legacy_series": "DX-Y.NYB",
+      "legacy_source": "Yahoo delivery; ICE U.S. Dollar Index",
+      "legacy_weight": 0.125,
+      "legacy_semantics": "six-currency ICE dollar index",
+      "original_score_licensing_approved": false,
+      "source_switch_approved": false,
+      "candidates": [
+        {
+          "id": "fed_h10_nominal_broad",
+          "provider": "Federal Reserve Board",
+          "primary_url": "https://www.federalreserve.gov/releases/h10/",
+          "cadence": "daily observations; previous week's values released Monday ~16:15 ET",
+          "relation_to_original": "DIFFERENT_26_ECONOMY_TRADE_WEIGHTED_BASKET",
+          "commercial_rights_evidence": "Board site generally public domain except flagged third-party; source-specific currency/index rights must be verified",
+          "source_rights_granted": false,
+          "full_series_parity_verified": false,
+          "public_derived_output_granted": false,
+          "real_source_retrieval_authorized": false,
+          "research_gate": "RESEARCH_CANDIDATE_NOT_EQUIVALENT",
+          "notes": "Weights/index methodology revised; not ICE DXY. Board DDP build-your-package scheduled for retirement, direct endpoint continuity unverified. Same-week Friday cannot use following Monday release."
+        },
+        {
+          "id": "fed_h10_afe",
+          "provider": "Federal Reserve Board",
+          "primary_url": "https://www.federalreserve.gov/releases/H10/Weights/",
+          "cadence": "daily, Monday publication of prior week",
+          "relation_to_original": "DIFFERENT_ADVANCED_FOREIGN_ECONOMIES_BASKET",
+          "commercial_rights_evidence": "Board general public-domain disclaimer with flagged-source caveat",
+          "source_rights_granted": false,
+          "full_series_parity_verified": false,
+          "public_derived_output_granted": false,
+          "real_source_retrieval_authorized": false,
+          "research_gate": "RESEARCH_CANDIDATE_NOT_EQUIVALENT",
+          "notes": "AFE subindex also not ICE six-currency DXY; do not blend/proxy without separate model and owner approval."
+        }
+      ]
+    },
+    {
+      "driver": "WTI",
+      "legacy_series": "CL=F",
+      "legacy_source": "Yahoo delivery; CME front-month futures",
+      "legacy_weight": -0.125,
+      "legacy_semantics": "rolling crude futures continuous front contract",
+      "original_score_licensing_approved": false,
+      "source_switch_approved": false,
+      "candidates": [
+        {
+          "id": "eia_cushing_wti_spot",
+          "provider": "EIA published spot assessments; underlying Refinitiv historical prices",
+          "primary_url": "https://www.eia.gov/dnav/pet/hist/RWTCD.htm",
+          "cadence": "daily observed; weekly EIA published update with lag",
+          "relation_to_original": "SPOT_NOT_CME_ROLLING_FUTURES",
+          "commercial_rights_evidence": "EIA disclosed historical WTI/Brent spot time series purchased from Refinitiv and republished with permission; downstream license unresolved",
+          "source_rights_granted": false,
+          "full_series_parity_verified": false,
+          "public_derived_output_granted": false,
+          "real_source_retrieval_authorized": false,
+          "research_gate": "BLOCKED_THIRD_PARTY_RIGHTS",
+          "notes": "General EIA public-domain statement alone does not establish downstream redistribution/retention of privately licensed market assessments; basis, roll, settlement and lag differ."
+        },
+        {
+          "id": "eia_crude_stocks_weekly",
+          "provider": "EIA Weekly Petroleum Status Report; U.S. commercial crude oil stocks excluding SPR",
+          "primary_url": "https://www.eia.gov/dnav/pet/PET_STOC_WSTK_A_EPC0_SAX_MBBL_W.htm",
+          "cadence": "weekly Friday reference; following Wednesday ~10:30 ET release",
+          "relation_to_original": "INVENTORY_NOT_COMMODITY_PRICE",
+          "commercial_rights_evidence": "EIA government survey/statistical output subject to EIA reuse policy; verify exact series and third-party exemptions",
+          "source_rights_granted": false,
+          "full_series_parity_verified": false,
+          "public_derived_output_granted": false,
+          "real_source_retrieval_authorized": false,
+          "research_gate": "RESEARCH_CANDIDATE_NEW_MODEL_ONLY",
+          "notes": "Measures physical inventories, not market WTI; would require newly reviewed sign/normalization and lag."
+        }
+      ]
+    },
+    {
+      "driver": "SPX",
+      "legacy_series": "^GSPC",
+      "legacy_source": "Yahoo delivery; S&P Dow Jones Indices",
+      "legacy_weight": -0.125,
+      "legacy_semantics": "S&P 500 market-cap equity price index",
+      "original_score_licensing_approved": false,
+      "source_switch_approved": false,
+      "candidates": [
+        {
+          "id": "bea_corporate_profits",
+          "provider": "Bureau of Economic Analysis corporate profits",
+          "primary_url": "https://www.bea.gov/data/income-saving/corporate-profits",
+          "cadence": "quarterly, revisions, delayed after quarter-end",
+          "relation_to_original": "CORPORATE_PROFIT_MACRO_PROXY_NOT_EQUITY_INDEX",
+          "commercial_rights_evidence": "Official federal economic-statistics release; exact reuse/third-party notes must still be reviewed",
+          "source_rights_granted": false,
+          "full_series_parity_verified": false,
+          "public_derived_output_granted": false,
+          "real_source_retrieval_authorized": false,
+          "research_gate": "NOT_A_WEEKLY_MARKET_SUBSTITUTE",
+          "notes": "Cannot track daily equity valuation, risk appetite, or original 617-week SPX normalization; NOT an equivalent replacement."
+        }
+      ]
+    },
+    {
+      "driver": "VIX",
+      "legacy_series": "^VIX",
+      "legacy_source": "Yahoo delivery; Cboe VIX index",
+      "legacy_weight": 0.125,
+      "legacy_semantics": "30-day equity option-implied volatility index",
+      "original_score_licensing_approved": false,
+      "source_switch_approved": false,
+      "candidates": [
+        {
+          "id": "ofr_financial_stress_index",
+          "provider": "U.S. Treasury Office of Financial Research FSI",
+          "primary_url": "https://www.financialresearch.gov/financial-stress-index/",
+          "cadence": "daily, about 2-business-day lag",
+          "relation_to_original": "CROSS_MARKET_STRESS_NOT_EQUITY_IMPLIED_VOL",
+          "commercial_rights_evidence": "Official OFR source index contains underlying VIX, DXY and Refinitiv/market-sourced inputs; downstream rights not cleared",
+          "source_rights_granted": false,
+          "full_series_parity_verified": false,
+          "public_derived_output_granted": false,
+          "real_source_retrieval_authorized": false,
+          "research_gate": "BLOCKED_EMBEDDED_PROPRIETARY_INPUTS",
+          "notes": "OFR index is not a clean escape from Cboe/ICE and Refinitiv permissions; methodology measures systemic stress, not VIX."
+        },
+        {
+          "id": "chicago_nfci",
+          "provider": "Federal Reserve Bank of Chicago NFCI",
+          "primary_url": "https://www.chicagofed.org/research/data/nfci/current-data",
+          "cadence": "weekly Wednesday release for prior Friday, with revisions",
+          "relation_to_original": "FINANCIAL_CONDITIONS_NOT_VIX",
+          "commercial_rights_evidence": "FRED page marks NFCI as copyrighted; reuse from original Chicago Fed needs source rights and embedded input review",
+          "source_rights_granted": false,
+          "full_series_parity_verified": false,
+          "public_derived_output_granted": false,
+          "real_source_retrieval_authorized": false,
+          "research_gate": "BLOCKED_SOURCE_RIGHTS_UNVERIFIED",
+          "notes": "NFCI aggregates 105 financial indicators and can revise back history; do not treat it as government public domain."
+        },
+        {
+          "id": "treasury_rate_realized_volatility",
+          "provider": "Internally calculated from rights-reviewed direct Treasury yields",
+          "primary_url": "https://home.treasury.gov/treasury-daily-interest-rate-xml-feed",
+          "cadence": "derived from selected daily observations; release lag to be validated",
+          "relation_to_original": "REALIZED_RATE_VOL_NOT_EQUITY_OPTION_IMPLIED_VOL",
+          "commercial_rights_evidence": "Requires direct Treasury source reuse/retention permission and a new methodology; cannot use FRED transport",
+          "source_rights_granted": false,
+          "full_series_parity_verified": false,
+          "public_derived_output_granted": false,
+          "real_source_retrieval_authorized": false,
+          "research_gate": "RESEARCH_CANDIDATE_NEW_MODEL_ONLY",
+          "notes": "New rates-stress measure not a VIX parity substitution; may reuse rate drivers causing double-counting."
+        }
+      ]
+    },
+    {
+      "driver": "BTC",
+      "legacy_series": "BTC-USD",
+      "legacy_source": "Yahoo Finance delivery; Bitcoin composite USD spot",
+      "legacy_weight": -0.125,
+      "legacy_semantics": "BTC/USD market price",
+      "original_score_licensing_approved": false,
+      "source_switch_approved": false,
+      "candidates": [
+        {
+          "id": "coingecko_demo",
+          "provider": "CoinGecko free/demo API",
+          "primary_url": "https://support.coingecko.com/articles/1043089972-what-are-the-differences-between-commercial-and-custom-licenses",
+          "cadence": "near real time with plan-limited history",
+          "relation_to_original": "POTENTIAL_CRYPTO_PRICE_NOT_ORIGINAL_PROVIDER",
+          "commercial_rights_evidence": "CoinGecko explicitly says free/demo/keyless plans do not grant commercial rights; paid plan required",
+          "source_rights_granted": false,
+          "full_series_parity_verified": false,
+          "public_derived_output_granted": false,
+          "real_source_retrieval_authorized": false,
+          "research_gate": "EXCLUDE_FREE_COMMERCIAL",
+          "notes": "Attribution alone does not cure absent commercial license; redistribution may require custom agreement."
+        },
+        {
+          "id": "coinmetrics_community",
+          "provider": "Coin Metrics Community API reference rates",
+          "primary_url": "https://github.com/coinmetrics/docs-website/blob/master/api.md",
+          "cadence": "Community reference-rate granularity/history limited; some last seven data points",
+          "relation_to_original": "POTENTIAL_CRYPTO_REFERENCE_RATE_NOT_ORIGINAL_PROVIDER",
+          "commercial_rights_evidence": "Official Coin Metrics documentation says free Community data for non-commercial use; license and history insufficient",
+          "source_rights_granted": false,
+          "full_series_parity_verified": false,
+          "public_derived_output_granted": false,
+          "real_source_retrieval_authorized": false,
+          "research_gate": "EXCLUDE_FREE_COMMERCIAL",
+          "notes": "Free access does not establish commercial use or full 617-week history."
+        },
+        {
+          "id": "bitcoin_onchain_network_activity",
+          "provider": "Bitcoin protocol network metric (e.g., chain block count/difficulty), no intermediary BTC/USD price",
+          "primary_url": "https://github.com/bitcoin/bitcoin",
+          "cadence": "network blocks continuously; reliable timestamp and cost/access design needed",
+          "relation_to_original": "NETWORK_SECURITY_NOT_BTC_USD_PRICE",
+          "commercial_rights_evidence": "Raw blockchain provenance, node access, open-source software license and lawful reuse need independent assessment",
+          "source_rights_granted": false,
+          "full_series_parity_verified": false,
+          "public_derived_output_granted": false,
+          "real_source_retrieval_authorized": false,
+          "research_gate": "NOT_A_PRICE_SUBSTITUTE",
+          "notes": "Potentially independently derived protocol data after assessment, but has no USD market valuation and requires different economic model."
+        }
+      ]
+    },
+    {
+      "driver": "GOLD",
+      "legacy_series": "GC=F",
+      "legacy_source": "Yahoo delivery; CME gold continuous front futures",
+      "legacy_weight": -0.125,
+      "legacy_semantics": "front-month gold futures price",
+      "original_score_licensing_approved": false,
+      "source_switch_approved": false,
+      "candidates": [
+        {
+          "id": "usgs_annual_gold",
+          "provider": "USGS Mineral Commodity Summaries Gold data release",
+          "primary_url": "https://www.usgs.gov/data/mineral-commodity-summaries-2026-data-release",
+          "cadence": "annual summaries",
+          "relation_to_original": "ANNUAL_GOLD_COMMODITY_STATS_NOT_FUTURES",
+          "commercial_rights_evidence": "2026 USGS data release expressly marked CC0 1.0; verify specific gold table and underlying citations",
+          "source_rights_granted": false,
+          "full_series_parity_verified": false,
+          "public_derived_output_granted": false,
+          "real_source_retrieval_authorized": false,
+          "research_gate": "NOT_A_WEEKLY_MARKET_SUBSTITUTE",
+          "notes": "Annual price/mining/production context only; cannot support weekly continuous gold futures or original historic Score."
+        },
+        {
+          "id": "world_bank_pinksheet_gold",
+          "provider": "World Bank Pink Sheet gold price",
+          "primary_url": "https://www.worldbank.org/en/research/commodity-markets",
+          "cadence": "monthly/annual average; publication lag and revisions",
+          "relation_to_original": "MONTHLY_LONDON_REFERENCE_NOT_WEEKLY_CME_GOLD",
+          "commercial_rights_evidence": "World Bank default CC BY 4.0 does not by itself prove all underlying benchmark/third-party gold market quotations are sublicensed",
+          "source_rights_granted": false,
+          "full_series_parity_verified": false,
+          "public_derived_output_granted": false,
+          "real_source_retrieval_authorized": false,
+          "research_gate": "BLOCKED_SOURCE_SPECIFIC_RIGHTS_AND_CADENCE",
+          "notes": "Confirm precise dataset-specific license, LBMA/London underlying quotation rights and lag; monthly data cannot match weekly futures."
+        }
+      ]
+    },
+    {
+      "driver": "UST_2Y",
+      "legacy_series": "DGS2",
+      "legacy_source": "FRED H.15 daily 2-year government yield",
+      "legacy_weight": 0.125,
+      "legacy_semantics": "FRED-delivered nominal Treasury 2Y CMT",
+      "original_score_licensing_approved": false,
+      "source_switch_approved": false,
+      "candidates": [
+        {
+          "id": "treasury_direct_2yr_par",
+          "provider": "U.S. Treasury daily nominal par yield curve BC_2YEAR",
+          "primary_url": "https://home.treasury.gov/treasury-daily-interest-rate-xml-feed",
+          "cadence": "daily nominal par yields; Treasury says usually published by 18:00 America/New_York on each trading day (may be delayed); exact first-published timestamp unverified",
+          "relation_to_original": "POTENTIALLY_NEAR_SEMANTIC_NOT_PARITY_TESTED",
+          "commercial_rights_evidence": "Official U.S. Treasury government-produced rates; exact commercial retention/public-derivative applicability and upstream input rights require sign-off",
+          "source_rights_granted": false,
+          "full_series_parity_verified": false,
+          "public_derived_output_granted": false,
+          "real_source_retrieval_authorized": false,
+          "research_gate": "RESEARCH_CANDIDATE_RIGHTS_AND_PARITY_PENDING",
+          "notes": "Synthetic Atom/OData year/month parser exists; no live feed fetch/one-to-one H.15/FRED parity; no hidden FRED retransmission. Friday 22:00 UTC aligns with ~18:00 EDT and is not guaranteed to include the latest Friday observation."
+        }
+      ]
+    },
+    {
+      "driver": "UST_10Y",
+      "legacy_series": "DGS10",
+      "legacy_source": "FRED H.15 daily 10-year government yield",
+      "legacy_weight": 0.125,
+      "legacy_semantics": "FRED-delivered nominal Treasury 10Y CMT",
+      "original_score_licensing_approved": false,
+      "source_switch_approved": false,
+      "candidates": [
+        {
+          "id": "treasury_direct_10yr_par",
+          "provider": "U.S. Treasury daily nominal par yield curve BC_10YEAR",
+          "primary_url": "https://home.treasury.gov/treasury-daily-interest-rate-xml-feed",
+          "cadence": "daily nominal par yields; Treasury says usually published by 18:00 America/New_York on each trading day (may be delayed); exact first-published timestamp unverified",
+          "relation_to_original": "POTENTIALLY_NEAR_SEMANTIC_NOT_PARITY_TESTED",
+          "commercial_rights_evidence": "Official U.S. Treasury government-produced rates; exact commercial retention/public-derivative applicability and upstream input rights require sign-off",
+          "source_rights_granted": false,
+          "full_series_parity_verified": false,
+          "public_derived_output_granted": false,
+          "real_source_retrieval_authorized": false,
+          "research_gate": "RESEARCH_CANDIDATE_RIGHTS_AND_PARITY_PENDING",
+          "notes": "No assumption that a same-date Treasury observation equals an as-published FRED DGS10 vintage. Friday 22:00 UTC aligns with ~18:00 EDT and is not guaranteed to include the latest Friday observation."
+        }
+      ]
+    }
+  ],
+  "alternative_design": {
+    "name": "Federal Public-Source Regime Study (internal working title only)",
+    "status": "SYNTHETIC_DESIGN_ONLY",
+    "candidate_signals": [
+      "fed_h10_nominal_broad",
+      "eia_crude_stocks_weekly",
+      "treasury_direct_2yr_par",
+      "treasury_direct_10yr_par"
+    ],
+    "signals_not_equal_legacy_eight": true,
+    "approved_methodology": false,
+    "weights_assigned": false,
+    "point_in_time_coverage_verified": false,
+    "source_licenses_cleared": false,
+    "production_candidate": false,
+    "caveats": [
+      "H.10 Monday previous-week publication precludes same-Friday full-week release",
+      "EIA WPSR Wednesday after preceding Friday, not same-Friday",
+      "Treasury XML 2Y/10Y requires rights, source transport and H.15 timing/parity confirmation",
+      "4-signal indicator is not ICE DXY/CME WTI/SPX/VIX/BTC/gold"
+    ],
+    "public_name_approved": false
+  },
+  "release_lag_constraints": {
+    "legacy_week_end_day": "Friday",
+    "legacy_release_approx": "Friday 22:00 UTC",
+    "fed_h10_rule": "previous business week daily observations are released Mondays about 16:15 America/New_York (holiday shifts)",
+    "eia_wpsr_rule": "last week's Friday-ending inventory is typically published following Wednesday 10:30 America/New_York (holiday shifts)",
+    "eia_spot_rule": "website example Oct 28 release contained obs through Oct 27; source assessment lag and weekly batching, not real-time future",
+    "rule": "a value is not eligible for any research publication until actual first_publication_at <= as_of_at and rights/approval gates independently pass",
+    "no_future_data_approval": true,
+    "first_seen_timestamps_verified": false,
+    "holiday_calendar_verified": false,
+    "treasury_rule": "Treasury official daily nominal par yields usually published by 18:00 America/New_York on trading days (may be delayed); Friday 22:00 UTC approximately coincides with release in EDT, so no unconditional Friday visibility"
+  },
+  "primary_sources": [
+    {
+      "topic": "Board public-domain disclaimer with third-party exception",
+      "url": "https://www.federalreserve.gov/disclaimer.htm"
+    },
+    {
+      "topic": "Board H10 Monday publication, future DDP retirement notice",
+      "url": "https://www.federalreserve.gov/releases/h10/"
+    },
+    {
+      "topic": "Board trade weights and broad USD methods",
+      "url": "https://www.federalreserve.gov/econres/notes/feds-notes/revisions-to-the-federal-reserve-dollar-indexes-20190115.html"
+    },
+    {
+      "topic": "EIA general data copyright/reuse with third-party exception",
+      "url": "https://www.eia.gov/about/copyrights_reuse.php"
+    },
+    {
+      "topic": "EIA Refinitiv source of historical WTI/Brent spot assessments",
+      "url": "https://www.eia.gov/analysis/handbook/pdf/STEO_Crude_Oil_Price.pdf"
+    },
+    {
+      "topic": "EIA WPSR released next Wednesday",
+      "url": "https://www.eia.gov/petroleum/supply/weekly/schedule.php"
+    },
+    {
+      "topic": "EIA weekly survey stocks",
+      "url": "https://www.eia.gov/dnav/pet/PET_STOC_WSTK_A_EPC0_SAX_MBBL_W.htm"
+    },
+    {
+      "topic": "Direct Treasury XML structure",
+      "url": "https://home.treasury.gov/treasury-daily-interest-rate-xml-feed"
+    },
+    {
+      "topic": "Treasury API year/month/all pagination",
+      "url": "https://home.treasury.gov/developer-notice-xml-changes"
+    },
+    {
+      "topic": "CME internal vs derived rights",
+      "url": "https://www.cmegroup.com/market-data/license-data.html"
+    },
+    {
+      "topic": "S&P derived index restrictions",
+      "url": "https://www.spglobal.com/en/terms-of-use"
+    },
+    {
+      "topic": "OFR FSI embeds third-party indicators",
+      "url": "https://dmtenrspjuuhr.cloudfront.net/financial-stress-index/files/indicators/index.html"
+    },
+    {
+      "topic": "NFCI Fed Chicago release and revision notice",
+      "url": "https://www.chicagofed.org/research/data/nfci/current-data"
+    },
+    {
+      "topic": "CoinGecko free demo has no commercial license",
+      "url": "https://support.coingecko.com/articles/1043089972-what-are-the-differences-between-commercial-and-custom-licenses"
+    },
+    {
+      "topic": "Coin Metrics community data noncommercial notice",
+      "url": "https://github.com/coinmetrics/docs-website/blob/master/api.md"
+    },
+    {
+      "topic": "USGS mineral data CC0 2026",
+      "url": "https://www.usgs.gov/data/mineral-commodity-summaries-2026-data-release"
+    },
+    {
+      "topic": "World Bank commodity prices and default open data terms",
+      "url": "https://www.worldbank.org/en/research/commodity-markets"
+    },
+    {
+      "topic": "World Bank general data licenses with dataset exceptions",
+      "url": "https://datacatalog.worldbank.org/public-licenses"
+    },
+    {
+      "topic": "BEA corporate profits quarterly",
+      "url": "https://www.bea.gov/data/income-saving/corporate-profits"
+    },
+    {
+      "topic": "Federal reserve FRED service and API restrictions",
+      "url": "https://fred.stlouisfed.org/legal/terms/"
+    },
+    {
+      "topic": "Official Treasury curve methodology and usual 18:00 ET release time",
+      "url": "https://home.treasury.gov/policy-issues/financing-the-government/interest-rate-statistics/treasury-yield-curve-methodology"
+    }
+  ],
+  "explicit_no_go": [
+    "Do not label Fed Broad USD Index ICE DXY, EIA spot as CME futures, government financial-stress indices VIX, or BEA profits S&P 500.",
+    "Do not treat EIA general public domain wording as grant covering Refinitiv WTI price series.",
+    "Do not count CoinGecko Demo or Coin Metrics Community as free commercial BTC price licenses.",
+    "Do not use OFR FSI to bypass embedded Cboe/ICE/Refinitiv data rights.",
+    "Do not use monthly World Bank or annual CC0 USGS Gold as weekly continuous front gold futures.",
+    "Do not use Treasury date as proof of first-publication availability or FRED as-of-vintage parity.",
+    "Do not compute/backfill/publish any new Score or material derivative while rights gate HOLD."
+  ],
+  "next_phase_authorization_required": [
+    "Provider/counsel assessment for any market input whose original/underlying data come from third parties",
+    "Direct Treasury source-level rights and H.15 parity for 2Y/10Y",
+    "EIA assessment for surveyed stocks versus privately supplied WTI spot prices",
+    "Explicit owner approval of separately branded reduced/macro-score methodology",
+    "Synthetic-only timing/holiday/revision and consumer-contract tests, then separate data retrieval decision",
+    "Legal-safe legacy artifact preservation and public-retention remediation before any release"
+  ]
+}
