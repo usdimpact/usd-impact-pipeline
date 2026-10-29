@@ -19,8 +19,8 @@
     "official_table_directory": "https://www.bls.gov/ppi/tables/home.htm",
     "official_april_release": "https://www.bls.gov/news.release/archives/ppi_05132026.htm",
     "april_release_date": "2026-05-13",
-    "exact_pdf_resource_url": null,
-    "exact_pdf_href_verified": false,
+    "exact_pdf_resource_url": "https://www.bls.gov/ppi/detailed-report/ppi-detailed-report-april-2026.pdf",
+    "exact_pdf_href_verified": true,
     "document_fetched_for_this_proposal": false,
     "document_content_parsed_for_this_proposal": false,
     "table_candidate": "Table 9",
@@ -29,13 +29,18 @@
     "unadjusted_index_level_verified": false,
     "original_release_pdf_provenance_verified": false,
     "publication_rights_cleared": false,
-    "selected_as_methodology_source": false
+    "selected_as_methodology_source": false,
+    "exact_pdf_href_basis": "Absolute PDF href extracted from the April 2026 PDF link in official BLS archived report index HTML; link target NOT followed.",
+    "pdf_response_status_verified": false,
+    "pdf_headers_inspected": false,
+    "pdf_downloaded": false,
+    "pdf_first_release_immutability_verified": false
   },
   "indexed_metadata_observations": [
     {
       "claim": "The official archive index lists April 2026 PDF and XLSX reports",
       "source": "https://www.bls.gov/ppi/detailed-report/",
-      "status": "verified_listing_only"
+      "status": "verified_april_report_listing_and_exact_pdf_href_only"
     },
     {
       "claim": "The official BLS tables directory describes Table 9 as commodity/service indexes",
@@ -71,8 +76,8 @@
     {
       "id": "G01",
       "requirement": "Exact official BLS PDF href recorded from archive listing",
-      "status": "unknown",
-      "fail_closed_rule": "An exact BLS URL must be verified; guessed paths forbidden"
+      "status": "metadata_href_verified_only",
+      "fail_closed_rule": "Official archive HTML href is verified, but the PDF has not been requested, inspected or accepted as an immutable original-release document."
     },
     {
       "id": "G02",
@@ -237,5 +242,25 @@
     "production_change": false
   },
   "next_permitted_step": "owner_review_of_single_candidate_methodology_boundary_design_only_no_network",
-  "no_request_budget_or_network_dispatch_defined": true
+  "no_request_budget_or_network_dispatch_defined": true,
+  "source_boundary_design_authorization": {
+    "owner_approved_design_only": true,
+    "approval_date": "2026-10-29",
+    "new_pdf_resource_adopted": false,
+    "bls_pdf_request_permitted": false,
+    "identifiers_permitted": false,
+    "economic_values_permitted": false,
+    "reconstruction_permitted": false,
+    "production_permitted": false
+  },
+  "backup_and_restore": {
+    "baseline_branch": "backup/score-v2-1f-v9-hold-2026-10-29",
+    "baseline_sha": "0c420f495e6196d34d195d441edf7b707da4f35a",
+    "draft_review_branch": "backup/score-v2-1f-v10-review-2026-10-29",
+    "draft_review_sha": "698fb0c0d069c598909cc10e875a28cb711d1ea5",
+    "recovery_manifest": "governance/score-v2-1f-wpu0561-v10-recovery-manifest.json",
+    "offline_recovery_workflow": ".github/workflows/score-v2-1f-wpu0561-recovery-drill.yml",
+    "non_mutating_only": true,
+    "production_restore_authorized": false
+  }
 }
