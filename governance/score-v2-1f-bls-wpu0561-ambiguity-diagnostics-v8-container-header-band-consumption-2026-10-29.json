@@ -1,0 +1,102 @@
+{
+  "version": 1,
+  "state": "consumed_after_completed_v8_container_header_band_inventory",
+  "design_version": 8,
+  "methodology_version": "2.1F-design-candidate",
+  "owner_decision_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/258",
+  "controlling_rights_hold": "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
+  "owner_approval_comment_id": 6500606721,
+  "owner_approval_timestamp": "2026-10-29T15:15:37Z",
+  "authorization_activation_merge_commit": "312a90e51ccbd91deff543af271bafc6d02247cb",
+  "dispatch_merge_commit": "90601f583683d7fab457734a0bd0cfcec387f4f5",
+  "request_budget": 2,
+  "max_economic_observations_total": 0,
+  "max_economic_observations_per_resource": 0,
+  "inspect_top_rows": 32,
+  "maximum_persisted_text_cells_per_selected_container": 128,
+  "consumed_by_phase": "bls_wpu0561_container_header_band_inventory_preflight",
+  "preflight_run": "https://github.com/usdimpact/usd-impact-pipeline/actions/runs/40901086765",
+  "preflight_workflow_conclusion": "success",
+  "preflight_result_status": "completed",
+  "result_comment_id": 6500809319,
+  "consumption_comment_id": 6500819410,
+  "completed_at": "2026-10-29T15:23:45Z",
+  "consumed_at": "2026-10-29T15:24:08Z",
+  "sanitized_result": {
+    "request_attempt_count": 2,
+    "identifier_values_retained": false,
+    "economic_values_retained": false,
+    "html": {
+      "transport_status": "passed",
+      "semantic_status": "evaluated",
+      "container": "table 4",
+      "band_start_row": 1,
+      "band_end_row": 32,
+      "blank_rows": [4, 6, 8, 12, 28, 30],
+      "recognized_header_role_rows": [1],
+      "first_nonempty_row": 1,
+      "last_nonempty_row": 32,
+      "truncated": false,
+      "structural_headers": [
+        "Grouping",
+        "Commodity code",
+        "Unadjusted index",
+        "Unadjusted percent change to Apr. <num> from:",
+        "Seasonally adjusted percent change from:"
+      ],
+      "structural_roles": [
+        "identifier",
+        "index_level",
+        "percent_change"
+      ]
+    },
+    "xlsx": {
+      "transport_status": "passed",
+      "semantic_status": "evaluated",
+      "container": "xl/worksheets/sheet3.xml",
+      "band_start_row": 1,
+      "band_end_row": 32,
+      "blank_rows": [3, 6, 8],
+      "recognized_header_role_rows": [1, 4, 5],
+      "first_nonempty_row": 1,
+      "last_nonempty_row": 32,
+      "truncated": false,
+      "structural_headers": [
+        "Table <num>. Producer price index percentage changes for selected commodity groupings by Final Demand-Intermediate Demand category, seasonally adjusted",
+        "Indent Level",
+        "Grouping",
+        "Commodity code",
+        "Unadjusted <num>-month percent change(<num>)",
+        "Seasonally adjusted <num>-month percent change(<num>)",
+        "Group code",
+        "Item code"
+      ],
+      "structural_roles": [
+        "identifier",
+        "percent_change"
+      ],
+      "index_level_column_observed_in_header_band": false
+    },
+    "alternate_sources_used": false,
+    "full_historical_reconstruction_performed": false,
+    "candidate_score_computed": false,
+    "component_zscores_computed": false,
+    "component_contributions_computed": false,
+    "research_ledger_modified": false,
+    "public_artifacts_modified": false,
+    "production_modified": false
+  },
+  "interpretation": "The v8 inventory identified the actual top-band structural vocabulary in the semantically selected containers. The 2013 HTML container exposes Commodity code plus explicit Unadjusted index and percent-change columns. The selected 2026 XLSX container is explicitly a percentage-change table with Commodity code, Group code, Item code and percent-change columns, and no recognized index-level column in the inspected top band. This constrains successor design: the selected XLSX direct-commodity occurrence cannot be treated as an index-level source solely from this container.",
+  "post_consumption_authorizations": {
+    "response_body_ephemeral_retrieval": false,
+    "ambiguity_diagnostics_preflight": false,
+    "numeric_identifier_field_read": false,
+    "economic_value_read": false,
+    "full_historical_reconstruction": false,
+    "candidate_score_computation": false,
+    "research_ledger_mutation": false,
+    "public_artifact_replacement": false,
+    "production": false
+  },
+  "new_owner_authorization_required_for_any_future_live_request": true
+}
