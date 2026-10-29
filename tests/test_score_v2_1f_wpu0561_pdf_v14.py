@@ -205,6 +205,28 @@ class SyntheticBlankPage:
         return None
 
 
+class SyntheticTextStream:
+    def get_data(self):
+        return b"BT (invented synthetic table text) Tj ET"
+
+
+class SyntheticTextPage:
+    def __init__(self, content: str):
+        self.content = content
+
+    def get_contents(self):
+        return SyntheticTextStream()
+
+    def extract_text(self, extraction_mode="plain"):
+        return self.content
+
+
+class SyntheticTextReader:
+    def __init__(self, contents):
+        self.pages = [SyntheticTextPage(x) for x in contents]
+        self.is_encrypted = False
+
+
 class SyntheticReader:
     def __init__(self, count: int):
         self.pages = SyntheticPages(count)
@@ -249,6 +271,40 @@ class OriginalV13ParserBoundaryTests(unittest.TestCase):
         self.assertNotIn("invalid_page_count", out["reason_codes"])
         self.assertEqual(out["page_count_band"], "51_to_200")
         self.assertIn("missing_table9_title", out["reason_codes"])
+
+    def test_repeated_table9_heading_is_flagged_ambiguous_on_fake_continuation(self):
+        page_one = (
+            "Table 9. Producer price indexes for commodity and service groupings and individual items\n"
+            "Commodity code\nUnadjusted index\nUnprocessed nonfood materials\n"
+            "Crude petroleum\n"
+        )
+        page_two = (
+            "Table 9. Producer price indexes for commodity and service groupings and individual items\n"
+            "Commodity code\nUnadjusted index\nOther synthetic item\n"
+        )
+        with mock.patch.object(v13_parser, "PdfReader", return_value=SyntheticTextReader(
+            [page_one, page_two]
+        )):
+            out = v13_parser.inspect_bytes(self.FAKE_PDF_BYTES)
+        self.assertIn("ambiguous_repeated_title", out["reason_codes"])
+        self.assertFalse(out["vintage_proven"])
+        self.assertFalse(out["economic_values_retained"])
+        # This establishes a possible false ambiguity on continuation titles
+        # in an invented fixture; it does not establish actual Table 9 contents.
+
+    def test_lexical_crude_petroleum_prefix_is_not_semantic_identity(self):
+        invented = (
+            "Table 9. Producer price indexes for commodity and service groupings and individual items\n"
+            "Commodity code\nUnadjusted index\nUnprocessed nonfood materials\n"
+            "Crude petroleum derived products\n"
+        )
+        with mock.patch.object(v13_parser, "PdfReader", return_value=SyntheticTextReader([invented])):
+            out = v13_parser.inspect_bytes(self.FAKE_PDF_BYTES)
+        self.assertTrue(out["target_label_seen"])
+        self.assertFalse(out["vintage_proven"])
+        self.assertFalse(out["economic_values_retained"])
+        # A mere lexical match is insufficient. This is design evidence for
+        # stricter future row identity, NOT a reason to reinterpret the old run.
 
     def test_reader_exception_is_different_failure_code(self):
         with mock.patch.object(v13_parser, "PdfReader", side_effect=RuntimeError("private bytes")):
