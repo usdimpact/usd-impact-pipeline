@@ -98,3 +98,29 @@ For real off-platform disaster recovery, independently archive a verified, acces
 ## 6. Approval scope
 
 Owner approved methodology **design only**, scoped to the official April 2026 archived BLS PDF candidate, plus defensive recovery preparation. This does not authorize fetching the PDF, reading identifier or economic data, modifying Score or public artifacts, approving Issue #155 rights, merging the current PR, or rolling back a provider. A new separate authorization is required at each subsequent gate.
+
+## 7. v11 PDF preflight abort and restore (future design only)
+
+A new **inert design** lives at governance/score-v2-1f-bls-wpu0561-pdf-structural-preflight-v11-design.json. A separate synthetic-only validator and 34 refusal/contract tests are included in the PR recovery workflow. This does not grant any live data access.
+
+### Before any future activation (not currently authorized)
+
+1. Verify both pinned recovery branches against their immutable commit hashes; preserve the current protected-main SHA and exact reviewed PR SHA.
+2. Verify Issue #155 rights HOLD, previous v8 consumption, v9 frozen blob hashes, and that there is no active receipt/dispatch.
+3. Separately resolve the BLS April 2026 PDF first-release provenance, same-series WPU0561 label and index schema, parser dependency pin and whether parser exposure to raw economic bytes is permitted.
+4. Register exact one-off BLS GET permission in an explicit new reviewed versioned contract. Do not treat the v11 proposal's planned **one GET** as current authorization.
+5. Before a future dispatch, validate hard network limits, logging boundaries, request stop conditions, secure runner and mandatory irreversible consumption semantics.
+6. No runtime is created by this PR. The published PDF itself was not fetched; no hash, page count or index observation has been verified.
+
+### If a hypothetical future live preflight fails
+
+- **STOP** without retries, redirect following, alternate sources, page-limit widening or replacement of the target series.
+- Disable dispatch and preserve the immutable commit/run audit trail.
+- Treat authorization as consumed even if transport or parsing fails; never rerun the same permission.
+- Remove any active receipt/dispatch through a reviewed cleanup PR and leave v9 authoritative.
+- Inspect GitHub logs/artifact leakage separately. Deleting an artifact later does not negate previous access or transfer.
+- Any economic-value exposure requires a separate documented incident review; restoring Git cannot recall downloaded data.
+- The rollback procedure restores only reviewed repository files through a new PR. It does not reverse external HTTP requests, fix downstream provider data, or roll back Production.
+- Revalidate recovery guard, synthetic PDF refusal tests, CodeQL, dependencies and validate-release on exact corrective-PR head.
+
+**Execution gate still closed:** no numeric identifier/economic-value reads, PDF GET, Score v2.1F, research ledger or public writes. The recovery branch/manifest protect the Git state but are not independent offsite snapshots.
