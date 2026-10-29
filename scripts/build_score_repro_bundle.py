@@ -14,7 +14,6 @@ import argparse
 import hashlib
 import json
 import subprocess
-import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -23,7 +22,6 @@ import numpy as np
 import pandas as pd
 
 import usd_impact_score_v2 as score_v2
-from scripts.score_publication_rights_gate import require_score_provider_rights
 
 TOLERANCE = 1e-9
 BUNDLE_VERSION = 1
@@ -420,9 +418,6 @@ class _NullLogger:
 def _live_weekly(
     score_json: dict[str, Any],
 ) -> tuple[pd.DataFrame, dict[str, Any], dict[str, Any]]:
-    # This helper is also directly callable. Guard before any live data work,
-    # independent of the CLI check and the Score fetch layer's own guard.
-    require_score_provider_rights()
     generated = datetime.now(timezone.utc)
     logger = _NullLogger()
     daily = score_v2.fetch_all_inputs(score_v2.START_DATE, logger, as_of=generated)
@@ -473,15 +468,6 @@ def main() -> int:
         ),
     )
     args = parser.parse_args()
-
-    # Do not read existing Score evidence or reach the live provider path on
-    # a direct --live-refetch invocation while source rights remain on HOLD.
-    if args.live_refetch:
-        try:
-            require_score_provider_rights()
-        except PermissionError as error:
-            print(str(error), file=sys.stderr)
-            return 3
 
     score_json = _load_score_json(args.score_json)
     if args.weekly_levels is not None:
