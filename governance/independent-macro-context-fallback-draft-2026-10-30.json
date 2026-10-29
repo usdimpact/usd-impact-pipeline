@@ -1,0 +1,256 @@
+{
+  "schema_version": "independent-public-source-macro-context-fallback-draft-v0",
+  "recorded_date": "2026-10-30",
+  "status": "SYNTHETIC_ONLY_DESIGN_HOLD",
+  "product_working_name": "Public-Source Macro Context Panel (unapproved internal working title)",
+  "commercial_product_or_public_name_approved": false,
+  "legacy_score_replacement": false,
+  "legacy_score_histories_compatible": false,
+  "eight_driver_score_model_weights_unchanged": true,
+  "legacy_score_publication_gate": "governance/score-publication-rights-gate.json",
+  "legacy_score_gate_expected": "hold",
+  "legacy_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
+  "treasury_rights_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/282",
+  "parents": [
+    "governance/score-public-source-phase-b-design-2026-10-29.json",
+    "governance/score-four-source-exact-series-rights-matrix-2026-10-29.json"
+  ],
+  "owner_direction": "Design and test no-budget independent fallback in synthetic-only mode; not an approval of name, real-data access, source permissions, retention, production, public publication or implied historic equivalence.",
+  "source_count": 4,
+  "source_permissions": {
+    "fed_h10_nominal_broad": {
+      "id": "fed_h10_nominal_broad",
+      "publisher": "Federal Reserve Board H.10",
+      "native_key": "H10/H10/JRXWTFB_N.B",
+      "identity_status": "2019 mnemonic methodology change and rebase not reconciled for historical as-published use",
+      "scope": "Nominal Broad Dollar Index not ICE USDX/DXY",
+      "units": "index",
+      "publication": "following Monday ~16:15 ET; delays and corrections possible",
+      "evidence": [
+        "https://www.federalreserve.gov/disclaimer.htm",
+        "https://www.federalreserve.gov/releases/h10/h10_technical_qa.htm",
+        "https://www.federalreserve.gov/data/data-download-fred-information.htm"
+      ],
+      "rights": {
+        "commercial_internal_ingestion": false,
+        "commercial_non_display_transformation": false,
+        "transient_processing": false,
+        "provider_content_retention": false,
+        "observations_archival": false,
+        "logs_and_cache_retention": false,
+        "backup_and_disaster_recovery_retention": false,
+        "revision_vintage_receipt_retention": false,
+        "public_aggregate_distribution": false,
+        "public_component_distribution": false,
+        "public_history_distribution": false,
+        "ai_ml_processing": false,
+        "downstream_redistribution": false,
+        "live_source_retrieval": false
+      }
+    },
+    "eia_crude_stocks_weekly": {
+      "id": "eia_crude_stocks_weekly",
+      "publisher": "U.S. Energy Information Administration",
+      "native_key": "WCESTUS1",
+      "identity_status": "survey definition, lease-stock scope and protected contributor exceptions require validation",
+      "scope": "US crude stocks excluding SPR, not CME WTI price",
+      "units": "thousand_barrels",
+      "publication": "usually following Wednesday 10:30 ET; holiday exceptions",
+      "evidence": [
+        "https://www.eia.gov/about/copyrights_reuse.php",
+        "https://www.eia.gov/petroleum/supply/weekly/schedule.php"
+      ],
+      "rights": {
+        "commercial_internal_ingestion": false,
+        "commercial_non_display_transformation": false,
+        "transient_processing": false,
+        "provider_content_retention": false,
+        "observations_archival": false,
+        "logs_and_cache_retention": false,
+        "backup_and_disaster_recovery_retention": false,
+        "revision_vintage_receipt_retention": false,
+        "public_aggregate_distribution": false,
+        "public_component_distribution": false,
+        "public_history_distribution": false,
+        "ai_ml_processing": false,
+        "downstream_redistribution": false,
+        "live_source_retrieval": false
+      }
+    },
+    "treasury_direct_2yr_par": {
+      "id": "treasury_direct_2yr_par",
+      "publisher": "U.S. Treasury",
+      "native_key": null,
+      "identity_status": "direct 2YR XML field, FRBNY upstream quote use and exact revision snapshots unverified",
+      "scope": "Treasury nominal par yield 2Y, not FRED DGS2 delivery",
+      "units": "yield_percent",
+      "publication": "daily, typically by 18:00 ET, revisions/delays possible",
+      "evidence": [
+        "https://home.treasury.gov/treasury-daily-interest-rate-xml-feed",
+        "https://catalog.data.gov/dataset/interest-rate-statistics-daily-treasury-yield-curve-rates"
+      ],
+      "rights": {
+        "commercial_internal_ingestion": false,
+        "commercial_non_display_transformation": false,
+        "transient_processing": false,
+        "provider_content_retention": false,
+        "observations_archival": false,
+        "logs_and_cache_retention": false,
+        "backup_and_disaster_recovery_retention": false,
+        "revision_vintage_receipt_retention": false,
+        "public_aggregate_distribution": false,
+        "public_component_distribution": false,
+        "public_history_distribution": false,
+        "ai_ml_processing": false,
+        "downstream_redistribution": false,
+        "live_source_retrieval": false
+      }
+    },
+    "treasury_direct_10yr_par": {
+      "id": "treasury_direct_10yr_par",
+      "publisher": "U.S. Treasury",
+      "native_key": null,
+      "identity_status": "direct 10YR XML field, FRBNY upstream quote use and exact revision snapshots unverified",
+      "scope": "Treasury nominal par yield 10Y, not FRED DGS10 delivery",
+      "units": "yield_percent",
+      "publication": "daily, same nominal curve snapshot and revision as 2Y",
+      "evidence": [
+        "https://home.treasury.gov/treasury-daily-interest-rate-xml-feed",
+        "https://catalog.data.gov/dataset/interest-rate-statistics-daily-treasury-yield-curve-rates"
+      ],
+      "rights": {
+        "commercial_internal_ingestion": false,
+        "commercial_non_display_transformation": false,
+        "transient_processing": false,
+        "provider_content_retention": false,
+        "observations_archival": false,
+        "logs_and_cache_retention": false,
+        "backup_and_disaster_recovery_retention": false,
+        "revision_vintage_receipt_retention": false,
+        "public_aggregate_distribution": false,
+        "public_component_distribution": false,
+        "public_history_distribution": false,
+        "ai_ml_processing": false,
+        "downstream_redistribution": false,
+        "live_source_retrieval": false
+      }
+    }
+  },
+  "permission_dimensions": [
+    "commercial_internal_ingestion",
+    "commercial_non_display_transformation",
+    "transient_processing",
+    "provider_content_retention",
+    "observations_archival",
+    "logs_and_cache_retention",
+    "backup_and_disaster_recovery_retention",
+    "revision_vintage_receipt_retention",
+    "public_aggregate_distribution",
+    "public_component_distribution",
+    "public_history_distribution",
+    "ai_ml_processing",
+    "downstream_redistribution",
+    "live_source_retrieval"
+  ],
+  "methodology": {
+    "status": "DRAFT_ONLY_NO_OWNER_ECONOMIC_SIGN_OFF",
+    "panel_type": "3_descriptive_dials_4_distinct_series",
+    "no_composite_score": true,
+    "no_normalization_or_weights": true,
+    "no_backtest_or_regime_predictions": true,
+    "no_trading_signal_or_investment_recommendation": true,
+    "no_use_of_original_score_history": true,
+    "week_pair": "two_consecutive_Fridays_both_2099_plus_in_test",
+    "as_of_rule": "all_four_source_versions_for_both_weeks_must_have_actual_synthetic_first_published_version_and_first_seen_timestamps_before_cutoff",
+    "source_publication_calendar_is_never_a_substitute_for_receipts": true,
+    "treasury_2y_10y_same_curve_snapshot_and_revision": true,
+    "dials": [
+      {
+        "id": "dollar_breadth",
+        "label": "Dollar breadth (nominal)",
+        "inputs": [
+          "fed_h10_nominal_broad"
+        ],
+        "calculation": "Compare current published H.10 Broad Dollar index to preceding reference Friday; UP/DOWN/UNCHANGED",
+        "numeric_public_value_allowed": false,
+        "interpretation": "Dollar breadth only; not ICE DXY or performance/return signal"
+      },
+      {
+        "id": "crude_inventory",
+        "label": "Reported crude inventories",
+        "inputs": [
+          "eia_crude_stocks_weekly"
+        ],
+        "calculation": "Compare WPSR crude stocks excluding SPR against prior reference week; BUILD/DRAW/UNCHANGED",
+        "numeric_public_value_allowed": false,
+        "interpretation": "Inventory movement; NOT futures prices or proof of oil-price direction"
+      },
+      {
+        "id": "treasury_curve",
+        "label": "Nominal Treasury curve",
+        "inputs": [
+          "treasury_direct_2yr_par",
+          "treasury_direct_10yr_par"
+        ],
+        "calculation": "Ten-year minus two-year yields (both same curve snapshot); POSITIVE/INVERTED/FLAT and STEEPENING/FLATTENING/UNCHANGED against prior week",
+        "numeric_public_value_allowed": false,
+        "interpretation": "Curve level and change; not direct real rates or monetary-policy recommendation"
+      }
+    ]
+  },
+  "constraints": {
+    "one_week_lag_possible": true,
+    "eia_wednesday_after_reference_friday": true,
+    "same_friday_live_publishing_not_possible_as_designed": true,
+    "revision_and_holiday_release_receipts_required": true,
+    "historical_H10_2019_identity_and_base_break_pending": true,
+    "exact_source_rights_review_pending": true,
+    "treasury_2yr_10yr_feed_fields_unverified": true,
+    "original_score_617_week_history_may_be_spliced": false
+  },
+  "implementation": {
+    "module": "scripts/independent_macro_context_synthetic.py",
+    "tests": "tests/test_independent_macro_context_synthetic.py",
+    "minimum_fixture_year": 2099,
+    "exclusively_invented_numeric_inputs": true,
+    "no_source_get_or_head": true,
+    "no_http_request_module": true,
+    "no_file_reads_or_writes": true,
+    "no_public_json_writes": true,
+    "no_v1_score_import": true,
+    "no_workflow_wiring": true,
+    "no_cloud_dependency": true,
+    "separate_future_live_source_adapter_requires_owner_approval": true
+  },
+  "external_authorities": {
+    "owner_final_name": false,
+    "owner_final_methodology": false,
+    "exact_four_source_owner_and_transport_rights": false,
+    "third_party_exception_exclusion": false,
+    "real_data_fetch": false,
+    "real_data_retention": false,
+    "first_seen_historical_vintage_coverage": false,
+    "commercial_internal_use": false,
+    "public_aggregate_use": false,
+    "public_display_schema": false,
+    "publication_schedule": false,
+    "member_and_research_consumer_cutover": false,
+    "legal_and_compliance_review": false,
+    "independent_production_approval": false
+  },
+  "cost_policy": {
+    "paid_market_data_budget_usd": 0,
+    "no_license_purchase": true,
+    "no_paid_provider_subscription": true,
+    "no_paid_transport_gateway": true
+  },
+  "publication_control": {
+    "status": "HOLD",
+    "rights_cleared": false,
+    "public_release_authorized": false,
+    "production_authorized": false,
+    "privacy_security_review_complete": false,
+    "owner_release_receipt": null
+  },
+  "evidence_scope": "Official publisher terms and metadata only. Do not store, download, or replay any actual market observations. Syntax-valid dates and numeric values in code tests are entirely fictitious year-2099 examples."
+}
