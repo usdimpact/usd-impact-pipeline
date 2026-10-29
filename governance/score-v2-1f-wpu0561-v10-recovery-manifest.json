@@ -59,7 +59,11 @@
     ".github/workflows/score-v2-1f-wpu0561-pdf-v13-oneoff.yml",
     "governance/score-v2-1f-wpu0561-pdf-v13-live-authorization.json",
     "governance/score-v2-1f-wpu0561-pdf-v13-dispatch.json",
-    "governance/score-v2-1f-wpu0561-pdf-v13-consumption-2026-10-29.json"
+    "governance/score-v2-1f-wpu0561-pdf-v13-consumption-2026-10-29.json",
+    "governance/score-v2-1f-wpu0561-v14-pagecount-forensic-design.json",
+    "docs/research/score-v2-1f-wpu0561-v14-pagecount-forensic-review.md",
+    "scripts/score_v2_1f_wpu0561_pdf_v14_offline_diagnostics.py",
+    "tests/test_score_v2_1f_wpu0561_pdf_v14.py"
   ],
   "authorizations": {
     "bLS_live_request": false,
@@ -134,5 +138,30 @@
     "original_release_pdf_vintage_proven": false,
     "economic_values_retained": false,
     "identifier_values_retained": false
+  },
+  "v14": {
+    "state": "owner_approved_design_only_pagecount_forensic_hold",
+    "evidence": "governance/score-v2-1f-wpu0561-v14-pagecount-forensic-design.json",
+    "review": "docs/research/score-v2-1f-wpu0561-v14-pagecount-forensic-review.md",
+    "validator": "scripts/score_v2_1f_wpu0561_pdf_v14_offline_diagnostics.py",
+    "tests": "tests/test_score_v2_1f_wpu0561_pdf_v14.py",
+    "frozen_v13_parser_blob_sha": "8a70409b0b5928e99de04930714dfc25774631ae",
+    "actual_pdf_page_count": null,
+    "possible_v13_count_conditions": [
+      "less_than_1",
+      "greater_than_200"
+    ],
+    "page_limit_v13": 200,
+    "fixed_resource_v9_infeasible": true,
+    "claim_tag_preserved": true,
+    "new_live_BLS_request": false,
+    "new_economic_value_read": false,
+    "new_source_substitution": false,
+    "request_budget_remaining": 0,
+    "original_release_pdf_vintage_proven": false,
+    "issue_155_rights_still_hold": true,
+    "public_changed": false,
+    "production_changed": false,
+    "next_gate": "separate owner methodology decision between retaining fixed-resource infeasibility and a future newly authorized detailed source/page metadata review"
   }
 }
