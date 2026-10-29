@@ -245,3 +245,22 @@ The v15 decision packet is docs/research/score-v2-1f-wpu0561-v15-methodology-dec
 6. Verify that the final v15 decision remains unselected. Any future BLS source/provenance request requires separately approved methodology, a new one-use claim and receipt/dispatch lifecycle, independent resource security, and explicit cleanup.
 
 Git recovery branches are **not independent offsite copies**, do not cover Supabase, Vercel, Cloudflare, Render, Resend or other provider data, and cannot undo an external HTTP request. No provider restoration is part of v15.
+
+## 13. v16 owner Option A fixed-resource closure
+
+Dated 2026-10-29, the owner explicitly approved **Option A** immediately following the recommendation in the v15 completion response: retain the original fixed Apr-2026 selected XLSX index-level infeasibility finding for the unverified WPU0561 historical-vintage pair. This is a methodological decision, **NOT** a new observation, source override, rights clearance, Score formula update, public asset change or Production action.
+
+The new decision is stored separately in governance/score-v2-1f-wpu0561-v16-owner-option-a-decision.json and documented in docs/research/score-v2-1f-wpu0561-v16-option-a-owner-decision.md. The original v15 decision JSON remains unchanged, preserving that the choice was **unselected at v15 publication time**.
+
+The existing read-only WPU0561 recovery workflow now checks the new owner choice in scripts/score_v2_1f_wpu0561_v16_option_a_guard.py and its 42 negative tests, as well as all v13-v15 consumption and source-scope tests. The validator refuses v15 backdating, new live receipt/dispatch, rewrites of the 2013/2026 selected resource boundary, invalid PDF page-count certainty, new BLS requests or page-cap widening, changed Score or public assets, and release of Issue #155 rights.
+
+### Corrective recovery after v16
+
+- Preserve prior v13 one-use claim and the v15 backup ref, the current pre-v16 base commit 1c66580dbff811d2ba033254de9df483f62620c9, and all unrelated newer protected-main rights and source retention commits.
+- After merge, pin a fresh v16 Git reference pointing exactly to the reviewed protected merge SHA. Compare before claiming that a repository snapshot exists. Git refs are NOT offsite backups or provider-native snapshots.
+- If any v16 guard fails or a mistaken file merges, first verify v13 receipt/dispatch absence, claim and zero request budget. Repair only the affected v16 governance, tests and recovery documentation using a separately reviewed corrective PR. Do not force-push main or rewrite v15.
+- Existing public Score and live drivers must remain unchanged. No code can infer WPU0561 values, silently source-hop or publish a representative 2013/2026 pair under the fixed incompatible resources.
+- Closing research Issue #258 after the verified v16 merge records the **owner's fixed-resource stop decision**, not a positive source match. Rights Issue #155 remains open/HOLD, and a future alternative-BLS-source project requires a separate scoped issue, evidence, methodology/security review and new one-time authorization.
+
+**Restore scope:** protected Git history only. This action does not create or restore Supabase, Vercel, Cloudflare, Render, Resend, or other provider backups, and cannot unwind any historical BLS HTTP request.
+
