@@ -1,5 +1,5 @@
 {
-  "version": 7,
+  "version": 8,
   "state": "design_only_hold",
   "methodology_version": "2.1F-design-candidate",
   "owner_decision_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/258",
@@ -22,7 +22,7 @@
       "expected_format": "xlsx"
     }
   ],
-  "objective": "Preregister a candidate-local header-gap inventory that runs only after the v6 exact-label/context narrowing succeeds, so the governing non-economic header vocabulary and distance can be diagnosed without reading identifier or economic values.",
+  "objective": "Preregister a bounded top-of-container header/title-band inventory for the already semantically selected HTML and XLSX containers, because the consumed v7 32-row candidate-local windows found no recognized header-role row.",
   "known_consumed_evidence": {
     "issue_244_html_crude_petroleum_matches": 3,
     "issue_244_xlsx_crude_petroleum_matches": 29,
@@ -48,7 +48,16 @@
       "xl/worksheets/sheet3.xml row 527"
     ],
     "v5_xlsx_row_289_context": "Unprocessed nonfood materials -> Raw cotton -> Coal -> Natural gas -> Crude petroleum",
-    "v5_xlsx_row_527_context": "Stage <num> intermediate demand -> Stage <num> intermediate demand goods -> commodity list -> Crude petroleum"
+    "v5_xlsx_row_527_context": "Stage <num> intermediate demand -> Stage <num> intermediate demand goods -> commodity list -> Crude petroleum",
+    "issue_258_v7_run": "https://github.com/usdimpact/usd-impact-pipeline/actions/runs/40897338145",
+    "issue_258_v7_html_selected_coordinate": "table 4 row 226",
+    "issue_258_v7_html_header_gap_window": "rows 194-225",
+    "issue_258_v7_html_nearest_recognized_header_row": null,
+    "issue_258_v7_xlsx_selected_coordinate": "xl/worksheets/sheet3.xml row 289",
+    "issue_258_v7_xlsx_header_gap_window": "rows 257-288",
+    "issue_258_v7_xlsx_nearest_recognized_header_row": null,
+    "issue_258_v7_identifier_values_retained": false,
+    "issue_258_v7_economic_values_retained": false
   },
   "future_live_budget": {
     "request_budget": 2,
@@ -210,7 +219,7 @@
     "public_artifact_replacement": false,
     "production": false
   },
-  "next_gate": "new_explicit_owner_authorization_under_issue_258_required_before_any_live_v7_header_gap_inventory_or_identifier/value_read",
+  "next_gate": "new_explicit_owner_authorization_under_issue_258_required_before_any_live_v8_container_header_band_inventory_or_identifier/value_read",
   "execution_environment_policy": {
     "preferred_environment": "github_actions_protected_main_lifecycle",
     "rationale": "prior protected GitHub Actions BLS preflights completed HTTP retrieval while the later local runtime encountered DNS resolution failure; future live execution should use the auditable environment with demonstrated BLS reachability",
@@ -325,6 +334,39 @@
       "identifier or economic numeric value would be read or persisted"
     ],
     "output_goal": "determine whether the actual governing header row is farther than the v5 8-row window and capture the smallest non-economic vocabulary needed for a later identifier/index-field verification",
+    "identity_proven_by_this_rule": false,
+    "live_verification_status": "not_authorized"
+  },
+  "container_header_band_policy": {
+    "state": "design_only_not_live_authorized",
+    "prerequisite_html": "v6 exact-label filter yields exactly one HTML candidate and therefore one selected HTML container",
+    "prerequisite_xlsx": "v6 exact-label/context discriminator yields exactly one direct-commodity XLSX candidate and therefore one selected XLSX container",
+    "selected_containers": "the container holding the HTML exact-label survivor and the container holding the XLSX direct-commodity-context survivor",
+    "candidate_row_as_selector": false,
+    "inspect_top_rows": 32,
+    "maximum_persisted_text_cells_per_selected_container": 128,
+    "persistent_fields": [
+      "resource path and selected container identifier",
+      "band start/end row coordinates",
+      "numeric-redacted non-economic text",
+      "recognized header role or null",
+      "blank-row coordinates",
+      "recognized header-role row coordinates",
+      "first/last nonempty row coordinates",
+      "truncation flag"
+    ],
+    "numeric_token_policy": "same as v5/v7: standalone numeric tokens -> <num>; alphanumeric tokens containing digits -> <alnum-redacted>; numeric-only and placeholder-only cells omitted",
+    "identifier_values": "forbidden",
+    "economic_values": "forbidden",
+    "response_body_persistence": false,
+    "stop_conditions": [
+      "v6 structural prerequisites fail",
+      "a selected container is chosen by row number rather than semantic candidate selection",
+      "more than 32 top rows would be inspected",
+      "more than 128 sanitized text cells would be persisted for either selected container",
+      "identifier or economic numeric value would be read or persisted"
+    ],
+    "output_goal": "capture the true column-header/title vocabulary near the top of the already selected container so section/group labels can be distinguished from governing column headers",
     "identity_proven_by_this_rule": false,
     "live_verification_status": "not_authorized"
   }
