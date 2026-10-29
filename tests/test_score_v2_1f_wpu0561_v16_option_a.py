@@ -187,6 +187,15 @@ class OwnerOptionAClosureTests(unittest.TestCase):
             existing_public_score_artifacts_untouched=False))
         self.assert_closed("runtime_data_or_production_boundary_undermined")
 
+    def test_omitted_BLS_GET_permission_cannot_silently_default_true(self):
+        self.update(V16, lambda d: d["permissions"].pop("BLS_GET"))
+        self.assert_closed("new_live_authorization_inserted")
+
+    def test_unrecognized_runtime_status_field_is_not_silently_allowed(self):
+        self.update(V16, lambda d: d["runtime_boundary"].update(
+            unreviewed_external_provider_write=True))
+        self.assert_closed("runtime_data_or_production_boundary_undermined")
+
     def test_no_BLS_GET(self):
         self.update(V16, lambda d: d["permissions"].update(BLS_GET=True))
         self.assert_closed("new_live_authorization_inserted")
