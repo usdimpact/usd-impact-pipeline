@@ -188,9 +188,12 @@ class ScoreV21FWpu0561AmbiguityDiagnosticsTests(unittest.TestCase):
         self.assertEqual(inventory[0]["candidate_row"], 12)
         self.assertEqual(inventory[0]["window_start_row"], 4)
         self.assertEqual(inventory[0]["window_end_row"], 12)
-        encoded = repr(inventory)
-        self.assertNotIn("row <num> label", repr(inventory[0]["cells"][:0]))
-        self.assertNotIn("row 1 label", encoded)
+        cell_rows = [cell["row"] for cell in inventory[0]["cells"]]
+        self.assertTrue(cell_rows)
+        self.assertGreaterEqual(min(cell_rows), 4)
+        self.assertNotIn(1, cell_rows)
+        self.assertNotIn(2, cell_rows)
+        self.assertNotIn(3, cell_rows)
 
     def test_candidate_context_fails_closed_above_32_candidates(self) -> None:
         rows = [["Crude petroleum"] for _ in range(33)]
