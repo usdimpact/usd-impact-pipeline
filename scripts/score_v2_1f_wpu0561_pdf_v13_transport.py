@@ -288,7 +288,7 @@ def main() -> int:
             "production_changed": False,
         }
         print(json.dumps(output, sort_keys=True))
-        return 0
+        return 0 if output["status"] == "structural_metadata_only_hold" else 2
     except (GlobalStop, ValueError, OSError) as exc:
         reason = str(exc) if isinstance(exc, GlobalStop) else "unexpected_preflight_failure"
         print(json.dumps(safe_failure(reason, budget[0]), sort_keys=True))
