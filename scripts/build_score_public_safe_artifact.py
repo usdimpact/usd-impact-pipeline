@@ -14,6 +14,9 @@ import argparse
 import csv
 import hashlib
 import json
+import math
+import re
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -38,6 +41,68 @@ FORBIDDEN_KEYS = {
 }
 
 ALLOWED_HISTORY_KEYS = {"date", "score", "regime"}
+EXPECTED_WEIGHTS = {
+    "DXY": 0.125,
+    "WTI": -0.125,
+    "SPX": -0.125,
+    "VIX": 0.125,
+    "BTC": -0.125,
+    "GOLD": -0.125,
+    "UST_2Y": 0.125,
+    "UST_10Y": 0.125,
+}
+ROOT_KEYS = {"schema_version", "metadata", "latest", "history", "release_evidence"}
+METADATA_KEYS = {"pipeline", "generated_at_utc", "n_weeks", "weights"}
+LATEST_KEYS = {
+    "week_ending", "score", "regime",
+    "week_over_week_change", "four_week_change",
+}
+EVIDENCE_KEYS = {"aggregate_history_sha256"}
+DATE_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+
+
+def _strict_keys(value: Any, expected: set[str], label: str) -> None:
+    if not isinstance(value, dict) or set(value) != expected:
+        raise ValueError(f"{label} must contain exactly: {sorted(expected)}")
+
+
+def _friday(value: Any, label: str) -> date:
+    if not isinstance(value, str) or not DATE_PATTERN.fullmatch(value):
+        raise ValueError(f"{label} must be a YYYY-MM-DD Friday")
+    try:
+        parsed = date.fromisoformat(value)
+    except ValueError as exc:
+        raise ValueError(f"{label} must be a valid calendar date") from exc
+    if parsed.weekday() != 4:
+        raise ValueError(f"{label} must be a Friday")
+    return parsed
+
+
+def _valid_utc_timestamp(value: Any) -> None:
+    if value is None:
+        return  # Synthetic private-research receipts can omit generation time.
+    if not isinstance(value, str):
+        raise ValueError("generated_at_utc must be an ISO UTC timestamp or null")
+    try:
+        stamp = datetime.fromisoformat(value)
+    except ValueError as exc:
+        raise ValueError("generated_at_utc must be an ISO UTC timestamp") from exc
+    if stamp.tzinfo is None or stamp.utcoffset() != timedelta(0):
+        raise ValueError("generated_at_utc must include a UTC offset")
+
+
+def _expected_regime(score: float) -> str:
+    # Frozen production Score v2 thresholds, used only to validate synthetic
+    # and reviewed aggregate payloads. The Score engine is not modified.
+    if score >= 1.0:
+        return "Strong dollar regime"
+    if score >= 0.3:
+        return "Firm dollar regime"
+    if score >= -0.3:
+        return "Neutral / transitional"
+    if score >= -1.0:
+        return "Soft dollar regime"
+    return "Weak dollar regime"
 
 
 def _canonical_history_bytes(history: list[dict[str, Any]]) -> bytes:
@@ -50,7 +115,13 @@ def _canonical_history_bytes(history: list[dict[str, Any]]) -> bytes:
 def _numeric(value: Any, field: str) -> float:
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise ValueError(f"{field} must be numeric")
-    return float(value)
+    try:
+        number = float(value)
+    except (OverflowError, ValueError) as exc:
+        raise ValueError(f"{field} must be a finite number") from exc
+    if not math.isfinite(number):
+        raise ValueError(f"{field} must be finite")
+    return number
 
 
 def build_public_safe_payload(source: dict[str, Any]) -> dict[str, Any]:
@@ -114,6 +185,13 @@ def build_public_safe_payload(source: dict[str, Any]) -> dict[str, Any]:
 
 
 def assert_public_safe(payload: Any) -> None:
+    """Closed, numeric-safe contract for the *inactive* aggregate prototype.
+
+    Schema narrowing and passing this check are NOT a commercial license or
+    permission to redistribute even aggregate provider-derived Score data.
+    """
+    _strict_keys(payload, ROOT_KEYS, "aggregate payload")
+
     def walk(value: Any, path: str = "$") -> None:
         if isinstance(value, dict):
             forbidden = FORBIDDEN_KEYS.intersection(value)
@@ -129,16 +207,62 @@ def assert_public_safe(payload: Any) -> None:
                 walk(child, f"{path}[{index}]")
 
     walk(payload)
+    if payload["schema_version"] != SCHEMA_VERSION:
+        raise ValueError("unsupported aggregate-safe schema version")
 
-    history = payload.get("history")
+    metadata = payload["metadata"]
+    _strict_keys(metadata, METADATA_KEYS, "aggregate metadata")
+    if metadata["pipeline"] != "usd_impact_score_v2":
+        raise ValueError("metadata pipeline must be the frozen v2 identifier")
+    _valid_utc_timestamp(metadata["generated_at_utc"])
+    _strict_keys(metadata["weights"], set(EXPECTED_WEIGHTS), "methodology weights")
+    for name, expected in EXPECTED_WEIGHTS.items():
+        if _numeric(metadata["weights"][name], f"weight {name}") != expected:
+            raise ValueError(f"weight {name} differs from frozen methodology")
+
+    history = payload["history"]
     if not isinstance(history, list) or not history:
         raise ValueError("public-safe payload must contain history")
+    n = metadata["n_weeks"]
+    if isinstance(n, bool) or not isinstance(n, int) or n != len(history):
+        raise ValueError("metadata week count does not match history")
+
+    previous_date: date | None = None
     for index, row in enumerate(history):
-        if set(row) != ALLOWED_HISTORY_KEYS:
-            raise ValueError(
-                f"history row {index} must contain only "
-                f"{sorted(ALLOWED_HISTORY_KEYS)}"
-            )
+        _strict_keys(row, ALLOWED_HISTORY_KEYS, f"history row {index}")
+        week = _friday(row["date"], f"history row {index} date")
+        if previous_date is not None and week <= previous_date:
+            raise ValueError("aggregate history must be strictly chronological")
+        previous_date = week
+        score = _numeric(row["score"], f"history row {index} score")
+        if row["regime"] != _expected_regime(score):
+            raise ValueError(f"history row {index} has an inconsistent regime")
+
+    latest = payload["latest"]
+    _strict_keys(latest, LATEST_KEYS, "latest")
+    _friday(latest["week_ending"], "latest week ending")
+    if latest["week_ending"] != history[-1]["date"]:
+        raise ValueError("latest date must match final history row")
+    if _numeric(latest["score"], "latest score") != history[-1]["score"]:
+        raise ValueError("latest score must match final history row")
+    if latest["regime"] != history[-1]["regime"]:
+        raise ValueError("latest regime must match final history row")
+    prior = history[-2]["score"] if len(history) >= 2 else history[-1]["score"]
+    anchor = history[-5]["score"] if len(history) >= 5 else history[0]["score"]
+    if _numeric(latest["week_over_week_change"], "weekly change") != (
+        latest["score"] - prior
+    ):
+        raise ValueError("weekly aggregate change does not match history")
+    if _numeric(latest["four_week_change"], "four-week change") != (
+        latest["score"] - anchor
+    ):
+        raise ValueError("four-week aggregate change does not match history")
+
+    evidence = payload["release_evidence"]
+    _strict_keys(evidence, EVIDENCE_KEYS, "release evidence")
+    expected_hash = hashlib.sha256(_canonical_history_bytes(history)).hexdigest()
+    if evidence["aggregate_history_sha256"] != expected_hash:
+        raise ValueError("aggregate history SHA256 does not match payload")
 
 
 def write_outputs(
@@ -146,10 +270,11 @@ def write_outputs(
     json_output: Path,
     csv_output: Path,
 ) -> None:
+    assert_public_safe(payload)
     json_output.parent.mkdir(parents=True, exist_ok=True)
     csv_output.parent.mkdir(parents=True, exist_ok=True)
     json_output.write_text(
-        json.dumps(payload, indent=2, ensure_ascii=False) + "\n",
+        json.dumps(payload, indent=2, ensure_ascii=False, allow_nan=False) + "\n",
         encoding="utf-8",
     )
     with csv_output.open("w", encoding="utf-8", newline="") as handle:
