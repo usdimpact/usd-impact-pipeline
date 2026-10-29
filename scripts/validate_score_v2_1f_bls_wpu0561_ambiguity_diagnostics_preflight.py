@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate dispatched Issue #258 design-v7 header-gap inventory."""
+"""Validate consumed/fail-closed Issue #258 design-v7 header-gap state."""
 
 from __future__ import annotations
 
@@ -9,21 +9,16 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 ISSUE = "https://github.com/usdimpact/usd-impact-pipeline/issues/258"
-V5_RUN = "https://github.com/usdimpact/usd-impact-pipeline/actions/runs/40794631448"
+RUN = "https://github.com/usdimpact/usd-impact-pipeline/actions/runs/40897338145"
+ACTIVATION_COMMIT = "771bf87d381fda9f72adad5f5456331916195533"
+DISPATCH_COMMIT = "549f0fe9019f884980a6aa6f5d7d849ca4bf137d"
 DESIGN = ROOT / "governance/score-v2-1f-bls-wpu0561-ambiguity-diagnostics-preflight-design.json"
 TEMPLATE = ROOT / "governance/score-v2-1f-bls-wpu0561-ambiguity-diagnostics-preflight-authorization.template.json"
 RECEIPT = ROOT / "governance/score-v2-1f-bls-wpu0561-ambiguity-diagnostics-preflight-authorization.json"
 DISPATCH = ROOT / "governance/score-v2-1f-bls-wpu0561-ambiguity-diagnostics-preflight-dispatch.json"
 CONTRACT = ROOT / "governance/score-v2-1f-bls-wpu0561-ambiguity-diagnostics-preflight-execution-contract.json"
-CONSUMPTION = ROOT / "governance/score-v2-1f-bls-wpu0561-ambiguity-diagnostics-v5-candidate-context-consumption-2026-10-29.json"
+CONSUMPTION = ROOT / "governance/score-v2-1f-bls-wpu0561-ambiguity-diagnostics-v7-header-gap-consumption-2026-10-29.json"
 WORKFLOW = ROOT / ".github/workflows/score-v2-1f-bls-wpu0561-ambiguity-diagnostics-preflight.yml"
-APPROVAL_COMMENT = 6500046079
-APPROVED_AT = "2026-10-29T14:53:20Z"
-EXPECTED_UA = "USD-Impact-Score-v2.1F-WPU0561-header-gap/1.0 (contact: support@usd-impact.com)"
-EXPECTED_RESOURCES = [
-    "/news.release/archives/ppi_05152013.htm",
-    "/ppi/detailed-report/ppi-detailed-report-april-2026.xlsx",
-]
 
 
 def _load(path: Path) -> dict[str, Any]:
@@ -37,33 +32,19 @@ def validate(repo_root: Path | None = None) -> dict[str, Any]:
     root = (repo_root or ROOT).resolve()
     design = _load(root / DESIGN.relative_to(ROOT))
     template = _load(root / TEMPLATE.relative_to(ROOT))
-    receipt_path = root / RECEIPT.relative_to(ROOT)
-    dispatch_path = root / DISPATCH.relative_to(ROOT)
     contract = _load(root / CONTRACT.relative_to(ROOT))
     consumption = _load(root / CONSUMPTION.relative_to(ROOT))
     rights = _load(root / "governance/score-publication-rights-gate.json")
     workflow = (root / WORKFLOW.relative_to(ROOT)).read_text(encoding="utf-8")
 
-    if not receipt_path.exists():
-        raise RuntimeError("active v7 receipt must exist while dispatched")
-    if not dispatch_path.exists():
-        raise RuntimeError("v7 dispatch marker must exist while dispatched")
-    receipt = _load(receipt_path)
-    dispatch = _load(dispatch_path)
+    for relative in (RECEIPT.relative_to(ROOT), DISPATCH.relative_to(ROOT)):
+        if (root / relative).exists():
+            raise RuntimeError(f"consumed v7 state must not retain {relative}")
 
     if rights.get("state") != "hold":
         raise RuntimeError("Issue #155 rights gate must remain HOLD")
     if template.get("decision_status") != "hold" or any(template.get("authorizations", {}).values()):
         raise RuntimeError("authorization template must remain HOLD")
-
-    if consumption.get("state") != "consumed_after_completed_v5_candidate_context_inventory":
-        raise RuntimeError("v5 consumption evidence changed")
-    if consumption.get("preflight_run") != V5_RUN:
-        raise RuntimeError("v5 run evidence changed")
-    if consumption.get("sanitized_result", {}).get("economic_observation_count") != 0:
-        raise RuntimeError("v5 economic observation evidence changed")
-    if consumption.get("sanitized_result", {}).get("identifier_value_count") != 0:
-        raise RuntimeError("v5 identifier evidence changed")
 
     if design.get("version") != 7 or design.get("state") != "design_only_hold":
         raise RuntimeError("Issue #258 v7 design changed")
@@ -76,21 +57,7 @@ def validate(repo_root: Path | None = None) -> dict[str, Any]:
     if any(design.get("current_authorizations", {}).values()):
         raise RuntimeError("frozen v7 design authorization flags must remain false")
 
-    exact = design.get("exact_label_candidate_policy", {})
-    discriminator = design.get("xlsx_context_discriminator_policy", {})
     gap = design.get("candidate_local_header_gap_policy", {})
-    if exact.get("expected_html_narrowing") != "3 -> 1":
-        raise RuntimeError("v6 HTML prerequisite changed")
-    if exact.get("expected_xlsx_narrowing") != "29 -> 2":
-        raise RuntimeError("v6 XLSX prerequisite changed")
-    if exact.get("row_number_as_selector") is not False:
-        raise RuntimeError("row numbers must not be selectors")
-    if discriminator.get("expected_direct_commodity_survivors") != 1:
-        raise RuntimeError("direct-commodity prerequisite changed")
-    if discriminator.get("row_number_as_selector") is not False:
-        raise RuntimeError("XLSX row numbers must not be selectors")
-    if gap.get("state") != "design_only_not_live_authorized":
-        raise RuntimeError("v7 header-gap design state changed")
     if gap.get("maximum_preceding_rows") != 32:
         raise RuntimeError("v7 row bound changed")
     if gap.get("following_rows") != 0:
@@ -98,131 +65,128 @@ def validate(repo_root: Path | None = None) -> dict[str, Any]:
     if gap.get("maximum_persisted_text_cells_per_selected_candidate") != 128:
         raise RuntimeError("v7 cell bound changed")
     if gap.get("row_number_as_selector") is not False:
-        raise RuntimeError("v7 row numbers must remain coordinates only")
+        raise RuntimeError("v7 row-number policy changed")
     if gap.get("identifier_values") != "forbidden":
-        raise RuntimeError("identifier-value policy changed")
+        raise RuntimeError("v7 identifier-value policy changed")
     if gap.get("economic_values") != "forbidden":
-        raise RuntimeError("economic-value policy changed")
+        raise RuntimeError("v7 economic-value policy changed")
 
-    if receipt.get("decision_status") != "approved":
-        raise RuntimeError("active v7 receipt must be approved")
-    if receipt.get("issue") != ISSUE:
-        raise RuntimeError("receipt issue changed")
-    if receipt.get("execution_scope") != "bls_wpu0561_ambiguity_diagnostics_preflight_only":
-        raise RuntimeError("receipt scope changed")
-    if receipt.get("request_budget") != 2:
-        raise RuntimeError("receipt request budget changed")
-    if receipt.get("max_economic_observations_total") != 0:
-        raise RuntimeError("receipt economic observation budget changed")
-    if receipt.get("max_economic_observations_per_resource") != 0:
-        raise RuntimeError("receipt per-resource observation budget changed")
-    if receipt.get("allowed_host") != "www.bls.gov":
-        raise RuntimeError("receipt host changed")
-    if receipt.get("fixed_resources") != EXPECTED_RESOURCES:
-        raise RuntimeError("receipt resources changed")
-    if receipt.get("contact_user_agent") != EXPECTED_UA:
-        raise RuntimeError("receipt User-Agent changed")
-    if receipt.get("approved_by") != "usdimpact owner via Issue #258 approval comment 6500046079":
-        raise RuntimeError("receipt approval identity changed")
-    if receipt.get("approved_at") != APPROVED_AT:
-        raise RuntimeError("receipt approval timestamp changed")
+    if consumption.get("state") != "consumed_after_completed_v7_header_gap_inventory":
+        raise RuntimeError("v7 consumption state changed")
+    if consumption.get("design_version") != 7:
+        raise RuntimeError("v7 consumption design version changed")
+    if consumption.get("owner_decision_issue") != ISSUE:
+        raise RuntimeError("consumption issue changed")
+    if consumption.get("owner_approval_comment_id") != 6500046079:
+        raise RuntimeError("owner approval evidence changed")
+    if consumption.get("authorization_activation_merge_commit") != ACTIVATION_COMMIT:
+        raise RuntimeError("activation merge evidence changed")
+    if consumption.get("dispatch_merge_commit") != DISPATCH_COMMIT:
+        raise RuntimeError("dispatch merge evidence changed")
+    if consumption.get("preflight_run") != RUN:
+        raise RuntimeError("preflight run evidence changed")
+    if consumption.get("preflight_workflow_conclusion") != "success":
+        raise RuntimeError("workflow conclusion changed")
+    if consumption.get("preflight_result_status") != "completed":
+        raise RuntimeError("result status changed")
+    if consumption.get("request_budget") != 2:
+        raise RuntimeError("consumption request budget changed")
+    if consumption.get("max_economic_observations_total") != 0:
+        raise RuntimeError("consumption economic observation budget changed")
 
-    auth = receipt.get("authorizations", {})
-    if auth.get("response_body_ephemeral_retrieval") is not True:
-        raise RuntimeError("ephemeral retrieval must be authorized")
-    if auth.get("ambiguity_diagnostics_preflight") is not True:
-        raise RuntimeError("header-gap preflight must be authorized")
+    result = consumption.get("sanitized_result", {})
+    if result.get("request_attempt_count") != 2:
+        raise RuntimeError("request attempt count changed")
+    if result.get("identifier_values_retained") is not False:
+        raise RuntimeError("identifier values must remain absent")
+    if result.get("economic_values_retained") is not False:
+        raise RuntimeError("economic values must remain absent")
+
+    html = result.get("html", {})
+    xlsx = result.get("xlsx", {})
+    if html.get("transport_status") != "passed" or html.get("semantic_status") != "evaluated":
+        raise RuntimeError("HTML transport/semantic evidence changed")
+    if html.get("container") != "table 4" or html.get("candidate_row") != 226:
+        raise RuntimeError("HTML selected candidate evidence changed")
+    if html.get("window_start_row") != 194 or html.get("window_end_row") != 225:
+        raise RuntimeError("HTML header-gap window changed")
+    if html.get("nearest_recognized_header_row") is not None:
+        raise RuntimeError("HTML nearest-header result changed")
+    if html.get("recognized_header_role_rows") != []:
+        raise RuntimeError("HTML recognized-header rows changed")
+    if html.get("truncated") is not False:
+        raise RuntimeError("HTML result must remain untruncated")
+
+    if xlsx.get("transport_status") != "passed" or xlsx.get("semantic_status") != "evaluated":
+        raise RuntimeError("XLSX transport/semantic evidence changed")
+    if xlsx.get("container") != "xl/worksheets/sheet3.xml" or xlsx.get("candidate_row") != 289:
+        raise RuntimeError("XLSX selected candidate evidence changed")
+    if xlsx.get("window_start_row") != 257 or xlsx.get("window_end_row") != 288:
+        raise RuntimeError("XLSX header-gap window changed")
+    if xlsx.get("nearest_recognized_header_row") is not None:
+        raise RuntimeError("XLSX nearest-header result changed")
+    if xlsx.get("recognized_header_role_rows") != []:
+        raise RuntimeError("XLSX recognized-header rows changed")
+    if xlsx.get("truncated") is not False:
+        raise RuntimeError("XLSX result must remain untruncated")
+
     for field in (
-        "numeric_identifier_field_read",
-        "economic_value_read",
-        "full_historical_reconstruction",
-        "candidate_score_computation",
-        "research_ledger_mutation",
-        "public_artifact_replacement",
-        "production",
+        "alternate_sources_used",
+        "full_historical_reconstruction_performed",
+        "candidate_score_computed",
+        "component_zscores_computed",
+        "component_contributions_computed",
+        "research_ledger_modified",
+        "public_artifacts_modified",
+        "production_modified",
     ):
-        if auth.get(field) is not False:
+        if result.get(field) is not False:
             raise RuntimeError(f"{field} must remain false")
 
-    if dispatch.get("state") != "approved_dispatch":
-        raise RuntimeError("dispatch state changed")
-    if dispatch.get("phase") != "bls_wpu0561_candidate_local_header_gap_inventory_preflight":
-        raise RuntimeError("dispatch phase changed")
-    if dispatch.get("issue") != ISSUE:
-        raise RuntimeError("dispatch issue changed")
-    if dispatch.get("design_version") != 7:
-        raise RuntimeError("dispatch design version changed")
-    if dispatch.get("authorization_activation_merge_commit") != "771bf87d381fda9f72adad5f5456331916195533":
-        raise RuntimeError("dispatch activation commit changed")
-    if dispatch.get("request_budget") != 2 or dispatch.get("max_economic_observations_total") != 0:
-        raise RuntimeError("dispatch budgets changed")
-    if dispatch.get("maximum_preceding_rows") != 32:
-        raise RuntimeError("dispatch row bound changed")
-    if dispatch.get("following_rows") != 0:
-        raise RuntimeError("dispatch following-row bound changed")
-    if dispatch.get("maximum_persisted_text_cells_per_selected_candidate") != 128:
-        raise RuntimeError("dispatch cell bound changed")
-    if dispatch.get("fixed_resources") != EXPECTED_RESOURCES:
-        raise RuntimeError("dispatch resources changed")
-    if dispatch.get("identifier_value_read_authorized") is not False:
-        raise RuntimeError("identifier-value reads must remain forbidden")
-    if dispatch.get("economic_value_read_authorized") is not False:
-        raise RuntimeError("economic-value reads must remain forbidden")
-    if dispatch.get("production_authorized") is not False:
+    if any(consumption.get("post_consumption_authorizations", {}).values()):
+        raise RuntimeError("all post-consumption authorizations must be false")
+    if consumption.get("new_owner_authorization_required_for_any_future_live_request") is not True:
+        raise RuntimeError("future live BLS work must require new owner authorization")
+
+    if contract.get("version") != 16:
+        raise RuntimeError("consumed contract version changed")
+    if contract.get("state") != "ambiguity_diagnostics_v7_header_gap_consumed_fail_closed":
+        raise RuntimeError("contract must be consumed/fail-closed")
+    if contract.get("active_authorization_receipt_expected_now") is not False:
+        raise RuntimeError("active receipt must not be expected")
+    if contract.get("dispatch_marker_expected_now") is not False:
+        raise RuntimeError("dispatch marker must not be expected")
+    if contract.get("completed_preflight_run") != RUN:
+        raise RuntimeError("contract run evidence changed")
+    if contract.get("completed_preflight_workflow_conclusion") != "success":
+        raise RuntimeError("contract workflow conclusion changed")
+    if contract.get("completed_preflight_result_status") != "completed":
+        raise RuntimeError("contract result status changed")
+    if any(contract.get("current_state", {}).values()):
+        raise RuntimeError("all current authorization flags must be false")
+    if contract.get("production_authorized") is not False:
         raise RuntimeError("Production must remain unauthorized")
 
-    if contract.get("version") != 15:
-        raise RuntimeError("dispatch contract version changed")
-    if contract.get("state") != "ambiguity_diagnostics_v7_header_gap_authorized":
-        raise RuntimeError("contract must be dispatched-active")
-    if contract.get("owner_approval_comment_id") != APPROVAL_COMMENT:
-        raise RuntimeError("contract approval comment changed")
-    if contract.get("owner_approval_timestamp") != APPROVED_AT:
-        raise RuntimeError("contract approval timestamp changed")
-    if contract.get("authorization_activation_merge_commit") != "771bf87d381fda9f72adad5f5456331916195533":
-        raise RuntimeError("contract activation commit changed")
-    if contract.get("active_authorization_receipt_expected_now") is not True:
-        raise RuntimeError("active receipt must be expected")
-    if contract.get("dispatch_marker_expected_now") is not True:
-        raise RuntimeError("dispatch marker must be expected")
-    if contract.get("request_budget") != 2 or contract.get("max_economic_observations_total") != 0:
-        raise RuntimeError("contract budgets changed")
-
-    current = contract.get("current_state", {})
-    if current.get("response_body_ephemeral_retrieval_authorized") is not True:
-        raise RuntimeError("ephemeral retrieval must be active")
-    if current.get("ambiguity_diagnostics_preflight_authorized") is not True:
-        raise RuntimeError("header-gap preflight must be active")
-    for field in (
-        "numeric_identifier_field_read_authorized",
-        "economic_value_read_authorized",
-        "full_historical_reconstruction_authorized",
-        "candidate_score_computation_authorized",
-        "research_ledger_mutation_authorized",
-        "public_artifact_replacement_authorized",
-        "production_authorized",
-    ):
-        if current.get(field) is not False:
-            raise RuntimeError(f"{field} must remain false")
-
-    if "score-v2-1f-bls-wpu0561-ambiguity-diagnostics-preflight-dispatch.json" not in workflow:
-        raise RuntimeError("workflow must be path-gated to the dispatch marker")
-    if ("if: $" + "{{ false }}") in workflow:
-        raise RuntimeError("workflow must be active in dispatched state")
-    if "workflow_dispatch:" in workflow:
-        raise RuntimeError("dispatched workflow must not allow manual reruns")
+    if ("if: $" + "{{ false }}") not in workflow:
+        raise RuntimeError("consumed workflow must remain inert")
+    if "push:" in workflow:
+        raise RuntimeError("consumed workflow must not retain a push trigger")
 
     return {
         "status": "passed",
-        "state": "ambiguity_diagnostics_v7_header_gap_authorized",
+        "state": "ambiguity_diagnostics_v7_header_gap_consumed_fail_closed",
         "design_version": 7,
-        "request_budget": 2,
-        "max_economic_observations_total": 0,
-        "max_preceding_rows": 32,
-        "max_cells_per_selected_candidate": 128,
-        "active_receipt_present": True,
-        "dispatch_present": True,
-        "live_request_authorized": True,
+        "preflight_run": RUN,
+        "request_attempt_count": 2,
+        "identifier_values_retained": False,
+        "economic_values_retained": False,
+        "html_candidate_row": 226,
+        "html_nearest_header_row": None,
+        "xlsx_candidate_row": 289,
+        "xlsx_nearest_header_row": None,
+        "active_receipt_present": False,
+        "dispatch_present": False,
+        "live_request_authorized": False,
         "identifier_value_read_authorized": False,
         "economic_value_read_authorized": False,
         "production_authorized": False,
