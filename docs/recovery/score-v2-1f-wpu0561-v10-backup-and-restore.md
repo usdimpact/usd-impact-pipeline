@@ -220,3 +220,28 @@ The standard unprivileged recovery workflow executes pure-Python v14 tests and s
 7. Original first-release WPU0561 feasibility and Issue #155 rights stay HOLD until a distinct decision. Git snapshots do not cover provider backups or undo external requests.
 
 A successful v14 synthetic test establishes only what the existing **code** would do with invented page counts; it is not evidence of the actual PDF page count or historical index-level value. Further live diagnosis requires a new methodology and explicit one-off authorization.
+
+## 12. v15 design-only source decision and failure recovery
+
+**Owner continuing v15 research did not grant any new BLS request, live authorization, pagination limit change, alternate source, economic value or Score/public/Production release.**
+
+The v15 decision packet is docs/research/score-v2-1f-wpu0561-v15-methodology-decision-packet.md with a machine-readable companion under governance/score-v2-1f-wpu0561-v15-methodology-decision.json. Source/decision validator scripts/score_v2_1f_wpu0561_v15_methodology_guard.py and 32 offline negative tests are run by the existing read-only Score WPU0561 recovery CI. No new GitHub Actions dispatch workflow, parser package or BLS network credential was introduced.
+
+### Required HOLD state
+
+- v9: fixed selected April 2026 XLSX is **not feasible** for the required index-level representative observation, although Crude petroleum to 0561 identity was separately proven.
+- v13: the original PDF structural request was already consumed, with one immutable Git claim; reason invalid_page_count still means fewer than one OR more than 200 pages, not an actual count or Table 9 proof.
+- v14: pinned mock-based page-count behavior and original frozen v13 parser blob remain unchanged.
+- v15: no owner choice between A/B/C recorded; source-first-edition, row identity, index-level field, 2013-versus-2026 comparability and Issue #155 rights remain unproven. New request budget **zero**.
+- Both v8/v13 active receipt and dispatch files remain absent; v13 live workflow remains inert. The v13 claim must never be removed, moved or reused.
+
+### If v15 development or test checks fail
+
+1. Preserve exact PR head and all failed logs; confirm that no BLS GET/HEAD/range was performed.
+2. Validate v13 consumed ledger, known Git tag and receipts/dispatch absence; do not retry v13 or create a v15 live workflow.
+3. Verify the protected-main v14 backup branch backup/score-v2-1f-v14-offline-2026-10-29 is unchanged at 2e028a553132c94db64ed9ba88927957374c2b1f; preserve all more recent unrelated rights, Treasury and provider-retention commits.
+4. Fix or revert only v15 design, validator, test and recovery-documentation files using a separate reviewed branch/PR. No force push, tag rewrite or automatic service rollback.
+5. Run exact-head validate-release, CodeQL Python, dependency audit, frozen research residual dependency risk, and the offline synthetic recovery drill before merging corrections.
+6. Verify that the final v15 decision remains unselected. Any future BLS source/provenance request requires separately approved methodology, a new one-use claim and receipt/dispatch lifecycle, independent resource security, and explicit cleanup.
+
+Git recovery branches are **not independent offsite copies**, do not cover Supabase, Vercel, Cloudflare, Render, Resend or other provider data, and cannot undo an external HTTP request. No provider restoration is part of v15.
