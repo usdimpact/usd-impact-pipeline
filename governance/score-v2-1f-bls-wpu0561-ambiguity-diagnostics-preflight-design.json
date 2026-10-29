@@ -261,7 +261,7 @@
   "exact_label_candidate_policy": {
     "state": "design_only_not_live_authorized",
     "input": "numeric-redacted candidate text persisted by consumed v5 run",
-    "regex": "^Crude\\\\s+petroleum(?:\\\\s*\\\\(\\\\s*<num>\\\\s*\\\\))?$",
+    "regex": "^Crude\\s+petroleum(?:\\s*\\(\\s*<num>\\s*\\))?$",
     "case_sensitive": false,
     "purpose": "exclude footnote mentions and concept variants such as domestic production, extraction, and pipeline transportation before any identifier or value read",
     "row_number_as_selector": false,
