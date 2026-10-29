@@ -220,7 +220,32 @@
     "no_v1_score_import": true,
     "no_workflow_wiring": true,
     "no_cloud_dependency": true,
-    "separate_future_live_source_adapter_requires_owner_approval": true
+    "separate_future_live_source_adapter_requires_owner_approval": true,
+    "synthetic_observation_contract": {
+      "status": "CANDIDATE_ONLY_MUST_NOT_BE_MISTAKEN_FOR_SOURCE_VERIFICATION",
+      "required_metadata_fields": [
+        "unit",
+        "basis_id"
+      ],
+      "units": {
+        "fed_h10_nominal_broad": "index",
+        "eia_crude_stocks_weekly": "thousand_barrels",
+        "treasury_direct_2yr_par": "yield_percent",
+        "treasury_direct_10yr_par": "yield_percent"
+      },
+      "basis_ids": {
+        "fed_h10_nominal_broad": "CANDIDATE:H10_NOMINAL_BROAD_POST_2019_GOODS_SERVICES_REBASED",
+        "eia_crude_stocks_weekly": "CANDIDATE:EIA_WCESTUS1_CRUDE_ENDING_STOCKS_EX_SPR_UNRECONCILED",
+        "treasury_direct_2yr_par": "CANDIDATE:TREASURY_NOMINAL_PAR_CURVE_2YR_ILLUSTRATIVE_FIELD",
+        "treasury_direct_10yr_par": "CANDIDATE:TREASURY_NOMINAL_PAR_CURVE_10YR_ILLUSTRATIVE_FIELD"
+      },
+      "no_implicit_unit_conversion": true,
+      "no_implicit_broad_index_goods_only_substitution": true,
+      "no_implicit_eia_lease_stock_substitution": true,
+      "no_implicit_treasury_real_yield_substitution": true,
+      "source_tags_are_not_signed_receipts_or_rights_grants": true,
+      "no_numeric_source_observations_in_public_outputs": true
+    }
   },
   "external_authorities": {
     "owner_final_name": false,
