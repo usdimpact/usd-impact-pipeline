@@ -63,7 +63,11 @@
     "governance/score-v2-1f-wpu0561-v14-pagecount-forensic-design.json",
     "docs/research/score-v2-1f-wpu0561-v14-pagecount-forensic-review.md",
     "scripts/score_v2_1f_wpu0561_pdf_v14_offline_diagnostics.py",
-    "tests/test_score_v2_1f_wpu0561_pdf_v14.py"
+    "tests/test_score_v2_1f_wpu0561_pdf_v14.py",
+    "governance/score-v2-1f-wpu0561-v15-methodology-decision.json",
+    "docs/research/score-v2-1f-wpu0561-v15-methodology-decision-packet.md",
+    "scripts/score_v2_1f_wpu0561_v15_methodology_guard.py",
+    "tests/test_score_v2_1f_wpu0561_v15_methodology.py"
   ],
   "authorizations": {
     "bLS_live_request": false,
@@ -163,5 +167,30 @@
     "public_changed": false,
     "production_changed": false,
     "next_gate": "separate owner methodology decision between retaining fixed-resource infeasibility and a future newly authorized detailed source/page metadata review"
+  },
+  "v15": {
+    "state": "design_only_methodology_pending_choice",
+    "recorded_date": "2026-10-29",
+    "governance": "governance/score-v2-1f-wpu0561-v15-methodology-decision.json",
+    "report": "docs/research/score-v2-1f-wpu0561-v15-methodology-decision-packet.md",
+    "validator": "scripts/score_v2_1f_wpu0561_v15_methodology_guard.py",
+    "tests": "tests/test_score_v2_1f_wpu0561_v15_methodology.py",
+    "source_sha_untouched": "8a70409b0b5928e99de04930714dfc25774631ae",
+    "consumed_v13_claim_ref": "refs/tags/score-v2-1f-wpu0561-pdf-v13-oneoff-2026-10-29",
+    "consumed_run_id": 40924080468,
+    "no_network_requests": true,
+    "request_budget": 0,
+    "owner_choice_A": false,
+    "owner_choice_B": false,
+    "owner_choice_C": false,
+    "rights_155_hold": true,
+    "original_v9_fixed_selected_resource_index_level_feasible": false,
+    "v13_original_release_pdf_verified": false,
+    "actual_pdf_page_count": null,
+    "Score_or_Production_changes": false,
+    "new_receipt_or_dispatch_present": false,
+    "new_live_workflow_enabled": false,
+    "recovery_pre_v15_ref": "backup/score-v2-1f-v14-offline-2026-10-29",
+    "recovery_pre_v15_sha": "2e028a553132c94db64ed9ba88927957374c2b1f"
   }
 }
