@@ -196,14 +196,31 @@
         "excludes_spr": true,
         "lease_stock_scope": "Commercial (Excl. Lease Stock) in parallel EIA weekly table; validate definition and changes across WPSR/history and API before use",
         "parity_to_wti_price": false,
-        "includes_refinitiv_wti_price": false
+        "includes_refinitiv_wti_price": false,
+        "publisher_documented_stock_categories": {
+          "weekly_ending_stocks_excluding_spr_series": "WCESTUS1",
+          "commercial_excluding_lease_stock_table": "PET_STOC_WSTK_A_EPC0_SAX_MBBL_W",
+          "historical_commercial_including_lease_stock_table": "PET_STOC_WSTK_A_EPC0_SAXL_MBBL_W",
+          "including_lease_stock_table_displayed_through_year": 2016,
+          "total_stocks_lease_exclusion_note_effective": "2005-01",
+          "source_table_label_mapping_documented": true,
+          "exact_full_history_series_identity_or_vintage_parity_verified": false,
+          "old_lease_inclusive_series_equivalent_to_new_excluding_lease": false,
+          "crude_price_substitute": false
+        }
       },
       "transport": {
         "publisher_owned": "EIA weekly data table and series history",
         "publisher_owned_metadata_documented": true,
         "official_machine_readable_product_verified": false,
         "api_key_or_terms_verified": false,
-        "direct_access_to_real_data_approved": false
+        "direct_access_to_real_data_approved": false,
+        "publisher_official_wpsr_has_csv_json_distributions": true,
+        "legacy_wpsr_series_id_to_current_api_route_verified": false,
+        "automated_retrieval_policy_documented": true,
+        "excessive_bot_retrieval_permitted": false,
+        "owner_contact_absent_bot_permitted_by_policy": false,
+        "automated_retrieval_program_approved": false
       },
       "rights_evidence": {
         "type": "EIA_GOVERNMENT_PRODUCED_CONTENT_WITH_PRIVATE_MATERIAL_EXCEPTION",
@@ -217,7 +234,9 @@
         "published": "following Wednesday normally 10:30 America/New_York, exceptions published by EIA",
         "actual_first_publication_receipt_verified": false,
         "version_first_seen_receipt_verified": false,
-        "historical_correction_record": "Source revision process and original contemporaneous vintages not yet documented"
+        "historical_correction_record": "Source revision process and original contemporaneous vintages not yet documented",
+        "wpsr_release_page_has_staged_1030_and_1300_et_files": true,
+        "exact_selected_source_first_publication_time_proven": false
       },
       "evidence": [
         {
@@ -244,6 +263,31 @@
           "topic": "EIA copyright and reuse; third-party exceptions",
           "url": "https://www.eia.gov/about/copyrights_reuse.php",
           "claim_type": "GENERAL_REUSE_POLICY"
+        },
+        {
+          "topic": "EIA legacy lease-stock-inclusive commercial crude category is distinct from current excluding-lease-stock table",
+          "url": "https://www.eia.gov/dnav/pet/pet_stoc_wstk_a_epc0_saxl_mbbl_w.htm",
+          "claim_type": "HISTORICAL_SERIES_DEFINITION"
+        },
+        {
+          "topic": "EIA government stock table old lease category and January 2005 total stock note",
+          "url": "https://www.eia.gov/dnav/pet/pet_stoc_wstk_dcu_nus_w.htm",
+          "claim_type": "HISTORICAL_SEMANTICS"
+        },
+        {
+          "topic": "EIA WPSR product page shows staged 10:30 and 13:00 ET formats",
+          "url": "https://www.eia.gov/petroleum/supply/weekly/",
+          "claim_type": "TRANSPORT_RELEASE_STAGE_METADATA"
+        },
+        {
+          "topic": "EIA official website policy prohibits excessive robots and can block bots lacking owner contact information",
+          "url": "https://www.eia.gov/about/privacy_security_policy.php",
+          "claim_type": "AUTOMATION_USE_POLICY"
+        },
+        {
+          "topic": "EIA weekly stock survey sources and definitions",
+          "url": "https://www.eia.gov/dnav/pet/TblDefs/pet_sum_sndw_tbldef.asp",
+          "claim_type": "ORIGINATING_SURVEY_TERMS"
         }
       ],
       "unresolved": [
@@ -251,7 +295,9 @@
         "Confirm exact government survey provenance and source-specific private rights caveats",
         "Official machine transport and sustained archive/backup/correction availability",
         "Commercial downstream aggregates and long-horizon history rights",
-        "Attribute EIA with publication date, distinct from licensed Refinitiv WTI spot"
+        "Attribute EIA with publication date, distinct from licensed Refinitiv WTI spot",
+        "Publisher table labels do not establish complete WCESTUS1 versus PET_STOC historical observation parity, changed lease-stock inclusion across vintages, or exact full survey history. Do not inspect numerical observations without authorization.",
+        "EIA staged 10:30/13:00 ET WPSR availability and bot policy require approved exact-series transport and recorded first-seen receipt; no polling or API requests granted."
       ],
       "permissions": {
         "commercial_internal_ingestion": false,
@@ -281,13 +327,17 @@
         "publisher_native_series_key": null,
         "native_key_verified_from_publisher_metadata": false,
         "candidate_feed_field": "BC_2YEAR",
-        "candidate_feed_field_metadata_verified": false,
+        "candidate_feed_field_metadata_verified": true,
         "series_label": "2-year nominal par constant maturity yield",
         "units": "percent per annum (bond-equivalent yield)",
         "curve_family": "nominal_par_curve",
         "requires_same_curve_snapshot_as": "treasury_direct_10yr_par",
         "parity_to_fred_dgs2_asof": false,
-        "internal_candidate_selector": "daily_treasury_yield_curve:2YR"
+        "internal_candidate_selector": "daily_treasury_yield_curve:2YR",
+        "feed_field_evidence_class": "PUBLISHER_ILLUSTRATIVE_XML_SCHEMA_ONLY",
+        "feed_field_evidence_url": "https://home.treasury.gov/system/files/276/yield-rates-xml.png",
+        "nominal_par_curve_example_odata_type": "Edm.Double",
+        "feed_field_runtime_presence_verified": false
       },
       "transport": {
         "publisher_owned": "Treasury XML yield-curve endpoint with year/month-selectors",
@@ -296,7 +346,12 @@
         "feed_key_verified_from_documentation": true,
         "exact_field_mapping_verified": false,
         "direct_access_to_real_data_approved": false,
-        "fred_transport_option": "SEPARATE_RIGHTS_GATE_UNAUTHORIZED"
+        "fred_transport_option": "SEPARATE_RIGHTS_GATE_UNAUTHORIZED",
+        "live_response_or_vintage_verified": false,
+        "all_history_pagination_retrieval_authorized": false,
+        "release_receipt_collection_authorized": false,
+        "publisher_documented_zero_based_all_page_pagination": true,
+        "publisher_documented_missing_null_elements_omitted": true
       },
       "rights_evidence": {
         "type": "TREASURY_DATA_GOV_CC0_CATALOG_EVIDENCE_CONDITIONAL",
@@ -342,6 +397,21 @@
           "topic": "FRED service restrictions (not a Treasury license)",
           "url": "https://fred.stlouisfed.org/legal/terms/",
           "claim_type": "THIRD_PARTY_TRANSPORT_RIGHTS"
+        },
+        {
+          "topic": "Treasury publisher illustrated nominal par yield XML schema includes BC_2YEAR (no observational values copied)",
+          "url": "https://home.treasury.gov/system/files/276/yield-rates-xml.png",
+          "claim_type": "STATIC_SCHEMA_METADATA"
+        },
+        {
+          "topic": "Treasury official XML query selectors, page zero indexing and year/month options",
+          "url": "https://home.treasury.gov/treasury-daily-interest-rate-xml-feed",
+          "claim_type": "STATIC_TRANSPORT_DOCUMENTATION"
+        },
+        {
+          "topic": "Treasury XML missing-null elements and 2025 new field/schema change",
+          "url": "https://home.treasury.gov/developer-notice-xml-changes",
+          "claim_type": "SCHEMA_CHANGE_AND_NULL_HANDLING_POLICY"
         }
       ],
       "unresolved": [
@@ -349,7 +419,8 @@
         "Written treatment of Treasury CC0 dataset and any upstream market bid rights for commercial transformations",
         "Storage, intermediate/cache/log/history and derivative publication scope",
         "Proof of exact first-published and revised curve snapshot per as-of cutoff",
-        "Do not assume direct Treasury and H.15/FRED DGS2 identical publication vintages"
+        "Do not assume direct Treasury and H.15/FRED DGS2 identical publication vintages",
+        "Official 2022 illustrated field names are not proof of current live runtime response, as-published vintages, date/time receipt or exact source rights; separate authorization required before any observation access."
       ],
       "permissions": {
         "commercial_internal_ingestion": false,
@@ -379,13 +450,17 @@
         "publisher_native_series_key": null,
         "native_key_verified_from_publisher_metadata": false,
         "candidate_feed_field": "BC_10YEAR",
-        "candidate_feed_field_metadata_verified": false,
+        "candidate_feed_field_metadata_verified": true,
         "series_label": "10-year nominal par constant maturity yield",
         "units": "percent per annum (bond-equivalent yield)",
         "curve_family": "nominal_par_curve",
         "requires_same_curve_snapshot_as": "treasury_direct_2yr_par",
         "parity_to_fred_dgs10_asof": false,
-        "internal_candidate_selector": "daily_treasury_yield_curve:10YR"
+        "internal_candidate_selector": "daily_treasury_yield_curve:10YR",
+        "feed_field_evidence_class": "PUBLISHER_ILLUSTRATIVE_XML_SCHEMA_ONLY",
+        "feed_field_evidence_url": "https://home.treasury.gov/system/files/276/yield-rates-xml.png",
+        "nominal_par_curve_example_odata_type": "Edm.Double",
+        "feed_field_runtime_presence_verified": false
       },
       "transport": {
         "publisher_owned": "Treasury XML yield-curve endpoint with year/month-selectors",
@@ -394,7 +469,12 @@
         "feed_key_verified_from_documentation": true,
         "exact_field_mapping_verified": false,
         "direct_access_to_real_data_approved": false,
-        "fred_transport_option": "SEPARATE_RIGHTS_GATE_UNAUTHORIZED"
+        "fred_transport_option": "SEPARATE_RIGHTS_GATE_UNAUTHORIZED",
+        "live_response_or_vintage_verified": false,
+        "all_history_pagination_retrieval_authorized": false,
+        "release_receipt_collection_authorized": false,
+        "publisher_documented_zero_based_all_page_pagination": true,
+        "publisher_documented_missing_null_elements_omitted": true
       },
       "rights_evidence": {
         "type": "TREASURY_DATA_GOV_CC0_CATALOG_EVIDENCE_CONDITIONAL",
@@ -440,6 +520,21 @@
           "topic": "FRED service restrictions (not a Treasury license)",
           "url": "https://fred.stlouisfed.org/legal/terms/",
           "claim_type": "THIRD_PARTY_TRANSPORT_RIGHTS"
+        },
+        {
+          "topic": "Treasury publisher illustrated nominal par yield XML schema includes BC_10YEAR (no observational values copied)",
+          "url": "https://home.treasury.gov/system/files/276/yield-rates-xml.png",
+          "claim_type": "STATIC_SCHEMA_METADATA"
+        },
+        {
+          "topic": "Treasury official XML query selectors, page zero indexing and year/month options",
+          "url": "https://home.treasury.gov/treasury-daily-interest-rate-xml-feed",
+          "claim_type": "STATIC_TRANSPORT_DOCUMENTATION"
+        },
+        {
+          "topic": "Treasury XML missing-null elements and 2025 new field/schema change",
+          "url": "https://home.treasury.gov/developer-notice-xml-changes",
+          "claim_type": "SCHEMA_CHANGE_AND_NULL_HANDLING_POLICY"
         }
       ],
       "unresolved": [
@@ -448,7 +543,8 @@
         "Written treatment of Treasury CC0 dataset and upstream market bid rights for commercial transformations",
         "Storage, intermediate/cache/log/history and public derivative publication scope",
         "Proof of exact first-published and revised curve snapshot per as-of cutoff",
-        "Do not assume direct Treasury and H.15/FRED DGS10 identical publication vintages"
+        "Do not assume direct Treasury and H.15/FRED DGS10 identical publication vintages",
+        "Official 2022 illustrated field names are not proof of current live runtime response, as-published vintages, date/time receipt or exact source rights; separate authorization required before any observation access."
       ],
       "permissions": {
         "commercial_internal_ingestion": false,
@@ -470,5 +566,51 @@
       "provider_or_counsel_written_decision_receipt": null,
       "project_owner_scope_approval_receipt": null
     }
-  ]
+  ],
+  "metadata_reconciliation_2026_10_30": {
+    "state": "STATIC_PUBLISHER_DOCUMENTATION_ONLY",
+    "verified_docs": [
+      {
+        "source_ids": [
+          "treasury_direct_2yr_par",
+          "treasury_direct_10yr_par"
+        ],
+        "claim": "BC_2YEAR and BC_10YEAR element names occur in the Treasury-authored illustrative Daily Treasury Par Yield Curve XML example, with OData Edm.Double",
+        "url": "https://home.treasury.gov/system/files/276/yield-rates-xml.png"
+      },
+      {
+        "source_ids": [
+          "treasury_direct_2yr_par",
+          "treasury_direct_10yr_par"
+        ],
+        "claim": "Treasury official XML index documents daily_treasury_yield_curve, month/year selectors and zero-indexed all-history pagination; newer source notice documents omitted null tags",
+        "url": "https://home.treasury.gov/treasury-daily-interest-rate-xml-feed"
+      },
+      {
+        "source_ids": [
+          "eia_crude_stocks_weekly"
+        ],
+        "claim": "EIA separate excluding-lease-stock stock category and historical including-lease category; total stocks since January 2005 exclude lease stock",
+        "url": "https://www.eia.gov/dnav/pet/pet_stoc_wstk_dcu_nus_w.htm"
+      },
+      {
+        "source_ids": [
+          "eia_crude_stocks_weekly"
+        ],
+        "claim": "EIA official website's automated retrieval policy forbids excessive robots and may block bots without contact information",
+        "url": "https://www.eia.gov/about/privacy_security_policy.php"
+      }
+    ],
+    "precise_treasury_live_response_verified": false,
+    "precise_eia_api_route_or_history_parity_verified": false,
+    "commercial_rights_reviewed_and_granted": false,
+    "source_requests_performed": false,
+    "all_permissions_still_false": true,
+    "source_modification_or_pipeline_switch_authorized": false,
+    "production_release_authorized": false,
+    "dedicated_source_data_feed_requests_performed": false,
+    "real_observation_values_ingested_computed_or_stored": false,
+    "official_metadata_pages_may_contain_incidental_numeric_examples": true,
+    "no_observation_values_reproduced_in_governance_record": true
+  }
 }
