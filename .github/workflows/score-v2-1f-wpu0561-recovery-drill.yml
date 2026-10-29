@@ -1,0 +1,39 @@
+name: Score WPU0561 v10 offline recovery drill (no restores)
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'governance/score-v2-1f-bls-wpu0561-2026-source-boundary-review-v10-*'
+      - 'governance/score-v2-1f-wpu0561-v10-recovery-manifest.json'
+      - 'docs/recovery/score-v2-1f-wpu0561-v10-backup-and-restore.md'
+      - 'scripts/validate_score_v2_1f_wpu0561_recovery.py'
+      - 'tests/test_score_v2_1f_wpu0561_recovery.py'
+      - '.github/workflows/score-v2-1f-wpu0561-recovery-drill.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  offline-recovery:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout unprivileged
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Static and synthetic recovery tests
+        run: python3 -m unittest discover -s tests -p 'test_score_v2_1f_wpu0561_recovery.py' -v
+
+      - name: Verify pinned v9 governance state and rehearsal without remote writes
+        run: python3 scripts/validate_score_v2_1f_wpu0561_recovery.py --verify-git --drill
+
+      - name: Confirm that this workflow never restores live environments
+        run: |
+          echo "Recovery drill is offline, read-only on the checked-out repo, and synthetic-only for restore."
+          echo "No BLS PDF fetched. No branch/main writes. No release, Score calculation or Production rollback."
+          echo "For real recovery: open a separate audited PR from pinned known-good commit (see runbook)."
