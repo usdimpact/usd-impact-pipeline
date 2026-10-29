@@ -34,25 +34,25 @@ RIGHTS_GATED_SCORE_WORKFLOWS = frozenset({
 # Detect direct CLI calls plus the previously unregistered -m/module, Python3,
 # and shell wrapper variations; do not treat runtime reproduction builder or
 # pre-existing metadata-only scripts as the original live-refetch path.
-_PYTHON = r"\\bpython(?:3(?:\\.\\d+)?)?\\s+(?:(?:-B|-I|-u)\\s+)*"
+_PYTHON = r"\bpython(?:3(?:\.\d+)?)?\s+(?:(?:-B|-I|-u)\s+)*"
 _DIRECT_SCORE = re.compile(
     _PYTHON + r"(?:"
-    r"usd_impact_score_v2\\.py\\b"
-    r"|(?:-m\\s+usd_impact_score_v2\\b)"
-    r"|scripts[/\\\\]build_score_repro_bundle\\.py\\b"
-    r"|(?:-m\\s+scripts\\.build_score_repro_bundle\\b)"
+    r"usd_impact_score_v2\.py\b"
+    r"|(?:-m\s+usd_impact_score_v2\b)"
+    r"|scripts[/\\]build_score_repro_bundle\.py\b"
+    r"|(?:-m\s+scripts\.build_score_repro_bundle\b)"
     r")"
 )
 _SOURCE_HELPER = re.compile(
-    r"\\b(?:fetch_all_inputs|fetch_fred|fetch_yahoo)\\s*\\("
+    r"\b(?:fetch_all_inputs|fetch_fred|fetch_yahoo)\s*\("
 )
 _DIRECT_FEED = re.compile(
-    r"(?i)\\b(?:curl|wget)\\b[^\\n]*(?:fredgraph\\.csv|"
-    r"fred\\.stlouisfed\\.org|query1\\.finance\\.yahoo\\.com)"
+    r"(?i)\b(?:curl|wget)\b[^\n]*(?:fredgraph\.csv|"
+    r"fred\.stlouisfed\.org|query1\.finance\.yahoo\.com)"
 )
 # Any direct --live-refetch outside the frozen/offline rehearsal contract
 # requires new source-rights and procedural review, even in a gated workflow.
-_LIVE_REFETCH = re.compile(r"(?<![\\w-])--live-refetch\\b")
+_LIVE_REFETCH = re.compile(r"(?<![\w-])--live-refetch\b")
 
 
 def risky_commands(source: str) -> tuple[str, ...]:
@@ -132,7 +132,7 @@ class ScoreOperationalEntrypointRegistryTests(unittest.TestCase):
             rehearsal.index("python usd_impact_score_v2.py"),
         )
         self.assertIn(
-            "- name: Rehearse full release bundle and archive path\\n"
+            "- name: Rehearse full release bundle and archive path\n"
             "        if: steps.rights.outputs.hold == 'false'",
             rehearsal,
         )
