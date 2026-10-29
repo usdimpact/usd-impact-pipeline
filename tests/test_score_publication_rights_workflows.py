@@ -100,9 +100,7 @@ class ScorePublicationRightsWorkflowTests(unittest.TestCase):
         ):
             with self.subTest(step=step):
                 self.assertIn(
-                    f"- name: {step}\\n        if: steps.rights.outputs.hold != 'true'".replace(
-                        "\\\\n", "\\n"
-                    ),
+                    f"- name: {step}" + chr(10) + "        if: steps.rights.outputs.hold != 'true'",
                     workflow,
                 )
         self.assertIn("no provider retrieval", workflow)
