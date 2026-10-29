@@ -405,22 +405,22 @@ def candidate_context_inventory(
 
 
 EXACT_TARGET_LABEL_RE = re.compile(
-    r"^Crude\\s+petroleum(?:\\s*\\(\\s*<num>\\s*\\))?$",
+    r"^Crude\s+petroleum(?:\s*\(\s*<num>\s*\))?$",
     re.IGNORECASE,
 )
 STAGE_INTERMEDIATE_DEMAND_RE = re.compile(
-    r"\\bStage\\s+<num>\\s+intermediate\\s+demand(?:\\s+goods)?\\b",
+    r"\bStage\s+<num>\s+intermediate\s+demand(?:\s+goods)?\b",
     re.IGNORECASE,
 )
 UNPROCESSED_NONFOOD_RE = re.compile(
-    r"\\bUnprocessed\\s+nonfood\\s+materials\\b",
+    r"\bUnprocessed\s+nonfood\s+materials\b",
     re.IGNORECASE,
 )
 
 
 def is_exact_target_label(value: str) -> bool:
     """Match only the numeric-redacted direct Crude petroleum label."""
-    return bool(EXACT_TARGET_LABEL_RE.fullmatch(re.sub(r"\\s+", " ", value).strip()))
+    return bool(EXACT_TARGET_LABEL_RE.fullmatch(re.sub(r"\s+", " ", value).strip()))
 
 
 def exact_target_rows(rows: list[list[str]]) -> tuple[int, ...]:
