@@ -156,12 +156,21 @@ class FourSourceExactSeriesRightsTests(unittest.TestCase):
                 "official_machine_readable_product_verified"
             ]
         )
-        for key, field in [
-            ("treasury_direct_2yr_par", "BC_2YEAR"),
-            ("treasury_direct_10yr_par", "BC_10YEAR"),
+        for key, field, selector in [
+            ("treasury_direct_2yr_par", "BC_2YEAR", "daily_treasury_yield_curve:2YR"),
+            ("treasury_direct_10yr_par", "BC_10YEAR", "daily_treasury_yield_curve:10YR"),
         ]:
             with self.subTest(key=key):
                 item = index[key]
+                self.assertIsNone(
+                    item["exact_series_identity"]["publisher_native_series_key"]
+                )
+                self.assertFalse(
+                    item["exact_series_identity"]["native_key_verified_from_publisher_metadata"]
+                )
+                self.assertEqual(
+                    item["exact_series_identity"]["internal_candidate_selector"], selector
+                )
                 self.assertEqual(
                     item["exact_series_identity"]["candidate_feed_field"], field
                 )
