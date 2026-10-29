@@ -294,6 +294,109 @@ class SyntheticAsOfAvailabilityTests(unittest.TestCase):
                 publish_authorized=True,
             )
 
+    def test_direct_asof_decision_accepts_only_fictional_closed_shapes(self) -> None:
+        complete = evaluate_synthetic_asof(four(), FRIDAY, stamp(11, 9, 0))
+        self.assertEqual(complete.status, "SYNTHETIC_ONLY_COMPLETE")
+        duplicate = SyntheticAsOfDecision(
+            status=complete.status,
+            selected=complete.selected,
+            blockers=complete.blockers,
+        )
+        self.assertEqual(duplicate.selected, complete.selected)
+        self.assertFalse(duplicate.publish_authorized)
+        self.assertFalse(duplicate.real_source_retrieval_authorized)
+
+        hold = evaluate_synthetic_asof(four(), FRIDAY, stamp(8, 16, 17))
+        self.assertEqual(hold.status, "SYNTHETIC_ONLY_HOLD")
+        self.assertTrue(hold.blockers)
+        copied_hold = SyntheticAsOfDecision(
+            status="SYNTHETIC_ONLY_HOLD",
+            selected=hold.selected,
+            blockers=hold.blockers,
+        )
+        self.assertEqual(copied_hold.status, "SYNTHETIC_ONLY_HOLD")
+
+    def test_direct_asof_decision_rejects_unknown_or_inconsistent_status(self) -> None:
+        complete = evaluate_synthetic_asof(four(), FRIDAY, stamp(11, 9, 0))
+        for bad in (None, [], "READY", "APPROVED", "LIVE_COMPLETE"):
+            with self.subTest(status=repr(bad)):
+                with self.assertRaisesRegex(ValueError, "synthetic as-of result status"):
+                    replace(complete, status=bad)
+        with self.assertRaisesRegex(ValueError, "COMPLETE requires four"):
+            replace(complete, selected=complete.selected[:-1])
+        with self.assertRaisesRegex(ValueError, "COMPLETE requires four"):
+            replace(complete, blockers=("TREASURY_CURVE_SNAPSHOT_MISMATCH",))
+        with self.assertRaisesRegex(ValueError, "HOLD requires"):
+            replace(complete, status="SYNTHETIC_ONLY_HOLD")
+
+    def test_direct_asof_decision_rejects_bad_source_and_snapshot_pairs(self) -> None:
+        complete = evaluate_synthetic_asof(four(), FRIDAY, stamp(11, 9, 0))
+        selections = (
+            (("S&P_500", "SYNTHETIC:fake"),) + complete.selected[1:],
+            (("eia_crude_stocks_weekly", "REAL:VALUE"),) + complete.selected[1:],
+            (("eia_crude_stocks_weekly", "SYNTHETIC:" + "x" * 200),) + complete.selected[1:],
+            (("eia_crude_stocks_weekly", None),) + complete.selected[1:],
+            (["eia_crude_stocks_weekly", "SYNTHETIC:fake"],) + complete.selected[1:],
+            list(complete.selected),
+        )
+        for selected in selections:
+            with self.subTest(selected=repr(selected)[:100]):
+                with self.assertRaisesRegex(ValueError, "synthetic as-of"):
+                    replace(complete, selected=selected)
+
+        with self.assertRaisesRegex(ValueError, "unique and sorted"):
+            replace(complete, selected=complete.selected + complete.selected[:1])
+        with self.assertRaisesRegex(ValueError, "unique and sorted"):
+            replace(complete, selected=tuple(reversed(complete.selected)))
+
+    def test_direct_asof_complete_rejects_mixed_treasury_snapshot(self) -> None:
+        complete = evaluate_synthetic_asof(four(), FRIDAY, stamp(11, 9, 0))
+        mixed = tuple(
+            (source, "SYNTHETIC:OTHER_CURVE" if source == "treasury_direct_10yr_par" else snapshot)
+            for source, snapshot in complete.selected
+        )
+        with self.assertRaisesRegex(ValueError, "one Treasury curve snapshot"):
+            replace(complete, selected=mixed)
+
+        # The real evaluator may correctly mark mixed vintages HOLD with a
+        # partial or full synthetic selection, never as COMPLETE.
+        valid_hold = SyntheticAsOfDecision(
+            status="SYNTHETIC_ONLY_HOLD",
+            selected=mixed,
+            blockers=("TREASURY_CURVE_SNAPSHOT_MISMATCH",),
+        )
+        self.assertFalse(valid_hold.publish_authorized)
+        self.assertTrue(valid_hold.blockers)
+
+    def test_direct_asof_rejects_freeform_or_duplicate_blockers(self) -> None:
+        hold = evaluate_synthetic_asof(four(), FRIDAY, stamp(8, 16, 17))
+        malformed = (
+            (),
+            ("BUY_NOW",),
+            ("http://unapproved.market/claim",),
+            ("ICE_DXY:NOT_FIRST_SEEN_BY_CUTOFF",),
+            ("eia_crude_stocks_weekly:BUY",),
+            ("TREASURY_CURVE_UNKNOWN",),
+            ("eia_crude_stocks_weekly:MISSING_SYNTHETIC_RECEIPT",) * 2,
+            ("TREASURY_CURVE_SNAPSHOT_MISMATCH", "eia_crude_stocks_weekly:MISSING_SYNTHETIC_RECEIPT"),
+            ("not-a-code" * 90,),
+            (None,),
+            ([],),
+            ["eia_crude_stocks_weekly:MISSING_SYNTHETIC_RECEIPT"],
+        )
+        for blockers in malformed:
+            with self.subTest(value=repr(blockers)[:100]):
+                with self.assertRaisesRegex(ValueError, "synthetic as-of"):
+                    replace(hold, blockers=blockers)
+
+    def test_direct_asof_rejects_falsy_authorization_aliases(self) -> None:
+        complete = evaluate_synthetic_asof(four(), FRIDAY, stamp(11, 9, 0))
+        for field in ("publish_authorized", "real_source_retrieval_authorized"):
+            for invalid in (None, 0, "", [], 1, True):
+                with self.subTest(field=field, invalid=repr(invalid)):
+                    with self.assertRaisesRegex(ValueError, "cannot grant rights"):
+                        replace(complete, **{field: invalid})
+
     def test_dst_matters_for_treasury_friday_close(self) -> None:
         # 18:00 Eastern is not always 22:00 UTC:
         # June is daylight saving (UTC-4); January is standard (UTC-5).
