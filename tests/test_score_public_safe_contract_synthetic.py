@@ -258,6 +258,29 @@ class AggregateSafeSyntheticContractTests(unittest.TestCase):
         self.assertFalse(schema["additionalProperties"])
         self.assertEqual(set(schema["properties"]), safe.ROOT_KEYS)
         self.assertFalse(schema["properties"]["history"]["items"]["additionalProperties"])
+        weights = schema["properties"]["metadata"]["properties"]["weights"]
+        self.assertFalse(weights["additionalProperties"])
+        self.assertEqual(set(weights["required"]), set(safe.EXPECTED_WEIGHTS))
+        self.assertEqual(
+            {name: field["const"] for name, field in weights["properties"].items()},
+            safe.EXPECTED_WEIGHTS,
+        )
+        regimes = {
+            "Strong dollar regime", "Firm dollar regime",
+            "Neutral / transitional", "Soft dollar regime", "Weak dollar regime",
+        }
+        self.assertEqual(
+            set(schema["properties"]["history"]["items"]["properties"]["regime"]["enum"]),
+            regimes,
+        )
+        self.assertEqual(
+            set(schema["properties"]["latest"]["properties"]["regime"]["enum"]),
+            regimes,
+        )
+        self.assertEqual(
+            schema["properties"]["metadata"]["properties"]["pipeline"]["const"],
+            "usd_impact_score_v2",
+        )
 
     def test_no_provider_network_in_transform_module(self) -> None:
         source_text = (Path(__file__).resolve().parents[1] /
