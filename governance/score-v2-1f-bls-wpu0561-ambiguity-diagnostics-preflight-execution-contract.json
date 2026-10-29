@@ -1,6 +1,6 @@
 {
-  "version": 14,
-  "state": "ambiguity_diagnostics_v7_header_gap_authorized_pending_dispatch",
+  "version": 15,
+  "state": "ambiguity_diagnostics_v7_header_gap_authorized",
   "methodology_version": "2.1F-design-candidate",
   "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/258",
   "predecessor_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/252",
@@ -10,7 +10,7 @@
   "active_authorization_receipt_path": "governance/score-v2-1f-bls-wpu0561-ambiguity-diagnostics-preflight-authorization.json",
   "active_authorization_receipt_expected_now": true,
   "dispatch_marker_path": "governance/score-v2-1f-bls-wpu0561-ambiguity-diagnostics-preflight-dispatch.json",
-  "dispatch_marker_expected_now": false,
+  "dispatch_marker_expected_now": true,
   "request_budget": 2,
   "max_economic_observations_total": 0,
   "max_economic_observations_per_resource": 0,
@@ -46,7 +46,7 @@
     "candidate Score, z-score or contribution would be computed",
     "public artifact, research ledger or Production would change"
   ],
-  "next_allowed_action": "separate_dispatch_review_after_v7_activation_merge",
+  "next_allowed_action": "execute_one_off_v7_header_gap_inventory_then_consume_authorization_fail_closed",
   "production_authorized": false,
   "execution_environment_policy": {
     "preferred_environment": "github_actions_protected_main_lifecycle",
@@ -58,7 +58,7 @@
   "owner_approval_comment_id": 6500046079,
   "owner_approval_timestamp": "2026-10-29T14:53:20Z",
   "prior_consumption_record_path": "governance/score-v2-1f-bls-wpu0561-ambiguity-diagnostics-preflight-consumption-2026-10-29.json",
-  "authorization_activation_merge_commit": "a4fce774c7df612b83ed8be120da944a360ce016",
+  "authorization_activation_merge_commit": "771bf87d381fda9f72adad5f5456331916195533",
   "v4_recheck_consumption_record_path": "governance/score-v2-1f-bls-wpu0561-ambiguity-diagnostics-v4-recheck-consumption-2026-10-29.json",
   "completed_preflight_run": "https://github.com/usdimpact/usd-impact-pipeline/actions/runs/40794631448",
   "completed_preflight_workflow_conclusion": "success",
