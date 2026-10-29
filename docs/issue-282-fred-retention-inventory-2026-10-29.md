@@ -258,6 +258,35 @@ The old 2026-10-28 [Development private-evidence execution packet](docs/score-pr
 
 **Governance:** `governance/score-private-research-migration-contract.json` records `development_synthetic_rehearsal_authorized=true`, but `real_provider_evidence_authorized=false`, `public_replacement_authorized=false` and `production_change_authorized=false`. Do not write current/real FRED or Yahoo evidence into the synthetic private store or rely on a synthetic pass as a source-rights decision. Preserve its one fixed fixture as audit evidence; **do not rerun the create-only write**. The outstanding work is source/retention approval, read-path migration of real evidence after approval, historical public-archive treatment, and a separate Production decision.
 
+## Current-main GitHub public archive inventory (2026-10-29, metadata-only)
+
+**Scope:** read-only GitHub REST `contents` listings of `public/archive`, every dated subdirectory, `public/data`, `public/data/research` and root `data`, without opening any provider-derived file body. This is **the current Git tree only**; prior commits, archived workflow artifacts, CDN caches, old Pages deployments, outside GitHub mirrors, and offline backups are not included.
+
+| Current Git tree exposure | Count / scope | Governance |
+|---|---:|---|
+| Dated directories in `public/archive/YYYY-MM-DD/` | **27** dates, 2026-04-10 through 2026-10-23 | Inventory only |
+| `public/archive/*/score.json` | **27** files | Class C dated pattern |
+| `public/archive/*/weekly_input.json` | **14** files, first on 2026-07-24 | Class C dated pattern |
+| `public/archive/*/repro_bundle.json` | **9** files, first on 2026-08-28 | Class C dated pattern |
+| **Total currently committed dated Class C JSON artifacts** | **50** | Public GitHub + eligible Pages route |
+| `public/data/` current Class C strict artifacts | **4** files: latest score JSON, score CSV, weekly input JSON, reproduction bundle JSON | Public GitHub + Pages |
+| `public/data/research/` | **1 class D** point-in-time JSON; **1 class E** robustness JSON; **3 class F** vintage JSON/CSV/HTML; **1 class B** replication protocol | Review derived outputs and provenance separately |
+| Root `data/weekly_input_*.json` | **15** files (from 2026-05-16 through 2026-10-23, with gaps) | Public **Git repository** surface, independent of Pages allowlist |
+| Dated premium dashboard `en.html` and `es.html` | **54** HTML files | Git repository copies exist even though current Pages middleware denies premium HTML by URL |
+| Non-dated `public/archive/en`, `public/archive/es` | Separate index directories | Not included in the 27 dated-directory count |
+
+This establishes **54 current-tree Class C JSON/CSV assets** when combining dated and latest-root Class C, *before* counting Git-only bridge files and E/F diagnostics. It is **not** a count of distinct observations, users, licensed instruments or historical Git versions. The count is not a statement of legal infringement or proof of access to every Pages URL.
+
+**Historical format evolution:** dated score JSON exists from April 10. Dated weekly input appears beginning July 24. Strict reproduction bundles appear beginning August 28. A cleanup limited to the latest reproduction JSON would therefore miss other historically exposed forms and earlier release formats.
+
+**Remediation implications:**
+
+1. Preserve a reviewed, access-controlled evidence trail and exact historical release provenance before any rewrite, purge, unpublish or destructive Git history change.
+2. Review rights/retention separately for provider daily level, derived weekly level, z-score, normalization moment, contribution, aggregate, provider identity and non-value-bearing hash. Do not presume old and new release formats contain identical fields without authorized inspection.
+3. Review root Pages/custom domain, historical Cloudflare preview hashes, public GitHub current tree and Git history, repository forks/clones, caches, GitHub Actions logs and downstream backups as **distinct** storage/distribution surfaces.
+4. Check internal consumer compatibility and private evidence-read readiness before proposing aggregate-only current/public/dated views. Synthetic Development success does not grant real provider retention rights.
+5. Under Issue #155, keep all public replacement or purge actions **blocked** until provider/counsel disposition, approved archival treatment and separate Production authorization.
+
 ## Risk gates and next executable checks
 
 1. **No additional live FRED fetch for this audit.** Use repository metadata and synthetic fixtures; never include actual provider-derived numeric values in issues, logs or PR descriptions.
@@ -274,6 +303,7 @@ The old 2026-10-28 [Development private-evidence execution packet](docs/score-pr
 - [x] Established material difference between public-domain series status and FRED delivery/retention terms.
 - [x] Mapped current source-level Friday, archive, Git publication, Pages allowlist and rehearsal flow; confirmed public endpoint reachability.
 - [x] Sampled pre-HOLD live jobs and retrievable job logs; checked artifact listings and sampled Pages preview endpoints.
+- [x] Counted current Git tree dated Class C archive assets (27 score, 14 weekly input, 9 reproduction bundle), latest-root Class C and Git-only bridge files using metadata-only directory listings.
 - [ ] Completed all historical job-log/backup/CDN/cache, historical preview and downstream persistence inventory.
 - [x] Independently verified existing Development synthetic private bucket, broker source parity, immutable write, read and locked-reader acceptance; no new provisioning required.
 - [ ] Approved use/retention of **real** provider-derived evidence in the private system and completed real-reader production migration.
