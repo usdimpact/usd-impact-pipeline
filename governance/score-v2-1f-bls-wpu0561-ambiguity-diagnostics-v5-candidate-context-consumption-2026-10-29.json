@@ -1,0 +1,78 @@
+{
+  "version": 1,
+  "state": "consumed_after_completed_v5_candidate_context_inventory",
+  "design_version": 5,
+  "methodology_version": "2.1F-design-candidate",
+  "owner_decision_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/258",
+  "controlling_rights_hold": "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
+  "owner_approval_comment_id": 6484353947,
+  "owner_approval_timestamp": "2026-10-29T00:24:35Z",
+  "authorization_activation_merge_commit": "a4fce774c7df612b83ed8be120da944a360ce016",
+  "dispatch_merge_commit": "a12d009d1b081b65ddb86ea27118b1fa743045d0",
+  "request_budget": 2,
+  "max_economic_observations_total": 0,
+  "max_economic_observations_per_resource": 0,
+  "maximum_candidates_per_resource": 32,
+  "preceding_rows_per_candidate": 8,
+  "maximum_persisted_text_cells_per_candidate": 64,
+  "consumed_by_phase": "bls_wpu0561_candidate_context_inventory_preflight",
+  "preflight_run": "https://github.com/usdimpact/usd-impact-pipeline/actions/runs/40794631448",
+  "preflight_workflow_conclusion": "success",
+  "preflight_result_status": "completed",
+  "result_comment_id": 6484472406,
+  "consumption_comment_id": 6484482160,
+  "completed_at": "2026-10-29T00:31:51Z",
+  "sanitized_result": {
+    "request_attempt_count": 2,
+    "economic_observation_count": 0,
+    "identifier_value_count": 0,
+    "html": {
+      "transport_status": "passed",
+      "semantic_status": "evaluated",
+      "candidate_count": 3,
+      "containers": [
+        "table 3",
+        "table 4",
+        "table 7"
+      ]
+    },
+    "xlsx": {
+      "transport_status": "passed",
+      "semantic_status": "evaluated",
+      "candidate_count": 29,
+      "containers": [
+        "xl/worksheets/sheet10.xml",
+        "xl/worksheets/sheet12.xml",
+        "xl/worksheets/sheet13.xml",
+        "xl/worksheets/sheet2.xml",
+        "xl/worksheets/sheet3.xml",
+        "xl/worksheets/sheet4.xml",
+        "xl/worksheets/sheet5.xml",
+        "xl/worksheets/sheet6.xml",
+        "xl/worksheets/sheet8.xml",
+        "xl/worksheets/sheet9.xml"
+      ]
+    },
+    "alternate_sources_used": false,
+    "full_historical_reconstruction_performed": false,
+    "candidate_score_computed": false,
+    "component_zscores_computed": false,
+    "component_contributions_computed": false,
+    "research_ledger_modified": false,
+    "public_artifacts_modified": false,
+    "production_modified": false
+  },
+  "interpretation": "The v5 inventory successfully located 3 HTML and 29 XLSX Crude petroleum text occurrences without requiring a local header anchor, while retaining zero identifier and economic values. This establishes that the prior no_local_header_anchor result is caused by header/block discovery rather than absence of candidate text. The sanitized context may now be analyzed design-only to preregister a narrower structural parser before any further live request.",
+  "post_consumption_authorizations": {
+    "response_body_ephemeral_retrieval": false,
+    "ambiguity_diagnostics_preflight": false,
+    "numeric_identifier_field_read": false,
+    "economic_value_read": false,
+    "full_historical_reconstruction": false,
+    "candidate_score_computation": false,
+    "research_ledger_mutation": false,
+    "public_artifact_replacement": false,
+    "production": false
+  },
+  "new_owner_authorization_required_for_any_future_live_request": true
+}
