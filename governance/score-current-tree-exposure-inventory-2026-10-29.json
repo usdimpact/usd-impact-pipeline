@@ -1,0 +1,100 @@
+{
+  "schema_version": "score-current-tree-exposure-inventory-v1",
+  "snapshot_date": "2026-10-29",
+  "source_main_commit": "19c75a5a517d508b27aa3e52b24a04d0870150be",
+  "status": "review_only_rights_hold",
+  "controlling_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
+  "boundary": "current public Git tree only; NOT prior commits, external clones, CDN caches, Actions artifacts, cloud backups, or real-time endpoint proof",
+  "authorization": {
+    "public_redaction": false,
+    "production_release": false,
+    "git_history_rewrite": false,
+    "cache_purge": false,
+    "new_private_provider_storage": false,
+    "real_provider_retrieval": false,
+    "publication_resume": false
+  },
+  "dated_archive": {
+    "directory_count": 27,
+    "first": "2026-04-10",
+    "last": "2026-10-23",
+    "file_counts": {
+      "score.json": 27,
+      "weekly_input.json": 14,
+      "repro_bundle.json": 9,
+      "en.html": 27,
+      "es.html": 27
+    },
+    "class_c_dated_file_count": 50,
+    "english_historical_index_date_count": 23,
+    "spanish_historical_index_date_count": 23,
+    "prior_dates_not_listed_in_indexes": [
+      "2026-05-02",
+      "2026-05-09",
+      "2026-05-16"
+    ],
+    "current_edition_not_in_historical_indexes": "2026-10-23",
+    "indexed_prior_dates": [
+      "2026-04-10",
+      "2026-04-17",
+      "2026-04-24",
+      "2026-05-22",
+      "2026-05-29",
+      "2026-06-19",
+      "2026-06-26",
+      "2026-07-03",
+      "2026-07-10",
+      "2026-07-17",
+      "2026-07-24",
+      "2026-07-31",
+      "2026-08-07",
+      "2026-08-14",
+      "2026-08-21",
+      "2026-08-28",
+      "2026-09-04",
+      "2026-09-11",
+      "2026-09-18",
+      "2026-09-25",
+      "2026-10-02",
+      "2026-10-09",
+      "2026-10-16"
+    ]
+  },
+  "current_public_data": {
+    "class_c_paths": [
+      "public/data/score_repro_bundle_latest.json",
+      "public/data/usd_impact_score_v2.csv",
+      "public/data/usd_impact_score_v2.json",
+      "public/data/weekly_input_latest.json"
+    ],
+    "class_d_paths": [
+      "public/data/research/score_v2_point_in_time_latest.json"
+    ],
+    "class_e_paths": [
+      "public/data/research/score_v2_robustness_latest.json"
+    ],
+    "class_f_paths": [
+      "public/data/research/score_v2_vintage_comparison_latest.csv",
+      "public/data/research/score_v2_vintage_comparison_latest.html",
+      "public/data/research/score_v2_vintage_comparison_latest.json"
+    ]
+  },
+  "git_only_dated_weekly_bridges": {
+    "path_pattern": "data/weekly_input_*.json",
+    "count": 15
+  },
+  "current_tree_total_class_c_files": 54,
+  "future_release_prerequisites": [
+    "written provider/counsel disposition by source and field class",
+    "lawful retention and preservation location approved",
+    "exact consumer and research reader inventory",
+    "private evidence strict-byte and integrity plan if authorized",
+    "public aggregate-safe schema approved",
+    "reviewed historical dates, indexes and 3 omitted prior dates",
+    "restore plan that does not republish unlicensed fields",
+    "pre-deploy public endpoint snapshot and Cloudflare deployment ID",
+    "exact-head CI and preview authorization",
+    "separate owner Production authorization"
+  ],
+  "interpretation": "Path metadata, counts and Git availability only; no assertion of legality or entitlement."
+}
