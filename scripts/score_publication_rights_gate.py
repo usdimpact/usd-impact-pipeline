@@ -6,8 +6,10 @@ change Production. It reads one reviewed repository policy file and emits a
 boolean hold decision for workflow conditions.
 
 Malformed, missing or unrecognized policy is HOLD.
-An ALLOW state is accepted only with an HTTPS GitHub decision receipt and a
-named approver so a casual string edit cannot silently reopen publication.
+The v1 ALLOW shape (a name and a syntactically valid GitHub URL) cannot
+establish actual upstream data rights, seven-source decisions, public schema
+approval or separate Production authorization. For v1, ALL ALLOW policies
+therefore fail closed until a separately reviewed release protocol exists.
 """
 
 from __future__ import annotations
@@ -120,13 +122,13 @@ def evaluate_policy(raw: Any) -> dict[str, Any]:
             return {**fallback, "reason": "allow-policy-missing-approver"}
         if not _https_github_url(receipt):
             return {**fallback, "reason": "allow-policy-missing-valid-decision-receipt"}
+        # A GitHub reference is audit metadata, not independently verified
+        # source rights or a Production approval. This v1 protocol may never
+        # reopen rights-gated provider retrieval or publication. A future v2
+        # requires an explicitly reviewed evidence and release protocol.
         return {
-            "hold": False,
-            "state": "allow",
-            "reason": raw["reason"].strip(),
-            "issue": ISSUE_URL,
-            "decision_receipt": receipt,
-            "approved_by": approver.strip(),
+            **fallback,
+            "reason": "v1-allow-not-an-authorized-rights-release-contract",
         }
 
     return {**fallback, "reason": "unknown-rights-policy-state"}

@@ -83,8 +83,12 @@ class ScorePublicationRightsGateTests(unittest.TestCase):
 
         policy["decision_receipt"] = "https://github.com/usdimpact/usd-impact-pipeline/issues/155#issuecomment-1"
         result = evaluate_policy(policy)
-        self.assertFalse(result["hold"])
-        self.assertEqual(result["state"], "allow")
+        self.assertTrue(result["hold"])
+        self.assertEqual(result["state"], "invalid")
+        self.assertEqual(
+            result["reason"],
+            "v1-allow-not-an-authorized-rights-release-contract",
+        )
 
         policy["decision_receipt"] = (
             "https://github.com/usdimpact/usd-impact-pipeline/issues/155#not-a-comment"
@@ -94,6 +98,21 @@ class ScorePublicationRightsGateTests(unittest.TestCase):
         self.assertEqual(
             result["reason"], "allow-policy-missing-valid-decision-receipt"
         )
+
+    def test_valid_looking_reference_never_unlocks_provider_workflows(self) -> None:
+        policy = valid_policy("allow")
+        policy["approved_by"] = "Review Owner"
+        policy["decision_receipt"] = (
+            "https://github.com/usdimpact/usd-impact-pipeline/issues/155#issuecomment-12345"
+        )
+        result = evaluate_policy(policy)
+        self.assertIs(result["hold"], True)
+        self.assertEqual(result["state"], "invalid")
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "github_output"
+            write_github_output(result, path)
+            self.assertIn("hold=true", path.read_text(encoding="utf-8"))
+            self.assertNotIn("hold=false", path.read_text(encoding="utf-8"))
 
     def test_github_output_is_boolean_and_bounded(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
