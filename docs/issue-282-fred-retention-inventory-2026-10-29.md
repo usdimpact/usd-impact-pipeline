@@ -30,6 +30,15 @@
 - Whether the same H.15 observations can be sourced directly from the Federal Reserve Board, whether its license/terms permit the required retention/commercial use, and whether source and calendar parity can be demonstrated without changing Score methodology.
 - Whether the current job remains scheduled or guarded; source-file presence does not prove that a release currently runs.
 
+
+## Direct Federal Reserve Board H.15 candidate (public-source desk review)
+
+- Official [H.15 Download Program](https://www.federalreserve.gov/datadownload/Choose.aspx?rel=H15) offers a preformatted **Treasury Constant Maturities** CSV package and a complete release XML package.
+- The [official package series listing](https://www.federalreserve.gov/datadownload/Review.aspx?filetype=csv&from=&label=include&lastObs=&layout=seriescolumn&rel=H15&series=bf17364827e38702b42a58cf8eaa3f78&to=&type=package) lists two-year `H15/H15/RIFLGFCY02_N.B` and ten-year `H15/H15/RIFLGFCY10_N.B` daily market yield observations. **Candidate mapping only**; no real-data parity assessment has been run.
+- Federal Reserve Board's July 16, 2026 notice states that the DDP **Build Your Package** option will be removed during the week of **November 9, 2026** ahead of eventual DDP retirement. Do not design a new integration to depend on that UI path. Investigate release XML and enduring machine-readable Board alternatives, including deprecation support and allowed access/retention, before implementation.
+- The Board is the originating H.15 publisher; that does **not** automatically resolve the Board's exact license/attribution/automated-access/storage terms, any FRED-derived historical provenance, or direct-source parity. Keep unknowns as HOLD.
+- Future synthetic tests should validate daily date alignment, missing days, holiday handling, release timestamps, unit conventions, revision/vintage expectations, and strict fail-closed response parsing. **No live retrieval or activation in this PR.**
+
 ## Risk gates and next executable checks
 
 1. **No additional live FRED fetch for this audit.** Use repository metadata and synthetic fixtures; never include actual provider-derived numeric values in issues, logs or PR descriptions.
