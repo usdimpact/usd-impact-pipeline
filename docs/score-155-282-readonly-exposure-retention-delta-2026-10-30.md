@@ -110,3 +110,66 @@ The US Treasury government-publication status and the Board's general public-dom
 **Not verified:** complete Git object/fork/backup inventory; all GitHub Actions logs and dependency caches; all historical Pages hashes/edge caches; all external developer machines and other services; real-provider storage elsewhere; complete codebase's manual/external run paths; current live website member positive E2E; scope of historical FRED storage rights; commercial public derived-output rights; private preservation permission; direct-source H.15/Treasury parity.
 
 **Disposition: HIGH-PRIORITY RIGHTS CONTAINMENT REVIEW, NOT AUTOMATIC UNPUBLISHING.** The website is not declared unlawful. The 54 Class C current-tree paths and the distinct D/E/F, Git-only bridge and storage surfaces require precise counsel decisions, then a separately authorized deployment plan. This research-only report leaves all runtime data, legal gates, public artifacts and Production unchanged.
+
+
+## 9. Exhaustive current-tree GitHub Actions workflow census and direct CLI gap
+
+A fresh **full untruncated Git tree** at protected `main` was filtered to all 27 `.github/workflows/*.yml` files. Each file was read as *source code only* and classified by presence of the rights-gate invocation, direct or indirect provider-fetch code and scheduled/manual trigger. This is a **current-code census**, not proof of historical execution or every external invoker.
+
+### A. Eight existing original Score rights-gated workflows
+
+These eight files contain `python -m scripts.score_publication_rights_gate` and condition subsequent operational work on an explicit `hold == 'false'` or equivalent job-output equality:
+
+1. `.github/workflows/weekly.yml` — Friday main publication/reproduction/archive PR; direct `python usd_impact_score_v2.py` at line 105 follows preflight gate.
+2. `.github/workflows/repro-rehearsal.yml` — full provider reproduction rehearsal; live runner step gated and skipped under HOLD.
+3. `.github/workflows/research-validation.yml` — live research generation/validation/publish stages guarded by the same rights decision and independent upstream readiness.
+4. `.github/workflows/score-v2-predictive.yml` — rights-gated predictive research; if authorized, uploads a GitHub artifact; potential historical stored outputs require independent review.
+5. `.github/workflows/score-v3-shadow.yml` — rights-gated shadow study; if authorized, uploads a GitHub artifact; not proof of lawful artifact retention.
+6. `.github/workflows/score-research-evidence-health.yml` — HOLD-aware scheduled evidence health.
+7. `.github/workflows/weekly-health.yml` — HOLD-aware weekly publication health.
+8. `.github/workflows/weekly-recovery.yml` — HOLD-aware recovery.
+
+**What is proved:** These exact checked-in workflow definitions include current guards. **What is not proved:** every historical run, external scheduler, manually executed module, copied workflow or independent provider client is blocked. A gate in GitHub Actions is not a universal Python library/source-access guard.
+
+### B. Other workflow categories — do not mistake absence of that gate for proof of unauthorized FRED use
+
+- `repro-attestation.yml` — checks *already committed* reproduction artifacts; no new FRED retrieval in the workflow. Existing public data is nevertheless a separate downstream use/retention surface.
+- `score-private-evidence-read-rehearsal.yml` and `score-private-evidence-write-rehearsal.yml` — main-only, **2099 synthetic** private-object OIDC exercises. The write workflow explicitly asserts publication/surface HOLD rather than seeking a release ALLOW; it was previously authorized only for its Development fixture.
+- `score-v2-1e-one-off-preflight.yml` — an earlier narrowly authorized **federal/BLS historical feasibility** event triggered by a particular governed dispatch-file change. It calls `validate_score_v2_1e_research_authorization` before `run_score_v2_1e_live_preflight`; it does not call the original publication gate. This is **a distinct one-off research lane**, not permission for Score v2 production or automatic H.15 substitution. Its historical authorization, consumed status and external requests require their own issue-specific review; do not re-dispatch.
+- **Eight workflow-dispatch stubs** for v2.1F BLS and PDF preflights are hard-disabled at job level with `if: ${{ false }}`. A later code or authorization change must be separately reviewed; current disabled status is not a permanent legal safeguard.
+- `score-v2-1f-wpu0561-recovery-drill.yml` — workflow body contains offline recovery and synthetic-parser tests, no live restoration step.
+- Other workflows (`branded-domain-readiness`, `methodology-health`, `pages-security-posture`, `python-security`, `quality`, `research-pr-quality-dispatch`) are operational/CI checks. `python-security.yml` uses `upload-artifact` for its own reports; this **does not** imply those reports contain provider values. Artifacts from other research workflows still need their specific retention inventory.
+
+All 27 workflows fit the above categories (8 rights-gated + 1 attestation + 2 private rehearsal + 1 one-off + 8 disabled stubs + 1 offline recovery + 6 operational/CI = **27**). This classification is a source-code check, not a static proof that every script subprocess is harmless. Jobs invoking other scripts or inherited GitHub reusable workflows can have indirect behavior that still needs per-purpose review.
+
+### C. Confirmed *manual/source-library* exposure not covered by workflow gate
+
+**Main production CLI: `usd_impact_score_v2.py`**:
+
+- `main()`, approximately lines 1359–1575, parses `--test`, `--web`, `--weekly-levels-output`, `--provider-evidence-output` and `--output-dir`.
+- If `--test` and local parquet cache exists it reads that cache; otherwise it calls `fetch_all_inputs()` (around line **1420**) which invokes both Yahoo and FRED fetches (around **542–543**).
+- A non-web run may write `_daily_cache.parquet`; web mode can produce the public component/history files and send statistics to log and stdout.
+- Current `main()` does **not** call `scripts.score_publication_rights_gate`. The normal **weekly.yml** workflow blocks this command under HOLD, but a **direct manual invocation outside the workflow can reach its retrieval branch**.
+- This finding is *source-code reachability*, not evidence of actual post-HOLD use, a third-party access path, or proof that a developer machine has valid network access.
+
+**Standalone reproduction builder: `scripts/build_score_repro_bundle.py`**:
+
+- `main()`, approximately lines **440–508**, offers `--weekly-levels` (same-run/local file) **or** `--live-refetch`.
+- The latter enters `_live_weekly()` (around **423**) and calls `score_v2.fetch_all_inputs()` to retrieve providers; no explicit original Score rights-gate call exists in this Python entrypoint.
+- `repro-rehearsal.yml` is properly gated, but direct `python -m scripts.build_score_repro_bundle ... --live-refetch` is a distinct bypass of that *workflow-level* safeguard. A local same-run `--weekly-levels` is not a network fetch, but can read or write already retained provider-derived data, requiring its own lawful retention review.
+
+**Other manual scripts requiring separately scoped audit, not equated with new FRED fetches:**
+`scripts/score_v2_predictive_ingestion.py`, `scripts/score_v3_shadow_ingestion.py` read/write local derived research; `scripts/materialize_private_score_evidence.py` can materialize private evidence; `scripts/publish_score_member_assets.py` has external service upload mechanics; `scripts/run_score_v2_1e_live_preflight.py` and `scripts/run_score_v2_1f_live_preflight.py` have separate federal/BLS research transports and authorization contracts. This audit inspected code paths but did **not** execute, dispatch, fetch, upload, persist or attest data.
+
+### D. Proposed engineering safeguard, not enacted in this read-only audit
+
+A separate, reviewed **fail-closed Python entrypoint contract** should require a rights decision *before* any provider fetch or non-synthetic provider-derived cache read/write in the main CLI and the reproduction `--live-refetch` path. Guard design must:
+
+1. Reuse the canonical Score rights-gate validator, rather than relying on mutable shell flags or a v1 `allow` file. Original rights `hold` remains non-activatable without separate v2 rights approvals.
+2. Run before source network I/O, logging of source-derived values, parquet creation, public output or new evidence writes; reject missing/invalid/unapproved decision receipts with no side effects.
+3. Keep hermetic unit/synthetic fixture tests working **without** authorizing network source access; distinguish pure computations from provider-consuming entrypoints. Avoid opening an escape hatch such as `--test` for arbitrary retained real caches.
+4. Test mocked transport no-call assertions for no-argument runs, `--web`, `--test`, `--live-refetch`, malformed/absent rights files and calls from a non-Actions environment. Tests must use invented 2099-only inputs, not FRED/Yahoo observations.
+5. Preserve existing methodology, weights, score values, file artifacts, member entitlements and website. Do not broaden the new four-source panel into the original Score product. A code guard is a technical containment control, **not a retrospective rights or retention approval**.
+6. Keep any follow-up **code-changing PR independent** from this report and subject to scope-specific owner approval, exact-head quality/security checks, and a Production impact decision. No executable patch is authorized merely by this inventory.
+
+**Priority:** The two directly callable live-provider paths are the most concrete remaining technical-control gap. Provider/owner retention decisions and historical copy inventory remain the larger external blockers. Neither of the two direct paths was run during this audit.
