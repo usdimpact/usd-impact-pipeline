@@ -10,6 +10,7 @@ and late-release data from leaking into a historical cutoff.
 from __future__ import annotations
 
 import math
+import re
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta, timezone
 from typing import Iterable
@@ -47,6 +48,56 @@ SOURCE_BASIS_IDS = {
         "CANDIDATE:TREASURY_NOMINAL_PAR_CURVE_10YR_ILLUSTRATIVE_FIELD",
 }
 
+# Closed internal result vocabulary. These are invented test labels only:
+# never a trading signal, provider attribution, license, public schema, or
+# an approved customer-facing product.
+DIAL_VALUES = {
+    "dollar_breadth": frozenset(("UP", "DOWN", "UNCHANGED")),
+    "crude_inventory": frozenset(("BUILD", "DRAW", "UNCHANGED")),
+    "treasury_curve_level": frozenset(("POSITIVE", "INVERTED", "FLAT")),
+    "treasury_curve_direction": frozenset(
+        ("STEEPENING", "FLATTENING", "UNCHANGED")
+    ),
+}
+BLOCKER_CODES = frozenset((
+    "MISSING_SYNTHETIC_RECEIPT",
+    "NOT_FIRST_SEEN_BY_CUTOFF",
+    "TREASURY_CURVE_SNAPSHOT_MISMATCH",
+    "TREASURY_CURVE_REVISION_MISMATCH",
+    "TREASURY_CURVE_INITIAL_RELEASE_MISMATCH",
+    "TREASURY_CURVE_VERSION_PUBLICATION_MISMATCH",
+    "TREASURY_CURVE_FIRST_SEEN_MISMATCH",
+    "NO_MATCHING_VISIBLE_SYNTHETIC_VALUE",
+    "INCOMPLETE_FOUR_SOURCE_SET",
+))
+_DATE_TOKEN = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}")
+
+
+def _synthetic_result_friday(value: object, label: str) -> date:
+    if not isinstance(value, str) or _DATE_TOKEN.fullmatch(value) is None:
+        raise ValueError(f"{label}: YYYY-MM-DD date required")
+    try:
+        parsed = date.fromisoformat(value)
+    except ValueError as exc:
+        raise ValueError(f"{label}: invalid calendar date") from exc
+    if parsed.year < MIN_SYNTHETIC_YEAR or parsed.weekday() != 4:
+        raise ValueError(f"{label}: synthetic year-2099+ Friday required")
+    return parsed
+
+
+def _valid_blocker(value: object, allowed_weeks: set[str]) -> bool:
+    # No arbitrary error text, numbers, URLs, markdown, escape sequences,
+    # free-form evidence, market data or contact details in panel output.
+    if not isinstance(value, str) or len(value) > 150:
+        return False
+    parts = value.split(":")
+    if len(parts) not in (2, 3) or parts[0] not in allowed_weeks:
+        return False
+    if len(parts) == 3:
+        return parts[1] in REQUIRED_IDS and parts[2] in BLOCKER_CODES
+    return parts[1] in BLOCKER_CODES
+
+
 
 @dataclass(frozen=True)
 class SyntheticObservation:
@@ -82,17 +133,57 @@ class SyntheticContextPanel:
     production_authorized: bool = False
 
     def __post_init__(self) -> None:
-        if (
-            self.rights_cleared
-            or self.real_data_fetch_authorized
-            or self.publish_authorized
-            or self.production_authorized
+        # A caller may instantiate a frozen dataclass directly instead of using
+        # the evaluator. That MUST NOT bypass the closed synthetic-only
+        # vocabulary or put free-form provider/economic text into a preview.
+        for authorized in (
+            self.rights_cleared,
+            self.real_data_fetch_authorized,
+            self.publish_authorized,
+            self.production_authorized,
         ):
-            raise ValueError("synthetic context panel cannot grant real-data or publication rights")
+            if authorized is not False:
+                raise ValueError(
+                    "synthetic context panel cannot grant real-data or publication rights"
+                )
         if self.panel_id != PANEL_ID or self.fixture_marker != SYNTHETIC_MARKER:
             raise ValueError("unrecognized synthetic panel")
         if self.status not in {"SYNTHETIC_ONLY_HOLD", "SYNTHETIC_ONLY_COMPLETE"}:
             raise ValueError("invalid synthetic-only state")
+
+        current = _synthetic_result_friday(self.reference_week, "reference_week")
+        previous = _synthetic_result_friday(self.previous_week, "previous_week")
+        if previous != current - timedelta(days=7):
+            raise ValueError("previous_week must precede reference_week by seven days")
+
+        if not isinstance(self.dial_labels, tuple):
+            raise ValueError("synthetic dial labels must be a tuple")
+        if not isinstance(self.blockers, tuple) or len(self.blockers) > 32:
+            raise ValueError("synthetic blockers must be a bounded tuple")
+        if self.blockers != tuple(sorted(set(self.blockers))):
+            raise ValueError("synthetic blockers must be unique and sorted")
+        weeks = {self.previous_week, self.reference_week}
+        if not all(_valid_blocker(item, weeks) for item in self.blockers):
+            raise ValueError("unrecognized synthetic blocker code")
+
+        if self.status == "SYNTHETIC_ONLY_HOLD":
+            if self.dial_labels or not self.blockers:
+                raise ValueError("synthetic HOLD must have blockers and no labels")
+            return
+
+        if self.blockers:
+            raise ValueError("synthetic COMPLETE must not contain blockers")
+        if len(self.dial_labels) != len(DIALS):
+            raise ValueError("synthetic COMPLETE requires exactly four dial labels")
+        for index, pair in enumerate(self.dial_labels):
+            if (
+                not isinstance(pair, tuple)
+                or len(pair) != 2
+                or pair[0] != DIALS[index]
+                or not isinstance(pair[1], str)
+                or pair[1] not in DIAL_VALUES[DIALS[index]]
+            ):
+                raise ValueError("unapproved synthetic dial name or label")
 
 
 def _validate_observation(obs: SyntheticObservation, weeks: set[date]) -> None:
