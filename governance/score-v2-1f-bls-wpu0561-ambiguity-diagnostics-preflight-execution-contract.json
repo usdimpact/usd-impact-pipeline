@@ -1,6 +1,6 @@
 {
-  "version": 16,
-  "state": "ambiguity_diagnostics_v7_header_gap_consumed_fail_closed",
+  "version": 17,
+  "state": "ambiguity_diagnostics_v8_container_header_band_design_only_hold",
   "methodology_version": "2.1F-design-candidate",
   "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/258",
   "predecessor_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/252",
@@ -39,7 +39,7 @@
     "candidate Score, z-score or contribution would be computed",
     "public artifact, research ledger or Production would change"
   ],
-  "next_allowed_action": "design_only_analyze_v7_sanitized_section_context_then_preregister_narrower_structural_header_rule",
+  "next_allowed_action": "validate_v8_design_only_then_require_new_owner_authorization_for_live_work",
   "production_authorized": false,
   "execution_environment_policy": {
     "preferred_environment": "github_actions_protected_main_lifecycle",
