@@ -1,5 +1,5 @@
 {
-  "version": 8,
+  "version": 9,
   "state": "design_only_hold",
   "methodology_version": "2.1F-design-candidate",
   "owner_decision_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/258",
@@ -22,7 +22,7 @@
       "expected_format": "xlsx"
     }
   ],
-  "objective": "Preregister a bounded top-of-container header/title-band inventory for the already semantically selected HTML and XLSX containers, because the consumed v7 32-row candidate-local windows found no recognized header-role row.",
+  "objective": "Preregister the fail-closed structural-feasibility decision after consumed v8 evidence: the 2013 archived HTML selected container exposes an index-level field, while the semantically selected 2026 XLSX exact-target container exposes identifier and percent-change fields but no index-level field.",
   "known_consumed_evidence": {
     "issue_244_html_crude_petroleum_matches": 3,
     "issue_244_xlsx_crude_petroleum_matches": 29,
@@ -57,7 +57,21 @@
     "issue_258_v7_xlsx_header_gap_window": "rows 257-288",
     "issue_258_v7_xlsx_nearest_recognized_header_row": null,
     "issue_258_v7_identifier_values_retained": false,
-    "issue_258_v7_economic_values_retained": false
+    "issue_258_v7_economic_values_retained": false,
+    "issue_258_v8_run": "https://github.com/usdimpact/usd-impact-pipeline/actions/runs/40901086765",
+    "issue_258_v8_html_container": "table 4",
+    "issue_258_v8_html_index_level_field_present": true,
+    "issue_258_v8_html_identifier_field_present": true,
+    "issue_258_v8_xlsx_container": "xl/worksheets/sheet3.xml",
+    "issue_258_v8_xlsx_identifier_fields": [
+      "Commodity code",
+      "Group code",
+      "Item code"
+    ],
+    "issue_258_v8_xlsx_index_level_field_present": false,
+    "issue_258_v8_xlsx_percent_change_fields_present": true,
+    "issue_258_v8_identifier_values_retained": false,
+    "issue_258_v8_economic_values_retained": false
   },
   "future_live_budget": {
     "request_budget": 2,
@@ -219,7 +233,7 @@
     "public_artifact_replacement": false,
     "production": false
   },
-  "next_gate": "new_explicit_owner_authorization_under_issue_258_required_before_any_live_v8_container_header_band_inventory_or_identifier/value_read",
+  "next_gate": "owner_methodology_decision_required_before_any_change_to_fixed_2026_BLS_resource_boundary; no further live request is justified under current fixed-resource v9 design",
   "execution_environment_policy": {
     "preferred_environment": "github_actions_protected_main_lifecycle",
     "rationale": "prior protected GitHub Actions BLS preflights completed HTTP retrieval while the later local runtime encountered DNS resolution failure; future live execution should use the auditable environment with demonstrated BLS reachability",
@@ -369,5 +383,45 @@
     "output_goal": "capture the true column-header/title vocabulary near the top of the already selected container so section/group labels can be distinguished from governing column headers",
     "identity_proven_by_this_rule": false,
     "live_verification_status": "not_authorized"
+  },
+  "structural_feasibility_policy": {
+    "state": "design_only_hold",
+    "html_2013": {
+      "resource": "/news.release/archives/ppi_05152013.htm",
+      "selected_container": "table 4",
+      "structural_status": "index_level_schema_present",
+      "identifier_header_present": true,
+      "index_level_header_present": true,
+      "percent_change_headers_also_present": true,
+      "representative_value_read_authorized": false
+    },
+    "xlsx_2026": {
+      "resource": "/ppi/detailed-report/ppi-detailed-report-april-2026.xlsx",
+      "selected_container": "xl/worksheets/sheet3.xml",
+      "selection_basis": "v6 exact-label plus direct-commodity semantic context",
+      "structural_status": "index_level_schema_absent_in_selected_container",
+      "identifier_headers_present": [
+        "Commodity code",
+        "Group code",
+        "Item code"
+      ],
+      "index_level_header_present": false,
+      "percent_change_headers_present": true,
+      "representative_value_read_authorized": false
+    },
+    "invariant": "A target container that lacks a proven index-level field cannot supply an index-level observation, even when target identity is proven elsewhere.",
+    "no_broadening_rule": "Do not broaden from the exact-target/direct-commodity candidate to footnotes, domestic-production variants, extraction variants, pipeline variants, stage-demand variants, or unrelated containers merely to locate an index-level field.",
+    "alternate_source_rule": "No alternate source or dynamic substitution is permitted under the current v2.1F fixed-resource design.",
+    "identity_rule": "Previously proven Crude petroleum -> 0561 identity remains valid and is not erased by the 2026 field-level structural failure.",
+    "current_pairwise_feasibility": "not_feasible_for_two_resource_representative_index_level_pair_under_current_fixed_resources_and_fail_closed_rules",
+    "html_only_feasibility": "structurally_possible_but_not_authorized_for_value_read",
+    "xlsx_2026_feasibility": "structurally_blocked_for_index_level_value_read",
+    "score_candidate_status": "hold",
+    "public_or_production_status": "forbidden"
+  },
+  "successor_options": {
+    "option_a": "retain current fixed resources and conclude WPU0561 historical-vintage feasibility fails closed for v2.1F because the 2026 fixed XLSX selected target container has no index-level field",
+    "option_b": "separately redesign the BLS 2026 source/resource boundary, which would be a new methodology decision and cannot be inferred or substituted automatically",
+    "forbidden_shortcut": "search concept variants or alternate sources until an index-level field is found"
   }
 }

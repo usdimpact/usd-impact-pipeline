@@ -1,6 +1,6 @@
 {
-  "version": 20,
-  "state": "ambiguity_diagnostics_v8_container_header_band_consumed_fail_closed",
+  "version": 21,
+  "state": "ambiguity_diagnostics_v9_structural_feasibility_design_only_hold",
   "methodology_version": "2.1F-design-candidate",
   "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/258",
   "predecessor_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/252",
@@ -30,15 +30,17 @@
     "production_authorized": false
   },
   "stop_conditions": [
-    "the design-v8 Issue #258 container-header-band authorization has been consumed",
-    "any future live BLS request is attempted without a new explicit owner authorization",
-    "any identifier value or economic value would be read or persisted",
-    "response body would be persisted",
+    "the design-v8 Issue #258 authorization has been consumed",
+    "any future live BLS request is attempted under the unchanged v9 fixed-resource design without a new methodology decision",
+    "the exact-target/direct-commodity selection is broadened to concept variants or unrelated containers merely to locate an index-level field",
+    "an alternate source or dynamic substitution is introduced without a new explicit methodology decision",
+    "the 2026 selected XLSX container is treated as index-level capable despite the consumed v8 header-band evidence showing only identifier and percent-change fields",
+    "an identifier value or economic value would be read or persisted without a separately authorized successor design",
     "full historical reconstruction would begin",
     "candidate Score, z-score or contribution would be computed",
     "public artifact, research ledger or Production would change"
   ],
-  "next_allowed_action": "design_only_analyze_v8_header_band_then_preregister_successor_structural_rule",
+  "next_allowed_action": "owner_methodology_decision_only: either accept current fixed-resource fail-closed infeasibility or separately redesign the 2026 BLS source/resource boundary",
   "production_authorized": false,
   "execution_environment_policy": {
     "preferred_environment": "github_actions_protected_main_lifecycle",
