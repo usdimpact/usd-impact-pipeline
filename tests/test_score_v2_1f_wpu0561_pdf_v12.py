@@ -6,10 +6,24 @@ import json
 from pathlib import Path
 import unittest
 
-import pypdf
-from scripts.score_v2_1f_wpu0561_pdf_v12_synthetic import (
-    CASES, run_synthetic_case
-)
+try:
+    import pypdf
+except ModuleNotFoundError as exc:
+    if exc.name != "pypdf":
+        raise
+    # The main Score runtime does not install the fixture-only package.
+    # Parser tests run fully in the hash-pinned isolated CI job instead.
+    pypdf = None
+
+if pypdf is not None:
+    from scripts.score_v2_1f_wpu0561_pdf_v12_synthetic import (
+        CASES, run_synthetic_case
+    )
+else:
+    CASES = frozenset()
+
+    def run_synthetic_case(case: str) -> dict:
+        raise RuntimeError("pypdf fixture parser is available only in the isolated job")
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -23,6 +37,7 @@ class V12ContractTests(unittest.TestCase):
     def setUp(self) -> None:
         self.spec = json.loads(DESIGN.read_text(encoding="utf-8"))
 
+    @unittest.skipUnless(pypdf is not None, "fixture-only parser is absent from production dependency lock")
     def test_locked_parser_version_and_hash(self) -> None:
         self.assertEqual(pypdf.__version__, "6.21.4")
         self.assertIn("pypdf==6.21.4 --hash=sha256:" + PIN, LOCK.read_text(encoding="utf-8"))
@@ -89,6 +104,7 @@ class V12ContractTests(unittest.TestCase):
         self.assertIn("/issues/155", refs["rights_hold_issue"])
 
 
+@unittest.skipUnless(pypdf is not None, "synthetic parser is tested in isolated no-network CI")
 class V12SyntheticPDFTests(unittest.TestCase):
     def test_enumerated_fixture_cases_are_static(self) -> None:
         self.assertEqual(len(CASES), 16)
