@@ -69,6 +69,111 @@ CLOSED_ACTIONS = frozenset(
 )
 
 
+# Pin the *route to review*, not only the Boolean HOLD values. Without these
+# anchors a public question queue could silently point future reviewers to a
+# different governance file, source, signoff role or approval gate while still
+# asserting every literal authorization field is False.
+EXPECTED_GOVERNING_RECORDS = {
+    "exact_series_rights": "governance/score-four-source-exact-series-rights-matrix-2026-10-29.json",
+    "independent_model_draft": "governance/independent-macro-context-fallback-draft-2026-10-30.json",
+    "synthetic_phase_b": "governance/score-public-source-phase-b-design-2026-10-29.json",
+    "active_legacy_score_gate": "governance/score-publication-rights-gate.json",
+    "legacy_rights_successor": "governance/score-v2-successor-rights-readiness-2026-10-29.json",
+    "fred_clauses": "governance/fred-terms-clause-crosswalk-2026-10-29.json",
+}
+EXPECTED_REVIEW_ROLES = (
+    "PROJECT_OWNER",
+    "SOURCE_OWNER_OR_RIGHTSHOLDER",
+    "LEGAL_COUNSEL_OR_AUTHORIZED_RIGHTS_REVIEWER",
+    "ENGINEERING_SECURITY",
+    "EDUCATIONAL_COMPLIANCE",
+)
+EXPECTED_OWNER_DECISIONS = frozenset({
+    "approve_distinct_product_direction",
+    "approve_descriptive_three_dial_four_label_methodology",
+    "approve_non_predictive_educational_framing",
+    "approve_working_or_final_name",
+    "approve_audience_public_vs_member",
+    "approve_reporting_schedule_after_verified_wpsr_and_h10",
+    "approve_missing_or_revised_data_HOLD_without_labels",
+    "approve_explicit_public_schema_and_attributions",
+    "approve_historical_first_seen_and_revision_protocol",
+    "approve_independent_methodology_evaluation",
+    "approve_one_off_rights_scoped_transport_proof",
+    "approve_eventual_production_publication",
+})
+EXPECTED_GATE_NAMES = (
+    "SOURCE_ORIGINAL_OWNER_AND_TRANSPORT_IDENTIFICATION",
+    "SCOPED_REUSE_AND_COMMERCIAL_RIGHTS_DISPOSITION",
+    "ARCHIVE_CACHE_LOG_AND_VINTAGE_RETENTION_DISPOSITION",
+    "INDEPENDENT_OWNER_METHOD_DISPLAY_AND_SCHEDULE_DECISION",
+    "NARROW_NONPRODUCTION_REAL_SOURCE_PROOF_APPROVAL",
+    "PROSPECTIVE_AS_OF_AND_CORRECTION_VALIDATION",
+    "INDEPENDENT_PUBLIC_RIGHTS_SCHEMA_SECURITY_COMPLIANCE",
+    "SEPARATE_OWNER_PRODUCTION_RELEASE",
+)
+EXPECTED_SOURCE_FIELDS = frozenset({
+    "original_publisher", "role", "display_name", "publisher_series_or_table",
+    "publisher_identifier_status", "publisher_terms", "documented_facts",
+    "priority_legal_questions", "priority_technical_questions", "missing_evidence",
+    "id", "exact_permission_dimensions", "formal_source_or_counsel_rights_receipt",
+    "project_owner_scoped_rights_decision_receipt", "source_rights_state",
+    "source_license_cost_approval", "transport_test_approved",
+})
+EXPECTED_SOURCE_IDENTITIES = {
+    "fed_h10_nominal_broad": (
+        "Federal Reserve Board", "H10/H10/JRXWTFB_N.B",
+        "DOCUMENTED_WITH_2019_SEMANTIC_BREAK",
+        "H.10 nominal Broad Dollar Index",
+        "Nominal trade-weighted Broad Dollar Index (not ICE DXY)",
+        (
+            "https://www.federalreserve.gov/disclaimer.htm",
+            "https://www.federalreserve.gov/releases/h10/h10_technical_qa.htm",
+            "https://www.federalreserve.gov/data/data-download-fred-information.htm",
+        ),
+    ),
+    "eia_crude_stocks_weekly": (
+        "U.S. Energy Information Administration", "WCESTUS1",
+        "DOCUMENTED_LABEL_ONLY_CROSS_SERIES_PARITY_UNVERIFIED",
+        "EIA weekly crude stocks excluding SPR",
+        "Weekly commercial U.S. crude inventories excluding SPR; NOT WTI or futures",
+        (
+            "https://www.eia.gov/about/copyrights_reuse.php",
+            "https://www.eia.gov/about/privacy_security_policy.php",
+            "https://www.eia.gov/petroleum/supply/weekly/schedule.php",
+        ),
+    ),
+    "treasury_direct_2yr_par": (
+        "U.S. Department of the Treasury",
+        "BC_2YEAR (official historical XML illustration)",
+        "STATIC_SCHEMA_VERIFIED_LIVE_FIELD_AND_SERIES_ID_UNVERIFIED",
+        "Treasury 2Y nominal par",
+        "2Y nominal par constant-maturity yield, not FRED DGS2 transport",
+        (
+            "https://home.treasury.gov/treasury-daily-interest-rate-xml-feed",
+            "https://catalog.data.gov/dataset/interest-rate-statistics-daily-treasury-yield-curve-rates",
+            "https://home.treasury.gov/policy-issues/financing-the-government/interest-rate-statistics/treasury-yield-curve-methodology",
+        ),
+    ),
+    "treasury_direct_10yr_par": (
+        "U.S. Department of the Treasury",
+        "BC_10YEAR (official historical XML illustration)",
+        "STATIC_SCHEMA_VERIFIED_LIVE_FIELD_AND_SERIES_ID_UNVERIFIED",
+        "Treasury 10Y nominal par",
+        "10Y nominal par constant-maturity yield, not FRED DGS10 transport",
+        (
+            "https://home.treasury.gov/treasury-daily-interest-rate-xml-feed",
+            "https://catalog.data.gov/dataset/interest-rate-statistics-daily-treasury-yield-curve-rates",
+            "https://home.treasury.gov/policy-issues/financing-the-government/interest-rate-statistics/treasury-yield-curve-methodology",
+        ),
+    ),
+}
+EXPECTED_APPROVAL_RECEIPTS = frozenset({
+    "exact_series_or_upstream", "counsel_retention", "owner_methodology",
+    "one_off_transport", "public_output", "production",
+})
+
+
 def read_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
@@ -84,7 +189,36 @@ def check_queue_unapproved(queue: dict) -> None:
     assert queue["market_data_paid_budget_usd"] == 0
     assert queue["budget_policy"] == "ZERO_PAID_MARKET_DATA_LICENSE_BUDGET"
     assert queue["source_count"] == 4
+
+    # Exact source identity, policy references, reviewer routing, and decision
+    # gate *names* are part of the handoff contract. A count-only check is
+    # insufficient: redirected controls could make an unchanged HOLD misleading.
+    assert queue["controlling_issue"] == "https://github.com/usdimpact/usd-impact-pipeline/issues/313"
+    assert queue["legacy_score_issue"] == "https://github.com/usdimpact/usd-impact-pipeline/issues/155"
+    assert queue["fred_rights_issue"] == "https://github.com/usdimpact/usd-impact-pipeline/issues/282"
+    assert queue["governing_records"] == EXPECTED_GOVERNING_RECORDS
+    assert tuple(queue["review_roles"]) == EXPECTED_REVIEW_ROLES
+    assert set(queue["owner_decision_prompts"]) == EXPECTED_OWNER_DECISIONS
+    assert tuple(g["name"] for g in queue["gate_order"]) == EXPECTED_GATE_NAMES
+    assert set(queue["approval_receipts"]) == EXPECTED_APPROVAL_RECEIPTS
+    # Reject an unknown ID with the contract's AssertionError, never an
+    # incidental KeyError from indexing the expected identity dictionary.
     assert tuple(s["id"] for s in queue["sources"]) == SOURCE_IDS
+    for source in queue["sources"]:
+        assert set(source) == EXPECTED_SOURCE_FIELDS
+        expected = EXPECTED_SOURCE_IDENTITIES[source["id"]]
+        assert (
+            source["original_publisher"],
+            source["publisher_series_or_table"],
+            source["publisher_identifier_status"],
+            source["display_name"],
+            source["role"],
+            tuple(source["publisher_terms"]),
+        ) == expected
+    for owner_choice in queue["owner_decision_prompts"].values():
+        assert set(owner_choice) == {"decision", "evidence_receipt", "authorization"}
+    for gate in queue["gate_order"]:
+        assert set(gate) == {"step", "name", "ready", "evidence"}
     assert set(queue["rights_decision_dimensions"]) == RIGHTS_DIMENSIONS
     for source in queue["sources"]:
         assert set(source["exact_permission_dimensions"]) == RIGHTS_DIMENSIONS
@@ -326,6 +460,75 @@ class MacroContextCounselOwnerQueueTests(unittest.TestCase):
         bad["source_count"] = 5
         with self.assertRaises(AssertionError):
             check_queue_unapproved(bad)
+
+
+    def test_review_routing_or_governing_file_cannot_be_redirected(self) -> None:
+        mutations = (
+            lambda q: q["governing_records"].update(
+                active_legacy_score_gate="governance/fake-rights-gate.json"
+            ),
+            lambda q: q.update(
+                controlling_issue="https://github.com/usdimpact/usd-impact-pipeline/issues/1"
+            ),
+            lambda q: q["review_roles"].__setitem__(2, "ENGINEERING_ONLY"),
+            lambda q: q["gate_order"][1].update(name="RIGHTS_AUTO_APPROVED"),
+        )
+        for index, mutate in enumerate(mutations):
+            with self.subTest(index=index):
+                altered = copy.deepcopy(self.queue)
+                mutate(altered)
+                with self.assertRaises(AssertionError):
+                    check_queue_unapproved(altered)
+
+    def test_source_identifiers_and_policy_links_cannot_be_swapped(self) -> None:
+        mutations = (
+            (0, "publisher_series_or_table", "DXY_INDEX"),
+            (0, "publisher_identifier_status", "LIVE_FULLY_RIGHTS_CLEARED"),
+            (1, "role", "WTI futures closing prices"),
+            (2, "display_name", "FRED DGS2 official value"),
+            (1, "publisher_series_or_table", "WTI_SPOT_PRICE"),
+            (2, "publisher_series_or_table", "FRED_DGS2"),
+            (3, "original_publisher", "FRED"),
+        )
+        for index, field, value in mutations:
+            with self.subTest(index=index, field=field):
+                altered = copy.deepcopy(self.queue)
+                altered["sources"][index][field] = value
+                with self.assertRaises(AssertionError):
+                    check_queue_unapproved(altered)
+        altered = copy.deepcopy(self.queue)
+        altered["sources"][1]["publisher_terms"][0] = (
+            "https://www.eia.gov/about/some-other-policy.php"
+        )
+        with self.assertRaises(AssertionError):
+            check_queue_unapproved(altered)
+        altered = copy.deepcopy(self.queue)
+        altered["sources"][0]["public_release_authorized"] = True
+        with self.assertRaises(AssertionError):
+            check_queue_unapproved(altered)
+
+    def test_decision_identity_and_approval_receipt_schema_cannot_be_expanded(self) -> None:
+        altered = copy.deepcopy(self.queue)
+        original = altered["owner_decision_prompts"].pop(
+            "approve_eventual_production_publication"
+        )
+        altered["owner_decision_prompts"]["approve_instant_auto_release"] = original
+        with self.assertRaises(AssertionError):
+            check_queue_unapproved(altered)
+        altered = copy.deepcopy(self.queue)
+        altered["approval_receipts"]["automatic_allowance"] = "UNKNOWN"
+        with self.assertRaises(AssertionError):
+            check_queue_unapproved(altered)
+        altered = copy.deepcopy(self.queue)
+        altered["owner_decision_prompts"]["approve_distinct_product_direction"][
+            "implicit_authorization"
+        ] = True
+        with self.assertRaises(AssertionError):
+            check_queue_unapproved(altered)
+        altered = copy.deepcopy(self.queue)
+        altered["gate_order"][7]["release_now"] = True
+        with self.assertRaises(AssertionError):
+            check_queue_unapproved(altered)
 
     def test_zero_budget_and_current_rights_are_independent(self) -> None:
         self.assertEqual(self.queue["market_data_paid_budget_usd"], 0)
