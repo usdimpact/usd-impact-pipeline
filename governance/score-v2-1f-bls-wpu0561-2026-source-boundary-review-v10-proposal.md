@@ -201,3 +201,19 @@ Even a nominal synthetic fixture yields only synthetic_layout_compatible_not_aut
 The only current authorization is **design-only preregistration and synthetic testing**. To go further, the owner would separately need to decide that the exact PDF is an admissible *candidate for a bounded preflight*, approve the actual parser/runtime and transient-byte exposure policy, and then issue a fresh one-off preflight authorization with protected activation/dispatch/consumption. No current PR or comment does those steps.
 
 **Fail closed with no workflow activation, no further BLS request, no change to v9 feasibility, no Score/reconstruction, no public/Production changes, and no amendment of Issue #155 rights HOLD.**
+
+## 13. Owner-approved v12 parser/security design — synthetic-only execution
+
+**Owner's new approval:** advance the precise April 2026 BLS PDF candidate-source boundary and parser/security contract. This permits reviewing metadata and building a **synthetic-only offline prototype**, not fetching the real PDF or reading its numeric contents. The v9 methodology/rights gate and v11 HOLD remain authoritative for any live activity.
+
+The v12 contract is governance/score-v2-1f-bls-wpu0561-pdf-parser-security-v12-design.json. It selects the official archive-linked April 2026 PDF URL as the sole *candidate* for a future separately authorized preflight, with zero requests authorized now. The source cannot be used to produce index-level values until exact release-vintage evidence, Table 9 governing headers, WPU0561 commodity identity, index-basis comparability and redistribution rights are separately established.
+
+The parser candidate is **pypdf 6.21.4** (BSD-3-Clause, published 2026-10-28) with the exact PyPI wheel hash pinned in governance/score-v2-1f-wpu0561-pdf-v12-parser.lock. No production/frozen-research dependency lock changes are included. The pypdf parser is approved only for PDFs invented and generated **within the synthetic test process**. It has no source URL/file argument or real-data execution workflow.
+
+The PR CI installs the hash-verified wheel in a standalone unprivileged fixture environment, then runs scripts/score_v2_1f_wpu0561_pdf_v12_synthetic.py through tests/test_score_v2_1f_wpu0561_pdf_v12.py inside a pinned Python container with network **none**, no secrets, non-root UID, read-only repo/package mounts, capability drops and memory/CPU/PID limits. No BLS PDF data or actual observation is used. A successful fixture is explicitly "synthetic_format_compatible_not_live", never evidence of the actual April PDF's structure.
+
+**Crucial caveat:** pypdf warns that text extraction processes entire page content streams, which may expand far beyond compressed input size. A post-decompression length check is not a protective cap on decompression for real documents. The v12 design requires a separate secure streaming/byte broker, parser isolation, explicit authorization for transient access to economic bytes, security review and rights clearance *before* any real PDF request. The proposed 10-MiB response-byte limit does not resolve that issue.
+
+Rollback is documented in docs/recovery/score-v2-1f-wpu0561-v10-backup-and-restore.md. The original v9, initial v10 and v11 design-only pinned recovery points remain available; real recovery must be via a separately reviewed corrective PR, not a force push. GitHub branches are not offsite/provider backups.
+
+**Still forbidden:** live BLS requests, PDF file ingestion, value extraction, identifier reads, source substitution, reconstruction, Score computation, research-ledger writes, public artifact replacement, Production deployments, and rights-gate release under Issue #155. A new one-off live authorization will be a distinct owner decision.
