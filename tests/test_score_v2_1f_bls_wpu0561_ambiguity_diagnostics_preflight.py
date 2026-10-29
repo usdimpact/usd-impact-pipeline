@@ -10,16 +10,24 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class ScoreV21FWpu0561AmbiguityDiagnosticsTests(unittest.TestCase):
-    def test_v5_candidate_context_design_is_hold(self) -> None:
+    def test_v5_candidate_context_is_authorized_but_not_dispatched(self) -> None:
         report = validator.validate(ROOT)
         self.assertEqual(report["status"], "passed")
-        self.assertEqual(report["state"], "ambiguity_diagnostics_v5_design_only_hold")
+        self.assertEqual(
+            report["state"],
+            "ambiguity_diagnostics_v5_candidate_context_authorized_pending_dispatch",
+        )
         self.assertEqual(report["design_version"], 5)
-        self.assertTrue(report["prior_v4_recheck_consumed"])
-        self.assertFalse(report["candidate_context_live_authorized"])
+        self.assertEqual(report["request_budget"], 2)
         self.assertEqual(report["max_economic_observations_total"], 0)
-        self.assertFalse(report["active_receipt_present"])
+        self.assertEqual(report["max_candidates_per_resource"], 32)
+        self.assertEqual(report["preceding_rows_per_candidate"], 8)
+        self.assertEqual(report["max_cells_per_candidate"], 64)
+        self.assertTrue(report["active_receipt_present"])
         self.assertFalse(report["dispatch_present"])
+        self.assertFalse(report["live_request_authorized"])
+        self.assertFalse(report["identifier_value_read_authorized"])
+        self.assertFalse(report["economic_value_read_authorized"])
         self.assertFalse(report["production_authorized"])
         self.assertTrue(report["rights_hold"])
 
