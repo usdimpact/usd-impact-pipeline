@@ -17,6 +17,7 @@ on:
       - 'governance/score-v2-1f-wpu0561-pdf-v13-execution-contract.json'
       - 'governance/score-v2-1f-wpu0561-pdf-v13-live-authorization.json'
       - 'governance/score-v2-1f-wpu0561-pdf-v13-dispatch.json'
+      - 'governance/score-v2-1f-wpu0561-pdf-v13-consumption-2026-10-29.json'
       - 'scripts/score_v2_1f_wpu0561_pdf_v13_transport.py'
       - 'scripts/score_v2_1f_wpu0561_pdf_v13_parser.py'
       - 'tests/test_score_v2_1f_wpu0561_pdf_v13.py'

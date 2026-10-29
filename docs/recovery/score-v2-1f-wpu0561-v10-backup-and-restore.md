@@ -176,3 +176,22 @@ The v12 parser is **not approved to read real PDFs**. pypdf documentation notes 
 - **No original-release or exact-series evidence:** the BLS PDF remains *unusable for historical-vintage Score* even if a structural test succeeded. No score/reconstruction/public write is allowed.
 
 The new workflow is not a backup of Supabase, Cloudflare, Vercel, Render, Resend, or external provider states. No such provider rollback is authorized. A successful Git recovery drill proves only the tested repository-level procedure.
+
+## 10. v13 consumed preflight and terminal recovery status
+
+**One-off v13 authorization permanently consumed. Do not retry.**
+
+- Source: archived BLS April 2026 PPI Detailed Report PDF (one exact URL).
+- Protected dispatch PR #290 merge commit: 82adf0b250871887e82123ed56f641d09fa14ba0.
+- One-off GitHub Actions run: https://github.com/usdimpact/usd-impact-pipeline/actions/runs/40924080468.
+- Pre-HTTP exclusive claim tag: refs/tags/score-v2-1f-wpu0561-pdf-v13-oneoff-2026-10-29, verified present and pointing to the dispatch commit. Do not delete or move this tag.
+- Sanitized result: **fail_closed**; reason **invalid_page_count**. This means the PDF parser rejected the document's page-count condition, but the sanitized output does NOT establish the exact page count or whether zero pages versus more than 200 caused it.
+- Request budget: 1 authorized, now consumed. Numeric identifiers retained: 0. Economic observations retained: 0. No source adoption, Score calculation, ledger write, public artifact replacement, Production modification or rights approval occurred.
+- Validity of April Table 9/index-level WPU0561, semantic variant, first-release immutability and historical-vintage comparability remains **unproven**. No replacement XLSX/PDF or alternate source may be substituted and no page cap widened without a new methodology decision and fresh owner authorization.
+- The terminal cleanup removes the v13 authorization receipt and dispatch marker, returns v13 contract authorization flags to false, and makes the v13 workflow inert (no push trigger, job disabled). See governance/score-v2-1f-wpu0561-pdf-v13-consumption-2026-10-29.json.
+
+### After a failure or accidental future dispatch
+
+Do **not** rerun run 40924080468, delete the exclusive tag, reactivate the old v8 or v13 receipt, or force-push protected main. First inspect current governance and audit references. If cleanup files are changed later, a new reviewed correction PR must restore the disabled workflow, consumed state, zero request budget and claim reference. Any new PDF processing requires a distinct owner-approved original-release/vintage and parser-methodology review, separate one-off request budget and separate activation/dispatch lifecycle.
+
+The reviewed Git snapshot branches remain recoverable repository-source references only. Their existence does not establish independent offsite archives or provider-native backups. Issue #155 remains HOLD for public redistribution.
