@@ -11,6 +11,19 @@ Related:
 - `governance/score-rights-decision-receipt.schema.json`;
 - `governance/score-rights-decision-receipt.template.json`.
 
+## Dated operational follow-up (2026-10-29; supersedes only correspondence status)
+
+The original 2026-10-28 packet below remains a **decision request**, not a grant. A new [provider follow-up packet](score-provider-rights-followup-packet-2026-10-29.md) and [fail-closed machine-readable queue](../governance/score-provider-rights-followup-queue-2026-10-29.json) now reconcile current source-specific questions and the zero-budget constraint.
+
+- **FRED:** limited 2026-10-29 conditional commercial processing for public-domain-tagged series with citation and disposal. **No storage/retention permission**, no blanket approved derived output, and no AI/ML waiver. Counsel must separately assess historical weekly-derived values and receipts.
+- **S&P DJI:** the existing 2026-10-28 index-data inquiry was referred to sales; **no license** granted. Wait on the existing case rather than opening duplicates.
+- **Cboe VIX:** sales qualification requested; the owner has already asked whether a **no-cost aggregate-only** route is available. **No affirmative response** yet; do not disclose requested individual/background details in public GitHub.
+- **CME WTI/Gold:** the existing derived-data inquiry has not yielded an affirmative clearance. Do not assume the futures history is licensed merely because it is Yahoo-delivered.
+- **Yahoo/yfinance and ICE USDX:** delivery rights and underlying index rights are independent unresolved questions. Identify exact product/licensor and no-cost path before any provider change.
+- **Treasury/H.15 direct source:** official XML feed and synthetic-only parser are research candidates; retain a NO-GO on real XML fetch, parity, commercial retention, public output and source switch.
+
+**No provider outreach, payment, public-artifact transformation, Production release or decision receipt modification is authorized by this update.** Existing issue #155 HOLD and the separate synthetic-only Development research authorization continue to apply.
+
 ## Decision requested
 
 USD Impact needs a written provider/counsel disposition for the public use of Score v2 data and derived outputs.
