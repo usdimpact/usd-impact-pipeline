@@ -65,7 +65,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 -m unittest discover -s tests -p 'test_score_v2_1f_wpu0561_v15_methodology.py' -v
-          python3 scripts/score_v2_1f_wpu0561_v15_methodology_guard.py
+          python3 -m scripts.score_v2_1f_wpu0561_v15_methodology_guard
 
       - name: Verify pinned v9 governance state and rehearsal without remote writes
         run: python3 scripts/validate_score_v2_1f_wpu0561_recovery.py --verify-git --drill
