@@ -179,6 +179,8 @@ class SourceFeasibilityStaticTests(unittest.TestCase):
         rules = self.manifest["release_lag_constraints"]
         self.assertIn("previous business week", rules["fed_h10_rule"])
         self.assertIn("following Wednesday", rules["eia_wpsr_rule"])
+        self.assertIn("18:00 America/New_York", rules["treasury_rule"])
+        self.assertIn("may be delayed", rules["treasury_rule"])
         self.assertTrue(rules["no_future_data_approval"])
         self.assertFalse(rules["first_seen_timestamps_verified"])
         self.assertFalse(rules["holiday_calendar_verified"])
