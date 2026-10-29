@@ -1,37 +1,124 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://usd-impact.com/schemas/score-public-v2-safe-1.json",
-  "title": "USD Impact Score public-safe aggregate artifact",
+  "title": "USD Impact Score public-safe aggregate prototype (INACTIVE — NOT LICENSE CLEARED)",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_version", "metadata", "latest", "history", "release_evidence"],
+  "required": [
+    "schema_version",
+    "metadata",
+    "latest",
+    "history",
+    "release_evidence"
+  ],
   "properties": {
-    "schema_version": { "const": "score-public-v2-safe-1" },
+    "schema_version": {
+      "const": "score-public-v2-safe-1"
+    },
     "metadata": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["pipeline", "generated_at_utc", "n_weeks", "weights"],
+      "required": [
+        "pipeline",
+        "generated_at_utc",
+        "n_weeks",
+        "weights"
+      ],
       "properties": {
-        "pipeline": { "type": "string" },
-        "generated_at_utc": { "type": ["string", "null"] },
-        "n_weeks": { "type": "integer", "minimum": 1 },
+        "pipeline": {
+          "const": "usd_impact_score_v2"
+        },
+        "generated_at_utc": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|\\+00:00)$"
+            }
+          ]
+        },
+        "n_weeks": {
+          "type": "integer",
+          "minimum": 1
+        },
         "weights": {
           "type": "object",
-          "additionalProperties": { "type": "number" },
-          "minProperties": 1
+          "additionalProperties": false,
+          "required": [
+            "DXY",
+            "WTI",
+            "SPX",
+            "VIX",
+            "BTC",
+            "GOLD",
+            "UST_2Y",
+            "UST_10Y"
+          ],
+          "properties": {
+            "DXY": {
+              "const": 0.125
+            },
+            "WTI": {
+              "const": -0.125
+            },
+            "SPX": {
+              "const": -0.125
+            },
+            "VIX": {
+              "const": 0.125
+            },
+            "BTC": {
+              "const": -0.125
+            },
+            "GOLD": {
+              "const": -0.125
+            },
+            "UST_2Y": {
+              "const": 0.125
+            },
+            "UST_10Y": {
+              "const": 0.125
+            }
+          }
         }
       }
     },
     "latest": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["week_ending", "score", "regime", "week_over_week_change", "four_week_change"],
+      "required": [
+        "week_ending",
+        "score",
+        "regime",
+        "week_over_week_change",
+        "four_week_change"
+      ],
       "properties": {
-        "week_ending": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
-        "score": { "type": "number" },
-        "regime": { "type": "string" },
-        "week_over_week_change": { "type": "number" },
-        "four_week_change": { "type": "number" }
+        "week_ending": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "score": {
+          "type": "number"
+        },
+        "regime": {
+          "type": "string",
+          "enum": [
+            "Strong dollar regime",
+            "Firm dollar regime",
+            "Neutral / transitional",
+            "Soft dollar regime",
+            "Weak dollar regime"
+          ]
+        },
+        "week_over_week_change": {
+          "type": "number"
+        },
+        "four_week_change": {
+          "type": "number"
+        }
       }
     },
     "history": {
@@ -40,20 +127,43 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["date", "score", "regime"],
+        "required": [
+          "date",
+          "score",
+          "regime"
+        ],
         "properties": {
-          "date": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
-          "score": { "type": "number" },
-          "regime": { "type": "string" }
+          "date": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "score": {
+            "type": "number"
+          },
+          "regime": {
+            "type": "string",
+            "enum": [
+              "Strong dollar regime",
+              "Firm dollar regime",
+              "Neutral / transitional",
+              "Soft dollar regime",
+              "Weak dollar regime"
+            ]
+          }
         }
       }
     },
     "release_evidence": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["aggregate_history_sha256"],
+      "required": [
+        "aggregate_history_sha256"
+      ],
       "properties": {
-        "aggregate_history_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+        "aggregate_history_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
       }
     }
   }
