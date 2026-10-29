@@ -1,0 +1,179 @@
+{
+  "version": 15,
+  "recorded_date": "2026-10-29",
+  "state": "design_only_owner_methodology_choice_pending",
+  "owner_instruction": "Continue prior v14 research safely; no new BLS request, resource-boundary adoption, Score/public/Production activation.",
+  "research_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/258",
+  "rights_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
+  "base_at_creation": "8aabaf605e3520a07418a1847f4bb80fc41effc8",
+  "prior_approved_forensic_commit": "2e028a553132c94db64ed9ba88927957374c2b1f",
+  "prior_consumed_cleanup_commit": "1ed8934b5e99e493606a0d23dd4206a6f5f9fe76",
+  "immutable_oneoff_claim": {
+    "ref": "refs/tags/score-v2-1f-wpu0561-pdf-v13-oneoff-2026-10-29",
+    "target": "82adf0b250871887e82123ed56f641d09fa14ba0",
+    "must_never_be_deleted_or_reused": true
+  },
+  "authoritative_evidence": {
+    "v9_exact_fixed_2026_xlsx_index_level_available": false,
+    "v9_original_fixed_pair_feasible": false,
+    "v9_identity_0561_supported": true,
+    "v13_observed_status": "fail_closed",
+    "v13_observed_reason": "invalid_page_count",
+    "v13_actual_page_count": null,
+    "v13_possible_branches": [
+      "count_lt_1",
+      "count_gt_200"
+    ],
+    "v13_original_PDF_edition_immutability_proven": false,
+    "v13_actual_Table9_unadjusted_level_verified": false,
+    "v13_WPU0561_row_concept_verified": false,
+    "v13_economic_or_identifier_values_retained": 0,
+    "v14_offline_branch_ambiguity_confirmed": true,
+    "v13_live_permission_consumed": true,
+    "original_v13_parser_git_blob_sha": "8a70409b0b5928e99de04930714dfc25774631ae"
+  },
+  "fixed_resource_to_review_only": {
+    "url": "https://www.bls.gov/ppi/detailed-report/ppi-detailed-report-april-2026.pdf",
+    "original_host": "www.bls.gov",
+    "path": "/ppi/detailed-report/ppi-detailed-report-april-2026.pdf",
+    "methods_currently_allowed": [],
+    "future_method": "not_selected",
+    "source_candidate_not_adopted": true,
+    "no_alternate_resource_or_alias": true,
+    "no_adaptive_search_until_source_fits": true
+  },
+  "proposed_diagnostic_layers": [
+    {
+      "id": "D0",
+      "name": "reconcile_retained_evidence",
+      "status": "done_from_repository_no_network",
+      "rule": "Only v9-v14 commit records, original parser, sanitized issue audit and branch backups; no BLS data calls."
+    },
+    {
+      "id": "D1",
+      "name": "independent_first_release_vintage",
+      "status": "unproven_hold",
+      "rule": "Require explicit BLS first-edition provenance/correction handling. A URL, HTTP Last-Modified, file creation timestamp or unverified PDF metadata alone cannot establish unchanged first-release edition."
+    },
+    {
+      "id": "D2",
+      "name": "page_count_branch_and_resource_security",
+      "status": "not_authorized",
+      "rule": "Future owner-approved one-use bounded PDF structural request only if unavoidable; sanitized branch statuses below_minimum/above_existing_cap/within_existing_cap/parser_error, never exact count, text or observations. HEAD alone does not prove page count. Do not increase 200 automatically."
+    },
+    {
+      "id": "D3",
+      "name": "page_layout_and_series_schema",
+      "status": "not_authorized",
+      "rule": "Only after D1+D2 approvals: determine unique governing Table 9 column roles, exact direct commodity code/row label, April 2026 period and index-level (not percent-change) cell; prohibit domestic/extraction/pipeline/stage substitute."
+    },
+    {
+      "id": "D4",
+      "name": "historical_basis_comparability",
+      "status": "unproven_hold",
+      "rule": "Compare original 2013 and original-release 2026 bases, reference periods and release-vintage corrections. No value reads until separate permission."
+    },
+    {
+      "id": "D5",
+      "name": "public_redistribution_rights",
+      "status": "independent_issue_155_hold",
+      "rule": "Any source feasibility does not authorize public transformed/source-derived Score values; legal/licensing determination separate."
+    },
+    {
+      "id": "D6",
+      "name": "Score_integration",
+      "status": "not_authorized",
+      "rule": "No z-score, contribution, weekly input, research ledger mutation, public artifacts or Production changes under this methodology packet."
+    }
+  ],
+  "possible_future_metadata_only_outcomes": {
+    "below_minimum": {
+      "allowed_as_future_sanitized_class_only": true,
+      "meaning": "At least one required page absent; stop without fallback."
+    },
+    "above_existing_cap": {
+      "allowed_as_future_sanitized_class_only": true,
+      "meaning": "Above the frozen 200-page cap; stop. Further page limit needs independent security and methodology."
+    },
+    "within_existing_cap": {
+      "allowed_as_future_sanitized_class_only": true,
+      "meaning": "Count gate only passed; no Table 9, WPU0561, vintage or rights proof."
+    },
+    "parser_error": {
+      "allowed_as_future_sanitized_class_only": true,
+      "meaning": "Parser unable to establish count safely; stop."
+    },
+    "not_observed": {
+      "allowed_as_current_class_only": true,
+      "meaning": "Actual v13 branch still unknown; no new query may be made under consumed authorization."
+    }
+  },
+  "must_halt_if": [
+    "v13_consumed_claim_missing_or_moved",
+    "v13_authorization_receipt_or_dispatch_reappears",
+    "rights_gate_155_closes_without_independent_review",
+    "original_first_release_provenance_missing_or_conflicting",
+    "PDF_source_host_path_changes_without_approval",
+    "source_html_or_XLSX_substitution_attempt",
+    "PDF_decompression_resource_limit_unreviewed",
+    "Table9_header_or_exact_WPU0561_concept_ambiguous",
+    "2013_2026_bases_not_comparable",
+    "economic_or_identifier_level_read_without_new_owner_authorization",
+    "public_or_production_changes"
+  ],
+  "decisions": {
+    "A": {
+      "name": "freeze_original_fixed_resource_infeasibility",
+      "methodology": "Do not use WPU0561 historical-vintage index-level pair in Score v2.1F under original selected 2026 XLSX.",
+      "reversible_by_new_separate_review": true,
+      "requires_new_bls_request": false,
+      "automatic_score_mutation": false,
+      "owner_chosen_now": false
+    },
+    "B": {
+      "name": "design_a_new_source_boundary_and_future_oneoff_preflight",
+      "methodology": "Keep WPU0561 as a research-only candidate. Define source-first-edition evidence, count semantics, cgroup/parser budget, exact row/column/index basis, and a new owner-reviewed one-use receipt/dispatch before a future request.",
+      "new_source_not_preapproved": true,
+      "requires_separate_owner_methodology_approval": true,
+      "future_live_authorization_required": true,
+      "owner_chosen_now": false
+    },
+    "C": {
+      "name": "continue_fail_closed_hold",
+      "methodology": "No source/score change until evidence and rights are resolved.",
+      "requires_new_bls_request": false,
+      "owner_chosen_now": false
+    }
+  },
+  "recommended_next_choice": "A_as_safe_default_with_B_retained_as_separately_scoped_research_option",
+  "recommendation_scope": "Nonbinding design recommendation; do not declare owner approval or automatically exclude an existing live Score component.",
+  "permissions": {
+    "network_GET_BLS": false,
+    "network_HEAD_BLS": false,
+    "network_RANGE_BLS": false,
+    "network_any_alternate_BLS": false,
+    "real_PDF_bytes_or_parser": false,
+    "source_substitution": false,
+    "higher_page_limit": false,
+    "owner_live_approval_reuse": false,
+    "new_receipt_or_dispatch": false,
+    "new_GitHub_BLS_workflow": false,
+    "economic_observation_read": false,
+    "identifier_value_read": false,
+    "historical_reconstruction": false,
+    "Score_calculation": false,
+    "research_ledger_write": false,
+    "public_artifact_change": false,
+    "production_change": false,
+    "rights_release": false,
+    "offsite_or_provider_restore": false
+  },
+  "backups": {
+    "previous_v14_ref": "backup/score-v2-1f-v14-offline-2026-10-29",
+    "previous_v14_sha": "2e028a553132c94db64ed9ba88927957374c2b1f",
+    "new_review_branch": "research/score-v2-1f-wpu0561-v15-methodology-no-live-20261029",
+    "restoration": "Reviewed corrective PR only; preserve all unrelated main commits. Never force-push or remove consumed Git tag.",
+    "external_provider_backup_claim": false
+  },
+  "release_state": "HOLD"
+}
