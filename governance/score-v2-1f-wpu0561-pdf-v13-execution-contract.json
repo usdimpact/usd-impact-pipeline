@@ -54,16 +54,22 @@
     "protected_main_dispatch_marker_commit_required": true,
     "trusted_immutable_runner_commit_required": true,
     "github_actions_manual_workflow_dispatch_on_protected_main_required": true,
-    "no_run_on_pr_or_push": true,
     "token_claim_job_only_with_write": true,
     "parser_job_without_git_write_credentials": true,
-    "one_use_atomic_claim_path": "governance/score-v2-1f-wpu0561-pdf-v13-consumed-claim.json",
     "claim_must_succeed_before_http": true,
     "no_network_if_claim_conflict": true,
     "disable_reruns": true,
     "no_second_dispatch_without_new_owner_approval": true,
     "no_default_branch_merge_without_independent_review": true,
-    "current_tool_can_dispatch_workflow": false
+    "current_tool_can_dispatch_workflow": false,
+    "no_run_on_pull_request_or_unfiltered_push": true,
+    "trigger": "protected_main_push_with_exact_v13_dispatch_marker_path",
+    "one_use_atomic_claim_ref": "refs/tags/score-v2-1f-wpu0561-pdf-v13-oneoff-2026-10-29",
+    "claim_created_via_git_refs_create_non_overwriting": true,
+    "tag_422_collision_stops_without_BLS_request": true,
+    "rerun_attempt_gt_one_skips_entire_preflight": true,
+    "claim_does_not_write_to_protected_main": true,
+    "network_only_after_successful_claim": true
   },
   "parser": {
     "pinned_library": "pypdf==6.21.4",
@@ -104,6 +110,6 @@
   ],
   "offline_validation": "synthetic_and_mock_transport_only",
   "approved_workflow_dispatch_available": false,
-  "remaining_blocker": "GitHub connector exposes no workflow_dispatch; protected-main workflow plus reviewed receipt, dispatch and atomic claim are not presently installed. No bypass permitted.",
+  "remaining_blocker": "The newly designed exact-path main-push workflow is unmerged and both reviewed activation receipt and dispatch marker are absent. No BLS request can be triggered before separate protected merges and Git claim.",
   "request_budget_remaining_now": 0
 }
