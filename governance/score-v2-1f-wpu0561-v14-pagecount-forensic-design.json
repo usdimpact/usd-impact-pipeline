@@ -31,7 +31,8 @@
     "exact_branch_identified": false,
     "api_note": "pypdf pages is a sequence whose length represents parsed page count. The v13 reason deliberately collapses both out-of-range branches.",
     "source_role": "v13 parser and consumed sanitized Issue #258 audit; no live source content",
-    "confidence": "High in conditional code-path interpretation; unknown which bound was violated."
+    "confidence": "High in conditional code-path interpretation; unknown which bound was violated.",
+    "source_file_blob_sha": "8a70409b0b5928e99de04930714dfc25774631ae"
   },
   "external_documentation": {
     "pypdf_reader": "https://pypdf.readthedocs.io/en/stable/modules/PdfReader.html",
@@ -187,5 +188,6 @@
     "economic_fields": false,
     "publication": false,
     "production": false
-  }
+  },
+  "synthetic_only_tests_note": "Mocking the original unmodified v13 parser is independent of v14's hypothetical classifier. Repeated-table and phrase-overlap mock cases diagnose future-stage risks only; they are not observations about real PDF pages."
 }
