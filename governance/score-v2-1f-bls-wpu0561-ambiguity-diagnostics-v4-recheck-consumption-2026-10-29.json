@@ -1,0 +1,65 @@
+{
+  "version": 1,
+  "state": "consumed_after_completed_v4_recheck",
+  "methodology_version": "2.1F-design-candidate",
+  "design_version": 4,
+  "owner_decision_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/258",
+  "controlling_rights_hold": "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
+  "owner_approval_comment_id": 6483993388,
+  "owner_approval_timestamp": "2026-10-29T00:03:08Z",
+  "authorization_activation_merge_commit": "b312fa34e6c579294a21d2deadfc1154ef117e27",
+  "dispatch_merge_commit": "dccc3d3442960ab045df0d6eeaa5c921f41ec495",
+  "request_budget": 2,
+  "max_economic_observations_total": 0,
+  "max_economic_observations_per_resource": 0,
+  "consumed_by_phase": "bls_wpu0561_ambiguity_diagnostics_v4_recheck",
+  "preflight_run": "https://github.com/usdimpact/usd-impact-pipeline/actions/runs/40792259680",
+  "preflight_workflow_conclusion": "success",
+  "preflight_result_status": "completed",
+  "result_comment_id": 6484115525,
+  "consumption_comment_id": 6484123673,
+  "completed_at": "2026-10-29T00:10:22Z",
+  "consumed_at": "2026-10-29T00:10:47Z",
+  "sanitized_result": {
+    "request_attempt_count": 2,
+    "economic_observation_count": 0,
+    "html": {
+      "transport_status": "passed",
+      "semantic_status": "evaluated",
+      "reason_summary": {
+        "no_local_header_anchor": 1
+      },
+      "candidate_bearing_or_proven_blocks": 0
+    },
+    "xlsx": {
+      "transport_status": "passed",
+      "semantic_status": "evaluated",
+      "reason_summary": {
+        "no_local_header_anchor": 1
+      },
+      "candidate_bearing_or_proven_blocks": 0
+    },
+    "standalone_code_compatibility_resolved_anchor_failure": false,
+    "alternate_sources_used": false,
+    "full_historical_reconstruction_performed": false,
+    "candidate_score_computed": false,
+    "component_zscores_computed": false,
+    "component_contributions_computed": false,
+    "research_ledger_modified": false,
+    "public_artifacts_modified": false,
+    "production_modified": false
+  },
+  "interpretation": "Both fixed resources remained no_local_header_anchor after the design-v4 standalone Code compatibility restoration. Standalone Code was therefore not the sole cause of the live anchor failure. The next safe investigation must remain design-only unless separately authorized.",
+  "post_consumption_authorizations": {
+    "response_body_ephemeral_retrieval": false,
+    "ambiguity_diagnostics_preflight": false,
+    "numeric_identifier_field_read": false,
+    "economic_value_read": false,
+    "full_historical_reconstruction": false,
+    "candidate_score_computation": false,
+    "research_ledger_mutation": false,
+    "public_artifact_replacement": false,
+    "production": false
+  },
+  "new_owner_authorization_required_for_any_future_live_request": true
+}
