@@ -98,7 +98,7 @@ class ScoreProviderCLIRightsHoldTests(unittest.TestCase):
             damaged = Path(tmp) / "damaged.json"
             invalid_utf8 = Path(tmp) / "unreadable-utf8.json"
             damaged.write_text("{invalid", encoding="utf-8")
-            invalid_utf8.write_bytes(b"\\xff")
+            invalid_utf8.write_bytes(bytes([255]))
             for path in (missing, damaged, invalid_utf8):
                 with self.subTest(policy=str(path)), patch.object(
                     gate, "CANONICAL_REPOSITORY_POLICY", path
