@@ -47,7 +47,7 @@ class LiveScoreWorkflowScopeTests(unittest.TestCase):
             source.index("Run score pipeline"),
         )
         self.assertIn(
-            "needs.preflight.outputs.rights_hold != 'true' && "
+            "needs.preflight.outputs.rights_hold == 'false' && "
             "needs.preflight.outputs.action == 'generate'",
             source,
         )
