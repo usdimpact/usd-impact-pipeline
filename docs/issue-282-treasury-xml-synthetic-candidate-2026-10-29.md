@@ -12,7 +12,7 @@ The U.S. Treasury directly publishes the nominal Daily Treasury Par Yield Curve 
 
 ## New files
 
-- `scripts/treasury_par_yield_xml_candidate.py` — pure Python, in-memory parsing of one candidate Atom/OData XML page; NO HTTP client and NO persistence.
+- `scripts/treasury_par_yield_xml_candidate.py` — pure Python, in-memory parsing of one explicitly scoped synthetic year/month Atom/OData XML response; NO HTTP client and NO persistence.
 - `tests/test_treasury_par_yield_xml_candidate.py` — invented future-date observations only, including positive and fail-closed cases.
 - `governance/treasury-par-yield-xml-candidate-2026-10-29.json` — exact candidate scope and negative authorization flags.
 
@@ -31,6 +31,18 @@ The schema expectation is based on Treasury XML/OData documentation and conventi
 The parser rejects malformed XML, unsafe XML DOCTYPE/ENTITY declarations, missing properties, absent/blank/null target values, non-finite or non-decimal yields, duplicate dates, non-midnight/unexpected date formats, empty feeds, unusually large payloads, and excessive record counts. It accepts extra unrelated market-maturity fields but does not import them.
 
 The tests use invented observations in 2099. They demonstrate that a *synthetic* H.15-shaped comparison can match after normalizing fields, but prove **nothing** about live series parity. No synthetic run should access real endpoints.
+
+## Fail-closed incomplete-page and explicit period rule (2026-10-29)
+
+Treasury's [official developer notice](https://home.treasury.gov/developer-notice-xml-changes) states that the **all-time** XML feed is paginated: consumers should increment the `page` parameter until the feed has no entries. A single positive all-time response must **never** be mistaken for the complete history merely because its XML lacks an Atom `rel=next` link.
+
+This **offline-only candidate intentionally does not implement any all-time pagination**. The parser now requires a caller-supplied `selected_period` containing an explicit four-digit year (`YYYY`) or six-digit year/month (`YYYYMM`), matching Treasury's documented request styles. Any `all`, unspecified, malformed or invalid month selection is rejected. Every parsed synthetic row must belong to the declared period.
+
+The parser also **rejects explicit Atom `rel=next` continuation pointers** (including URI-form next relations), multiple OData inline count markers, and count markers that do not equal returned entry count. It does not follow links, call APIs, persist data, or infer an unseen page.
+
+**Important limitation:** A syntactically valid `YYYY` or `YYYYMM` XML response can still be missing rows without an Atom next marker. Parsing it does not establish that it contains **all** records for that period. That would require separately authorized real-source observation counts / release calendars / manifest parity and (when allowed) exhaustive pagination logic. The parser returns observations only, **not** a completeness certificate or publication timestamp. Tests use invented year 2099 and do not access Treasury or FRED.
+
+The machine-readable governance contract records `all_time_page_traversal_supported=false`, `full_coverage_verified=false`, and no real-source/public/Production authorization. This is a deliberate reject/stop design rather than a general-purpose live Treasury connector.
 
 ## Non-equivalence and timing risks
 
