@@ -61,7 +61,7 @@ class SyntheticAsOfDecision:
 
     def __post_init__(self) -> None:
         if self.publish_authorized or self.real_source_retrieval_authorized:
-            raise ValueError("synthetic evaluation can never grant rights")
+            raise ValueError("synthetic evaluation cannot grant rights")
 
 
 def _utc(value: datetime, label: str) -> datetime:
