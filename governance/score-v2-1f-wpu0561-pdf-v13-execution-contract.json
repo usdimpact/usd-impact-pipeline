@@ -1,6 +1,6 @@
 {
   "version": 13,
-  "state": "review_only_no_dispatch_or_live_receipt",
+  "state": "owner_activation_pending_dispatch",
   "authored_at": "2026-10-29",
   "base_methodology_version": 9,
   "baseline_commit": "0c420f495e6196d34d195d441edf7b707da4f35a",
@@ -12,7 +12,7 @@
     "owner_preflight_scope_received": true,
     "scope_only_derived_from_current_owner_message": true,
     "current_live_BLS_GET": false,
-    "receipt_created": false,
+    "receipt_created": true,
     "dispatch_marker_created": false,
     "claim_written": false,
     "execution_workflow_enabled": false,
@@ -110,6 +110,6 @@
   ],
   "offline_validation": "synthetic_and_mock_transport_only",
   "approved_workflow_dispatch_available": false,
-  "remaining_blocker": "The newly designed exact-path main-push workflow is unmerged and both reviewed activation receipt and dispatch marker are absent. No BLS request can be triggered before separate protected merges and Git claim.",
+  "remaining_blocker": "Owner-scoped receipt is staged under a protected reviewed PR; the dispatch marker and exclusive claim are not present, and no BLS request may run until the separate dispatch PR reaches main.",
   "request_budget_remaining_now": 0
 }
