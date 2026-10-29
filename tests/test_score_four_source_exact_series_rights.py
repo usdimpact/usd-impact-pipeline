@@ -120,6 +120,70 @@ def assert_h10_lineage_fail_closed(matrix: dict) -> None:
     assert h10["transport"]["direct_access_to_real_data_approved"] is False
 
 
+def assert_metadata_stays_research_only(matrix: dict) -> None:
+    """Publisher docs may prove sample tags but never unlock a live data path."""
+    review = matrix["metadata_reconciliation_2026_10_30"]
+    assert review["state"] == "STATIC_PUBLISHER_DOCUMENTATION_ONLY"
+    assert review["precise_treasury_live_response_verified"] is False
+    assert review["precise_eia_api_route_or_history_parity_verified"] is False
+    assert review["commercial_rights_reviewed_and_granted"] is False
+    assert review["source_requests_performed"] is False
+    assert review["real_observations_fetched_or_stored"] is False
+    assert review["all_permissions_still_false"] is True
+    assert review["source_modification_or_pipeline_switch_authorized"] is False
+    assert review["production_release_authorized"] is False
+    assert len(review["verified_docs"]) >= 4
+    sources = {source["id"]: source for source in matrix["sources"]}
+    for tenor, field in (
+        ("treasury_direct_2yr_par", "BC_2YEAR"),
+        ("treasury_direct_10yr_par", "BC_10YEAR"),
+    ):
+        source = sources[tenor]
+        identity = source["exact_series_identity"]
+        transport = source["transport"]
+        assert identity["candidate_feed_field"] == field
+        assert identity["candidate_feed_field_metadata_verified"] is True
+        assert identity["feed_field_evidence_class"] == (
+            "PUBLISHER_ILLUSTRATIVE_XML_SCHEMA_ONLY"
+        )
+        assert identity["feed_field_evidence_url"] == (
+            "https://home.treasury.gov/system/files/276/yield-rates-xml.png"
+        )
+        assert identity["nominal_par_curve_example_odata_type"] == "Edm.Double"
+        assert identity["publisher_native_series_key"] is None
+        assert identity["native_key_verified_from_publisher_metadata"] is False
+        assert identity["feed_field_runtime_presence_verified"] is False
+        assert transport["exact_field_mapping_verified"] is False
+        assert transport["live_response_or_vintage_verified"] is False
+        assert transport["all_history_pagination_retrieval_authorized"] is False
+        assert transport["release_receipt_collection_authorized"] is False
+        assert transport["publisher_documented_zero_based_all_page_pagination"] is True
+        assert transport["publisher_documented_missing_null_elements_omitted"] is True
+        assert transport["direct_access_to_real_data_approved"] is False
+    eia = sources["eia_crude_stocks_weekly"]
+    categories = eia["exact_series_identity"]["publisher_documented_stock_categories"]
+    assert categories["weekly_ending_stocks_excluding_spr_series"] == "WCESTUS1"
+    assert categories["commercial_excluding_lease_stock_table"] == (
+        "PET_STOC_WSTK_A_EPC0_SAX_MBBL_W"
+    )
+    assert categories["historical_commercial_including_lease_stock_table"] == (
+        "PET_STOC_WSTK_A_EPC0_SAXL_MBBL_W"
+    )
+    assert categories["including_lease_stock_table_displayed_through_year"] == 2016
+    assert categories["total_stocks_lease_exclusion_note_effective"] == "2005-01"
+    assert categories["source_table_label_mapping_documented"] is True
+    assert categories["exact_full_history_series_identity_or_vintage_parity_verified"] is False
+    assert categories["old_lease_inclusive_series_equivalent_to_new_excluding_lease"] is False
+    assert categories["crude_price_substitute"] is False
+    assert eia["transport"]["official_machine_readable_product_verified"] is False
+    assert eia["transport"]["legacy_wpsr_series_id_to_current_api_route_verified"] is False
+    assert eia["transport"]["automated_retrieval_policy_documented"] is True
+    assert eia["transport"]["excessive_bot_retrieval_permitted"] is False
+    assert eia["transport"]["automated_retrieval_program_approved"] is False
+    assert eia["cadence"]["exact_selected_source_first_publication_time_proven"] is False
+    assert eia["transport"]["direct_access_to_real_data_approved"] is False
+
+
 class FourSourceExactSeriesRightsTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -214,10 +278,23 @@ class FourSourceExactSeriesRightsTests(unittest.TestCase):
                 self.assertEqual(
                     item["exact_series_identity"]["candidate_feed_field"], field
                 )
-                self.assertFalse(
+                self.assertTrue(
                     item["exact_series_identity"]["candidate_feed_field_metadata_verified"]
                 )
+                self.assertEqual(
+                    item["exact_series_identity"]["feed_field_evidence_class"],
+                    "PUBLISHER_ILLUSTRATIVE_XML_SCHEMA_ONLY",
+                )
+                self.assertFalse(
+                    item["exact_series_identity"]["feed_field_runtime_presence_verified"]
+                )
+                self.assertEqual(
+                    item["exact_series_identity"]["nominal_par_curve_example_odata_type"],
+                    "Edm.Double",
+                )
                 self.assertFalse(item["transport"]["exact_field_mapping_verified"])
+                self.assertFalse(item["transport"]["live_response_or_vintage_verified"])
+                self.assertFalse(item["transport"]["all_history_pagination_retrieval_authorized"])
                 self.assertEqual(
                     item["transport"]["fred_transport_option"],
                     "SEPARATE_RIGHTS_GATE_UNAUTHORIZED",
@@ -264,6 +341,43 @@ class FourSourceExactSeriesRightsTests(unittest.TestCase):
                 ][key] = fake_value
                 with self.assertRaises(AssertionError):
                     assert_h10_lineage_fail_closed(bad)
+
+    def test_treasury_eia_official_metadata_does_not_grant_real_data_rights(self) -> None:
+        assert_metadata_stays_research_only(self.matrix)
+        assert_no_rights_granted(self.matrix)
+
+    def test_metadata_grant_spoofing_is_rejected(self) -> None:
+        for key in (
+            "precise_treasury_live_response_verified",
+            "precise_eia_api_route_or_history_parity_verified",
+            "commercial_rights_reviewed_and_granted",
+            "source_requests_performed",
+            "real_observations_fetched_or_stored",
+            "source_modification_or_pipeline_switch_authorized",
+            "production_release_authorized",
+        ):
+            with self.subTest(flag=key):
+                bad = copy.deepcopy(self.matrix)
+                bad["metadata_reconciliation_2026_10_30"][key] = True
+                with self.assertRaises(AssertionError):
+                    assert_metadata_stays_research_only(bad)
+        for source_id, field in (
+            ("treasury_direct_2yr_par", "exact_field_mapping_verified"),
+            ("treasury_direct_10yr_par", "release_receipt_collection_authorized"),
+            ("eia_crude_stocks_weekly", "automated_retrieval_program_approved"),
+        ):
+            with self.subTest(source_id=source_id,flag=field):
+                bad = copy.deepcopy(self.matrix)
+                source = next(s for s in bad["sources"] if s["id"] == source_id)
+                source["transport"][field] = True
+                with self.assertRaises(AssertionError):
+                    assert_metadata_stays_research_only(bad)
+        bad = copy.deepcopy(self.matrix)
+        bad["sources"][1]["exact_series_identity"][
+            "publisher_documented_stock_categories"
+        ]["old_lease_inclusive_series_equivalent_to_new_excluding_lease"] = True
+        with self.assertRaises(AssertionError):
+            assert_metadata_stays_research_only(bad)
 
     def test_all_reference_links_are_publisher_grounds_or_transport_policy(self) -> None:
         for source in self.matrix["sources"]:
