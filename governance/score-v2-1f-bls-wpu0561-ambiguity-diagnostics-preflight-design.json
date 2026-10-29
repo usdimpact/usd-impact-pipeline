@@ -1,5 +1,5 @@
 {
-  "version": 4,
+  "version": 5,
   "state": "design_only_hold",
   "methodology_version": "2.1F-design-candidate",
   "owner_decision_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/258",
@@ -22,7 +22,7 @@
       "expected_format": "xlsx"
     }
   ],
-  "objective": "Determine the non-economic structural reason each fixed resource remained ambiguous in Issue #252, using candidate-local header and revision-context scoping and retaining no economic values.",
+  "objective": "Diagnose persistent no_local_header_anchor without reading economic or identifier values by collecting bounded, candidate-first, numeric-redacted text context around Crude petroleum occurrences.",
   "known_consumed_evidence": {
     "issue_244_html_crude_petroleum_matches": 3,
     "issue_244_xlsx_crude_petroleum_matches": 29,
@@ -30,7 +30,11 @@
     "issue_252_request_count": 2,
     "issue_252_observation_count": 0,
     "issue_252_result_status": "ambiguous",
-    "identity_mapping_interpretation": "proven_under_issue_244_hardened_identifier_rules"
+    "identity_mapping_interpretation": "proven_under_issue_244_hardened_identifier_rules",
+    "issue_258_v4_recheck_run": "https://github.com/usdimpact/usd-impact-pipeline/actions/runs/40792259680",
+    "issue_258_v4_html_reason": "no_local_header_anchor",
+    "issue_258_v4_xlsx_reason": "no_local_header_anchor",
+    "standalone_code_compatibility_resolved_anchor_failure": false
   },
   "future_live_budget": {
     "request_budget": 2,
@@ -160,7 +164,11 @@
     "revision-context labels scoped to the local title/header region",
     "per-candidate ambiguity reason codes",
     "per-resource reason-code counts",
-    "yes/no whether local scoping removes whole-container ambiguity"
+    "yes/no whether local scoping removes whole-container ambiguity",
+    "candidate-centered context window coordinates",
+    "numeric-redacted non-economic text cells around Crude petroleum occurrences",
+    "recognized header role or null for each persisted text cell",
+    "candidate-context truncation flag"
   ],
   "forbidden_now": {
     "live_bls_request": true,
@@ -188,7 +196,7 @@
     "public_artifact_replacement": false,
     "production": false
   },
-  "next_gate": "new_explicit_owner_authorization_under_issue_258_required_before_any_live_request",
+  "next_gate": "new_explicit_owner_authorization_under_issue_258_required_before_any_live_candidate_context_inventory",
   "execution_environment_policy": {
     "preferred_environment": "github_actions_protected_main_lifecycle",
     "rationale": "prior protected GitHub Actions BLS preflights completed HTTP retrieval while the later local runtime encountered DNS resolution failure; future live execution should use the auditable environment with demonstrated BLS reachability",
@@ -210,6 +218,30 @@
     "mixed_index_code_role": "ambiguous",
     "substring_only_matches_for_code": "forbidden; Code must appear as a standalone word token",
     "rationale": "The completed Issue #258 run returned no_local_header_anchor for both formats. Static parser comparison shows the hardened parser dropped the predecessor's bare Code header recognition, making this the smallest compatibility restoration to test before changing any broader block rules.",
+    "live_verification_status": "v4_recheck_completed_no_resolution"
+  },
+  "candidate_context_inventory_policy": {
+    "state": "design_only_not_authorized",
+    "trigger": "only when normal local-anchor diagnostics return no_local_header_anchor",
+    "candidate_detection": "case-insensitive exact phrase Crude petroleum in text cells; does not require any header anchor",
+    "maximum_candidates_per_resource": 32,
+    "preceding_rows_per_candidate": 8,
+    "following_rows_per_candidate": 0,
+    "maximum_persisted_text_cells_per_candidate": 64,
+    "persistent_cell_fields": [
+      "row",
+      "column",
+      "numeric-redacted text",
+      "recognized header role or null"
+    ],
+    "numeric_token_policy": "all standalone numeric tokens are replaced with <num> before persistence",
+    "alphanumeric_numeric_token_policy": "tokens containing both letters and digits are replaced with <alnum-redacted> before persistence",
+    "placeholder_only_cells": "omitted",
+    "numeric_only_cells": "omitted",
+    "identifier_values": "forbidden; this diagnostic does not read or persist identifier values",
+    "economic_values": "forbidden",
+    "response_body_persistence": false,
+    "output_goal": "reveal unknown header vocabulary, header-row distance, or split-row structure causing no_local_header_anchor without exposing numeric data",
     "live_verification_status": "not_yet_authorized"
   }
 }
