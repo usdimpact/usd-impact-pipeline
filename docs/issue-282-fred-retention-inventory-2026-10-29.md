@@ -85,6 +85,27 @@ Preview deployment copies therefore remain a separate public dissemination surfa
 
 **Containment requirement:** before any cleanup, verify both deployment classes, explicit public-path allowlist, preview-build strategy, Git source history, retained logs/artifacts, private stores, edge caches and backups. Do not delete historical evidence, alter Pages deployment/protection, or purge CDN without documented rights, preservation and deployment approvals. For draft-only documentation commits, use the existing `[CF-Pages-Skip]` convention to reduce additional preview builds, but do not assume a skipped build revokes previous preview URLs.
 
+## Cloudflare Pages Access containment decision — evidence verified 2026-10-29
+
+**Read-only account inspection** of `usd-impact-pipeline` confirmed:
+
+- Pages project: `usd-impact-pipeline`, Github source, Production branch `main`, `build_config.destination_dir = public`.
+- `source.config.preview_deployment_setting = "all"`, `preview_branch_includes = ["*"]`, `preview_branch_excludes = []`, `path_includes = ["*"]`, `path_excludes = []`. Any non-main audit/research commit can therefore generate a preview exposing the committed `public/` tree, even if the commit itself edits no data files.
+- Cloudflare account `GET /accounts/{account_id}/access/apps` and reusable-policies GET both returned HTTP 403 `access.api.error.not_enabled`: **Cloudflare Access is not enabled**. This independently explains the lack of Access authentication on the sampled preview URLs.
+- Latest successful Production deployment is a separate canonical Pages record; the latest preview does **not** mean Production has changed. The GitHub `main` rights gate remains HOLD.
+
+Cloudflare's [official Pages preview documentation](https://developers.cloudflare.com/pages/configuration/preview-deployments/) states previews are public by default and describes **Workers & Pages > select project > Settings > General > Enable access policy** to protect *preview deployment subdomains*, including random per-commit preview URLs. The doc expressly distinguishes these from the project's own `*.pages.dev` root and custom domain: **preview Access is not a fix for the existing Production/legacy root public data endpoints**.
+
+**Recommended staged remediation subject to owner approval and a cost/identity check:**
+
+1. Verify Cloudflare Access/Zero Trust plan and authentication configuration before activation; do not assume it is free, and do not enable account services from a documentation review.
+2. Prefer a project preview Access rule allowing only an explicitly named QA/editorial team, with a reversible change record and pre/post HTTP checks for anonymous preview data and dashboard routes. Check current reviewers' sign-in ability before enforcing. If activated, test *old* and new preview hashes independently rather than assuming historical versions are covered.
+3. Separately plan a future reduction of preview build triggers (e.g. audit/research branch exclusions or `[CF-Pages-Skip]`), after accounting for existing QA flows. **Disabling future previews cannot revoke existing preview URLs.**
+4. Treat the main `score.usd-impact.com` and legacy `usd-impact-pipeline.pages.dev` machine-readable allowlist as a **different remediation gate**. Review the existing private-reproduction and public-safe aggregate prototypes and preservation/rights decisions before any new public schema.
+5. Inventory GitHub history, workflow logs, runner caches, third-party mirrors and Cloudflare retention under a single evidence-preservation plan. No purge, deletion or changed access-control setting is authorized in this PR.
+
+This is a **security decision packet**, not Cloudflare Access activation or permission to modify Production.
+
 ## Scope not yet verified
 
 - Complete historic GitHub Actions run logs, artifacts, cache inventories, runner-local retention and cleanup proofs; Cloudflare cache coverage/TTL and alternate domain variants; Vercel/Supabase downstream copies; object storage/backups; old Git history/reflogs and third-party mirrors. The workflow commands and selected live Pages endpoints were verified above.
