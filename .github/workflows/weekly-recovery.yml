@@ -41,7 +41,7 @@ jobs:
           echo "Weekly recovery is HOLD under issue #155; no recovery dispatch will be attempted." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Inspect and recover the weekly release
-        if: steps.rights.outputs.hold != 'true'
+        if: steps.rights.outputs.hold == 'false'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           MAX_AGE_HOURS: '6'
