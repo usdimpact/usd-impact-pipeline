@@ -74,7 +74,7 @@ class LiveScoreWorkflowScopeTests(unittest.TestCase):
         ):
             with self.subTest(step=step):
                 self.assertIn(
-                    f"- name: {step}\n        if: steps.rights.outputs.hold != 'true'",
+                    f"- name: {step}\n        if: steps.rights.outputs.hold == 'false'",
                     source,
                 )
 
