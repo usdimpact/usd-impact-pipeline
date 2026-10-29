@@ -9,6 +9,10 @@ on:
       - 'governance/score-v2-1f-bls-wpu0561-pdf-structural-preflight-v11-design.json'
       - 'scripts/validate_score_v2_1f_wpu0561_pdf_v11.py'
       - 'tests/test_score_v2_1f_wpu0561_pdf_v11.py'
+      - 'governance/score-v2-1f-bls-wpu0561-pdf-parser-security-v12-design.json'
+      - 'governance/score-v2-1f-wpu0561-pdf-v12-parser.lock'
+      - 'scripts/score_v2_1f_wpu0561_pdf_v12_synthetic.py'
+      - 'tests/test_score_v2_1f_wpu0561_pdf_v12.py'
       - 'docs/recovery/score-v2-1f-wpu0561-v10-backup-and-restore.md'
       - 'scripts/validate_score_v2_1f_wpu0561_recovery.py'
       - 'tests/test_score_v2_1f_wpu0561_recovery.py'
@@ -45,3 +49,53 @@ jobs:
           echo "Recovery drill is offline, read-only on the checked-out repo, and synthetic-only for restore."
           echo "No BLS PDF fetched. No branch/main writes. No release, Score calculation or Production rollback."
           echo "For real recovery: open a separate audited PR from pinned known-good commit (see runbook)."
+
+
+  isolated-pdf-synthetic-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout reviewed PR code without credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Install only exact hash-pinned pypdf wheel for synthetic testing
+        run: |
+          set -euo pipefail
+          python3 -m pip install --disable-pip-version-check \
+            --require-hashes --no-deps --only-binary=:all: \
+            --target "$RUNNER_TEMP/pypdf-v12-synthetic-only" \
+            -r governance/score-v2-1f-wpu0561-pdf-v12-parser.lock
+
+      - name: Run generated-fixture-only PDF tests with NO network or cloud credentials
+        run: |
+          set -euo pipefail
+          image="python:3.11.15-slim-bookworm@sha256:d29f48a31a8b408ed19272ca1e7b10ebae13b240a27e862d3d4217c528e2e0c3"
+          docker pull "$image"
+          docker run --rm \
+            --network none \
+            --read-only \
+            --cap-drop ALL \
+            --security-opt no-new-privileges \
+            --pids-limit 64 \
+            --memory 256m \
+            --cpus 1 \
+            --user 65534:65534 \
+            --tmpfs /tmp:rw,nosuid,nodev,noexec,size=16m,uid=65534,gid=65534 \
+            --env PYTHONPATH=/parser:/repo \
+            --env PYTHONDONTWRITEBYTECODE=1 \
+            --volume "$GITHUB_WORKSPACE:/repo:ro" \
+            --volume "$RUNNER_TEMP/pypdf-v12-synthetic-only:/parser:ro" \
+            --workdir /repo \
+            "$image" \
+            python -m unittest discover \
+              -s tests -p 'test_score_v2_1f_wpu0561_pdf_v12.py' -v
+
+      - name: Confirm no live-PDF input or restore was available
+        run: |
+          echo "Synthetic pypdf fixtures only. No BLS PDF was fetched, downloaded, parsed or retained."
+          echo "Docker parse job had no network, no credential mounts, and read-only repository."
