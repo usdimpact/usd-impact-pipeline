@@ -123,6 +123,34 @@ class ScoreV21FWpu0561AmbiguityDiagnosticsTests(unittest.TestCase):
         self.assertEqual(blocks[0].roles[2], "identifier")
         self.assertEqual(blocks[0].identity_status, "proven")
 
+    def test_standalone_code_header_restores_predecessor_compatibility(self) -> None:
+        rows = [
+            ["Commodity", "Code", "Index"],
+            ["Crude petroleum", "05-61", "<economic-value-not-read>"],
+        ]
+        blocks = diagnostic.diagnose_local_blocks(rows, source_context="archived_original_release")
+        self.assertEqual(len(blocks), 1)
+        self.assertEqual(blocks[0].roles[2], "identifier")
+        self.assertEqual(blocks[0].identity_status, "proven")
+        self.assertEqual(blocks[0].field_status, "unique")
+
+    def test_index_code_remains_ambiguous(self) -> None:
+        self.assertEqual(diagnostic.header_role("Index code"), "ambiguous")
+        rows = [
+            ["Commodity", "Index code", "Index"],
+            ["Crude petroleum", "05-61", "<economic-value-not-read>"],
+        ]
+        self.assertEqual(
+            diagnostic.resource_reason_summary(
+                diagnostic.diagnose_local_blocks(rows, source_context="archived_original_release")
+            ),
+            {"no_local_header_anchor": 1},
+        )
+
+    def test_code_substring_is_not_treated_as_identifier(self) -> None:
+        self.assertIsNone(diagnostic.header_role("Barcode"))
+        self.assertIsNone(diagnostic.header_role("Decode"))
+
     def test_identifier_normalization_is_conservative_but_handles_structural_variants(self) -> None:
         for value in ("05-61", "05 61", "0561", "561", "WPU0561", "05–61"):
             self.assertEqual(diagnostic.normalize_identifier(value), "0561")

@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "state": "design_only_hold",
   "methodology_version": "2.1F-design-candidate",
   "owner_decision_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/258",
@@ -203,5 +203,13 @@
       "other_non_200": "global stop; do not retry and do not attempt any remaining resource"
     },
     "mandatory_post_run_consumption": "consume the one-off authorization after the run regardless of PASS, AMBIGUOUS, transport failure, or partial two-resource completion"
+  },
+  "header_compatibility_policy": {
+    "predecessor_evidence": "Issue #244 successfully mapped 0561 while recognizing bare Code as an identifier header term",
+    "standalone_code_token_role": "identifier",
+    "mixed_index_code_role": "ambiguous",
+    "substring_only_matches_for_code": "forbidden; Code must appear as a standalone word token",
+    "rationale": "The completed Issue #258 run returned no_local_header_anchor for both formats. Static parser comparison shows the hardened parser dropped the predecessor's bare Code header recognition, making this the smallest compatibility restoration to test before changing any broader block rules.",
+    "live_verification_status": "not_yet_authorized"
   }
 }
