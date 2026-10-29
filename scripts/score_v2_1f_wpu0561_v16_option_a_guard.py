@@ -143,7 +143,7 @@ def validate_owner_option_a(root: Path | None = None) -> dict[str, Any]:
             record.get("v15_immutable_unselected") is True and
             record.get("zero_new_BLS_requests") is True and
             record.get("request_budget_remaining") == 0 and
-            record.get("issue_155_rights_hold") is True and
+            record.get("rights_issue_155_hold") is True and
             record.get("score_changed") is False and
             record.get("production_changed") is False and
             record.get("consumed_claim") == V13_CLAIM,
