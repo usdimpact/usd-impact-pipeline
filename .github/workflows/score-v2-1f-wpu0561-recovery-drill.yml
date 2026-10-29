@@ -133,7 +133,7 @@ jobs:
             "$image" \
             python -m unittest discover \
               -s tests -p 'test_score_v2_1f_wpu0561_pdf_v13.py' -v
-docker run --rm \
+          docker run --rm \
             --network none \
             --read-only \
             --cap-drop ALL \
