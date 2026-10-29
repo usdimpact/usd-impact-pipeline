@@ -53,7 +53,7 @@ def load_json(path: Path) -> dict[str, Any]:
     return obj
 
 
-def validate_live_gate(environ: dict[str, str] | None = None) -> None:
+def validate_preclaim_gate(environ: dict[str, str] | None = None) -> None:
     env = environ if environ is not None else os.environ
     if not RECEIPT.is_file() or not DISPATCH.is_file():
         raise GlobalStop("missing_separately_activated_receipt_or_dispatch")
@@ -104,6 +104,9 @@ def validate_live_gate(environ: dict[str, str] | None = None) -> None:
         raise GlobalStop("not_trusted_main_push")
     if env.get("GITHUB_RUN_ATTEMPT") != "1":
         raise GlobalStop("rerun_forbidden")
+def validate_live_gate(environ: dict[str, str] | None = None) -> None:
+    env = environ if environ is not None else os.environ
+    validate_preclaim_gate(env)
     if env.get("WPU0561_V13_ATOMIC_CLAIM_OK") != "true":
         raise GlobalStop("unique_claim_not_proven")
     if env.get("WPU0561_V13_CLAIMED_SHA") != env.get("GITHUB_SHA"):
