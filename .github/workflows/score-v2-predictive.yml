@@ -42,7 +42,7 @@ jobs:
   record:
     needs: rights-gate
     if: >-
-      needs.rights-gate.outputs.hold != 'true' &&
+      needs.rights-gate.outputs.hold == 'false' &&
       (github.event_name == 'workflow_dispatch' ||
        (github.event.workflow_run.conclusion == 'success' &&
         github.event.workflow_run.event == 'push' &&

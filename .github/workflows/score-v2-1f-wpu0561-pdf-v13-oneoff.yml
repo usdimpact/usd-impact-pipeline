@@ -1,0 +1,21 @@
+name: Score WPU0561 v13 BLS PDF preflight (consumed; disabled)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  consumed:
+    if: ${{ false }}
+    runs-on: ubuntu-24.04
+    steps:
+      - name: One-off authorization permanently consumed
+        run: |
+          echo 'Issue #258 v13 BLS April 2026 PDF preflight was attempted once.'
+          echo 'Run 40924080468 consumed the exclusive claim before HTTP.'
+          echo 'Final sanitized outcome: fail_closed, invalid_page_count.'
+          echo 'No economic/identifier values retained; no Score or Production changes.'
+          echo 'Receipt and dispatch removed; no rerun, retry or broader source allowed.'
+          echo 'New explicit methodology and authorization are required before further BLS PDF work.'

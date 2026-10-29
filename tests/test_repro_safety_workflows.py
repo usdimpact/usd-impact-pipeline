@@ -144,7 +144,7 @@ class ReproductionSafetyWorkflowTests(unittest.TestCase):
         self.assertIn(preflight_command, workflow)
         self.assertIn("needs: preflight", workflow)
         self.assertIn(
-            "if: needs.preflight.outputs.rights_hold != 'true' && "
+            "if: needs.preflight.outputs.rights_hold == 'false' && "
             "needs.preflight.outputs.action == 'generate'",
             workflow,
         )

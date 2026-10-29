@@ -33,7 +33,7 @@ class ScorePublicationRightsWorkflowTests(unittest.TestCase):
         self.assertLess(gate, setup)
         self.assertLess(gate, pipeline)
         self.assertIn(
-            "needs.preflight.outputs.rights_hold != 'true' && "
+            "needs.preflight.outputs.rights_hold == 'false' && "
             "needs.preflight.outputs.action == 'generate'",
             workflow,
         )
@@ -46,7 +46,7 @@ class ScorePublicationRightsWorkflowTests(unittest.TestCase):
         workflow = self.read(".github/workflows/weekly-recovery.yml")
         self.assertIn("Evaluate Score publication rights gate", workflow)
         self.assertIn(
-            "if: steps.rights.outputs.hold != 'true'\n        env:",
+            "if: steps.rights.outputs.hold == 'false'\n        env:",
             workflow,
         )
         self.assertIn("gh workflow run weekly.yml", workflow)
@@ -55,7 +55,7 @@ class ScorePublicationRightsWorkflowTests(unittest.TestCase):
         workflow = self.read(".github/workflows/research-validation.yml")
         self.assertIn("Evaluate Score publication rights gate", workflow)
         self.assertIn(
-            "if: steps.rights.outputs.hold != 'true' && "
+            "if: steps.rights.outputs.hold == 'false' && "
             "steps.upstream.outputs.ready == 'true'",
             workflow,
         )
@@ -78,7 +78,7 @@ class ScorePublicationRightsWorkflowTests(unittest.TestCase):
                 self.assertIn("rights-gate:", workflow)
                 self.assertIn(f"  {job}:\n    needs: rights-gate", workflow)
                 self.assertIn(
-                    "needs.rights-gate.outputs.hold != 'true'",
+                    "needs.rights-gate.outputs.hold == 'false'",
                     workflow,
                 )
                 self.assertIn(
@@ -86,22 +86,45 @@ class ScorePublicationRightsWorkflowTests(unittest.TestCase):
                     workflow,
                 )
 
+    def test_reproduction_rehearsal_is_gated_before_live_provider_fetch(self) -> None:
+        workflow = self.read(".github/workflows/repro-rehearsal.yml")
+        self.assertLess(
+            workflow.index("Evaluate Score publication rights gate"),
+            workflow.index("Rehearse full release bundle and archive path"),
+        )
+        for step in (
+            "Set up Python 3.11",
+            "Install locked dependencies",
+            "Verify machine-readable methodology contract",
+            "Rehearse full release bundle and archive path",
+        ):
+            with self.subTest(step=step):
+                self.assertIn(
+                    f"- name: {step}" + chr(10) + "        if: steps.rights.outputs.hold == 'false'",
+                    workflow,
+                )
+        self.assertIn("no provider retrieval", workflow)
+        self.assertIn("python usd_impact_score_v2.py", workflow)
+        self.assertIn(
+            "if: steps.rights.outputs.hold == 'false' && always()", workflow
+        )
+
     def test_health_checks_do_not_raise_false_freshness_incidents(self) -> None:
         weekly = self.read(".github/workflows/weekly-health.yml")
         self.assertIn("Record rights-review health hold", weekly)
         self.assertIn(
-            "if: steps.rights.outputs.hold != 'true' && "
+            "if: steps.rights.outputs.hold == 'false' && "
             "steps.health.outcome == 'failure'",
             weekly,
         )
         research = self.read(".github/workflows/score-research-evidence-health.yml")
         self.assertIn("Record rights-review evidence hold", research)
         self.assertIn(
-            "if: steps.rights.outputs.hold != 'true' && always()",
+            "if: steps.rights.outputs.hold == 'false' && always()",
             research,
         )
         self.assertIn(
-            "if: steps.rights.outputs.hold != 'true' && "
+            "if: steps.rights.outputs.hold == 'false' && "
             "steps.health.outcome == 'failure'",
             research,
         )
