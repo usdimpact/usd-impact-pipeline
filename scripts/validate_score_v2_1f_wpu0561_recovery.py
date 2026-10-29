@@ -132,11 +132,17 @@ def validate(root: Path | None = None, *, verify_git: bool = False) -> dict[str,
             ).stdout
             if git_blob_sha(baseline_bytes) != expected:
                 raise RuntimeError(f"pinned v9 Git baseline mismatched: {name}")
-        diff = _git(root, ["diff", "--name-only", V9_SHA, "HEAD", "--"])
+        # Enforce the scope of THIS PR, not all unrelated reviewed changes
+        # since the fixed v9 baseline. Pinned v9 governed-file hashes above
+        # continue to protect all security-critical old files.
+        pr_merge_base = _git(root, ["merge-base", "HEAD", "origin/main"])
+        if not re.fullmatch(r"[0-9a-f]{40}", pr_merge_base):
+            raise RuntimeError("review merge-base is not a commit SHA")
+        diff = _git(root, ["diff", "--name-only", pr_merge_base, "HEAD", "--"])
         changed_files = sorted(filter(None, diff.splitlines()))
         allowed = set(manifest.get("allowlist_changed_paths", []))
         if not allowed or any(name not in allowed for name in changed_files):
-            raise RuntimeError(f"out-of-scope files changed since v9: {sorted(set(changed_files) - allowed)}")
+            raise RuntimeError(f"out-of-scope files changed in reviewed PR: {sorted(set(changed_files) - allowed)}")
     return {
         "status": "passed",
         "state": manifest["state"],
