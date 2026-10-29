@@ -159,3 +159,45 @@ The owner approved **B only for design-phase continuation on 2026-10-29**. This 
 Git branches are mutable pointers, not independent offsite backups. The new workflow cannot restore Production or a provider database and requires its own default-branch merge before manual workflow_dispatch is available. All actual restores require separate incident review.
 
 **Current gate:** review PDF first-release identity, exact Table 9 semantics and potential Crude Petroleum (Domestic Production) naming mismatch in a future *independently authorized* bounded source assessment. No further BLS fetch is allowed under this design-only approval.
+
+## 12. Proposed v11 PDF structural-preflight contract (2026-10-29 continuation)
+
+**Status: PREREGISTERED DRAFT / HOLD; not an executable workflow and not a live request.**
+
+The next design file is governance/score-v2-1f-bls-wpu0561-pdf-structural-preflight-v11-design.json. It does **not** modify the authoritative v9 methodology contract or the consumed v8 lifecycle.
+
+### Fixed candidate and limits (proposal only)
+
+- One exact potential official BLS path: https://www.bls.gov/ppi/detailed-report/ppi-detailed-report-april-2026.pdf
+- Source selection remains **unapproved**, despite the HTML archive href being established.
+- If a later owner authorizes a future live preflight: proposed maximum **one GET**, one request at a time, **zero retries**, **no redirect**, explicit stop on non-200/401/403/429/challenge.
+- Proposed hard stop if PDF is over **10 MiB**, exceeds **200 pages**, or expected structure cannot be located without ambiguous broadening. These are design ceilings, not evidence that the PDF meets them. The exact file has not been inspected.
+- Proposed retained *sanitized structural metadata* caps: 12 table titles, 96 header tokens, four candidate labels, **zero numeric identifier values** and **zero economic values**. No PDF or raw text body persistence.
+- No PDF/OCR parser or execution image has been selected or approved. No executable PDF fetch function, authorization receipt, dispatch marker, or newly enabled network workflow is part of this PR.
+
+### Important exposure distinction
+
+The original no-economic-value-read policy cannot be assumed compatible with simply downloading and text-extracting a PDF that contains economic values. A parser will process bytes and may materialize text representing numeric values even if it does not persist them. The v11 proposal therefore **does not authorize PDF download or parsing**. A separate owner/security/rights decision must define whether bounded ephemeral raw-byte handling is acceptable, and, if so, how any numeric semantic access is excluded and proven with adversarial tests. If that cannot be established, **stop**. Do not reinterpret 'no retained values' as 'no value access.'
+
+### Independently blocking scientific questions
+
+1. Is this exact PDF the first-published May 13, 2026 edition rather than a corrected/replaced copy?
+2. Does April Table 9 expose an unadjusted index-level column governed by a compatible period header?
+3. Is its direct-commodity row semantically the same WPU0561 as the frozen 2013 identity, without reclassifying domestic-production or stage-demand variants to make the data fit?
+4. Is the April 2026 observation index base/definition comparable with the selected May 2013 observation, including rebase and revision handling?
+5. Can the document be parsed inside a separately reviewed pinned dependency/runtime without unauthorized numeric access, logging, OCR or disk persistence?
+6. Does any future retention or public use satisfy independent data-rights gates (Issue #155)?
+
+The May 13, 2026 date comes from the official BLS archived April 2026 PPI *news release*. It is not independent proof of the PDF's own immutable publication timestamp. Official BLS PPI methodology notes that revisions can occur after first publication, so vintage equivalence must be explicitly demonstrated.
+
+### Synthetic-only test coverage
+
+The draft adds scripts/validate_score_v2_1f_wpu0561_pdf_v11.py and tests/test_score_v2_1f_wpu0561_pdf_v11.py. They accept only invented metadata facts, with exact Table 9 title, direct-commodity label, unadjusted index-level role and unique April 2026 observation-column assertions. Any extra economic field, raw code value, domestic-production substitution, unknown vintage, duplicate row, percent-only header, wrong URL/month, or other nonconforming input fails closed.
+
+Even a nominal synthetic fixture yields only synthetic_layout_compatible_not_authorized; it cannot certify the real PDF, release vintage, source rights, WPU0561 identity, or Score calculation. This separate test step is wired into the unprivileged PR recovery workflow; it uses **no network, PDF or OCR library**.
+
+### Next owner gate, explicitly not delegated
+
+The only current authorization is **design-only preregistration and synthetic testing**. To go further, the owner would separately need to decide that the exact PDF is an admissible *candidate for a bounded preflight*, approve the actual parser/runtime and transient-byte exposure policy, and then issue a fresh one-off preflight authorization with protected activation/dispatch/consumption. No current PR or comment does those steps.
+
+**Fail closed with no workflow activation, no further BLS request, no change to v9 feasibility, no Score/reconstruction, no public/Production changes, and no amendment of Issue #155 rights HOLD.**
