@@ -27,7 +27,8 @@ class V14BoundaryAndGovernanceTests(unittest.TestCase):
         self.tmp = tempfile.TemporaryDirectory(prefix="score-v14-offline-only-")
         self.addCleanup(self.tmp.cleanup)
         self.root = Path(self.tmp.name)
-        for relative in (DESIGN, LEDGER, CONTRACT, RIGHTS, WORKFLOW):
+        for relative in (DESIGN, LEDGER, CONTRACT, RIGHTS, WORKFLOW,
+                         Path("scripts/score_v2_1f_wpu0561_pdf_v13_parser.py")):
             destination = self.root / relative
             destination.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(ROOT / relative, destination)
@@ -105,6 +106,12 @@ class V14BoundaryAndGovernanceTests(unittest.TestCase):
     def test_cannot_claim_real_failure_branch_proven(self) -> None:
         self.mutate_json(DESIGN, lambda d: d["exact_root_cause_evidence"].update(exact_branch_identified=True))
         with self.assertRaisesRegex(RuntimeError, "v14_improper_branch_attribution"):
+            validate_consumed_state(self.root)
+
+    def test_original_v13_parser_cannot_be_silently_rewritten(self) -> None:
+        path = self.root / "scripts/score_v2_1f_wpu0561_pdf_v13_parser.py"
+        path.write_text(path.read_text(encoding="utf-8") + "\n# synthetic tamper\n", encoding="utf-8")
+        with self.assertRaisesRegex(RuntimeError, "v13_original_parser_changed"):
             validate_consumed_state(self.root)
 
     def test_cannot_enable_pdf_get(self) -> None:
