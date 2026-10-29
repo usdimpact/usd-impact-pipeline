@@ -449,6 +449,37 @@ class IndependentMacroContextSyntheticTests(unittest.TestCase):
         self.assertEqual(rights["state"], "hold")
         self.assertIsNone(rights["decision_receipt"])
 
+    def test_governance_records_exact_synthetic_unit_and_basis_candidate_tags(self) -> None:
+        proposal = json.loads(
+            (ROOT / "governance/independent-macro-context-fallback-draft-2026-10-30.json")
+            .read_text(encoding="utf-8")
+        )
+        contract = proposal["implementation"]["synthetic_observation_contract"]
+        self.assertEqual(
+            contract["status"],
+            "CANDIDATE_ONLY_MUST_NOT_BE_MISTAKEN_FOR_SOURCE_VERIFICATION",
+        )
+        self.assertEqual(set(contract["required_metadata_fields"]), {"unit", "basis_id"})
+        self.assertEqual(contract["units"], SOURCE_UNITS)
+        self.assertEqual(contract["basis_ids"], SOURCE_BASIS_IDS)
+        for flag in (
+            "no_implicit_unit_conversion",
+            "no_implicit_broad_index_goods_only_substitution",
+            "no_implicit_eia_lease_stock_substitution",
+            "no_implicit_treasury_real_yield_substitution",
+            "source_tags_are_not_signed_receipts_or_rights_grants",
+            "no_numeric_source_observations_in_public_outputs",
+        ):
+            self.assertIs(contract[flag], True)
+        self.assertTrue(all(
+            value is False
+            for item in proposal["source_permissions"].values()
+            for value in item["rights"].values()
+        ))
+        self.assertTrue(all(
+            flag is False for flag in proposal["external_authorities"].values()
+        ))
+
     def test_main_source_has_no_provider_network_io_or_v1_engine_import(self) -> None:
         text = (ROOT / "scripts/independent_macro_context_synthetic.py").read_text(
             encoding="utf-8"
