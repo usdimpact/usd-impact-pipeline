@@ -90,10 +90,12 @@ These tests prove the stated endpoints were reachable/denied during inspection; 
 - [x] Confirmed source code linkage to FRED DGS2 and DGS10.
 - [x] Confirmed committed weekly and public archive data-file pathways.
 - [x] Established material difference between public-domain series status and FRED delivery/retention terms.
-- [x] Mapped current source-level Friday, archive, Git publication, Pages allowlist and rehearsal flow; confirmed public endpoint reachability.\n- [ ] Completed historical job-log/backup/CDN and downstream persistence inventory.
+- [x] Mapped current source-level Friday, archive, Git publication, Pages allowlist and rehearsal flow; confirmed public endpoint reachability.
+- [ ] Completed historical job-log/backup/CDN and downstream persistence inventory.
 - [ ] Confirmed retained value classes and rights interpretation.
 - [ ] Evaluated direct H.15 terms and exact-source parity feasibility.
-- [x] Draft PR #285 adds a workflow-policy regression test and demonstrates a safe no-fetch Actions rehearsal.\n- [ ] Independent review and merge of PR #285; comprehensive source-rights gate / synthetic fixture tests.
+- [x] Draft PR #285 adds a workflow-policy regression test and demonstrates a safe no-fetch Actions rehearsal.
+- [ ] Independent review and merge of PR #285; comprehensive source-rights gate / synthetic fixture tests.
 - [ ] Obtained explicit legal/provider and release approvals.
 
 This is a **review artifact only**. Issue #155 HOLD remains active. No existing data, workflows, public artifacts, method, credentials, entitlements, or production config are changed by this document.
