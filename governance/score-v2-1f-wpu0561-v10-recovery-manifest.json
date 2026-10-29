@@ -107,7 +107,7 @@
     "rights_issue_155_closed": false
   },
   "v13": {
-    "state": "one_off_scope_owner_approved_but_unactivated",
+    "state": "owner_authorization_receipt_staged_no_dispatch",
     "owner_approval": "governance/score-v2-1f-wpu0561-pdf-v13-owner-decision.json",
     "execution_contract": "governance/score-v2-1f-wpu0561-pdf-v13-execution-contract.json",
     "one_off_workflow": ".github/workflows/score-v2-1f-wpu0561-pdf-v13-oneoff.yml",
@@ -115,7 +115,7 @@
     "parser": "scripts/score_v2_1f_wpu0561_pdf_v13_parser.py",
     "test": "tests/test_score_v2_1f_wpu0561_pdf_v13.py",
     "claim_ref": "refs/tags/score-v2-1f-wpu0561-pdf-v13-oneoff-2026-10-29",
-    "activation_file_exists": false,
+    "activation_file_exists": true,
     "dispatch_file_exists": false,
     "live_request_executed": false,
     "request_budget_remaining_now": 0,
