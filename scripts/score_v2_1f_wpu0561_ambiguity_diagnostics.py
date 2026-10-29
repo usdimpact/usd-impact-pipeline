@@ -318,6 +318,91 @@ def diagnose_local_blocks(
     return blocks
 
 
+CANDIDATE_RE = re.compile(r"\bCrude\s+petroleum\b", re.IGNORECASE)
+CONTEXT_NUMERIC_TOKEN_RE = re.compile(r"(?<![A-Za-z])\d+(?:[.,]\d+)?(?![A-Za-z])")
+CONTEXT_ALNUM_TOKEN_RE = re.compile(r"\b(?=\w*[A-Za-z])(?=\w*\d)\w+\b")
+CONTEXT_PLACEHOLDERS = ("<num>", "<alnum-redacted>", "<numeric-redacted>", "<identifier-not-0561>")
+
+
+def context_safe_text(value: str) -> str | None:
+    """Return text-only diagnostic content with every numeric-bearing token removed.
+
+    This helper is deliberately stricter than normal header normalization. It
+    supports candidate-centered structural inventory only and must never expose
+    identifier values or economic values.
+    """
+    normalized = re.sub(r"\s+", " ", unicodedata.normalize("NFKC", value)).strip()
+    if not normalized:
+        return None
+    safe = CONTEXT_ALNUM_TOKEN_RE.sub("<alnum-redacted>", normalized)
+    safe = CONTEXT_NUMERIC_TOKEN_RE.sub("<num>", safe)
+    basis = safe
+    for marker in CONTEXT_PLACEHOLDERS:
+        basis = basis.replace(marker, "")
+    if not re.search(r"[A-Za-z]", basis):
+        return None
+    return safe
+
+
+def candidate_context_inventory(
+    rows: list[list[str]],
+    *,
+    preceding_rows: int = 8,
+    max_candidates: int = 32,
+    max_cells_per_candidate: int = 64,
+) -> list[dict[str, object]]:
+    """Collect bounded non-numeric text context without requiring a header anchor."""
+    if preceding_rows < 0 or preceding_rows > 8:
+        raise ValueError("preceding_rows must be between 0 and 8")
+    if max_candidates != 32:
+        raise ValueError("max_candidates must remain 32")
+    if max_cells_per_candidate != 64:
+        raise ValueError("max_cells_per_candidate must remain 64")
+
+    candidate_rows = [
+        row_number
+        for row_number, row in enumerate(rows, start=1)
+        if any(CANDIDATE_RE.search(cell) for cell in row)
+    ]
+    if len(candidate_rows) > max_candidates:
+        raise RuntimeError("candidate context count exceeds 32")
+
+    output: list[dict[str, object]] = []
+    for candidate_row in candidate_rows:
+        start_row = max(1, candidate_row - preceding_rows)
+        cells: list[dict[str, object]] = []
+        truncated = False
+        for row_number in range(start_row, candidate_row + 1):
+            row = rows[row_number - 1]
+            for column, raw in enumerate(row, start=1):
+                safe = context_safe_text(raw)
+                if safe is None:
+                    continue
+                if len(cells) >= max_cells_per_candidate:
+                    truncated = True
+                    break
+                cells.append(
+                    {
+                        "row": row_number,
+                        "column": column,
+                        "text": safe,
+                        "role": header_role(safe),
+                    }
+                )
+            if truncated:
+                break
+        output.append(
+            {
+                "candidate_row": candidate_row,
+                "window_start_row": start_row,
+                "window_end_row": candidate_row,
+                "cells": cells,
+                "truncated": truncated,
+            }
+        )
+    return output
+
+
 def resource_reason_summary(blocks: list[LocalBlock]) -> dict[str, int]:
     summary: dict[str, int] = {}
     for block in blocks:
