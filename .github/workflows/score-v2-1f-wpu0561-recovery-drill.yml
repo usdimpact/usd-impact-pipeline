@@ -71,7 +71,7 @@ jobs:
           python3 -m unittest discover -s tests -p 'test_score_v2_1f_wpu0561_v15_methodology.py' -v
           python3 -m scripts.score_v2_1f_wpu0561_v15_methodology_guard
 
-      - name: Verify dated v16 owner Option A closure and 42 refusal cases (offline only)
+      - name: Verify dated v16 owner Option A closure and 45 refusal cases (offline only)
         run: |
           set -euo pipefail
           python3 -m unittest discover -s tests -p 'test_score_v2_1f_wpu0561_v16_option_a.py' -v
