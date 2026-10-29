@@ -133,6 +133,37 @@ class V13ScopedApprovalContractTests(unittest.TestCase):
         self.assertTrue(all(v is False for v in
                             ledger["current_post_consumption_permissions"].values()))
 
+    def test_consumed_one_off_workflow_has_no_live_trigger(self) -> None:
+        if self.contract["state"] != "consumed_after_failed_structural_preflight_invalid_page_count":
+            return
+        root = Path(__file__).resolve().parents[1]
+        workflow = (
+            root / ".github/workflows/score-v2-1f-wpu0561-pdf-v13-oneoff.yml"
+        ).read_text(encoding="utf-8")
+        self.assertNotIn("  push:", workflow)
+        self.assertIn("if: $" + "{{ false }}", workflow)
+        self.assertNotIn("consume-before-http:", workflow)
+        self.assertNotIn("gh api -X POST", workflow)
+        self.assertNotIn("python3 -m scripts.score_v2_1f_wpu0561_pdf_v13_transport", workflow)
+
+    def test_consumed_manifest_retains_rights_and_claim(self) -> None:
+        if self.contract["state"] != "consumed_after_failed_structural_preflight_invalid_page_count":
+            return
+        gov = Path(__file__).resolve().parents[1] / "governance"
+        manifest = json.loads(
+            (gov / "score-v2-1f-wpu0561-v10-recovery-manifest.json").read_text()
+        )
+        v13 = manifest["v13"]
+        self.assertEqual(v13["state"], "consumed_preflight_fail_closed_invalid_page_count")
+        self.assertTrue(v13["claim_preserved"])
+        self.assertTrue(v13["claim_consumed"])
+        self.assertFalse(v13["activation_file_exists"])
+        self.assertFalse(v13["dispatch_file_exists"])
+        self.assertEqual(v13["request_budget_remaining_now"], 0)
+        self.assertTrue(v13["rights_155_still_hold"])
+        self.assertFalse(v13["public_changed"])
+        self.assertFalse(v13["production_changed"])
+
     def test_old_v8_receipt_never_reactivated(self) -> None:
         p = Path(__file__).resolve().parents[1] / "governance"
         self.assertFalse(
