@@ -83,7 +83,7 @@ def _validate_authorization_and_dispatch() -> str:
     contract = _load_json(CONTRACT)
     design = _load_json(DESIGN)
 
-    if design.get("version") != 3 or design.get("state") != "design_only_hold":
+    if design.get("version") != 4 or design.get("state") != "design_only_hold":
         raise RuntimeError("Issue #258 frozen design changed")
     if receipt.get("decision_status") != "approved":
         raise RuntimeError("Issue #258 authorization is not approved")
