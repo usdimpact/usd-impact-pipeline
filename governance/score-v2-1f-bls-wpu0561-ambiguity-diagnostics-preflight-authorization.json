@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "decision_status": "approved",
+  "methodology_version": "2.1F-design-candidate",
+  "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/258",
+  "execution_scope": "bls_wpu0561_ambiguity_diagnostics_preflight_only",
+  "request_budget": 2,
+  "max_economic_observations_total": 0,
+  "max_economic_observations_per_resource": 0,
+  "contact_user_agent": "USD-Impact-Score-v2.1F-WPU0561-container-header-band/1.0 (contact: support@usd-impact.com)",
+  "allowed_host": "www.bls.gov",
+  "fixed_resources": [
+    "/news.release/archives/ppi_05152013.htm",
+    "/ppi/detailed-report/ppi-detailed-report-april-2026.xlsx"
+  ],
+  "authorizations": {
+    "response_body_ephemeral_retrieval": true,
+    "ambiguity_diagnostics_preflight": true,
+    "numeric_identifier_field_read": false,
+    "economic_value_read": false,
+    "full_historical_reconstruction": false,
+    "candidate_score_computation": false,
+    "research_ledger_mutation": false,
+    "public_artifact_replacement": false,
+    "production": false
+  },
+  "approved_by": "usdimpact owner via Issue #258 approval comment 6500606721",
+  "approved_at": "2026-10-29T15:15:37Z",
+  "notes": "Design v8 container-header-band inventory only. Exactly one attempt per fixed resource, maximum two total. v6 semantic prerequisites must pass before retaining any header band. Inspect only first 32 logical rows of the semantically selected HTML and XLSX containers; max 128 sanitized text cells per container. Identifier and economic values forbidden. Protected GitHub lifecycle only; consume after the one-off run regardless of outcome."
+}

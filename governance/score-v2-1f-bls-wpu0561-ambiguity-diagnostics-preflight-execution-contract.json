@@ -1,6 +1,6 @@
 {
-  "version": 17,
-  "state": "ambiguity_diagnostics_v8_container_header_band_design_only_hold",
+  "version": 18,
+  "state": "ambiguity_diagnostics_v8_container_header_band_authorized_pending_dispatch",
   "methodology_version": "2.1F-design-candidate",
   "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/258",
   "predecessor_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/252",
@@ -8,7 +8,7 @@
   "design_path": "governance/score-v2-1f-bls-wpu0561-ambiguity-diagnostics-preflight-design.json",
   "authorization_template_path": "governance/score-v2-1f-bls-wpu0561-ambiguity-diagnostics-preflight-authorization.template.json",
   "active_authorization_receipt_path": "governance/score-v2-1f-bls-wpu0561-ambiguity-diagnostics-preflight-authorization.json",
-  "active_authorization_receipt_expected_now": false,
+  "active_authorization_receipt_expected_now": true,
   "dispatch_marker_path": "governance/score-v2-1f-bls-wpu0561-ambiguity-diagnostics-preflight-dispatch.json",
   "dispatch_marker_expected_now": false,
   "request_budget": 2,
@@ -19,8 +19,8 @@
     "/ppi/detailed-report/ppi-detailed-report-april-2026.xlsx"
   ],
   "current_state": {
-    "response_body_ephemeral_retrieval_authorized": false,
-    "ambiguity_diagnostics_preflight_authorized": false,
+    "response_body_ephemeral_retrieval_authorized": true,
+    "ambiguity_diagnostics_preflight_authorized": true,
     "numeric_identifier_field_read_authorized": false,
     "economic_value_read_authorized": false,
     "full_historical_reconstruction_authorized": false,
@@ -30,16 +30,22 @@
     "production_authorized": false
   },
   "stop_conditions": [
-    "the design-v7 Issue #258 header-gap authorization has been consumed",
-    "any future live BLS request is attempted without a new explicit owner authorization",
-    "row numbers are used as selection semantics",
+    "no separate dispatch marker exists",
+    "any live BLS request would occur before dispatch reaches protected main",
+    "v6 semantic prerequisites fail",
+    "candidate row numbers are used as selectors",
+    "more than 32 top rows are inspected in either selected container",
+    "more than 128 sanitized text cells are persisted for either selected container",
     "an identifier value or economic value would be read or persisted",
     "response body would be persisted",
+    "request leaves www.bls.gov",
+    "request path differs from the two fixed resources",
+    "HTTP 401, 403, 429, access challenge, redirect, or other non-200 response",
     "full historical reconstruction would begin",
     "candidate Score, z-score or contribution would be computed",
     "public artifact, research ledger or Production would change"
   ],
-  "next_allowed_action": "validate_v8_design_only_then_require_new_owner_authorization_for_live_work",
+  "next_allowed_action": "separate_dispatch_review_after_v8_activation_merge",
   "production_authorized": false,
   "execution_environment_policy": {
     "preferred_environment": "github_actions_protected_main_lifecycle",
@@ -48,8 +54,8 @@
     "dns_failure_on_one_resource_does_not_cancel_other_resource_single_attempt": true,
     "access_control_challenge_redirect_or_other_non_200_global_stop": true
   },
-  "owner_approval_comment_id": 6500046079,
-  "owner_approval_timestamp": "2026-10-29T14:53:20Z",
+  "owner_approval_comment_id": 6500606721,
+  "owner_approval_timestamp": "2026-10-29T15:15:37Z",
   "prior_consumption_record_path": "governance/score-v2-1f-bls-wpu0561-ambiguity-diagnostics-preflight-consumption-2026-10-29.json",
   "authorization_activation_merge_commit": "771bf87d381fda9f72adad5f5456331916195533",
   "v4_recheck_consumption_record_path": "governance/score-v2-1f-bls-wpu0561-ambiguity-diagnostics-v4-recheck-consumption-2026-10-29.json",
