@@ -122,14 +122,35 @@ def validate_owner_option_a(root: Path | None = None) -> dict[str, Any]:
             disposition.get("no_BLS_PDF_pagecount_resolution_claim") is True,
             "rights_or_scope_wrongly_released")
     runtime = decision.get("runtime_boundary", {})
-    require(isinstance(runtime, dict) and runtime and
+    required_runtime_flags = {
+        "existing_public_score_artifacts_untouched",
+        "existing_score_driver_configuration_untouched",
+        "historical_research_ledger_untouched",
+        "external_provider_data_untouched",
+        "production_deployments_untouched",
+        "existing_v13_live_receipt_absent",
+        "existing_v13_dispatch_absent",
+        "existing_v13_workflow_disabled",
+        "new_v16_live_receipt_or_dispatch_absent",
+        "new_v16_workflow_absent",
+    }
+    require(isinstance(runtime, dict) and
+            set(runtime) == required_runtime_flags | {"request_budget_remaining"} and
             runtime.get("request_budget_remaining") == 0 and
-            all(value is True for key, value in runtime.items()
-                if key != "request_budget_remaining"),
+            all(runtime.get(key) is True for key in required_runtime_flags),
             "runtime_data_or_production_boundary_undermined")
     permissions = decision.get("permissions", {})
-    require(isinstance(permissions, dict) and permissions and
-            all(value is False for value in permissions.values()),
+    required_inactive_permissions = {
+        "BLS_GET", "BLS_HEAD", "BLS_RANGE", "BLS_fallback_source",
+        "real_pdf_read", "widen_200_page_limit", "numeric_identifier_read",
+        "economic_value_read", "historical_reconstruction", "score_calculation",
+        "research_ledger_write", "public_artifact_write", "production_change",
+        "issue_155_rights_approval", "provider_restoration",
+        "reuse_consumed_v13_authorization",
+    }
+    require(isinstance(permissions, dict) and
+            set(permissions) == required_inactive_permissions and
+            all(permissions.get(key) is False for key in required_inactive_permissions),
             "new_live_authorization_inserted")
     require(not (root / V16_RECEIPT).exists() and
             not (root / V16_DISPATCH).exists() and
