@@ -57,6 +57,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from scripts.score_publication_rights_gate import require_score_provider_rights
+
 
 # ============================================================
 # CONFIGURATION
@@ -533,6 +535,9 @@ def fetch_all_inputs(
     as_of: datetime | None = None,
 ) -> pd.DataFrame:
     """Fetch every configured input, returning a daily DataFrame aligned on date."""
+    # This shared fetch entrypoint can be called by scripts outside the
+    # rights-gated GitHub Actions workflow. Deny before either provider client.
+    require_score_provider_rights()
     yahoo_names = [k for k, (src, _) in TICKERS.items() if src == "yahoo"]
     fred_names  = [k for k, (src, _) in TICKERS.items() if src == "fred"]
 
@@ -1386,6 +1391,15 @@ def main() -> int:
         ),
     )
     args = parser.parse_args()
+
+    # Manual CLI runs are not protected by the GitHub Actions preflight.
+    # Check before mkdir, logging, reading cached provider history, fetching
+    # either upstream service, or emitting public/reproduction artifacts.
+    try:
+        require_score_provider_rights()
+    except PermissionError as error:
+        print(str(error), file=sys.stderr)
+        return 3
 
     output_dir: Path = args.output_dir
     # In --web mode, logs and cache live outside the public dir so they
