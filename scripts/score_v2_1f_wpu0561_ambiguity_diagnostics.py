@@ -588,6 +588,88 @@ def candidate_local_header_gap_inventory(
     }
 
 
+
+CONTAINER_HEADER_BAND_MAX_ROWS = 32
+CONTAINER_HEADER_BAND_MAX_CELLS = 128
+
+
+def container_header_band_inventory(
+    rows: list[list[str]],
+    *,
+    max_rows: int = CONTAINER_HEADER_BAND_MAX_ROWS,
+    max_cells: int = CONTAINER_HEADER_BAND_MAX_CELLS,
+) -> dict[str, object]:
+    """Collect a bounded numeric-redacted top-of-container structural band.
+
+    This design helper never reads numeric cells itself. Callers must supply
+    already text-only/sanitized rows. The persisted output is limited to
+    coordinates, sanitized text, semantic roles, blank-row coordinates, and
+    truncation metadata.
+    """
+    if max_rows != CONTAINER_HEADER_BAND_MAX_ROWS:
+        raise ValueError("max_rows must remain 32")
+    if max_cells != CONTAINER_HEADER_BAND_MAX_CELLS:
+        raise ValueError("max_cells must remain 128")
+
+    end_row = min(len(rows), max_rows)
+    cells: list[dict[str, object]] = []
+    blank_rows: list[int] = []
+    recognized_rows: list[dict[str, object]] = []
+    nonempty_rows: list[int] = []
+    truncated = False
+
+    for row_number in range(1, end_row + 1):
+        row = rows[row_number - 1]
+        if is_blank_row(row):
+            blank_rows.append(row_number)
+            continue
+
+        row_has_text = False
+        row_roles: list[str] = []
+        for column, raw in enumerate(row, start=1):
+            safe = context_safe_text(raw)
+            if safe is None:
+                continue
+            row_has_text = True
+            if len(cells) >= max_cells:
+                truncated = True
+                break
+            role = header_role(safe)
+            cells.append(
+                {
+                    "row": row_number,
+                    "column": column,
+                    "text": safe,
+                    "role": role,
+                }
+            )
+            if role is not None:
+                row_roles.append(role)
+
+        if row_has_text:
+            nonempty_rows.append(row_number)
+        if row_roles:
+            recognized_rows.append(
+                {
+                    "row": row_number,
+                    "roles": tuple(row_roles),
+                }
+            )
+        if truncated:
+            break
+
+    return {
+        "band_start_row": 1 if rows else None,
+        "band_end_row": end_row if rows else None,
+        "cells": cells,
+        "blank_rows": tuple(blank_rows),
+        "recognized_header_role_rows": recognized_rows,
+        "first_nonempty_row": nonempty_rows[0] if nonempty_rows else None,
+        "last_nonempty_row": nonempty_rows[-1] if nonempty_rows else None,
+        "truncated": truncated,
+    }
+
+
 def resource_reason_summary(blocks: list[LocalBlock]) -> dict[str, int]:
     summary: dict[str, int] = {}
     for block in blocks:
