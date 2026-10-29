@@ -89,6 +89,19 @@ class V13ScopedApprovalContractTests(unittest.TestCase):
         ):
             self.assertFalse(auth[field])
 
+    def test_live_dispatch_matches_exact_receipt_before_network(self) -> None:
+        if self.contract["state"] != "approved_one_off_active":
+            return  # Inert and authorization-only stages have no dispatch
+        trusted_event = {
+            "GITHUB_REPOSITORY": "usdimpact/usd-impact-pipeline",
+            "GITHUB_REF": "refs/heads/main",
+            "GITHUB_EVENT_NAME": "push",
+            "GITHUB_RUN_ATTEMPT": "1",
+        }
+        # No Git claim or HTTP request here. Only validate protected approval
+        # and SHA-256 binding of dispatch to exact receipt bytes.
+        transport.validate_preclaim_gate(trusted_event)
+
     def test_old_v8_receipt_never_reactivated(self) -> None:
         p = Path(__file__).resolve().parents[1] / "governance"
         self.assertFalse(
