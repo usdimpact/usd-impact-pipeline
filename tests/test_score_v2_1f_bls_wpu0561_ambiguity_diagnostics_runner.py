@@ -10,14 +10,14 @@ from scripts import run_score_v2_1f_bls_wpu0561_ambiguity_diagnostics_preflight 
 
 
 class ScoreV21FWpu0561HeaderGapRunnerTests(unittest.TestCase):
-    def test_activation_state_refuses_before_network_without_dispatch(self) -> None:
+    def test_dispatched_gate_validates_without_network(self) -> None:
         with mock.patch.object(
             runner,
             "_request_once",
-            side_effect=AssertionError("network request occurred before dispatch"),
+            side_effect=AssertionError("network request occurred during gate validation"),
         ) as request:
-            with self.assertRaisesRegex(RuntimeError, "dispatch is not active"):
-                runner.run_preflight()
+            user_agent = runner._validate_authorization_and_dispatch()
+            self.assertIn("support@usd-impact.com", user_agent)
             request.assert_not_called()
 
     def test_v7_selects_one_html_and_direct_xlsx_candidate(self) -> None:
