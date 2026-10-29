@@ -29,6 +29,36 @@ TREASURY_IDS = frozenset(
 )
 
 
+# Only these output reasons can be synthesized by the offline as-of
+# evaluator. Directly constructed decision objects may not add free-form text,
+# provider-looking errors or real source IDs to a supposed fictional preview.
+ASOF_SOURCE_BLOCKER_CODES = frozenset({
+    "MISSING_SYNTHETIC_RECEIPT",
+    "NOT_FIRST_SEEN_BY_CUTOFF",
+})
+ASOF_CURVE_BLOCKER_CODES = frozenset({
+    "TREASURY_CURVE_SNAPSHOT_MISMATCH",
+    "TREASURY_CURVE_REVISION_MISMATCH",
+    "TREASURY_CURVE_INITIAL_RELEASE_MISMATCH",
+    "TREASURY_CURVE_VERSION_PUBLICATION_MISMATCH",
+    "TREASURY_CURVE_FIRST_SEEN_MISMATCH",
+})
+
+
+def _valid_asof_blocker(value: str) -> bool:
+    """Recognize only Phase B's exact synthetic source/curve HOLD codes."""
+    if type(value) is not str or len(value) > 150:
+        return False
+    if value in ASOF_CURVE_BLOCKER_CODES:
+        return True
+    source_id, separator, code = value.partition(":")
+    return bool(
+        separator
+        and source_id in REQUIRED_IDS
+        and code in ASOF_SOURCE_BLOCKER_CODES
+    )
+
+
 @dataclass(frozen=True)
 class SyntheticReceipt:
     """Availability metadata for one invented source/version, WITHOUT values.
@@ -60,8 +90,53 @@ class SyntheticAsOfDecision:
     real_source_retrieval_authorized: bool = False
 
     def __post_init__(self) -> None:
-        if self.publish_authorized or self.real_source_retrieval_authorized:
+        # A frozen dataclass is still directly constructible. These guards are
+        # format-only; they do NOT verify real receipts or grant rights.
+        if (
+            self.publish_authorized is not False
+            or self.real_source_retrieval_authorized is not False
+        ):
             raise ValueError("synthetic evaluation cannot grant rights")
+        if type(self.status) is not str or self.status not in (
+            "SYNTHETIC_ONLY_HOLD", "SYNTHETIC_ONLY_COMPLETE"
+        ):
+            raise ValueError("unrecognized synthetic as-of result status")
+        if type(self.selected) is not tuple or len(self.selected) > len(REQUIRED_IDS):
+            raise ValueError("synthetic as-of source selection must be a bounded tuple")
+        if any(
+            type(item) is not tuple or len(item) != 2
+            or type(item[0]) is not str or item[0] not in REQUIRED_IDS
+            or type(item[1]) is not str
+            or not item[1].startswith(SYNTHETIC_ID_PREFIX)
+            or len(item[1]) > 160
+            for item in self.selected
+        ):
+            raise ValueError("unrecognized synthetic as-of source or snapshot ID")
+        if (
+            self.selected != tuple(sorted(self.selected))
+            or len({source_id for source_id, _ in self.selected}) != len(self.selected)
+        ):
+            raise ValueError("synthetic as-of source pairs must be unique and sorted")
+        if type(self.blockers) is not tuple or len(self.blockers) > 16:
+            raise ValueError("synthetic as-of blockers must be bounded tuples")
+        if (
+            any(type(item) is not str for item in self.blockers)
+            or self.blockers != tuple(sorted(set(self.blockers)))
+            or not all(_valid_asof_blocker(item) for item in self.blockers)
+        ):
+            raise ValueError("unrecognized or duplicate synthetic as-of blocker code")
+        if self.status == "SYNTHETIC_ONLY_HOLD":
+            if not self.blockers:
+                raise ValueError("synthetic as-of HOLD requires an explicit blocker")
+            return
+
+        # A direct caller may not declare a COMPLETE outcome with a partial
+        # set or two different Treasury curve snapshots.
+        if self.blockers or {source for source, _ in self.selected} != REQUIRED_IDS:
+            raise ValueError("synthetic as-of COMPLETE requires four sources and no blockers")
+        snapshots = dict(self.selected)
+        if snapshots["treasury_direct_2yr_par"] != snapshots["treasury_direct_10yr_par"]:
+            raise ValueError("synthetic as-of COMPLETE requires one Treasury curve snapshot")
 
 
 def _utc(value: datetime, label: str) -> datetime:
