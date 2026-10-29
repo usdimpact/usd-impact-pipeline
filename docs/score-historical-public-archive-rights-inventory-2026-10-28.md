@@ -4,6 +4,16 @@ Status: **read-only inventory / no deletion, rewrite, purge or Production change
 
 Related: issue #155, PRs #156–#159.
 
+## Superseding current-Git-tree checkpoint (2026-10-29; metadata only)
+
+The original October 28 "24 Score vintages" figure below was derived from the **23-date EN/ES historical index plus the current October 23 edition**, not an exhaustive list of the repository's dated archive directories. Subsequent full current-tree `contents` enumeration found **27** dated directories, including the three unindexed prior dates `2026-05-02`, `2026-05-09` and `2026-05-16`. The current edition `2026-10-23` is not in the prior-history index by design of that snapshot; do not conflate the three unindexed older dates with it.
+
+The current Git tree includes **27** dated `score.json`, **14** dated `weekly_input.json` and **9** dated `repro_bundle.json` (**50 dated Class C files**), plus **4** latest-root Class C data files. The Git-only `data/weekly_input_*.json` family has **15** files. These are path/size metadata counts, not assertions about which underlying observations or copyrighted fields each file contains.
+
+The updated current-tree manifest, offline path-only regression and lawful preservation gates are in `governance/score-current-tree-exposure-inventory-2026-10-29.json`, `tests/test_score_current_tree_exposure_inventory.py` and `docs/score-public-archive-metadata-preservation-2026-10-29.md`. The latter also records a complete **1,921-record** metadata listing of Cloudflare Pages deployments; **no implication that every deployment serves a publicly accessible provider-data file**.
+
+**Preserve the original October 28 index-based snapshot below as historical evidence.** Do not delete, reindex, rewrite Git history, change Pages routing or copy provider data based on this census. Provider/counsel and Production authorizations under Issue #155 remain absent.
+
 ## Purpose
 
 Document the currently public historical Score surfaces that would require treatment if provider/counsel review concludes that public component-level Score evidence must be removed or narrowed.
