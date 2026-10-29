@@ -151,6 +151,36 @@ No provider numeric values are copied to the issue, PR, or this document. This i
 
 **Decision gates remain unchanged:** source-level rights approval, approved private evidence retention boundary, aggregate-safe publication schema, full historical treatment/backup plan and separate Production authorization. Do not put Cloudflare Access in front of the customer Production domain in lieu of a rights decision, do not purge without preservation, and do not claim private preview URLs have cleared the ongoing redistribution risk on public root domains.
 
+## Two-layer Score access control and current merged implementation — 2026-10-29
+
+**Security assessment correction:** A previous TinyFish browser test accessed a preview reproduction JSON URL but saw "Research Membership required" at the same preview's `/en/` HTML route. **This does not establish a missing Research Membership entitlement.** The current `functions/_middleware.js` on Pages deliberately denies **every premium HTML path** with HTTP 403 and that message, for all cookies and all sessions. Its `security/score-pages-public-only.test.mjs` explicitly verifies the invariant even when legacy enable flags, cookies and secrets are present. Cloudflare Access and the USD Impact membership authorization are independent gates.
+
+**Current code and external status:**
+
+1. [Pipeline membership design PR #148](https://github.com/usdimpact/usd-impact-pipeline/pull/148) is **merged**, although older documentation still describes its initial draft status. The Pages perimeter remains public-only for specifically allowlisted paths, with no member authorization logic.
+2. [USD Impact website PR #836](https://github.com/usdimpact/usd-impact-site/pull/836) is **merged**. The current website `apps/web/src/pages/score.astro` sends members to its same-origin `/score/member/en/` and `/score/member/archive/en/` routes, not to Pages HTML.
+3. Website `apps/web/vercel.json` routes those member paths to `/api/account?action=score-member-content&path=:path*`. Website `apps/web/src/lib/score-member-handler.js` verifies the current Supabase site session and `research-membership` entitlement before reading the private Score HTML asset. The handler returns 401 for anonymous, 403 for non-entitled, 404 for missing/invalid asset and 200 for verified active member; member responses are `private, no-store`.
+4. Website unit tests in `apps/web/src/lib/score-member-handler.test.js` check 401, 403, 200, HEAD, 404 and 405. These are code test expectations, **not proof of the current user's entitlement**. The older Development acceptance report documents a positive QA member test as of 2026-10-27, which does not substitute for a fresh user-specific end-to-end test.
+5. Fresh TinyFish anonymous checks on 2026-10-29 confirmed `https://www.usd-impact.com/score/` loads publicly, while `https://www.usd-impact.com/score/member/en/` and `https://www.usd-impact.com/score/member/archive/en/` both returned HTTP **401**. This is the intended negative production-side authorization result.
+6. TinyFish's saved `cloudflare-usd-impact` browser profile visited historical preview `/en/` and the preview reproduction JSON. It saw the expected Pages 403 membership text on `/en/` and the allowlisted JSON loaded **in that browser context**. Separate **unauthenticated** TinyFish fetches of the identical preview JSON returned `login_required`. Together these results are consistent with Cloudflare Access working for the saved browser context, but do **not** reveal its specific Access identity, prove membership status, or establish authorization to republish provider-derived data.
+7. The TinyFish profile metadata did not list a recorded Cloudflare sign-in at inspection, so its session identity should be treated as **not independently attested**. If explicit identity evidence is needed, use Cloudflare Access's own safe audit method with owner-approved scope, not a cookie/OTP dump.
+
+**Pass/fail acceptance matrix:**
+
+| Layer / test | Current evidence | Result |
+|---|---|---|
+| Anonymous visitor to preview allowlisted JSON | TinyFish `login_required` | PASS — denied |
+| Saved TinyFish context to preview allowlisted JSON | JSON page reachable in browser | PASS — session can read allowlisted preview, identity unverified |
+| Any visitor to preview premium `/en/` | Pages code and browser return 403 | PASS — HTML deliberately not served on Pages |
+| Anonymous visitor to website `/score/member/en/` | TinyFish HTTP 401 | PASS — denied |
+| Anonymous visitor to website archive member route | TinyFish HTTP 401 | PASS — denied |
+| Website active member to private dashboard | Prior 2026-10-27 QA report, site code/tests | CURRENT POSITIVE E2E NOT REPEATED |
+| Anonymous visitor to custom/root Class C JSON | TinyFish returns detailed JSON | OPEN — redistribution/retention rights HOLD |
+
+**No attempted remediation by making Pages serve premium HTML.** This is a deliberately different trust boundary; modifying the Pages middleware to "fix" a 403 would be a security regression. No change to account, entitlement, Cloudflare Access policy, site router, Score source, publication rights gate or Production was made.
+
+Existing integrated rights-safe public/private containment source ([merged #164](https://github.com/usdimpact/usd-impact-pipeline/pull/164)) already exists as **non-activated prototype**. Do not duplicate or activate it while Issue #155 holds. Future root-domain Class C containment must follow the approved private evidence migration, provider/counsel disposition, public consumer migration and separate Production authorization.
+
 ## Scope not yet verified
 
 - Complete historic GitHub Actions run logs, artifacts, cache inventories, runner-local retention and cleanup proofs; Cloudflare cache coverage/TTL and alternate domain variants; Vercel/Supabase downstream copies; object storage/backups; old Git history/reflogs and third-party mirrors. The workflow commands and selected live Pages endpoints were verified above.
