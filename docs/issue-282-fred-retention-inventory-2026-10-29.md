@@ -170,7 +170,7 @@ No provider numeric values are copied to the issue, PR, or this document. This i
 | Layer / test | Current evidence | Result |
 |---|---|---|
 | Anonymous visitor to preview allowlisted JSON | TinyFish `login_required` | PASS — denied |
-| Saved TinyFish context to preview allowlisted JSON | JSON page reachable in browser | PASS — session can read allowlisted preview, identity unverified |
+| Saved TinyFish context to preview allowlisted JSON | JSON page reachable in browser; identity endpoint reports NONE | OBSERVED — browser access, named Access identity NOT VERIFIED |
 | Any visitor to preview premium `/en/` | Pages code and browser return 403 | PASS — HTML deliberately not served on Pages |
 | Anonymous visitor to website `/score/member/en/` | TinyFish HTTP 401 | PASS — denied |
 | Anonymous visitor to website archive member route | TinyFish HTTP 401 | PASS — denied |
@@ -180,6 +180,26 @@ No provider numeric values are copied to the issue, PR, or this document. This i
 **No attempted remediation by making Pages serve premium HTML.** This is a deliberately different trust boundary; modifying the Pages middleware to "fix" a 403 would be a security regression. No change to account, entitlement, Cloudflare Access policy, site router, Score source, publication rights gate or Production was made.
 
 Existing integrated rights-safe public/private containment source ([merged #164](https://github.com/usdimpact/usd-impact-pipeline/pull/164)) already exists as **non-activated prototype**. Do not duplicate or activate it while Issue #155 holds. Future root-domain Class C containment must follow the approved private evidence migration, provider/counsel disposition, public consumer migration and separate Production authorization.
+
+## TinyFish same-session Access discrepancy and stale Pages health monitor — 2026-10-29
+
+### Preview authentication — distinguish access from user identity
+
+Cloudflare's documented `/cdn-cgi/access/get-identity` endpoint was queried **read-only** with the user's saved TinyFish `cloudflare-usd-impact` browser context. It returned `auth_status: NONE`; profile metadata also did not list a recorded signed-in Cloudflare site. **Do not claim that the named Cloudflare Access identity is authenticated based only on that saved profile.**
+
+A subsequent [same-session TinyFish check](https://agent.tinyfish.ai/runs/41c7def8-04b8-4fc3-9594-3174d7dff9d6) observed that the **harmless methodology metadata JSON** rendered in the saved browser, while the identity endpoint still reported NONE. This is a **discrepancy**, not a verified login or an established Access bypass.
+
+A separate [fresh browser with no saved profile](https://agent.tinyfish.ai/runs/9168f5b5-9094-4ad5-a1e1-dfad6dd2e80f) attempted the **same methodology URL** and received the Cloudflare Access login challenge before any JSON was served. Prior unauthenticated TinyFish fetches of preview weekly/reproduction URLs also reported `login_required`. Thus a straightforward anonymous bypass is **not demonstrated** on the tested paths. The observed difference between saved-profile and clean-context access warrants a future owner-authorized session audit; do not use or reveal tokens, cookies, OTPs or personal identity fields.
+
+The separate Vercel/Supabase website member route continued to return 401 for anonymous calls. It must not be conflated with Pages' always-403 premium HTML denial.
+
+### Daily Cloudflare Pages security workflow — outdated expected status
+
+A distinct **operations/alerting mismatch** was discovered in the active `.github/workflows/pages-security-posture.yml`. It still expects `GET /en/` to return **200** with the old embedded-dashboard/CSP contract. The newer public-only Pages middleware intentionally serves **403** and a strict no-store denial response.
+
+Actual [2026-10-28 run #40706972876](https://github.com/usdimpact/usd-impact-pipeline/actions/runs/40706972876) and [2026-10-29 run #40893905425](https://github.com/usdimpact/usd-impact-pipeline/actions/runs/40893905425) failed after repeated attempts and logged status **403** with restrictive CSP. The preceding [2026-10-27 run #40513815094](https://github.com/usdimpact/usd-impact-pipeline/actions/runs/40513815094) passed under the previous contract.
+
+[Draft PR #288](https://github.com/usdimpact/usd-impact-pipeline/pull/288) proposes a read-only correction. It checks both Pages root origins with **403 premium HTML denial**, **410 retired redemption**, and **200 HEAD-only public methodology metadata**. It includes offline tests. It does **not** modify Cloudflare Access, the website, Production, membership, public Score artifacts or Issue #155 HOLD. Until independently reviewed/merged, the old daily monitor remains on `main`, and the known false-positive status remains outstanding.
 
 ## Scope not yet verified
 
