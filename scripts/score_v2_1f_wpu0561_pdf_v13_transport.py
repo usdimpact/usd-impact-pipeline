@@ -15,7 +15,7 @@ main --live with all guards present.
 from __future__ import annotations
 
 import argparse
-import io
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -82,8 +82,9 @@ def validate_live_gate(environ: dict[str, str] | None = None) -> None:
         raise GlobalStop("dispatch_not_active")
     if dispatch.get("exact_url") != PDF_URL or dispatch.get("request_budget") != 1:
         raise GlobalStop("dispatch_scope_mismatch")
-    if dispatch.get("prior_receipt_sha") != receipt.get("receipt_commit_sha"):
-        raise GlobalStop("dispatch_not_linked_to_receipt")
+    receipt_digest = hashlib.sha256(RECEIPT.read_bytes()).hexdigest()
+    if dispatch.get("prior_receipt_sha256") != receipt_digest:
+        raise GlobalStop("dispatch_not_linked_to_exact_receipt_bytes")
     if not env.get("GITHUB_REPOSITORY") == "usdimpact/usd-impact-pipeline":
         raise GlobalStop("wrong_github_repository")
     if env.get("GITHUB_REF") != "refs/heads/main" or env.get("GITHUB_EVENT_NAME") != "push":
@@ -143,6 +144,38 @@ def fetch_exactly_once(*, opener: Any, budget: list[int]) -> bytes:
     return content
 
 
+def configured_sandbox_command(environ: dict[str, str] | None = None) -> list[str]:
+    """Fixed sandbox args. No environment-provided shell strings or flags."""
+    env = environ if environ is not None else os.environ
+    ws = env.get("GITHUB_WORKSPACE")
+    temp = env.get("RUNNER_TEMP")
+    if not ws or not temp:
+        raise GlobalStop("trusted_runner_paths_unavailable")
+    root = Path(ws).resolve()
+    wheel = (Path(temp) / "pypdf-v13-oneoff").resolve()
+    if not root.is_dir() or not wheel.is_dir():
+        raise GlobalStop("pinned_wheel_or_checkout_unavailable")
+    return [
+        "docker", "run", "--rm",
+        "--network", "none",
+        "--read-only",
+        "--cap-drop", "ALL",
+        "--security-opt", "no-new-privileges",
+        "--pids-limit", "64",
+        "--memory", "256m",
+        "--cpus", "1",
+        "--user", "65534:65534",
+        "--tmpfs", "/tmp:rw,nosuid,nodev,noexec,size=16m,uid=65534,gid=65534",
+        "--env", "PYTHONPATH=/parser:/repo",
+        "--env", "PYTHONDONTWRITEBYTECODE=1",
+        "--volume", f"{root}:/repo:ro",
+        "--volume", f"{wheel}:/parser:ro",
+        "--workdir", "/repo",
+        "python:3.11.15-slim-bookworm@sha256:d29f48a31a8b408ed19272ca1e7b10ebae13b240a27e862d3d4217c528e2e0c3",
+        "python", "-m", "scripts.score_v2_1f_wpu0561_pdf_v13_parser",
+    ]
+
+
 def parse_in_sandbox(pdf: bytes, *, sandbox_cmd: list[str]) -> dict[str, Any]:
     """Provide in-memory bytes over stdin; never persist raw output or error text."""
     try:
@@ -183,6 +216,15 @@ def parse_in_sandbox(pdf: bytes, *, sandbox_cmd: list[str]) -> dict[str, Any]:
         raise GlobalStop("unjustified_first_release_proof")
     if parsed["network_requests"] != 0:
         raise GlobalStop("sandbox_network_claim_mismatch")
+    for field in (
+        "table9_title_seen", "unadjusted_index_role_seen", "percent_change_role_seen",
+        "target_label_seen", "target_scope_seen", "ambiguous_layout", "vintage_proven",
+        "identifier_values_retained", "economic_values_retained",
+    ):
+        if type(parsed[field]) is not bool:
+            raise GlobalStop("sanitized_boolean_type_error")
+    if parsed["page_count_band"] not in ("unknown", "1_to_50", "51_to_200"):
+        raise GlobalStop("unapproved_page_count_band")
     if parsed["status"] not in ("structural_metadata_only_hold", "fail_closed"):
         raise GlobalStop("invalid_preflight_status")
     if not isinstance(parsed["reason_codes"], list) or len(parsed["reason_codes"]) > 16:
@@ -218,17 +260,9 @@ def main() -> int:
         if not args.live:
             raise GlobalStop("live_mode_not_selected")
         validate_live_gate()
-        opener = urllib.request.build_opener(NoRedirect())
+        cmd = configured_sandbox_command()
+        opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), NoRedirect())
         body = fetch_exactly_once(opener=opener, budget=budget)
-        sandbox = os.environ.get("WPU0561_V13_SANDBOX_COMMAND_JSON", "")
-        cmd = json.loads(sandbox)
-        if (
-            not isinstance(cmd, list)
-            or not cmd
-            or any(not isinstance(s, str) for s in cmd)
-            or cmd[0] != "docker"
-        ):
-            raise GlobalStop("sandbox_command_not_configured")
         result = parse_in_sandbox(body, sandbox_cmd=cmd)
         output = {
             **result,
