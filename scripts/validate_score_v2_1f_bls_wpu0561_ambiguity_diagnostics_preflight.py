@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate activated-but-not-dispatched Issue #258 design-v8 header-band inventory."""
+"""Validate dispatched Issue #258 design-v8 header-band inventory."""
 
 from __future__ import annotations
 
@@ -45,10 +45,11 @@ def validate(repo_root: Path | None = None) -> dict[str, Any]:
     workflow = (root / WORKFLOW.relative_to(ROOT)).read_text(encoding="utf-8")
 
     if not receipt_path.exists():
-        raise RuntimeError("active v8 receipt must exist after activation")
-    if dispatch_path.exists():
-        raise RuntimeError("dispatch must remain absent before separate review")
+        raise RuntimeError("active v8 receipt must exist while dispatched")
+    if not dispatch_path.exists():
+        raise RuntimeError("v8 dispatch marker must exist while dispatched")
     receipt = _load(receipt_path)
+    dispatch = _load(dispatch_path)
 
     if rights.get("state") != "hold":
         raise RuntimeError("Issue #155 rights gate must remain HOLD")
@@ -130,18 +131,47 @@ def validate(repo_root: Path | None = None) -> dict[str, Any]:
         if auth.get(field) is not False:
             raise RuntimeError(f"{field} must remain false")
 
-    if contract.get("version") != 18:
-        raise RuntimeError("v8 activation contract version changed")
-    if contract.get("state") != "ambiguity_diagnostics_v8_container_header_band_authorized_pending_dispatch":
-        raise RuntimeError("contract must be active but pending dispatch")
+    if dispatch.get("state") != "approved_dispatch":
+        raise RuntimeError("dispatch state changed")
+    if dispatch.get("phase") != "bls_wpu0561_container_header_band_inventory_preflight":
+        raise RuntimeError("dispatch phase changed")
+    if dispatch.get("issue") != ISSUE:
+        raise RuntimeError("dispatch issue changed")
+    if dispatch.get("design_version") != 8:
+        raise RuntimeError("dispatch design version changed")
+    if dispatch.get("authorization_activation_merge_commit") != "312a90e51ccbd91deff543af271bafc6d02247cb":
+        raise RuntimeError("dispatch activation commit changed")
+    if dispatch.get("request_budget") != 2:
+        raise RuntimeError("dispatch request budget changed")
+    if dispatch.get("max_economic_observations_total") != 0:
+        raise RuntimeError("dispatch economic observation budget changed")
+    if dispatch.get("inspect_top_rows") != 32:
+        raise RuntimeError("dispatch row bound changed")
+    if dispatch.get("maximum_persisted_text_cells_per_selected_container") != 128:
+        raise RuntimeError("dispatch cell bound changed")
+    if dispatch.get("fixed_resources") != EXPECTED_RESOURCES:
+        raise RuntimeError("dispatch resources changed")
+    if dispatch.get("identifier_value_read_authorized") is not False:
+        raise RuntimeError("identifier-value reads must remain forbidden")
+    if dispatch.get("economic_value_read_authorized") is not False:
+        raise RuntimeError("economic-value reads must remain forbidden")
+    if dispatch.get("production_authorized") is not False:
+        raise RuntimeError("Production must remain unauthorized")
+
+    if contract.get("version") != 19:
+        raise RuntimeError("v8 dispatch contract version changed")
+    if contract.get("state") != "ambiguity_diagnostics_v8_container_header_band_authorized":
+        raise RuntimeError("contract must be dispatched-active")
     if contract.get("owner_approval_comment_id") != APPROVAL_COMMENT:
         raise RuntimeError("contract approval comment changed")
     if contract.get("owner_approval_timestamp") != APPROVED_AT:
         raise RuntimeError("contract approval timestamp changed")
+    if contract.get("authorization_activation_merge_commit") != "312a90e51ccbd91deff543af271bafc6d02247cb":
+        raise RuntimeError("contract activation commit changed")
     if contract.get("active_authorization_receipt_expected_now") is not True:
         raise RuntimeError("active receipt must be expected")
-    if contract.get("dispatch_marker_expected_now") is not False:
-        raise RuntimeError("dispatch must remain absent")
+    if contract.get("dispatch_marker_expected_now") is not True:
+        raise RuntimeError("dispatch marker must be expected")
     current = contract.get("current_state", {})
     if current.get("response_body_ephemeral_retrieval_authorized") is not True:
         raise RuntimeError("ephemeral retrieval must be active")
@@ -159,22 +189,24 @@ def validate(repo_root: Path | None = None) -> dict[str, Any]:
         if current.get(field) is not False:
             raise RuntimeError(f"{field} must remain false")
 
-    if ("if: $" + "{{ false }}") not in workflow:
-        raise RuntimeError("activation workflow must remain inert")
-    if "push:" in workflow:
-        raise RuntimeError("activation workflow must not have a push trigger")
+    if "score-v2-1f-bls-wpu0561-ambiguity-diagnostics-preflight-dispatch.json" not in workflow:
+        raise RuntimeError("workflow must be path-gated to the dispatch marker")
+    if ("if: $" + "{{ false }}") in workflow:
+        raise RuntimeError("workflow must be active in dispatched state")
+    if "workflow_dispatch:" in workflow:
+        raise RuntimeError("dispatched workflow must not allow manual reruns")
 
     return {
         "status": "passed",
-        "state": "ambiguity_diagnostics_v8_container_header_band_authorized_pending_dispatch",
+        "state": "ambiguity_diagnostics_v8_container_header_band_authorized",
         "design_version": 8,
         "request_budget": 2,
         "max_economic_observations_total": 0,
         "v8_header_band_top_rows": 32,
         "v8_header_band_max_cells": 128,
         "active_receipt_present": True,
-        "dispatch_present": False,
-        "live_request_authorized": False,
+        "dispatch_present": True,
+        "live_request_authorized": True,
         "identifier_value_read_authorized": False,
         "economic_value_read_authorized": False,
         "production_authorized": False,
