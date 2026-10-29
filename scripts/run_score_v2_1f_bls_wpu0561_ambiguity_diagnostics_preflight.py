@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Owner-authorized Issue #258 design-v5 candidate-context inventory.
+"""Owner-authorized Issue #258 design-v7 candidate-local header-gap inventory.
 
-Python standard library only. At most one GET attempt is made to each fixed
+Python standard library only. Exactly one attempt is available for each fixed
 resource. Redirects and retries are forbidden. Response bodies remain ephemeral.
-Identifier values and economic values are never persisted in the diagnostic
-output; text is numeric-redacted before candidate context is retained.
+All text is numeric-redacted before structural selection or persistence.
+Identifier values and economic values are never read from numeric cells and are
+never persisted in output.
 """
 
 from __future__ import annotations
@@ -26,14 +27,13 @@ from scripts import score_v2_1f_wpu0561_ambiguity_diagnostics as diagnostic
 ROOT = Path(__file__).resolve().parents[1]
 ISSUE = "https://github.com/usdimpact/usd-impact-pipeline/issues/258"
 HOST = "www.bls.gov"
-USER_AGENT = "USD-Impact-Score-v2.1F-WPU0561-candidate-context/1.0 (contact: support@usd-impact.com)"
+USER_AGENT = "USD-Impact-Score-v2.1F-WPU0561-header-gap/1.0 (contact: support@usd-impact.com)"
 HTML_PATH = "/news.release/archives/ppi_05152013.htm"
 XLSX_PATH = "/ppi/detailed-report/ppi-detailed-report-april-2026.xlsx"
 FIXED_RESOURCES = [HTML_PATH, XLSX_PATH]
 MAX_RESPONSE_BYTES = 50 * 1024 * 1024
-MAX_CANDIDATES_PER_RESOURCE = 32
-MAX_PRECEDING_ROWS = 8
-MAX_TEXT_CELLS_PER_CANDIDATE = 64
+MAX_HEADER_GAP_ROWS = 32
+MAX_HEADER_GAP_CELLS = 128
 
 RECEIPT = ROOT / "governance/score-v2-1f-bls-wpu0561-ambiguity-diagnostics-preflight-authorization.json"
 DISPATCH = ROOT / "governance/score-v2-1f-bls-wpu0561-ambiguity-diagnostics-preflight-dispatch.json"
@@ -52,6 +52,10 @@ CHALLENGE_PHRASES = (
 
 class GlobalStop(RuntimeError):
     """A fail-closed condition that cancels any remaining request attempt."""
+
+
+class SemanticStop(RuntimeError):
+    """A fail-closed semantic condition after the authorized fetches."""
 
 
 class RequestBudget:
@@ -87,18 +91,29 @@ def _validate_authorization_and_dispatch() -> str:
     contract = _load_json(CONTRACT)
     design = _load_json(DESIGN)
 
-    if design.get("version") != 5 or design.get("state") != "design_only_hold":
-        raise RuntimeError("Issue #258 frozen design v5 changed")
-    inventory = design.get("candidate_context_inventory_policy", {})
-    if inventory.get("maximum_candidates_per_resource") != MAX_CANDIDATES_PER_RESOURCE:
-        raise RuntimeError("candidate limit changed")
-    if inventory.get("preceding_rows_per_candidate") != MAX_PRECEDING_ROWS:
-        raise RuntimeError("preceding-row limit changed")
-    if inventory.get("maximum_persisted_text_cells_per_candidate") != MAX_TEXT_CELLS_PER_CANDIDATE:
-        raise RuntimeError("cell limit changed")
-    if inventory.get("identifier_values") != "forbidden; this diagnostic does not read or persist identifier values":
+    if design.get("version") != 7 or design.get("state") != "design_only_hold":
+        raise RuntimeError("Issue #258 frozen design v7 changed")
+
+    exact = design.get("exact_label_candidate_policy", {})
+    discriminator = design.get("xlsx_context_discriminator_policy", {})
+    header_gap = design.get("candidate_local_header_gap_policy", {})
+    if exact.get("expected_html_narrowing") != "3 -> 1":
+        raise RuntimeError("v6 HTML prerequisite changed")
+    if exact.get("expected_xlsx_narrowing") != "29 -> 2":
+        raise RuntimeError("v6 XLSX prerequisite changed")
+    if discriminator.get("expected_direct_commodity_survivors") != 1:
+        raise RuntimeError("v6 direct-commodity prerequisite changed")
+    if discriminator.get("row_number_as_selector") is not False:
+        raise RuntimeError("row numbers must not be selection semantics")
+    if header_gap.get("maximum_preceding_rows") != MAX_HEADER_GAP_ROWS:
+        raise RuntimeError("header-gap row bound changed")
+    if header_gap.get("following_rows") != 0:
+        raise RuntimeError("header-gap following-row bound changed")
+    if header_gap.get("maximum_persisted_text_cells_per_selected_candidate") != MAX_HEADER_GAP_CELLS:
+        raise RuntimeError("header-gap cell bound changed")
+    if header_gap.get("identifier_values") != "forbidden":
         raise RuntimeError("identifier-value policy changed")
-    if inventory.get("economic_values") != "forbidden":
+    if header_gap.get("economic_values") != "forbidden":
         raise RuntimeError("economic-value policy changed")
 
     if receipt.get("decision_status") != "approved":
@@ -122,7 +137,7 @@ def _validate_authorization_and_dispatch() -> str:
     if auth.get("response_body_ephemeral_retrieval") is not True:
         raise RuntimeError("ephemeral retrieval must be authorized")
     if auth.get("ambiguity_diagnostics_preflight") is not True:
-        raise RuntimeError("candidate-context preflight must be authorized")
+        raise RuntimeError("header-gap preflight must be authorized")
     for field in (
         "numeric_identifier_field_read",
         "economic_value_read",
@@ -137,22 +152,30 @@ def _validate_authorization_and_dispatch() -> str:
 
     if dispatch.get("state") != "approved_dispatch":
         raise RuntimeError("Issue #258 dispatch state changed")
-    if dispatch.get("phase") != "bls_wpu0561_candidate_context_inventory_preflight":
+    if dispatch.get("phase") != "bls_wpu0561_candidate_local_header_gap_inventory_preflight":
         raise RuntimeError("Issue #258 dispatch phase changed")
     if dispatch.get("issue") != ISSUE:
         raise RuntimeError("Issue #258 dispatch issue changed")
+    if dispatch.get("design_version") != 7:
+        raise RuntimeError("Issue #258 dispatch design version changed")
     if dispatch.get("request_budget") != 2:
         raise RuntimeError("Issue #258 dispatch budget changed")
     if dispatch.get("max_economic_observations_total") != 0:
         raise RuntimeError("Issue #258 dispatch economic observation budget changed")
     if dispatch.get("fixed_resources") != FIXED_RESOURCES:
         raise RuntimeError("Issue #258 dispatch resources changed")
+    if dispatch.get("maximum_preceding_rows") != MAX_HEADER_GAP_ROWS:
+        raise RuntimeError("Issue #258 dispatch row bound changed")
+    if dispatch.get("maximum_persisted_text_cells_per_selected_candidate") != MAX_HEADER_GAP_CELLS:
+        raise RuntimeError("Issue #258 dispatch cell bound changed")
     if dispatch.get("identifier_value_read_authorized") is not False:
         raise RuntimeError("identifier value reads must remain forbidden")
+    if dispatch.get("economic_value_read_authorized") is not False:
+        raise RuntimeError("economic value reads must remain forbidden")
     if dispatch.get("production_authorized") is not False:
         raise RuntimeError("Production must remain unauthorized")
 
-    if contract.get("state") != "ambiguity_diagnostics_v5_candidate_context_authorized":
+    if contract.get("state") != "ambiguity_diagnostics_v7_header_gap_authorized":
         raise RuntimeError("Issue #258 execution contract is not dispatched-active")
     if contract.get("active_authorization_receipt_expected_now") is not True:
         raise RuntimeError("Issue #258 active receipt must be expected")
@@ -162,7 +185,7 @@ def _validate_authorization_and_dispatch() -> str:
     if current.get("response_body_ephemeral_retrieval_authorized") is not True:
         raise RuntimeError("ephemeral retrieval must be active")
     if current.get("ambiguity_diagnostics_preflight_authorized") is not True:
-        raise RuntimeError("candidate-context preflight must be active")
+        raise RuntimeError("header-gap preflight must be active")
     for field in (
         "numeric_identifier_field_read_authorized",
         "economic_value_read_authorized",
@@ -274,47 +297,6 @@ class _ContextHTMLTables(HTMLParser):
             self.table_depth -= 1
 
 
-def _inventory_resource_containers(
-    containers: list[tuple[str, list[list[str]]]],
-) -> tuple[list[dict[str, Any]], int]:
-    output: list[dict[str, Any]] = []
-    total_candidates = 0
-    for container_name, rows in containers:
-        inventory = diagnostic.candidate_context_inventory(
-            rows,
-            preceding_rows=MAX_PRECEDING_ROWS,
-            max_candidates=MAX_CANDIDATES_PER_RESOURCE,
-            max_cells_per_candidate=MAX_TEXT_CELLS_PER_CANDIDATE,
-        )
-        total_candidates += len(inventory)
-        if total_candidates > MAX_CANDIDATES_PER_RESOURCE:
-            raise GlobalStop("candidate_context_count_exceeds_32_per_resource")
-        if inventory:
-            output.append({"container": container_name, "candidates": inventory})
-    return output, total_candidates
-
-
-def _inventory_html(body: bytes) -> dict[str, Any]:
-    parser = _ContextHTMLTables()
-    parser.feed(body.decode("utf-8", errors="replace"))
-    containers = [
-        (f"table {index}", rows)
-        for index, rows in enumerate(parser.tables, start=1)
-    ]
-    inventory, candidate_count = _inventory_resource_containers(containers)
-    return {
-        "transport_status": "passed",
-        "semantic_status": "evaluated",
-        "candidate_count": candidate_count,
-        "containers": inventory,
-        "candidate_context_truncated": any(
-            candidate.get("truncated") is True
-            for container in inventory
-            for candidate in container.get("candidates", [])
-        ),
-    }
-
-
 def _column_number(cell_ref: str) -> int:
     letters = re.match(r"([A-Za-z]+)", cell_ref)
     if not letters:
@@ -405,10 +387,19 @@ def _sheet_rows_safe(sheet_data: bytes, shared: list[str]) -> list[list[str]]:
     return rows
 
 
-def _inventory_xlsx(body: bytes) -> dict[str, Any]:
+def _parse_html_containers(body: bytes) -> list[tuple[str, list[list[str]]]]:
+    parser = _ContextHTMLTables()
+    parser.feed(body.decode("utf-8", errors="replace"))
+    parser.close()
+    return [
+        (f"table {index}", rows)
+        for index, rows in enumerate(parser.tables, start=1)
+    ]
+
+
+def _parse_xlsx_containers(body: bytes) -> list[tuple[str, list[list[str]]]]:
     if not body.startswith(b"PK"):
         raise GlobalStop("unexpected_xlsx_format")
-
     containers: list[tuple[str, list[list[str]]]] = []
     with zipfile.ZipFile(io.BytesIO(body), "r") as archive:
         shared = _shared_strings_safe(archive)
@@ -418,69 +409,180 @@ def _inventory_xlsx(body: bytes) -> dict[str, Any]:
             if re.fullmatch(r"xl/worksheets/sheet\d+\.xml", name)
         )
         for sheet_name in sheet_names:
-            rows = _sheet_rows_safe(archive.read(sheet_name), shared)
-            containers.append((sheet_name, rows))
+            containers.append(
+                (sheet_name, _sheet_rows_safe(archive.read(sheet_name), shared))
+            )
+    return containers
 
-    inventory, candidate_count = _inventory_resource_containers(containers)
+
+def _exact_candidates(
+    containers: list[tuple[str, list[list[str]]]],
+) -> list[tuple[str, int, list[list[str]]]]:
+    output: list[tuple[str, int, list[list[str]]]] = []
+    for container_name, rows in containers:
+        for row_number in diagnostic.exact_target_rows(rows):
+            output.append((container_name, row_number, rows))
+    return output
+
+
+def _select_v7_candidates(
+    html_containers: list[tuple[str, list[list[str]]]],
+    xlsx_containers: list[tuple[str, list[list[str]]]],
+) -> tuple[tuple[str, int, list[list[str]]], tuple[str, int, list[list[str]]]]:
+    html_candidates = _exact_candidates(html_containers)
+    if len(html_candidates) != 1:
+        raise SemanticStop("v6_html_exact_label_prerequisite_failed")
+
+    xlsx_candidates = _exact_candidates(xlsx_containers)
+    if len(xlsx_candidates) != 2:
+        raise SemanticStop("v6_xlsx_exact_label_prerequisite_failed")
+
+    classified: list[tuple[str, int, list[list[str]], str]] = []
+    for container_name, row_number, rows in xlsx_candidates:
+        status = str(
+            diagnostic.classify_exact_target_context(rows, row_number)["context_status"]
+        )
+        classified.append((container_name, row_number, rows, status))
+
+    direct = [
+        item
+        for item in classified
+        if item[3] == "commodity_unprocessed_nonfood_context"
+    ]
+    stage = [
+        item
+        for item in classified
+        if item[3] == "stage_intermediate_demand_context"
+    ]
+    if len(direct) != 1 or len(stage) != 1:
+        raise SemanticStop("v6_xlsx_context_discriminator_prerequisite_failed")
+
+    html_selected = html_candidates[0]
+    xlsx_selected = (direct[0][0], direct[0][1], direct[0][2])
+    return html_selected, xlsx_selected
+
+
+def _header_gap_result(
+    resource_path: str,
+    selected: tuple[str, int, list[list[str]]],
+) -> dict[str, Any]:
+    container_name, candidate_row, rows = selected
+    gap = diagnostic.candidate_local_header_gap_inventory(
+        rows,
+        candidate_row,
+        max_preceding_rows=MAX_HEADER_GAP_ROWS,
+        max_cells=MAX_HEADER_GAP_CELLS,
+    )
     return {
-        "transport_status": "passed",
-        "semantic_status": "evaluated",
-        "candidate_count": candidate_count,
-        "containers": inventory,
-        "candidate_context_truncated": any(
-            candidate.get("truncated") is True
-            for container in inventory
-            for candidate in container.get("candidates", [])
-        ),
+        "resource_path": resource_path,
+        "container": container_name,
+        "candidate_row": gap["candidate_row"],
+        "window_start_row": gap["window_start_row"],
+        "window_end_row": gap["window_end_row"],
+        "cells": gap["cells"],
+        "blank_separator_rows": gap["blank_separator_rows"],
+        "recognized_header_role_rows": gap["recognized_header_role_rows"],
+        "nearest_recognized_header_row": gap["nearest_recognized_header_row"],
+        "nearest_recognized_header_distance": gap["nearest_recognized_header_distance"],
+        "truncated": gap["truncated"],
     }
 
 
 def run_preflight() -> dict[str, Any]:
     user_agent = _validate_authorization_and_dispatch()
     budget = RequestBudget()
-    resources: list[dict[str, Any]] = []
+    transport: list[dict[str, Any]] = []
+    bodies: dict[str, bytes] = {}
 
-    for path, kind in ((HTML_PATH, "html"), (XLSX_PATH, "xlsx")):
-        transport, body = _request_once(path, user_agent, budget)
-        if transport == "transport_dns_failure":
-            resources.append(
+    for path in FIXED_RESOURCES:
+        status, body = _request_once(path, user_agent, budget)
+        if status == "transport_dns_failure":
+            transport.append(
                 {
                     "resource_path": path,
                     "transport_status": "failed",
                     "semantic_status": "not_evaluated",
-                    "candidate_count": 0,
                     "transport_reason": "transport_dns_failure",
                 }
             )
             continue
-
         assert body is not None
-        result = _inventory_html(body) if kind == "html" else _inventory_xlsx(body)
-        result["resource_path"] = path
-        resources.append(result)
-        del body
+        transport.append(
+            {
+                "resource_path": path,
+                "transport_status": "passed",
+                "semantic_status": "pending",
+            }
+        )
+        bodies[path] = body
 
-    evaluated = sum(1 for item in resources if item.get("semantic_status") == "evaluated")
-    if evaluated == 2:
-        status = "completed"
-    elif evaluated == 1:
-        status = "partial_transport"
-    else:
-        status = "transport_not_evaluated"
+    if set(bodies) != set(FIXED_RESOURCES):
+        for item in transport:
+            if item.get("semantic_status") == "pending":
+                item["semantic_status"] = "not_evaluated"
+        return {
+            "status": "partial_transport",
+            "issue": ISSUE,
+            "design_version": 7,
+            "request_attempt_count": budget.count,
+            "transport": transport,
+            "selected_candidates": [],
+            "identifier_values_retained": False,
+            "economic_values_retained": False,
+            "full_historical_reconstruction": False,
+            "candidate_score_computed": False,
+            "research_ledger_modified": False,
+            "public_artifacts_modified": False,
+            "production_modified": False,
+        }
+
+    html_containers = _parse_html_containers(bodies[HTML_PATH])
+    xlsx_containers = _parse_xlsx_containers(bodies[XLSX_PATH])
+    del bodies
+
+    try:
+        html_selected, xlsx_selected = _select_v7_candidates(
+            html_containers,
+            xlsx_containers,
+        )
+    except SemanticStop as exc:
+        for item in transport:
+            item["semantic_status"] = "evaluated_fail_closed"
+        return {
+            "status": "ambiguous",
+            "issue": ISSUE,
+            "design_version": 7,
+            "request_attempt_count": budget.count,
+            "transport": transport,
+            "semantic_stop_reason": str(exc),
+            "selected_candidates": [],
+            "identifier_values_retained": False,
+            "economic_values_retained": False,
+            "full_historical_reconstruction": False,
+            "candidate_score_computed": False,
+            "research_ledger_modified": False,
+            "public_artifacts_modified": False,
+            "production_modified": False,
+        }
+
+    selected = [
+        _header_gap_result(HTML_PATH, html_selected),
+        _header_gap_result(XLSX_PATH, xlsx_selected),
+    ]
+    for item in transport:
+        item["semantic_status"] = "evaluated"
 
     return {
-        "status": status,
+        "status": "completed",
         "issue": ISSUE,
-        "design_version": 5,
+        "design_version": 7,
         "request_attempt_count": budget.count,
-        "request_budget": 2,
-        "economic_observation_count": 0,
-        "identifier_value_count": 0,
-        "resources": resources,
+        "transport": transport,
+        "selected_candidates": selected,
+        "identifier_values_retained": False,
+        "economic_values_retained": False,
         "full_historical_reconstruction": False,
         "candidate_score_computed": False,
-        "component_zscores_computed": False,
-        "component_contributions_computed": False,
         "research_ledger_modified": False,
         "public_artifacts_modified": False,
         "production_modified": False,
@@ -496,10 +598,10 @@ def main() -> int:
                 {
                     "status": "fail_closed",
                     "issue": ISSUE,
-                    "design_version": 5,
+                    "design_version": 7,
                     "global_stop_reason": str(exc),
-                    "economic_observation_count": 0,
-                    "identifier_value_count": 0,
+                    "identifier_values_retained": False,
+                    "economic_values_retained": False,
                     "full_historical_reconstruction": False,
                     "candidate_score_computed": False,
                     "research_ledger_modified": False,
