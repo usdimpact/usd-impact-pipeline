@@ -1,0 +1,41 @@
+{
+  "schema_version": "fred-terms-clause-crosswalk-v1",
+  "verified_on": "2026-10-29",
+  "document_scope": "Public FRED Services and API terms; source text can change, so re-verify at rights decision time.",
+  "public_primary_source": "https://fred.stlouisfed.org/legal/terms/",
+  "sections": {
+    "fred_services": {
+      "p": "AI/ML development or training restriction",
+      "q": "storage, caching, archiving, or database incorporation restriction",
+      "r": "modification, copying, distribution, and derived works restriction"
+    },
+    "fred_api": {
+      "k": "AI/ML development or training restriction",
+      "l": "API-related storage, caching, archiving, or database incorporation restriction"
+    }
+  },
+  "separate_api_obligation": "Published FRED API terms include a non-endorsement application notice; verify whether any future authorized application triggers it.",
+  "email_evidence": {
+    "access": "Gmail connector accessible and scoped provider threads verified independently on 2026-10-29; Deep Research run itself could not access Gmail.",
+    "provider_inbound_messages_scoped": {
+      "fred": 1,
+      "sp_dji": 2,
+      "cboe": 2
+    },
+    "attachments_in_retrieved_provider_messages": 0,
+    "limitations": "Scoped mailbox search, not complete legal-archive audit; private bodies and identities intentionally not reproduced."
+  },
+  "current_legal_determination": "None; the public terms and provider correspondence do not themselves resolve treatment of already public transformed histories.",
+  "authorizations": {
+    "score_publication": false,
+    "real_provider_storage": false,
+    "provider_derivatives_distribution": false,
+    "source_switch": false,
+    "history_rewrite_or_purge": false,
+    "production_change": false
+  },
+  "issues": [
+    "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
+    "https://github.com/usdimpact/usd-impact-pipeline/issues/282"
+  ]
+}
