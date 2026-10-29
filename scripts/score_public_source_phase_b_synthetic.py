@@ -200,6 +200,21 @@ def evaluate_synthetic_asof(
             blockers.append("TREASURY_CURVE_SNAPSHOT_MISMATCH")
         if two.revision != ten.revision:
             blockers.append("TREASURY_CURVE_REVISION_MISMATCH")
+        # Two tenor rows from a supposedly identical immutable curve version
+        # must have one coherent publication and detection timeline.  Matching
+        # a synthetic snapshot ID/revision alone does NOT establish that both
+        # fields were first published and first seen at the same instant.
+        # Compare UTC instants so different but equivalent timezone encodings
+        # are accepted.  A mismatch is a HOLD, never a substitute timestamp.
+        for timestamp_attr, blocker in (
+            ("initial_release_at", "TREASURY_CURVE_INITIAL_RELEASE_MISMATCH"),
+            ("version_published_at", "TREASURY_CURVE_VERSION_PUBLICATION_MISMATCH"),
+            ("first_seen_at", "TREASURY_CURVE_FIRST_SEEN_MISMATCH"),
+        ):
+            if _utc(getattr(two, timestamp_attr), timestamp_attr) != _utc(
+                getattr(ten, timestamp_attr), timestamp_attr
+            ):
+                blockers.append(blocker)
 
     # Never return any numeric source observation. Even a complete four-signal
     # synthetic receipt set is NOT an approved model or publication license.
