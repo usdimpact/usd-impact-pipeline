@@ -233,6 +233,10 @@ class OwnerOptionAClosureTests(unittest.TestCase):
         self.update(MANIFEST, lambda d: d["v16"].update(request_budget_remaining=1))
         self.assert_closed("recovery_manifest_not_option_a_only")
 
+    def test_manifest_rights_hold_cannot_be_cleared(self):
+        self.update(MANIFEST, lambda d: d["v16"].update(rights_issue_155_hold=False))
+        self.assert_closed("recovery_manifest_not_option_a_only")
+
     def test_manifest_does_not_change_to_B(self):
         self.update(MANIFEST, lambda d: d["v16"].update(chosen_option="B"))
         self.assert_closed("recovery_manifest_not_option_a_only")
