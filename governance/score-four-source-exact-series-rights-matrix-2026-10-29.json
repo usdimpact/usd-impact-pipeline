@@ -1,0 +1,444 @@
+{
+  "schema_version": "score-four-source-exact-series-rights-review-v1",
+  "reviewed_on": "2026-10-29",
+  "prepared_status": "PUBLISHER_METADATA_RESEARCH_ONLY_HOLD",
+  "base_branch_main_commit": "d98f8ec232a10515417ceadd2131018a4c11890a",
+  "authoritative_parent": "governance/score-public-source-phase-b-design-2026-10-29.json",
+  "controlling_issues": [
+    "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
+    "https://github.com/usdimpact/usd-impact-pipeline/issues/282"
+  ],
+  "product_boundary": {
+    "legacy_eight_driver_score": {
+      "rights_state": "HOLD",
+      "separate_license_gate": true,
+      "rights_cleared": false,
+      "changes_authorized": false,
+      "source_substitution_authorized": false,
+      "original_history_may_be_spliced": false
+    },
+    "proposed_distinct_four_signal_study": {
+      "rights_state": "SYNTHETIC_ONLY_RESEARCH_HOLD",
+      "separate_license_gate": true,
+      "rights_cleared": false,
+      "independent_methodology_approved": false,
+      "real_source_fetch_approved": false,
+      "commercial_processing_approved": false,
+      "publication_approved": false,
+      "production_approved": false
+    }
+  },
+  "reviewed_evidence_scope": "Publisher-owned policy pages, catalog entries, series-name metadata and schedules only. No market numerical observations copied, downloaded into repository, tested, stored or ingested. These are evidentiary observations, not grants.",
+  "decision_policy": {
+    "permission_dimensions": [
+      "commercial_internal_ingestion",
+      "commercial_non_display_transformation",
+      "transient_processing",
+      "provider_content_retention",
+      "observations_archival",
+      "logs_and_cache_retention",
+      "backup_and_disaster_recovery_retention",
+      "revision_vintage_receipt_retention",
+      "public_aggregate_distribution",
+      "public_component_distribution",
+      "public_history_distribution",
+      "ai_ml_processing",
+      "downstream_redistribution",
+      "live_source_retrieval"
+    ],
+    "default": "DENY",
+    "no_implicit_approval_from_public_domain_or_cc0": true,
+    "rights_grant_requires_exact_series_source_transport_upstream_and_output_scope": true,
+    "explicit_signed_source_or_counsel_disposition_required": true,
+    "project_owner_permission_required_separately": true,
+    "historic_first_published_vintage_and_first_seen_receipts_required": true,
+    "public_score_release_independent_authorization_required": true,
+    "no_consumer_or_pipeline_changes": true,
+    "no_live_download_or_database_writes": true,
+    "no_github_archive_purge": true
+  },
+  "source_count": 4,
+  "sources": [
+    {
+      "id": "fed_h10_nominal_broad",
+      "publisher": "Board of Governors of the Federal Reserve System",
+      "originating_publication": "H.10 Foreign Exchange Rates",
+      "exact_series_identity": {
+        "publisher_native_series_key": "H10/H10/JRXWTFB_N.B",
+        "native_key_verified_from_publisher_metadata": true,
+        "series_label": "Nominal Broad Dollar Index - Daily Index",
+        "nominal_not_real": true,
+        "parity_to_ice_dxy": false,
+        "units": "trade-weighted index",
+        "units_or_base_fully_reconciled": false,
+        "warning": "Board Technical Q&A documents June 2019 daily-index rebasing to January 2006 monthly mean=100; DDP preview metadata unit label appears different; reconcile release, historic bases, version and units prior to any use."
+      },
+      "transport": {
+        "publisher_owned": "Board H.10 release page and historical XML",
+        "publisher_owned_metadata_documented": true,
+        "automated_post_ddp_transport_verified": false,
+        "ddp_build_your_package_sunset_week": "2026-11-09",
+        "fred_transport_option": "SEPARATE_RIGHTS_GATE_UNAUTHORIZED",
+        "direct_access_to_real_data_approved": false
+      },
+      "rights_evidence": {
+        "type": "BOARD_GENERAL_PUBLIC_DOMAIN_EXCEPTION",
+        "license_label": "Board material generally public domain absent exceptions; source-specific review required",
+        "exact_series_clearance": false,
+        "upstream_contributors_audited": false,
+        "proprietary_input_exceptions_excluded": false
+      },
+      "cadence": {
+        "observed_frequency": "daily_index",
+        "published": "following Monday approximately 16:15 America/New_York for previous week, later after Monday federal holiday",
+        "actual_first_publication_receipt_verified": false,
+        "version_first_seen_receipt_verified": false,
+        "historical_correction_record": "H.10 August 10, 2026 publication containing August 3 errors corrected August 12, 2026"
+      },
+      "evidence": [
+        {
+          "topic": "Board direct series metadata",
+          "url": "https://www.federalreserve.gov/datadownload/Preview.aspx?pi=400&preview=H10%2FH10%2FJRXWTFB_N.B&rel=H10",
+          "claim_type": "IDENTITY_METADATA"
+        },
+        {
+          "topic": "H.10 publication and Monday release policy",
+          "url": "https://www.federalreserve.gov/releases/h10/",
+          "claim_type": "CADENCE"
+        },
+        {
+          "topic": "2019 daily index rebasing",
+          "url": "https://www.federalreserve.gov/releases/h10/h10_technical_qa.htm",
+          "claim_type": "METHODOLOGY"
+        },
+        {
+          "topic": "Board public-domain disclaimer and exceptions",
+          "url": "https://www.federalreserve.gov/disclaimer.htm",
+          "claim_type": "GENERAL_REUSE_POLICY"
+        },
+        {
+          "topic": "Board DDP transition and historical XML",
+          "url": "https://www.federalreserve.gov/data/data-download-fred-information.htm",
+          "claim_type": "TRANSPORT_CONTINUITY_POLICY"
+        },
+        {
+          "topic": "H.10 August 2026 correction notice",
+          "url": "https://www.federalreserve.gov/datadownload/Choose.aspx?rel=H10",
+          "claim_type": "REVISION_NOTICE"
+        }
+      ],
+      "unresolved": [
+        "Exact federal/third-party source copyright and distribution limitations for this native series",
+        "2019 reindex/base metadata discrepancy",
+        "Post-DDP direct automated XML endpoint durability",
+        "Actual source-first-published and first-seen version receipts",
+        "Retained revisions/log/cache, public aggregates/history and AI/ML terms"
+      ],
+      "permissions": {
+        "commercial_internal_ingestion": false,
+        "commercial_non_display_transformation": false,
+        "transient_processing": false,
+        "provider_content_retention": false,
+        "observations_archival": false,
+        "logs_and_cache_retention": false,
+        "backup_and_disaster_recovery_retention": false,
+        "revision_vintage_receipt_retention": false,
+        "public_aggregate_distribution": false,
+        "public_component_distribution": false,
+        "public_history_distribution": false,
+        "ai_ml_processing": false,
+        "downstream_redistribution": false,
+        "live_source_retrieval": false
+      },
+      "disposition": "EVIDENCE_REVIEW_ONLY_DENY_UNTIL_EXPLICIT_SIGNOFF",
+      "provider_or_counsel_written_decision_receipt": null,
+      "project_owner_scope_approval_receipt": null
+    },
+    {
+      "id": "eia_crude_stocks_weekly",
+      "publisher": "U.S. Energy Information Administration",
+      "originating_publication": "Weekly Petroleum Status Report / Petroleum Supply Weekly",
+      "exact_series_identity": {
+        "publisher_native_series_key": "WCESTUS1",
+        "native_key_verified_from_publisher_metadata": true,
+        "related_publisher_table_key": "PET_STOC_WSTK_A_EPC0_SAX_MBBL_W",
+        "series_label": "Weekly U.S. Ending Stocks excluding SPR of Crude Oil",
+        "units": "thousand barrels",
+        "reference_period": "weekly ending Friday",
+        "excludes_spr": true,
+        "lease_stock_scope": "Commercial (Excl. Lease Stock) in parallel EIA weekly table; validate definition and changes across WPSR/history and API before use",
+        "parity_to_wti_price": false,
+        "includes_refinitiv_wti_price": false
+      },
+      "transport": {
+        "publisher_owned": "EIA weekly data table and series history",
+        "publisher_owned_metadata_documented": true,
+        "official_machine_readable_product_verified": false,
+        "api_key_or_terms_verified": false,
+        "direct_access_to_real_data_approved": false
+      },
+      "rights_evidence": {
+        "type": "EIA_GOVERNMENT_PRODUCED_CONTENT_WITH_PRIVATE_MATERIAL_EXCEPTION",
+        "license_label": "EIA permits general government-produced reuse with source/publication-date acknowledgment; protected third-party material excluded",
+        "exact_series_clearance": false,
+        "upstream_contributors_audited": false,
+        "proprietary_input_exceptions_excluded": false
+      },
+      "cadence": {
+        "observed_frequency": "weekly",
+        "published": "following Wednesday normally 10:30 America/New_York, exceptions published by EIA",
+        "actual_first_publication_receipt_verified": false,
+        "version_first_seen_receipt_verified": false,
+        "historical_correction_record": "Source revision process and original contemporaneous vintages not yet documented"
+      },
+      "evidence": [
+        {
+          "topic": "Exact excluding-SPR weekly series page",
+          "url": "https://www.eia.gov/dnav/pet/hist/LeafHandler.ashx?f=W&n=PET&s=WCESTUS1",
+          "claim_type": "IDENTITY_METADATA"
+        },
+        {
+          "topic": "EIA commercial stocks units and lease-stock scope",
+          "url": "https://www.eia.gov/dnav/pet/PET_STOC_WSTK_A_EPC0_SAX_MBBL_W.htm",
+          "claim_type": "DEFINITION"
+        },
+        {
+          "topic": "Commercial and SPR stock categories",
+          "url": "https://www.eia.gov/dnav/pet/pet_stoc_wstk_dcu_nus_w.htm",
+          "claim_type": "DEFINITION"
+        },
+        {
+          "topic": "WPSR official schedule and holiday variations",
+          "url": "https://www.eia.gov/petroleum/supply/weekly/schedule.php",
+          "claim_type": "CADENCE"
+        },
+        {
+          "topic": "EIA copyright and reuse; third-party exceptions",
+          "url": "https://www.eia.gov/about/copyrights_reuse.php",
+          "claim_type": "GENERAL_REUSE_POLICY"
+        }
+      ],
+      "unresolved": [
+        "Match WCESTUS1 and PET_STOC table observation-definition/vintages throughout revisions without copying actual values",
+        "Confirm exact government survey provenance and source-specific private rights caveats",
+        "Official machine transport and sustained archive/backup/correction availability",
+        "Commercial downstream aggregates and long-horizon history rights",
+        "Attribute EIA with publication date, distinct from licensed Refinitiv WTI spot"
+      ],
+      "permissions": {
+        "commercial_internal_ingestion": false,
+        "commercial_non_display_transformation": false,
+        "transient_processing": false,
+        "provider_content_retention": false,
+        "observations_archival": false,
+        "logs_and_cache_retention": false,
+        "backup_and_disaster_recovery_retention": false,
+        "revision_vintage_receipt_retention": false,
+        "public_aggregate_distribution": false,
+        "public_component_distribution": false,
+        "public_history_distribution": false,
+        "ai_ml_processing": false,
+        "downstream_redistribution": false,
+        "live_source_retrieval": false
+      },
+      "disposition": "EVIDENCE_REVIEW_ONLY_DENY_UNTIL_EXPLICIT_SIGNOFF",
+      "provider_or_counsel_written_decision_receipt": null,
+      "project_owner_scope_approval_receipt": null
+    },
+    {
+      "id": "treasury_direct_2yr_par",
+      "publisher": "U.S. Department of the Treasury / Office of Debt Management",
+      "originating_publication": "Daily Treasury Par Yield Curve Rates",
+      "exact_series_identity": {
+        "publisher_native_series_key": "daily_treasury_yield_curve:2YR",
+        "native_key_verified_from_publisher_metadata": true,
+        "candidate_feed_field": "BC_2YEAR",
+        "candidate_feed_field_metadata_verified": false,
+        "series_label": "2-year nominal par constant maturity yield",
+        "units": "percent per annum (bond-equivalent yield)",
+        "curve_family": "nominal_par_curve",
+        "requires_same_curve_snapshot_as": "treasury_direct_10yr_par",
+        "parity_to_fred_dgs2_asof": false
+      },
+      "transport": {
+        "publisher_owned": "Treasury XML yield-curve endpoint with year/month-selectors",
+        "publisher_owned_metadata_documented": true,
+        "official_feed_key": "daily_treasury_yield_curve",
+        "feed_key_verified_from_documentation": true,
+        "exact_field_mapping_verified": false,
+        "direct_access_to_real_data_approved": false,
+        "fred_transport_option": "SEPARATE_RIGHTS_GATE_UNAUTHORIZED"
+      },
+      "rights_evidence": {
+        "type": "TREASURY_DATA_GOV_CC0_CATALOG_EVIDENCE_CONDITIONAL",
+        "license_label": "Data.gov nominal Treasury daily yield curve dataset 015-DO-020 lists CC0 1.0; underlying quotations originate with FRBNY market-input composites",
+        "exact_series_clearance": false,
+        "upstream_contributors_audited": false,
+        "proprietary_input_exceptions_excluded": false
+      },
+      "cadence": {
+        "observed_frequency": "daily_trading_day",
+        "published": "normally by 18:00 America/New_York, may be later; no 17:00 assumption",
+        "actual_first_publication_receipt_verified": false,
+        "version_first_seen_receipt_verified": false,
+        "historical_correction_record": "Treasury December 6, 2021 par-curve methodology switch; actual revision vintages unproven"
+      },
+      "evidence": [
+        {
+          "topic": "Treasury daily nominal CMT CC0 catalog",
+          "url": "https://catalog.data.gov/dataset/interest-rate-statistics-daily-treasury-yield-curve-rates",
+          "claim_type": "CATALOG_LICENSE"
+        },
+        {
+          "topic": "Treasury XML feed key and year/month selectors",
+          "url": "https://home.treasury.gov/treasury-daily-interest-rate-xml-feed",
+          "claim_type": "TRANSPORT_METADATA"
+        },
+        {
+          "topic": "Treasury 2-year and 10-year columns",
+          "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve",
+          "claim_type": "IDENTITY_METADATA"
+        },
+        {
+          "topic": "Curve methodology, upstream quotations and 18:00 timing",
+          "url": "https://home.treasury.gov/policy-issues/financing-the-government/interest-rate-statistics/treasury-yield-curve-methodology",
+          "claim_type": "PROVENANCE_AND_CADENCE"
+        },
+        {
+          "topic": "Treasury CMT and Board H.15 republishing",
+          "url": "https://home.treasury.gov/policy-issues/financing-the-government/interest-rate-statistics/interest-rates-frequently-asked-questions",
+          "claim_type": "SOURCE_RELATIONSHIP"
+        },
+        {
+          "topic": "FRED service restrictions (not a Treasury license)",
+          "url": "https://fred.stlouisfed.org/legal/terms/",
+          "claim_type": "THIRD_PARTY_TRANSPORT_RIGHTS"
+        }
+      ],
+      "unresolved": [
+        "Confirm BC_2YEAR actual XML element/units from provider-only metadata without ingesting numerical observations",
+        "Written treatment of Treasury CC0 dataset and any upstream market bid rights for commercial transformations",
+        "Storage, intermediate/cache/log/history and derivative publication scope",
+        "Proof of exact first-published and revised curve snapshot per as-of cutoff",
+        "Do not assume direct Treasury and H.15/FRED DGS2 identical publication vintages"
+      ],
+      "permissions": {
+        "commercial_internal_ingestion": false,
+        "commercial_non_display_transformation": false,
+        "transient_processing": false,
+        "provider_content_retention": false,
+        "observations_archival": false,
+        "logs_and_cache_retention": false,
+        "backup_and_disaster_recovery_retention": false,
+        "revision_vintage_receipt_retention": false,
+        "public_aggregate_distribution": false,
+        "public_component_distribution": false,
+        "public_history_distribution": false,
+        "ai_ml_processing": false,
+        "downstream_redistribution": false,
+        "live_source_retrieval": false
+      },
+      "disposition": "EVIDENCE_REVIEW_ONLY_DENY_UNTIL_EXPLICIT_SIGNOFF",
+      "provider_or_counsel_written_decision_receipt": null,
+      "project_owner_scope_approval_receipt": null
+    },
+    {
+      "id": "treasury_direct_10yr_par",
+      "publisher": "U.S. Department of the Treasury / Office of Debt Management",
+      "originating_publication": "Daily Treasury Par Yield Curve Rates",
+      "exact_series_identity": {
+        "publisher_native_series_key": "daily_treasury_yield_curve:10YR",
+        "native_key_verified_from_publisher_metadata": true,
+        "candidate_feed_field": "BC_10YEAR",
+        "candidate_feed_field_metadata_verified": false,
+        "series_label": "10-year nominal par constant maturity yield",
+        "units": "percent per annum (bond-equivalent yield)",
+        "curve_family": "nominal_par_curve",
+        "requires_same_curve_snapshot_as": "treasury_direct_2yr_par",
+        "parity_to_fred_dgs10_asof": false
+      },
+      "transport": {
+        "publisher_owned": "Treasury XML yield-curve endpoint with year/month-selectors",
+        "publisher_owned_metadata_documented": true,
+        "official_feed_key": "daily_treasury_yield_curve",
+        "feed_key_verified_from_documentation": true,
+        "exact_field_mapping_verified": false,
+        "direct_access_to_real_data_approved": false,
+        "fred_transport_option": "SEPARATE_RIGHTS_GATE_UNAUTHORIZED"
+      },
+      "rights_evidence": {
+        "type": "TREASURY_DATA_GOV_CC0_CATALOG_EVIDENCE_CONDITIONAL",
+        "license_label": "Data.gov nominal Treasury daily yield curve dataset 015-DO-020 lists CC0 1.0; underlying quotations originate with FRBNY market-input composites",
+        "exact_series_clearance": false,
+        "upstream_contributors_audited": false,
+        "proprietary_input_exceptions_excluded": false
+      },
+      "cadence": {
+        "observed_frequency": "daily_trading_day",
+        "published": "normally by 18:00 America/New_York, may be later; no 17:00 assumption",
+        "actual_first_publication_receipt_verified": false,
+        "version_first_seen_receipt_verified": false,
+        "historical_correction_record": "Treasury December 6, 2021 par-curve methodology switch; actual revision vintages unproven"
+      },
+      "evidence": [
+        {
+          "topic": "Treasury daily nominal CMT CC0 catalog",
+          "url": "https://catalog.data.gov/dataset/interest-rate-statistics-daily-treasury-yield-curve-rates",
+          "claim_type": "CATALOG_LICENSE"
+        },
+        {
+          "topic": "Treasury XML feed key and year/month selectors",
+          "url": "https://home.treasury.gov/treasury-daily-interest-rate-xml-feed",
+          "claim_type": "TRANSPORT_METADATA"
+        },
+        {
+          "topic": "Treasury 2-year and 10-year columns",
+          "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve",
+          "claim_type": "IDENTITY_METADATA"
+        },
+        {
+          "topic": "Curve methodology, upstream quotations and 18:00 timing",
+          "url": "https://home.treasury.gov/policy-issues/financing-the-government/interest-rate-statistics/treasury-yield-curve-methodology",
+          "claim_type": "PROVENANCE_AND_CADENCE"
+        },
+        {
+          "topic": "Treasury CMT and Board H.15 republishing",
+          "url": "https://home.treasury.gov/policy-issues/financing-the-government/interest-rate-statistics/interest-rates-frequently-asked-questions",
+          "claim_type": "SOURCE_RELATIONSHIP"
+        },
+        {
+          "topic": "FRED service restrictions (not a Treasury license)",
+          "url": "https://fred.stlouisfed.org/legal/terms/",
+          "claim_type": "THIRD_PARTY_TRANSPORT_RIGHTS"
+        }
+      ],
+      "unresolved": [
+        "Confirm BC_10YEAR actual XML element/units from provider-only metadata without ingesting numerical observations",
+        "Same immutable curve version/snapshot as 2-year; never mix after revisions",
+        "Written treatment of Treasury CC0 dataset and upstream market bid rights for commercial transformations",
+        "Storage, intermediate/cache/log/history and public derivative publication scope",
+        "Proof of exact first-published and revised curve snapshot per as-of cutoff",
+        "Do not assume direct Treasury and H.15/FRED DGS10 identical publication vintages"
+      ],
+      "permissions": {
+        "commercial_internal_ingestion": false,
+        "commercial_non_display_transformation": false,
+        "transient_processing": false,
+        "provider_content_retention": false,
+        "observations_archival": false,
+        "logs_and_cache_retention": false,
+        "backup_and_disaster_recovery_retention": false,
+        "revision_vintage_receipt_retention": false,
+        "public_aggregate_distribution": false,
+        "public_component_distribution": false,
+        "public_history_distribution": false,
+        "ai_ml_processing": false,
+        "downstream_redistribution": false,
+        "live_source_retrieval": false
+      },
+      "disposition": "EVIDENCE_REVIEW_ONLY_DENY_UNTIL_EXPLICIT_SIGNOFF",
+      "provider_or_counsel_written_decision_receipt": null,
+      "project_owner_scope_approval_receipt": null
+    }
+  ]
+}
