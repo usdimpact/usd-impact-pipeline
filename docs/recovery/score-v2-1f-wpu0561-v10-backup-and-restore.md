@@ -195,3 +195,28 @@ The new workflow is not a backup of Supabase, Cloudflare, Vercel, Render, Resend
 Do **not** rerun run 40924080468, delete the exclusive tag, reactivate the old v8 or v13 receipt, or force-push protected main. First inspect current governance and audit references. If cleanup files are changed later, a new reviewed correction PR must restore the disabled workflow, consumed state, zero request budget and claim reference. Any new PDF processing requires a distinct owner-approved original-release/vintage and parser-methodology review, separate one-off request budget and separate activation/dispatch lifecycle.
 
 The reviewed Git snapshot branches remain recoverable repository-source references only. Their existence does not establish independent offsite archives or provider-native backups. Issue #155 remains HOLD for public redistribution.
+
+## 11. v14 offline page-count forensics and safe recovery
+
+**No new BLS request or live authorization.** The observed v13 failure reason invalid_page_count is consistent with the original parser receiving fewer than 1 page or more than the frozen 200-page maximum. The real PDF's actual count and which branch failed were intentionally not retained. v14 does not fill that gap by guesswork.
+
+Owner-approved v14 design-only files:
+
+- governance/score-v2-1f-wpu0561-v14-pagecount-forensic-design.json — machine-readable two-branch failure explanation and unresolved methodology gates
+- docs/research/score-v2-1f-wpu0561-v14-pagecount-forensic-review.md — evidence register, pypdf documentation, risks and Path A/B/C decisions
+- scripts/score_v2_1f_wpu0561_pdf_v14_offline_diagnostics.py — reads local committed governance data only and verifies the original v13 parser Git blob SHA
+- tests/test_score_v2_1f_wpu0561_pdf_v14.py — invented integer and mocked pypdf page trees, plus fail-closed receipt/dispatch/rights-state tests
+
+The standard unprivileged recovery workflow executes pure-Python v14 tests and synthetic boundary output. The separate networkless, non-root, read-only pinned-pypdf job runs the actual v13 parser against **fake page trees** and fabricated table-title/commodity text; no real PDF bytes, BLS GET, numerical observation or external provider input is available.
+
+### On a v14 review/test failure
+
+1. Do not request the BLS PDF, change the 200-page ceiling, reactivate v13, or edit/reuse its claim tag.
+2. Verify Issue #258, Issue #155 and the v13 sanitized consumption ledger; confirm receipt/dispatch are absent and the one-off workflow remains disabled.
+3. Confirm the pinned 8a70409b0b5928e99de04930714dfc25774631ae Git blob of the original v13 parser has not changed.
+4. Compare the v14 PR against *current* protected main and against the pre-v14 consumed recovery commit 1ed8934b5e99e493606a0d23dd4206a6f5f9fe76. Preserve unrelated already reviewed changes.
+5. If necessary, correct/revert **only v14 design/testing files** through a new protected-reviewed PR; never force-reset main.
+6. Re-run full validate-release, CodeQL, dependency audit, frozen research risk, offline recovery guard and isolated synthetic PDF regression on the exact corrective head.
+7. Original first-release WPU0561 feasibility and Issue #155 rights stay HOLD until a distinct decision. Git snapshots do not cover provider backups or undo external requests.
+
+A successful v14 synthetic test establishes only what the existing **code** would do with invented page counts; it is not evidence of the actual PDF page count or historical index-level value. Further live diagnosis requires a new methodology and explicit one-off authorization.
