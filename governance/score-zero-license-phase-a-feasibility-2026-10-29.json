@@ -308,7 +308,7 @@
           "id": "treasury_direct_2yr_par",
           "provider": "U.S. Treasury daily nominal par yield curve BC_2YEAR",
           "primary_url": "https://home.treasury.gov/treasury-daily-interest-rate-xml-feed",
-          "cadence": "daily; first-publication time and revision vintages unverified",
+          "cadence": "daily nominal par yields; Treasury says usually published by 18:00 America/New_York on each trading day (may be delayed); exact first-published timestamp unverified",
           "relation_to_original": "POTENTIALLY_NEAR_SEMANTIC_NOT_PARITY_TESTED",
           "commercial_rights_evidence": "Official U.S. Treasury government-produced rates; exact commercial retention/public-derivative applicability and upstream input rights require sign-off",
           "source_rights_granted": false,
@@ -316,7 +316,7 @@
           "public_derived_output_granted": false,
           "real_source_retrieval_authorized": false,
           "research_gate": "RESEARCH_CANDIDATE_RIGHTS_AND_PARITY_PENDING",
-          "notes": "Synthetic Atom/OData year/month parser exists; no live feed fetch/one-to-one H.15/FRED parity; no hidden FRED retransmission."
+          "notes": "Synthetic Atom/OData year/month parser exists; no live feed fetch/one-to-one H.15/FRED parity; no hidden FRED retransmission. Friday 22:00 UTC aligns with ~18:00 EDT and is not guaranteed to include the latest Friday observation."
         }
       ]
     },
@@ -333,7 +333,7 @@
           "id": "treasury_direct_10yr_par",
           "provider": "U.S. Treasury daily nominal par yield curve BC_10YEAR",
           "primary_url": "https://home.treasury.gov/treasury-daily-interest-rate-xml-feed",
-          "cadence": "daily; first-publication time and revision vintages unverified",
+          "cadence": "daily nominal par yields; Treasury says usually published by 18:00 America/New_York on each trading day (may be delayed); exact first-published timestamp unverified",
           "relation_to_original": "POTENTIALLY_NEAR_SEMANTIC_NOT_PARITY_TESTED",
           "commercial_rights_evidence": "Official U.S. Treasury government-produced rates; exact commercial retention/public-derivative applicability and upstream input rights require sign-off",
           "source_rights_granted": false,
@@ -341,7 +341,7 @@
           "public_derived_output_granted": false,
           "real_source_retrieval_authorized": false,
           "research_gate": "RESEARCH_CANDIDATE_RIGHTS_AND_PARITY_PENDING",
-          "notes": "No assumption that a same-date Treasury observation equals an as-published FRED DGS10 vintage."
+          "notes": "No assumption that a same-date Treasury observation equals an as-published FRED DGS10 vintage. Friday 22:00 UTC aligns with ~18:00 EDT and is not guaranteed to include the latest Friday observation."
         }
       ]
     }
@@ -378,7 +378,8 @@
     "rule": "a value is not eligible for any research publication until actual first_publication_at <= as_of_at and rights/approval gates independently pass",
     "no_future_data_approval": true,
     "first_seen_timestamps_verified": false,
-    "holiday_calendar_verified": false
+    "holiday_calendar_verified": false,
+    "treasury_rule": "Treasury official daily nominal par yields usually published by 18:00 America/New_York on trading days (may be delayed); Friday 22:00 UTC approximately coincides with release in EDT, so no unconditional Friday visibility"
   },
   "primary_sources": [
     {
@@ -460,6 +461,10 @@
     {
       "topic": "Federal reserve FRED service and API restrictions",
       "url": "https://fred.stlouisfed.org/legal/terms/"
+    },
+    {
+      "topic": "Official Treasury curve methodology and usual 18:00 ET release time",
+      "url": "https://home.treasury.gov/policy-issues/financing-the-government/interest-rate-statistics/treasury-yield-curve-methodology"
     }
   ],
   "explicit_no_go": [
