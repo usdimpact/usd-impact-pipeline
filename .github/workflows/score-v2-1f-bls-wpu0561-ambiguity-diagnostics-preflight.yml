@@ -1,19 +1,120 @@
-name: Score v2.1F BLS WPU0561 ambiguity diagnostics v4 recheck (consumed)
+name: Score v2.1F BLS WPU0561 candidate context inventory v5
 
 on:
-  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'governance/score-v2-1f-bls-wpu0561-ambiguity-diagnostics-preflight-dispatch.json'
 
 permissions:
   contents: read
+  issues: write
+
+concurrency:
+  group: score-v2-1f-bls-wpu0561-candidate-context-v5
+  cancel-in-progress: false
 
 jobs:
-  consumed:
-    if: ${{ false }}
+  candidate-context-inventory:
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
+
     steps:
-      - name: Consumed authorization guard
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Run owner-authorized v5 candidate-context inventory
+        id: inventory
+        env:
+          PYTHONUNBUFFERED: "1"
         run: |
-          echo "The Issue #258 design-v4 ambiguity-diagnostics recheck authorization has been consumed."
-          echo "Run 40792259680 completed 2/2 fixed attempts with zero economic observations."
-          echo "Both resources remained no_local_header_anchor under design v4."
-          echo "A new explicit owner authorization is required for any future live BLS request."
+          set +e
+          python -m scripts.run_score_v2_1f_bls_wpu0561_ambiguity_diagnostics_preflight \
+            > "$RUNNER_TEMP/candidate-context.json"
+          code=$?
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Record sanitized candidate-context result
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - "$RUNNER_TEMP/candidate-context.json" > "$RUNNER_TEMP/comment.md" <<'PY'
+          import json
+          import os
+          import sys
+          from pathlib import Path
+
+          result_path = Path(sys.argv[1])
+          run_url = (
+              f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/actions/runs/"
+              f"{os.environ['GITHUB_RUN_ID']}"
+          )
+          try:
+              report = json.loads(result_path.read_text(encoding="utf-8"))
+          except Exception:
+              report = {
+                  "status": "fail_closed",
+                  "global_stop_reason": "runner_result_unavailable",
+                  "economic_observation_count": 0,
+                  "identifier_value_count": 0,
+              }
+
+          lines = []
+          def add(value=""):
+              lines.append(str(value))
+
+          add(f"### v2.1F WPU0561 candidate-context inventory v5 — {str(report.get('status', 'unknown')).upper()}")
+          add()
+          add("<!-- V2_1F_WPU0561_CANDIDATE_CONTEXT_V5_COMPLETED -->")
+          add(f"- Run: {run_url}")
+          add(f"- Request attempts: {report.get('request_attempt_count', 'stopped')}/2")
+          add(f"- Economic observations retained: {report.get('economic_observation_count', 0)}/0")
+          add(f"- Identifier values retained: {report.get('identifier_value_count', 0)}/0")
+          if report.get("global_stop_reason"):
+              add(f"- Global stop reason: {report['global_stop_reason']}")
+
+          for resource in report.get("resources", []):
+              add()
+              add(f"#### {resource.get('resource_path')}")
+              add(f"- Transport: {resource.get('transport_status')}")
+              add(f"- Semantics: {resource.get('semantic_status')}")
+              add(f"- Candidate count: {resource.get('candidate_count', 0)}")
+              if resource.get("transport_reason"):
+                  add(f"- Transport reason: {resource['transport_reason']}")
+              if resource.get("candidate_context_truncated"):
+                  add("- Candidate-level context truncation occurred: yes")
+              for container in resource.get("containers", []):
+                  add(f"- Container: {container.get('container')}")
+                  for candidate in container.get("candidates", []):
+                      add(
+                          "  - candidate row "
+                          f"{candidate.get('candidate_row')}; window "
+                          f"{candidate.get('window_start_row')}-{candidate.get('window_end_row')}; "
+                          f"cells={len(candidate.get('cells', []))}; "
+                          f"truncated={str(bool(candidate.get('truncated'))).lower()}"
+                      )
+                      for cell in candidate.get("cells", []):
+                          safe_text = str(cell.get("text", "")).replace("`", "'")
+                          role = cell.get("role")
+                          add(
+                              f"    - r{cell.get('row')} c{cell.get('column')}: "
+                              f"{safe_text} | role={role if role is not None else 'null'}"
+                          )
+
+          add()
+          add("Safeguards: zero identifier/economic values retained; no alternate sources, reconstruction, scoring, public/research-ledger mutation, or Production change.")
+          add("This one-off v5 authorization is consumed by this run regardless of result.")
+
+          body = "\n".join(lines)
+          max_chars = 60000
+          if len(body) > max_chars:
+              body = body[:max_chars] + "\n\n[Sanitized comment clipped at GitHub-safe output limit; no additional data was persisted here.]"
+          print(body)
+          PY
+          gh issue comment 258 --repo "$GITHUB_REPOSITORY" --body-file "$RUNNER_TEMP/comment.md"
+
+      - name: Preserve fail-closed workflow conclusion
+        if: steps.inventory.outputs.exit_code != '0'
+        run: exit 1
