@@ -15,19 +15,28 @@ The source snapshot is recorded in `governance/score-current-tree-exposure-inven
 
 ## Cloudflare deployment-history metadata and CI-artifact limits (read-only, 2026-10-29)
 
-The Cloudflare Pages deployments API reported **1,920 total deployment records over 77 listing pages** for project `usd-impact-pipeline` at the time checked (`per_page=25`). This is **deployment-record metadata**, not a count of deployments proven to serve provider data or of distinct licenses, public URLs or retained caches.
+The Cloudflare Pages API's **77 deployment-listing pages** were fully enumerated in four read-only groups (pages 1–20, 21–40, 41–60, 61–77). All 77 requests succeeded and reported the same `total_count=1921`; each group reported no duplicate IDs **within that group**, and neighboring time windows were ordered consistently. The provider listing is not a transactional snapshot across calls, so do not claim stronger historical consistency than the available API evidence.
 
-Sampling pages 1, 2, 38 and 77 established:
-- Page 1 (25 records): 20 preview / 5 Production; 12 successful and 13 idle.
-- Page 2 (25 records): 21 preview / 4 Production; 14 successful and 11 idle.
-- Page 38 (25 records): 24 preview / 1 Production; all 25 successful.
-- Page 77 (20 records): 20 Production; 19 successful and one failed. The oldest sampled record is **2026-04-10T17:44:11Z**.
-- Many recent documentation-only `[CF-Pages-Skip]` commits have **idle** deployment records. Do not treat an idle record as a completed Production release.
-- The active Cloudflare Access policy was separately verified for sampled old preview hostnames, but it does **not** protect the root `usd-impact-pipeline.pages.dev` domain or custom `score.usd-impact.com`; nor does testing two historical preview URLs prove coverage of all historical deployments.
+| Deployment-listing metadata | Count |
+|---|---:|
+| Total Pages deployment records | **1,921** |
+| `environment=preview` | **1,678** |
+| `environment=production` | **243** |
+| `latest_stage.status=success` | **1,340** |
+| `latest_stage.status=idle` | **559** |
+| `latest_stage.status=failure` | **12** |
+| `latest_stage.status=skipped` | **10** |
+| Pages successfully enumerated | **77 / 77** |
+| Earliest recorded deployment timestamp | **2026-04-10 17:44:11 UTC** |
+| Latest observed deployment timestamp | **2026-10-29 18:22:31 UTC** |
 
-**GitHub Actions metadata limitation:** known [pre-HOLD release run #40044029286](https://github.com/usdimpact/usd-impact-pipeline/actions/runs/40044029286) and [synthetic write run #40617195348](https://github.com/usdimpact/usd-impact-pipeline/actions/runs/40617195348) returned **zero downloadable Actions artifacts** through their run-level artifacts API. The connector disallowed repository-wide Actions cache and artifact listing. Therefore cached dependencies, logs and additional runs **cannot** be classified as cleared or fully enumerated. Do not infer deletion/expiry from two zero-artifact checks.
+The counts reconcile: environments 1,678 + 243 = 1,921, and statuses 1,340 + 559 + 12 + 10 = 1,921. They represent **deployment records**, not 1,921 public disclosure incidents, active historical URLs, distinct website versions, legally restricted objects or cache copies. No historical response content was fetched by this metadata audit. The canonical successful Pages Production deployment is a separate current project setting; a newly created **idle** production record does not imply a new live release.
 
-**Next authorized metadata-only work:** paginate the historical Pages deployment records within API rate/response limits, classify environment/branch/status and sampled access gates **without opening provider-data bodies**, reconcile GitHub release and workflow metadata and identify any separate storage/backups. No deployment purge, Access policy change, provider-data archive copy or Git rewrite is authorized by the deployment count.
+**Access scope:** The active Cloudflare Access policy was independently verified against sampled historical preview hostnames, but it does **not** protect the root `usd-impact-pipeline.pages.dev` or custom `score.usd-impact.com` domains. This inventory does not establish reachability/denial for every prior preview hash or any cached historical response. A future approved audit should stratify by successful/production deployments, branch and source-era, then test *headers/status only* using a privacy- and rights-reviewed sampling protocol.
+
+**GitHub Actions metadata limitation:** Known [pre-HOLD release run #40044029286](https://github.com/usdimpact/usd-impact-pipeline/actions/runs/40044029286) and [synthetic write run #40617195348](https://github.com/usdimpact/usd-impact-pipeline/actions/runs/40617195348) returned **zero downloadable Actions artifacts** through the run-level artifacts endpoint. The connector disallowed repository-wide Actions artifact and cache listing. Therefore cached dependencies, logs and unsampled runs **cannot** be classified as cleared or fully enumerated. Two zero-artifact samples do not imply expired/deleted historical files.
+
+**Remediation boundary:** This metadata audit does not authorize Pages deployment deletion, Access-policy changes, Git history rewrite, CDN purge, source/provider retrieval, additional retention copies or Production rollout. Preserve current canonical deployment and maintain the Score publication HOLD while provider/counsel decides the permitted public/private and historical treatment.
 
 ## Required preservation and restore sequencing before any eventual cleanup
 
