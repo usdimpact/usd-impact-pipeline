@@ -1,19 +1,26 @@
-name: Score v2.1F BLS WPU0561 candidate context inventory v5 (consumed)
+name: Score v2.1F BLS WPU0561 candidate-local header-gap inventory v7
 
 on:
-  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'governance/score-v2-1f-bls-wpu0561-ambiguity-diagnostics-preflight-dispatch.json'
 
 permissions:
   contents: read
 
+concurrency:
+  group: score-v2-1f-bls-wpu0561-header-gap-v7
+  cancel-in-progress: false
+
 jobs:
-  consumed:
-    if: ${{ false }}
+  header-gap-inventory:
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
-      - name: Consumed authorization guard
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Run owner-authorized v7 header-gap inventory
         run: |
-          echo "The Issue #258 design-v5 candidate-context authorization has been consumed."
-          echo "Run 40794631448 completed 2/2 fixed attempts with zero identifier/economic values."
-          echo "The sanitized result found 3 HTML and 29 XLSX Crude petroleum candidate occurrences."
-          echo "A new explicit owner authorization is required for any future live BLS request."
+          python -m scripts.run_score_v2_1f_bls_wpu0561_ambiguity_diagnostics_preflight
