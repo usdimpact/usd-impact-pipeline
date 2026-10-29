@@ -13,6 +13,22 @@
 
 The source snapshot is recorded in `governance/score-current-tree-exposure-inventory-2026-10-29.json`. Its offline regression test, `tests/test_score_current_tree_exposure_inventory.py`, checks **only path names, counts, and the controlling rights HOLD**. It never opens archived/market-data file bodies, calls providers, writes backup files, or changes data.
 
+## Cloudflare deployment-history metadata and CI-artifact limits (read-only, 2026-10-29)
+
+The Cloudflare Pages deployments API reported **1,920 total deployment records over 77 listing pages** for project `usd-impact-pipeline` at the time checked (`per_page=25`). This is **deployment-record metadata**, not a count of deployments proven to serve provider data or of distinct licenses, public URLs or retained caches.
+
+Sampling pages 1, 2, 38 and 77 established:
+- Page 1 (25 records): 20 preview / 5 Production; 12 successful and 13 idle.
+- Page 2 (25 records): 21 preview / 4 Production; 14 successful and 11 idle.
+- Page 38 (25 records): 24 preview / 1 Production; all 25 successful.
+- Page 77 (20 records): 20 Production; 19 successful and one failed. The oldest sampled record is **2026-04-10T17:44:11Z**.
+- Many recent documentation-only `[CF-Pages-Skip]` commits have **idle** deployment records. Do not treat an idle record as a completed Production release.
+- The active Cloudflare Access policy was separately verified for sampled old preview hostnames, but it does **not** protect the root `usd-impact-pipeline.pages.dev` domain or custom `score.usd-impact.com`; nor does testing two historical preview URLs prove coverage of all historical deployments.
+
+**GitHub Actions metadata limitation:** known [pre-HOLD release run #40044029286](https://github.com/usdimpact/usd-impact-pipeline/actions/runs/40044029286) and [synthetic write run #40617195348](https://github.com/usdimpact/usd-impact-pipeline/actions/runs/40617195348) returned **zero downloadable Actions artifacts** through their run-level artifacts API. The connector disallowed repository-wide Actions cache and artifact listing. Therefore cached dependencies, logs and additional runs **cannot** be classified as cleared or fully enumerated. Do not infer deletion/expiry from two zero-artifact checks.
+
+**Next authorized metadata-only work:** paginate the historical Pages deployment records within API rate/response limits, classify environment/branch/status and sampled access gates **without opening provider-data bodies**, reconcile GitHub release and workflow metadata and identify any separate storage/backups. No deployment purge, Access policy change, provider-data archive copy or Git rewrite is authorized by the deployment count.
+
 ## Required preservation and restore sequencing before any eventual cleanup
 
 1. **Rights gate first.** Obtain provider/counsel instructions by source and field class: whether commercial internal historical retention, reproduced private evidence, aggregates, derivatives and external dissemination are permitted. If permission is absent, do not duplicate provider data to create a new backup. A hash-only/count-only metadata snapshot is not permission to retain restricted content.
