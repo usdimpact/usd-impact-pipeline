@@ -128,7 +128,10 @@ def assert_metadata_stays_research_only(matrix: dict) -> None:
     assert review["precise_eia_api_route_or_history_parity_verified"] is False
     assert review["commercial_rights_reviewed_and_granted"] is False
     assert review["source_requests_performed"] is False
-    assert review["real_observations_fetched_or_stored"] is False
+    assert review["dedicated_source_data_feed_requests_performed"] is False
+    assert review["real_observation_values_ingested_computed_or_stored"] is False
+    assert review["official_metadata_pages_may_contain_incidental_numeric_examples"] is True
+    assert review["no_observation_values_reproduced_in_governance_record"] is True
     assert review["all_permissions_still_false"] is True
     assert review["source_modification_or_pipeline_switch_authorized"] is False
     assert review["production_release_authorized"] is False
@@ -352,7 +355,8 @@ class FourSourceExactSeriesRightsTests(unittest.TestCase):
             "precise_eia_api_route_or_history_parity_verified",
             "commercial_rights_reviewed_and_granted",
             "source_requests_performed",
-            "real_observations_fetched_or_stored",
+            "dedicated_source_data_feed_requests_performed",
+            "real_observation_values_ingested_computed_or_stored",
             "source_modification_or_pipeline_switch_authorized",
             "production_release_authorized",
         ):
