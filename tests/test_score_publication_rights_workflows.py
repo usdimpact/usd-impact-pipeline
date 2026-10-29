@@ -46,7 +46,7 @@ class ScorePublicationRightsWorkflowTests(unittest.TestCase):
         workflow = self.read(".github/workflows/weekly-recovery.yml")
         self.assertIn("Evaluate Score publication rights gate", workflow)
         self.assertIn(
-            "if: steps.rights.outputs.hold == 'false'\n        env:",
+            "if: steps.rights.outputs.hold != 'true'\n        env:",
             workflow,
         )
         self.assertIn("gh workflow run weekly.yml", workflow)
@@ -55,7 +55,7 @@ class ScorePublicationRightsWorkflowTests(unittest.TestCase):
         workflow = self.read(".github/workflows/research-validation.yml")
         self.assertIn("Evaluate Score publication rights gate", workflow)
         self.assertIn(
-            "if: steps.rights.outputs.hold == 'false' && "
+            "if: steps.rights.outputs.hold != 'true' && "
             "steps.upstream.outputs.ready == 'true'",
             workflow,
         )
@@ -113,18 +113,18 @@ class ScorePublicationRightsWorkflowTests(unittest.TestCase):
         weekly = self.read(".github/workflows/weekly-health.yml")
         self.assertIn("Record rights-review health hold", weekly)
         self.assertIn(
-            "if: steps.rights.outputs.hold == 'false' && "
+            "if: steps.rights.outputs.hold != 'true' && "
             "steps.health.outcome == 'failure'",
             weekly,
         )
         research = self.read(".github/workflows/score-research-evidence-health.yml")
         self.assertIn("Record rights-review evidence hold", research)
         self.assertIn(
-            "if: steps.rights.outputs.hold == 'false' && always()",
+            "if: steps.rights.outputs.hold != 'true' && always()",
             research,
         )
         self.assertIn(
-            "if: steps.rights.outputs.hold == 'false' && "
+            "if: steps.rights.outputs.hold != 'true' && "
             "steps.health.outcome == 'failure'",
             research,
         )
