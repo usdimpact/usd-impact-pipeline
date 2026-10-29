@@ -6,6 +6,7 @@ provider data, databases, credentials, services, releases, or market values.
 
 from __future__ import annotations
 
+from datetime import date
 import copy
 import json
 import unittest
@@ -78,6 +79,45 @@ def assert_no_rights_granted(matrix: dict) -> None:
         assert source["rights_evidence"]["proprietary_input_exceptions_excluded"] is False
         assert not source["cadence"]["actual_first_publication_receipt_verified"]
         assert not source["cadence"]["version_first_seen_receipt_verified"]
+
+
+def assert_h10_lineage_fail_closed(matrix: dict) -> None:
+    """Reject unversioned 2019 H.10 identifiers, backcasts and hidden grants."""
+    h10 = next(
+        source for source in matrix["sources"]
+        if source["id"] == "fed_h10_nominal_broad"
+    )
+    identity = h10["exact_series_identity"]
+    history = identity["published_transition_history"]
+    assert identity["publisher_native_series_key"] == "H10/H10/JRXWTFB_N.B"
+    assert history["primary_source_url"] == (
+        "https://www.federalreserve.gov/releases/h10/h10_technical_qa.htm"
+    )
+    assert history["mnemonic_current"] == "JRXWTFB_N"
+    assert history["same_mnemonic_historically_reassigned"] is True
+    assert history["legacy_mnemonic_through"] == "2019-02-03"
+    assert history["legacy_mnemonic_semantics"] == "OLD_BROAD_GOODS_TRADE_ONLY"
+    assert history["revised_mnemonic_effective"] == "2019-02-04"
+    assert history["revised_mnemonic_semantics"] == "NEW_BROAD_GOODS_AND_SERVICES_TRADE"
+    assert history["legacy_goods_only_alias"] == "V0.JRXWTFB_N"
+    assert history["legacy_goods_only_updates_end"] == "2019-12-31"
+    assert history["new_methodology_historical_estimates_back_to"] == "2006-01"
+    assert history["daily_index_rebasing_effective"] == "2019-06-24"
+    assert history["daily_base_before"] == "JANUARY_2_2006_EQUALS_100"
+    assert history["daily_base_after"] == "JANUARY_2006_MONTHLY_AVERAGE_EQUALS_100"
+    assert date.fromisoformat(history["legacy_mnemonic_through"]) < date.fromisoformat(
+        history["revised_mnemonic_effective"]
+    ) < date.fromisoformat(history["daily_index_rebasing_effective"])
+    for risk in (
+        "same_identifier_proves_economic_comparability",
+        "historical_retroactive_dataset_proves_contemporaneous_availability",
+        "original_as_published_vintages_verified",
+        "historical_stitching_or_splicing_authorized",
+        "real_data_access_approved",
+    ):
+        assert history[risk] is False, risk
+    assert identity["units_or_base_fully_reconciled"] is False
+    assert h10["transport"]["direct_access_to_real_data_approved"] is False
 
 
 class FourSourceExactSeriesRightsTests(unittest.TestCase):
@@ -197,6 +237,33 @@ class FourSourceExactSeriesRightsTests(unittest.TestCase):
             ],
             "treasury_direct_2yr_par",
         )
+
+    def test_h10_mnemonic_lineage_and_base_are_not_implicitly_equivalent(self) -> None:
+        assert_h10_lineage_fail_closed(self.matrix)
+        h10 = self.matrix["sources"][0]
+        self.assertEqual(h10["id"], "fed_h10_nominal_broad")
+        self.assertFalse(h10["permissions"]["public_history_distribution"])
+        self.assertFalse(h10["permissions"]["live_source_retrieval"])
+
+    def test_malformed_h10_transition_and_rights_claims_fail_closed(self) -> None:
+        bad_cases = (
+            ("same_mnemonic_historically_reassigned", False),
+            ("same_identifier_proves_economic_comparability", True),
+            ("historical_retroactive_dataset_proves_contemporaneous_availability", True),
+            ("original_as_published_vintages_verified", True),
+            ("historical_stitching_or_splicing_authorized", True),
+            ("real_data_access_approved", True),
+            ("daily_index_rebasing_effective", "2019-01-01"),
+            ("legacy_goods_only_alias", "JRXWTFB_N"),
+        )
+        for key, fake_value in bad_cases:
+            with self.subTest(key=key):
+                bad = copy.deepcopy(self.matrix)
+                bad["sources"][0]["exact_series_identity"][
+                    "published_transition_history"
+                ][key] = fake_value
+                with self.assertRaises(AssertionError):
+                    assert_h10_lineage_fail_closed(bad)
 
     def test_all_reference_links_are_publisher_grounds_or_transport_policy(self) -> None:
         for source in self.matrix["sources"]:
