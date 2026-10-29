@@ -1,26 +1,19 @@
-name: Score v2.1F BLS WPU0561 candidate-local header-gap inventory v7
+name: Score v2.1F BLS WPU0561 candidate-local header-gap inventory v7 (consumed)
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'governance/score-v2-1f-bls-wpu0561-ambiguity-diagnostics-preflight-dispatch.json'
+  workflow_dispatch:
 
 permissions:
   contents: read
 
-concurrency:
-  group: score-v2-1f-bls-wpu0561-header-gap-v7
-  cancel-in-progress: false
-
 jobs:
-  header-gap-inventory:
+  consumed:
+    if: ${{ false }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-
-      - name: Run owner-authorized v7 header-gap inventory
+      - name: Consumed authorization guard
         run: |
-          python -m scripts.run_score_v2_1f_bls_wpu0561_ambiguity_diagnostics_preflight
+          echo "The Issue #258 design-v7 header-gap authorization has been consumed."
+          echo "Run 40897338145 completed 2/2 fixed attempts with zero identifier/economic values."
+          echo "No recognized header-role row was found within 32 preceding rows for either selected candidate."
+          echo "A new explicit owner authorization is required for any future live BLS request."
