@@ -1,0 +1,146 @@
+name: Score WPU0561 v13 one-off BLS PDF structural preflight (gated)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'governance/score-v2-1f-wpu0561-pdf-v13-dispatch.json'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: score-v2-1f-wpu0561-pdf-v13-exclusive
+  cancel-in-progress: false
+
+jobs:
+  consume-before-http:
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.run_attempt == 1 }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    outputs:
+      claimed_sha: ${{ steps.claim.outputs.claimed_sha }}
+      claimed_run_id: ${{ steps.claim.outputs.claimed_run_id }}
+    steps:
+      - name: Checkout exact reviewed main without persisted credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify independent authorization, previous receipt and dispatch before claim
+        run: |
+          set -euo pipefail
+          python3 -c 'from scripts.score_v2_1f_wpu0561_pdf_v13_transport import validate_preclaim_gate; validate_preclaim_gate(); print("v13 receipt/dispatch validated; no BLS request yet")'
+
+      - name: Atomically consume one-use run claim before HTTP
+        id: claim
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          # Creates one fixed Git tag. A preexisting tag makes the API return
+          # HTTP 422, which hard-fails this job; no further BLS requests run.
+          gh api -X POST "repos/$GITHUB_REPOSITORY/git/refs" \
+            -f ref='refs/tags/score-v2-1f-wpu0561-pdf-v13-oneoff-2026-10-29' \
+            -f sha="$GITHUB_SHA" >/dev/null
+          printf 'claimed_sha=%s\n' "$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+          printf 'claimed_run_id=%s\n' "$GITHUB_RUN_ID" >> "$GITHUB_OUTPUT"
+          echo 'One-off claim consumed; no second run can create the same tag.'
+
+  one-off-structural-only:
+    needs: [consume-before-http]
+    if: ${{ needs.consume-before-http.result == 'success' && github.run_attempt == 1 }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    outputs:
+      sanitized: ${{ steps.preflight.outputs.sanitized }}
+    steps:
+      - name: Checkout exact reviewed main without persisted credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Install reviewed parser wheel into ephemeral fixture-only directory
+        run: |
+          set -euo pipefail
+          python3 -m pip install --disable-pip-version-check \
+            --require-hashes --no-deps --only-binary=:all: \
+            --target "$RUNNER_TEMP/pypdf-v13-oneoff" \
+            -r governance/score-v2-1f-wpu0561-pdf-v12-parser.lock
+          docker pull 'python:3.11.15-slim-bookworm@sha256:d29f48a31a8b408ed19272ca1e7b10ebae13b240a27e862d3d4217c528e2e0c3'
+
+      - name: Perform exactly one BLS PDF GET, in memory, then isolated structural check
+        id: preflight
+        env:
+          WPU0561_V13_ATOMIC_CLAIM_OK: 'true'
+          WPU0561_V13_CLAIMED_SHA: ${{ needs.consume-before-http.outputs.claimed_sha }}
+          WPU0561_V13_CLAIMED_RUN_ID: ${{ needs.consume-before-http.outputs.claimed_run_id }}
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: |
+          set +e
+          python3 -m scripts.score_v2_1f_wpu0561_pdf_v13_transport --live > "$RUNNER_TEMP/v13-sanitized.json"
+          preflight_exit=$?
+          set -e
+          # Strictly one-line sanitized JSON output; no raw response log or artifact.
+          python3 - "$RUNNER_TEMP/v13-sanitized.json" <<'PY'
+          import json, sys
+          from pathlib import Path
+          p = Path(sys.argv[1])
+          value = json.loads(p.read_text(encoding='utf-8'))
+          assert isinstance(value, dict) and value.get('status') in ('structural_metadata_only_hold', 'fail_closed')
+          assert value.get('economic_values_retained') is False
+          assert value.get('identifier_values_retained') is False
+          assert value.get('production_changed') is False
+          assert len(p.read_bytes()) <= 4096
+          PY
+          printf 'sanitized=%s\n' "$(cat "$RUNNER_TEMP/v13-sanitized.json")" >> "$GITHUB_OUTPUT"
+          exit "$preflight_exit"
+
+  evidence-only-audit:
+    if: always()
+    needs: [consume-before-http, one-off-structural-only]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    permissions:
+      issues: write
+      contents: read
+    steps:
+      - name: Record sanitized one-off result on Issue 258, never source data
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CLAIM_STATUS: ${{ needs.consume-before-http.result }}
+          PREFLIGHT_STATUS: ${{ needs.one-off-structural-only.result }}
+          SAFE_REPORT_JSON: ${{ needs.one-off-structural-only.outputs.sanitized }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY' > "$RUNNER_TEMP/issue-v13-audit.md"
+          import json, os
+          report = {}
+          try:
+              report = json.loads(os.environ.get('SAFE_REPORT_JSON', ''))
+          except (ValueError, TypeError):
+              pass
+          status = report.get('status', 'unavailable')
+          if status not in ('structural_metadata_only_hold', 'fail_closed'):
+              status = 'unavailable'
+          reasons = report.get('reason_codes') or []
+          if not isinstance(reasons, list) or len(reasons) > 16:
+              reasons = []
+          reasons = [x for x in reasons if isinstance(x, str) and x.replace('_','').isalpha() and len(x) <= 80]
+          print('### v13 WPU0561 BLS April 2026 PDF one-off structural preflight')
+          print(f"- Run: https://github.com/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}")
+          print(f"- Claim job: {os.environ.get('CLAIM_STATUS', 'unknown')}")
+          print(f"- Preflight job: {os.environ.get('PREFLIGHT_STATUS', 'unknown')}")
+          print(f'- Sanitized status: {status}')
+          print('- Reason codes: ' + (', '.join(reasons) if reasons else 'none reported'))
+          print('- Claim, if created, permanently consumes this one-off approval even if the network/parser failed.')
+          print('- Economic/identifier values retained: 0; no Score, ledger, public or Production changes.')
+          print('- Original release-vintage provenance and Issue #155 public rights remain HOLD.')
+          PY
+          gh issue comment 258 --repo "$GITHUB_REPOSITORY" --body-file "$RUNNER_TEMP/issue-v13-audit.md"

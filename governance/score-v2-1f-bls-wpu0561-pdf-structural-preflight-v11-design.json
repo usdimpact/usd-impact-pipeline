@@ -1,0 +1,224 @@
+{
+  "version": 11,
+  "status": "draft_pre_registration_hold",
+  "decision_kind": "design_only_preflight_not_live_authorization",
+  "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/258",
+  "rights_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
+  "draft_pr": "https://github.com/usdimpact/usd-impact-pipeline/pull/286",
+  "protected_main_baseline": "0c420f495e6196d34d195d441edf7b707da4f35a",
+  "authoritative_live_contract_version": 21,
+  "authoritative_methodology_design_version": 9,
+  "v8_consumed_run": "https://github.com/usdimpact/usd-impact-pipeline/actions/runs/40901086765",
+  "prior_requests_consumed": 2,
+  "owner_approval": {
+    "date": "2026-10-29",
+    "scope": "design_only_and_recovery_workflows",
+    "source_boundary_adoption": false,
+    "live_structural_preflight": false,
+    "identifier_read": false,
+    "economic_value_read": false,
+    "production": false
+  },
+  "source_candidate": {
+    "canonical_scheme": "https",
+    "canonical_hostname": "www.bls.gov",
+    "canonical_path": "/ppi/detailed-report/ppi-detailed-report-april-2026.pdf",
+    "canonical_url": "https://www.bls.gov/ppi/detailed-report/ppi-detailed-report-april-2026.pdf",
+    "discovery_source": "https://www.bls.gov/ppi/detailed-report/",
+    "discovery_method": "Exact outgoing PDF href from official archive HTML anchor, no PDF request.",
+    "reference_month": "2026-04",
+    "original_release_date_context": "2026-05-13",
+    "date_context_source": "https://www.bls.gov/news.release/archives/ppi_05132026.htm",
+    "archive_pdf_discovered": true,
+    "pdf_retrieved": false,
+    "pdf_http_status_checked": false,
+    "content_type_checked": false,
+    "content_length_checked": false,
+    "pdf_sha256": null,
+    "first_publication_pdf_vintage_proven": false,
+    "correction_or_replacement_status": "unknown",
+    "target_table_title": "Table 9. Producer price indexes for commodity and service groupings and individual items",
+    "april_2026_table9_title_observed": false,
+    "april_2026_index_level_schema_observed": false,
+    "series_identity_observed_in_pdf": false,
+    "target_series_known_from_prior_evidence": "WPU0561",
+    "target_label_scope": "Crude petroleum",
+    "external_name_ambiguity": "Crude Petroleum (Domestic Production)",
+    "domestic_production_alias_approved": false,
+    "observation_month_approved": "2026-04",
+    "observation_adjustment": "unadjusted",
+    "actual_original_release_level_observed": false,
+    "eligible_for_adoption": false
+  },
+  "preflight_plan_if_separately_approved": {
+    "state": "proposal_only_not_executable",
+    "host_allowlist": [
+      "www.bls.gov"
+    ],
+    "exact_path_allowlist": [
+      "/ppi/detailed-report/ppi-detailed-report-april-2026.pdf"
+    ],
+    "http_method_candidate": "GET",
+    "potential_max_requests": 1,
+    "concurrency": 1,
+    "redirects": "reject",
+    "retries": 0,
+    "http_401_403_429_or_challenge": "global_stop",
+    "http_response_accept": "200_with_exact_pdf_content_type_and_magic",
+    "max_response_bytes": 10485760,
+    "max_pdf_pages": 200,
+    "max_scanned_table_titles": 12,
+    "max_retained_sanitized_header_tokens": 96,
+    "max_retained_sanitized_candidate_labels": 4,
+    "max_retained_economic_cells": 0,
+    "max_retained_numeric_identifier_values": 0,
+    "response_body_persistence": false,
+    "pdf_file_persistence": false,
+    "pdf_text_persistence": false,
+    "raw_request_logs_with_response_content": false,
+    "source_fallback": false,
+    "dynamic_source_substitution": false,
+    "ocr": "forbidden_until_separately_reviewed",
+    "third_party_mirrors": "forbidden",
+    "parser_dependency_lock": "not_selected",
+    "execution_image_digest": "not_selected",
+    "runtime_code_exists": false,
+    "request_execution_receipt_exists": false,
+    "request_dispatch_marker_exists": false,
+    "preserve_process_memory_only": "requires_independent_security_review",
+    "on_oversize_or_unknown_header": "stop_without_widening",
+    "important_boundary": "PDF parsing necessarily processes raw bytes that may contain economic values even if numeric cells are not retained; an explicit separate authorization must address this transient exposure. A strict no-economic-token-access rule may make any PDF parse inadmissible."
+  },
+  "structural_decision_logic": {
+    "inputs": "synthetic metadata facts only; never PDF files or response bytes",
+    "table_match": "exact normalized Table 9 title; exactly one governing title region",
+    "concept_match": "exact normalized Crude petroleum within verified direct commodity scope; zero/multiple candidates HOLD",
+    "variant_rejection": [
+      "Crude petroleum (domestic production)",
+      "Crude petroleum extraction",
+      "Pipeline transportation of crude petroleum",
+      "Stage 4 intermediate demand"
+    ],
+    "required_header_roles": [
+      "commodity_identity",
+      "unadjusted_index_level"
+    ],
+    "forbidden_as_substitute": [
+      "percent_change_only",
+      "seasonally_adjusted",
+      "relative_importance",
+      "index_contribution"
+    ],
+    "cell_mapping": "unique and governed by same Table 9 block header; no cross-table bleed",
+    "vintage_requirement": "April 2026 original May 13 2026 report edition independently established; archive listing alone insufficient",
+    "identity_requirement": "WPU0561 proven from prior identity evidence does not prove any potentially differently titled PDF row",
+    "comparator_requirement": "2013 and 2026 same definition/basis or independently reviewed break; no implicit rebase",
+    "fail_closed_if": [
+      "unknown_or_conflicting_provenance",
+      "pdf_version_unproven",
+      "wrong_month",
+      "missing_or_multiple_table9_titles",
+      "missing_or_ambiguous_index_level_role",
+      "zero_or_multiple_target_candidates",
+      "not_direct_commodity",
+      "domestic_production_alias_not_resolved",
+      "identifier_mismatch",
+      "missing_or_multiple_2026_04_columns",
+      "numeric_value_needed_to_disambiguate",
+      "rebase_needed",
+      "ocr_ambiguous",
+      "right_to_retain_unspecified",
+      "candidate_document_large",
+      "source_link_redirects"
+    ]
+  },
+  "stages": [
+    {
+      "id": "M0",
+      "name": "archive_link_metadata",
+      "status": "verified_html_anchor_only",
+      "network_pdf_authorized": false,
+      "economic_value_read": false,
+      "description": "BLS archived report page links exactly the April 2026 Detailed Report PDF; not evidence of content/vintage."
+    },
+    {
+      "id": "M1",
+      "name": "owner_methodology_design",
+      "status": "approved_design_only_2026_10_29",
+      "network_pdf_authorized": false,
+      "economic_value_read": false,
+      "description": "Only paper design, recovery preparation and synthetic fixtures."
+    },
+    {
+      "id": "M2",
+      "name": "owner_decides_source_boundary",
+      "status": "hold",
+      "network_pdf_authorized": false,
+      "economic_value_read": false,
+      "description": "A separate written owner decision must select PDF as provisional source candidate for an approved, exact-path preflight; no implicit alias to domestic production."
+    },
+    {
+      "id": "M3",
+      "name": "retrieval_rights_pdf_runtime_and_vintage_provenance_review",
+      "status": "hold",
+      "network_pdf_authorized": false,
+      "economic_value_read": false,
+      "description": "Review BLS terms, first-release identity/errata verification, bounded binary parser/format environment and raw-data exposure."
+    },
+    {
+      "id": "M4",
+      "name": "separately_authorized_one_off_structural_preflight",
+      "status": "not_authorized",
+      "network_pdf_authorized": false,
+      "economic_value_read": false,
+      "description": "Only after an immutable activation receipt + dispatch PR, finite request budget, audited protected GitHub Action, and mandatory consumption."
+    },
+    {
+      "id": "M5",
+      "name": "independently_authorized_identifier_or_economic_read",
+      "status": "not_authorized",
+      "network_pdf_authorized": false,
+      "economic_value_read": false,
+      "description": "Separate approvals; never inferred from M4 completion."
+    },
+    {
+      "id": "M6",
+      "name": "score_calculation_research_ledger_publication_production",
+      "status": "not_authorized",
+      "network_pdf_authorized": false,
+      "economic_value_read": false,
+      "description": "Separate research, rights, and release approvals."
+    }
+  ],
+  "rights_and_release_holds": {
+    "issue155": "hold",
+    "score_v2_1f": "hold",
+    "public_artifact_write": false,
+    "research_ledger_mutation": false,
+    "production": false
+  },
+  "recovery_refs": {
+    "v9_pin": "0c420f495e6196d34d195d441edf7b707da4f35a",
+    "v9_backup": "backup/score-v2-1f-v9-hold-2026-10-29",
+    "v10_pin": "698fb0c0d069c598909cc10e875a28cb711d1ea5",
+    "v10_backup": "backup/score-v2-1f-v10-review-2026-10-29",
+    "recovery_manifest": "governance/score-v2-1f-wpu0561-v10-recovery-manifest.json",
+    "restore_via": "new_reviewed_pr_no_forced_main_reset",
+    "provider_backup_status": "not_included"
+  },
+  "current_execution_authorization": {
+    "pdf_http_request": false,
+    "html_archive_refetch": false,
+    "pdf_download": false,
+    "pdf_parse": false,
+    "identifier_value_read": false,
+    "economic_value_read": false,
+    "source_substitution": false,
+    "alternate_source": false,
+    "score_reconstruction": false,
+    "score_calculation": false,
+    "research_ledger_write": false,
+    "public_artifact_change": false,
+    "production_change": false
+  }
+}
