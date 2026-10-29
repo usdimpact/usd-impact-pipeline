@@ -33,6 +33,20 @@ SOURCE_UNITS = {
     "treasury_direct_10yr_par": "yield_percent",
 }
 
+# Local CANDIDATE scope tags prevent invented source observations with
+# incompatible measurement definitions from silently entering the panel.
+# They do NOT establish the exact live feed, historic vintage or legal rights.
+SOURCE_BASIS_IDS = {
+    "fed_h10_nominal_broad":
+        "CANDIDATE:H10_NOMINAL_BROAD_POST_2019_GOODS_SERVICES_REBASED",
+    "eia_crude_stocks_weekly":
+        "CANDIDATE:EIA_WCESTUS1_CRUDE_ENDING_STOCKS_EX_SPR_UNRECONCILED",
+    "treasury_direct_2yr_par":
+        "CANDIDATE:TREASURY_NOMINAL_PAR_CURVE_2YR_ILLUSTRATIVE_FIELD",
+    "treasury_direct_10yr_par":
+        "CANDIDATE:TREASURY_NOMINAL_PAR_CURVE_10YR_ILLUSTRATIVE_FIELD",
+}
+
 
 @dataclass(frozen=True)
 class SyntheticObservation:
@@ -46,6 +60,8 @@ class SyntheticObservation:
     reference_week: date
     snapshot_id: str
     value: float
+    unit: str
+    basis_id: str
     fixture_marker: str = SYNTHETIC_MARKER
 
 
@@ -86,6 +102,12 @@ def _validate_observation(obs: SyntheticObservation, weeks: set[date]) -> None:
         raise ValueError("synthetic observation marker missing")
     if obs.source_id not in REQUIRED_IDS:
         raise ValueError("unrecognized candidate source")
+    if not isinstance(obs.unit, str) or obs.unit != SOURCE_UNITS[obs.source_id]:
+        raise ValueError("synthetic source unit does not match the candidate contract")
+    if not isinstance(obs.basis_id, str) or obs.basis_id != SOURCE_BASIS_IDS[obs.source_id]:
+        raise ValueError(
+            "synthetic source measurement basis does not match the candidate contract"
+        )
     if (
         not isinstance(obs.reference_week, date)
         or isinstance(obs.reference_week, datetime)
