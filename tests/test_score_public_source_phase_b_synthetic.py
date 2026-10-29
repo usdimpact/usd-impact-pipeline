@@ -257,6 +257,53 @@ class SyntheticAsOfAvailabilityTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "out-of-order"):
             evaluate_synthetic_asof(f, FRIDAY, stamp(11, 9, 0))
 
+    def test_rejects_reused_snapshot_id_across_revisions(self) -> None:
+        # A correction cannot claim the original immutable snapshot ID.
+        # Check even when the correction is not first-seen at the cutoff.
+        receipts = four()
+        receipts.append(receipt(
+            "fed_h10_nominal_broad", stamp(11, 12, 0), revision=1,
+            original_release=stamp(8, 16, 15),
+            snapshot=receipts[0].snapshot_id,
+        ))
+        with self.assertRaisesRegex(ValueError, "snapshot ID reused"):
+            evaluate_synthetic_asof(receipts, FRIDAY, stamp(11, 11, 59))
+
+    def test_rejects_conflicting_initial_release_across_revisions(self) -> None:
+        # The first-publication date of one source/week is invariant over
+        # later versions; an altered value cannot silently reset history.
+        receipts = four()
+        receipts.append(receipt(
+            "fed_h10_nominal_broad", stamp(11, 12, 0), revision=1,
+            original_release=stamp(9, 16, 15),
+            snapshot="SYNTHETIC:H10-R1-DIFFERENT-FIRST-RELEASE",
+        ))
+        with self.assertRaisesRegex(ValueError, "conflicting synthetic initial release"):
+            evaluate_synthetic_asof(receipts, FRIDAY, stamp(11, 11, 59))
+
+    def test_timezone_equivalent_revision_first_release_is_valid(self) -> None:
+        # UTC and Eastern representations of the same instant are equivalent.
+        receipts = four()
+        receipts.append(receipt(
+            "fed_h10_nominal_broad", stamp(11, 12, 0), revision=1,
+            original_release=stamp(8, 16, 15).astimezone(timezone.utc),
+            snapshot="SYNTHETIC:H10-R1-UTC-EQUIVALENT",
+        ))
+        before = evaluate_synthetic_asof(receipts, FRIDAY, stamp(11, 11, 59))
+        after = evaluate_synthetic_asof(receipts, FRIDAY, stamp(11, 12, 2))
+        self.assertEqual(before.status, "SYNTHETIC_ONLY_COMPLETE")
+        self.assertEqual(after.status, "SYNTHETIC_ONLY_COMPLETE")
+        self.assertIn(
+            ("fed_h10_nominal_broad", "SYNTHETIC:H10-R0"),
+            before.selected,
+        )
+        self.assertIn(
+            ("fed_h10_nominal_broad", "SYNTHETIC:H10-R1-UTC-EQUIVALENT"),
+            after.selected,
+        )
+        self.assertFalse(before.publish_authorized)
+        self.assertFalse(after.real_source_retrieval_authorized)
+
     def test_rejects_real_dates_unknown_source_and_missing_fixture_marker(self) -> None:
         with self.assertRaisesRegex(ValueError, "synthetic reference"):
             evaluate_synthetic_asof(four(), date(2026, 10, 23), stamp(11, 9, 0))

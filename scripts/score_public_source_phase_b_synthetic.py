@@ -227,6 +227,37 @@ def evaluate_synthetic_asof(
         seen_versions.add(key)
         grouped[item.source_id].append(item)
 
+    # One source/week has one initial publication instant. A correction
+    # must preserve that first-publication receipt and use a NEW immutable
+    # snapshot ID. Otherwise as-of versions cannot be distinguished safely,
+    # including when a later revision is not yet visible at the cutoff.
+    # Compare UTC instants rather than requiring identical timezone text.
+    for revisions in grouped.values():
+        if len(revisions) < 2:
+            continue
+        # Preserve the prior out-of-order failure for contradictory revision
+        # chronology before evaluating first-publication and snapshot identity.
+        by_publication = sorted(
+            revisions,
+            key=lambda item: (
+                _utc(item.version_published_at, "version_published_at"),
+                item.revision,
+            ),
+        )
+        if [item.revision for item in by_publication] != sorted(
+            item.revision for item in by_publication
+        ):
+            raise ValueError("out-of-order synthetic revision numbering")
+        first_releases = {
+            _utc(item.initial_release_at, "initial_release_at")
+            for item in revisions
+        }
+        if len(first_releases) != 1:
+            raise ValueError("conflicting synthetic initial release across revisions")
+        snapshots = [item.snapshot_id for item in revisions]
+        if len(snapshots) != len(set(snapshots)):
+            raise ValueError("synthetic snapshot ID reused across revisions")
+
     selected: dict[str, SyntheticReceipt] = {}
     blockers: list[str] = []
     for source_id in sorted(REQUIRED_IDS):
@@ -253,19 +284,6 @@ def evaluate_synthetic_asof(
                 item.revision,
             ),
         )
-        # Revision ordering must agree with publication chronology. Otherwise
-        # old/new as-of versions cannot be selected with a reliable rule.
-        all_by_version = sorted(
-            versions,
-            key=lambda item: (
-                _utc(item.version_published_at, "version_published_at"),
-                item.revision,
-            ),
-        )
-        if [item.revision for item in all_by_version] != sorted(
-            item.revision for item in all_by_version
-        ):
-            raise ValueError("out-of-order synthetic revision numbering")
         selected[source_id] = winner
 
     if TREASURY_IDS.issubset(selected):
