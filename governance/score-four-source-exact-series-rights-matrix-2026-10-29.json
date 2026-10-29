@@ -71,7 +71,29 @@
         "parity_to_ice_dxy": false,
         "units": "trade-weighted index",
         "units_or_base_fully_reconciled": false,
-        "warning": "Board Technical Q&A documents June 2019 daily-index rebasing to January 2006 monthly mean=100; DDP preview metadata unit label appears different; reconcile release, historic bases, version and units prior to any use."
+        "warning": "Board Technical Q&A documents June 2019 daily-index rebasing to January 2006 monthly mean=100; DDP preview metadata unit label appears different; reconcile release, historic bases, version and units prior to any use. Board's primary-source 2019 Q&A also establishes that the same JRXWTFB_N mnemonic switched old goods-only to new goods-and-services methodology on 2019-02-04, with legacy goods-only series V0.JRXWTFB_N; daily index base changed 2019-06-24. Never infer an as-published continuous series from a current download.",
+        "published_transition_history": {
+          "publisher": "Board of Governors of the Federal Reserve System",
+          "primary_source_url": "https://www.federalreserve.gov/releases/h10/h10_technical_qa.htm",
+          "source_document_last_updated": "2023-02-06",
+          "mnemonic_current": "JRXWTFB_N",
+          "same_mnemonic_historically_reassigned": true,
+          "legacy_mnemonic_through": "2019-02-03",
+          "legacy_mnemonic_semantics": "OLD_BROAD_GOODS_TRADE_ONLY",
+          "revised_mnemonic_effective": "2019-02-04",
+          "revised_mnemonic_semantics": "NEW_BROAD_GOODS_AND_SERVICES_TRADE",
+          "legacy_goods_only_alias": "V0.JRXWTFB_N",
+          "legacy_goods_only_updates_end": "2019-12-31",
+          "new_methodology_historical_estimates_back_to": "2006-01",
+          "daily_index_rebasing_effective": "2019-06-24",
+          "daily_base_before": "JANUARY_2_2006_EQUALS_100",
+          "daily_base_after": "JANUARY_2006_MONTHLY_AVERAGE_EQUALS_100",
+          "same_identifier_proves_economic_comparability": false,
+          "historical_retroactive_dataset_proves_contemporaneous_availability": false,
+          "original_as_published_vintages_verified": false,
+          "historical_stitching_or_splicing_authorized": false,
+          "real_data_access_approved": false
+        }
       },
       "transport": {
         "publisher_owned": "Board H.10 release page and historical XML",
@@ -125,6 +147,11 @@
           "topic": "H.10 August 2026 correction notice",
           "url": "https://www.federalreserve.gov/datadownload/Choose.aspx?rel=H10",
           "claim_type": "REVISION_NOTICE"
+        },
+        {
+          "topic": "Board 2019 mnemonic reuse, old goods-only alias, new trade-weight methodology and daily reindex",
+          "url": "https://www.federalreserve.gov/releases/h10/h10_technical_qa.htm",
+          "claim_type": "TIME_VERSIONED_IDENTITY_AND_BASE_PROVENANCE"
         }
       ],
       "unresolved": [
@@ -132,7 +159,8 @@
         "2019 reindex/base metadata discrepancy",
         "Post-DDP direct automated XML endpoint durability",
         "Actual source-first-published and first-seen version receipts",
-        "Retained revisions/log/cache, public aggregates/history and AI/ML terms"
+        "Retained revisions/log/cache, public aggregates/history and AI/ML terms",
+        "Map 2019-02-04 mnemonic methodological break and 2019-06-24 daily rebasing to actual as-published vintages and legacy goods-only alias before any historical comparison; a current backcast alone is not contemporaneous evidence."
       ],
       "permissions": {
         "commercial_internal_ingestion": false,

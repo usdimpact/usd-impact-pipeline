@@ -50,3 +50,37 @@ For **each individual series and chosen publisher transport**, obtain documented
 4. Later, if approved, request separate permission for a **minimal rights-safe source-transport/first-seen proof** that does not silently invoke FRED or ingest/retain live market observations. This document does not grant such permission.
 
 **Execution boundaries:** No real source data downloads, SQL or Supabase writes, Vercel/Cloudflare/Render/Resend/Lovable mutations, public Score artifact changes, model naming/weights approval, paid license, provider outreach, or Production release.
+
+## October 30, 2026 addendum — H.10 mnemonic lineage and adverse Deep Research claims
+
+**Review type: original-publisher metadata and official terms only.** This supplements the October 29 rights packet without introducing any market observation, dataset download, source adapter, rights grant, model/weight approval, Score history rewrite or Production change.
+
+### Two distinct H.10 revisions affect historical source identity
+
+The Board's [H.10 technical questions](https://www.federalreserve.gov/releases/h10/h10_technical_qa.htm) distinguish **methodology changes** from **index-base changes**:
+
+| Effective date | Board-published change | Implication for an as-of historical study |
+| --- | --- | --- |
+| **February 4, 2019** | The DDP mnemonic `JRXWTFB_N` was reassigned from the **old goods-trade-only Broad Dollar Index** to a **new broad index whose weights use goods and services trade**. Its old goods-only methodology was also made available under `V0.JRXWTFB_N`, maintained until December 31, 2019. | An unchanged mnemonic is **not** proof of unchanged economic methodology. A reconstructed historic row or backcast cannot be treated as something published in the same form in a prior year. |
+| **June 24, 2019** | Board staff changed daily Broad Index indexation from **January 2, 2006 = 100** to **January 2006 monthly average = 100**. | Current reindexed history does not establish the precise historical as-published vintage, and comparing pre/post releases requires controlled base/version lineage. |
+
+The Board states that estimates of the revised methodology extend back to January 2006; a retrospective estimate is **not** proof that those numbers or definitions were published contemporaneously. Historical series keys, methods and first-publication versions must be kept separate. The source is the Board's dated 2019 Q&A (page last updated February 6, 2023), not a market observation.
+
+**Unresolved:** reconcile the unit/base discrepancy between the Board's H.10 release and DDP preview metadata, actual as-published release vintages and the old goods-only alias, and the mechanics of a permitted immutable source snapshot. Do not fetch actual observations to resolve any of this without a separate authorization. The same-week Friday publication problem remains: Board H.10 typically releases previous-week daily information the following Monday.
+
+### Research intake corrections — rights evidence is not permission
+
+The latest Deep Research assessment should **not** become a configuration or publication authority. In particular:
+
+- Reject `approved: true` for all four sources or the 14 permission fields under each source. CC0 in the Treasury Data.gov **catalog** and the Board/EIA general public-domain statements may be positive evidence; neither proves every series/transport/upstream right, commercial storage or public derivative permission.
+- Reject the claim that **FRED** has no separate commercial/archival/AI restrictions. The [St. Louis Fed's FRED Services Terms](https://fred.stlouisfed.org/legal/terms/) contain distinct Services prohibitions: **(j) commercial use without prior written consent unless otherwise authorized; (p) AI/ML development/training; (q) storing/caching/archiving; (r) modification/distribution/derivative works**. API-specific rules independently address **(k) AI/ML** and **(l) storage/cache/archive**. The original series publisher and FRED delivery service are distinct rights layers. This is a policy reading, not a finding that every use would violate those clauses.
+- Reject synthetic example release dates as contemporary evidence. Publisher schedules are guidelines, not first-seen receipts; the Board's [H.10 announcement](https://www.federalreserve.gov/datadownload/Choose.aspx?rel=H10) documents a correction dated August 12, 2026, and Treasury's normal release can be at or after 18:00 Eastern.
+- Reject live-provider tests, backtests, retroactive approval records, repeated synthetic Supabase evidence writes, a legacy Score source switch, or a new public index while the original Score and proposed independent study are both HOLD.
+
+The existing [FRED clause crosswalk](../governance/fred-terms-clause-crosswalk-2026-10-29.json) and [source retention policy](source-retention-policy.md) should remain the governing FRED citation records; this addendum neither replaces them nor creates a new FRED transport fallback.
+
+### Safe work still available
+
+Offline tests and metadata-only source-definition reconciliation are permissible research preparation. The first future authorization requests should be (a) exact source-and-transport legal disposition for each of the four, including caches, backups, correction receipts and public derived histories; (b) independent **owner decision** on whether a genuinely distinct four-signal methodology is wanted; then, only after both, (c) a narrowly scoped real-source as-of/transport proof with its own explicit approval. EIA lease-stock/SPR definitions, Treasury candidate XML field mapping, and H.10 release-vintage recovery all remain unresolved.
+
+**Release decision:** Existing Score rights `HOLD`; independent four-signal study `SYNTHETIC_ONLY_RESEARCH_HOLD`; all 56 permissions `false`; owner/legal receipts `null`. No change to the publication gate.
