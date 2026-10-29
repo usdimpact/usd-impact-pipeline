@@ -67,7 +67,11 @@
     "governance/score-v2-1f-wpu0561-v15-methodology-decision.json",
     "docs/research/score-v2-1f-wpu0561-v15-methodology-decision-packet.md",
     "scripts/score_v2_1f_wpu0561_v15_methodology_guard.py",
-    "tests/test_score_v2_1f_wpu0561_v15_methodology.py"
+    "tests/test_score_v2_1f_wpu0561_v15_methodology.py",
+    "governance/score-v2-1f-wpu0561-v16-owner-option-a-decision.json",
+    "docs/research/score-v2-1f-wpu0561-v16-option-a-owner-decision.md",
+    "scripts/score_v2_1f_wpu0561_v16_option_a_guard.py",
+    "tests/test_score_v2_1f_wpu0561_v16_option_a.py"
   ],
   "authorizations": {
     "bLS_live_request": false,
@@ -192,5 +196,32 @@
     "new_live_workflow_enabled": false,
     "recovery_pre_v15_ref": "backup/score-v2-1f-v14-offline-2026-10-29",
     "recovery_pre_v15_sha": "2e028a553132c94db64ed9ba88927957374c2b1f"
+  },
+  "v16": {
+    "state": "owner_option_A_fixed_resource_closed_no_runtime_change",
+    "recorded_date": "2026-10-29",
+    "chosen_option": "A",
+    "prior_v15_historic_sha": "381db57df68db8624cc3b03e83ac5a1febd06611",
+    "v15_original_decision_blob_sha": "4181d3d59ef931523508a3fe4efc1a790b72f115",
+    "v15_immutable_unselected": true,
+    "governance": "governance/score-v2-1f-wpu0561-v16-owner-option-a-decision.json",
+    "decision_report": "docs/research/score-v2-1f-wpu0561-v16-option-a-owner-decision.md",
+    "guard": "scripts/score_v2_1f_wpu0561_v16_option_a_guard.py",
+    "tests": "tests/test_score_v2_1f_wpu0561_v16_option_a.py",
+    "fixed_selected_2026_XLSX_index_level_feasible": false,
+    "identifier_0561_proof_preserved": true,
+    "actual_pdf_page_count": null,
+    "v13_claim_consumed": true,
+    "consumed_claim": "refs/tags/score-v2-1f-wpu0561-pdf-v13-oneoff-2026-10-29",
+    "zero_new_BLS_requests": true,
+    "request_budget_remaining": 0,
+    "rights_issue_155_hold": true,
+    "score_changed": false,
+    "production_changed": false,
+    "future_B_requires_new_owner_approval": true,
+    "new_live_receipt_or_dispatch": false,
+    "issue_258_close_after_merge_and_evidence_comment": true,
+    "rollback_via_reviewed_pr_only": true,
+    "pre_v16_protected_main": "1c66580dbff811d2ba033254de9df483f62620c9"
   }
 }
