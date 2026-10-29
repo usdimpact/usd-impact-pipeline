@@ -10,21 +10,18 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class ScoreV21FWpu0561AmbiguityDiagnosticsTests(unittest.TestCase):
-    def test_v7_header_gap_consumed_state_is_fail_closed(self) -> None:
+    def test_v8_container_header_band_design_is_hold(self) -> None:
         report = validator.validate(ROOT)
         self.assertEqual(report["status"], "passed")
         self.assertEqual(
             report["state"],
-            "ambiguity_diagnostics_v7_header_gap_consumed_fail_closed",
+            "ambiguity_diagnostics_v8_container_header_band_design_only_hold",
         )
-        self.assertEqual(report["design_version"], 7)
-        self.assertEqual(report["request_attempt_count"], 2)
-        self.assertFalse(report["identifier_values_retained"])
-        self.assertFalse(report["economic_values_retained"])
-        self.assertEqual(report["html_candidate_row"], 226)
-        self.assertIsNone(report["html_nearest_header_row"])
-        self.assertEqual(report["xlsx_candidate_row"], 289)
-        self.assertIsNone(report["xlsx_nearest_header_row"])
+        self.assertEqual(report["design_version"], 8)
+        self.assertIsNone(report["v7_html_nearest_header_row"])
+        self.assertIsNone(report["v7_xlsx_nearest_header_row"])
+        self.assertEqual(report["v8_header_band_top_rows"], 32)
+        self.assertEqual(report["v8_header_band_max_cells"], 128)
         self.assertFalse(report["active_receipt_present"])
         self.assertFalse(report["dispatch_present"])
         self.assertFalse(report["live_request_authorized"])
@@ -363,6 +360,47 @@ class ScoreV21FWpu0561AmbiguityDiagnosticsTests(unittest.TestCase):
         ]
         with self.assertRaisesRegex(ValueError, "exact target label"):
             diagnostic.candidate_local_header_gap_inventory(rows, 2)
+
+    def test_v8_header_band_inventory_is_top_bounded_and_structural(self) -> None:
+        rows = [
+            ["Producer Price Index detailed table 2026"],
+            ["Commodity", "Series code", "Index"],
+            [""],
+            ["Section title"],
+        ] + [[f"data label {i}"] for i in range(5, 40)]
+        report = diagnostic.container_header_band_inventory(rows)
+        self.assertEqual(report["band_start_row"], 1)
+        self.assertEqual(report["band_end_row"], 32)
+        self.assertEqual(report["first_nonempty_row"], 1)
+        self.assertEqual(report["last_nonempty_row"], 32)
+        self.assertIn(3, report["blank_rows"])
+        recognized = report["recognized_header_role_rows"]
+        self.assertTrue(any(row["row"] == 2 for row in recognized))
+        self.assertFalse(report["truncated"])
+
+    def test_v8_header_band_inventory_redacts_numeric_and_identifier_text(self) -> None:
+        rows = [
+            ["Report 2026"],
+            ["Commodity", "Series code", "Index"],
+            ["Crude petroleum", "WPU0561", "252.4"],
+        ]
+        report = diagnostic.container_header_band_inventory(rows)
+        encoded = repr(report)
+        self.assertIn("Report <num>", encoded)
+        self.assertIn("Commodity", encoded)
+        self.assertIn("Series code", encoded)
+        self.assertIn("Index", encoded)
+        self.assertIn("Crude petroleum", encoded)
+        self.assertNotIn("2026", encoded)
+        self.assertNotIn("WPU0561", encoded)
+        self.assertNotIn("252.4", encoded)
+
+    def test_v8_header_band_inventory_has_hard_bounds(self) -> None:
+        rows = [["Header"]] * 40
+        with self.assertRaisesRegex(ValueError, "max_rows must remain 32"):
+            diagnostic.container_header_band_inventory(rows, max_rows=31)
+        with self.assertRaisesRegex(ValueError, "max_cells must remain 128"):
+            diagnostic.container_header_band_inventory(rows, max_cells=127)
 
     def test_identifier_normalization_is_conservative_but_handles_structural_variants(self) -> None:
         for value in ("05-61", "05 61", "0561", "561", "WPU0561", "05–61"):
