@@ -79,3 +79,66 @@ This document does NOT supply an executable contract, authorization receipt, wor
 The current v9 design and execution contract remain authoritative until a distinct owner methodology decision is recorded and reviewed. A draft proposal must not be interpreted as such a decision.
 
 **Currently forbidden and unchanged:** further live BLS requests; numeric identifier/economic value reads; whole-history reconstruction; Score/z-score/contribution computation; source substitution; research-ledger mutation; public replacement; deployments, emails, payments, Supabase/Cloudflare/Resend/Render changes; Production release. Issue #155 stays HOLD.
+
+## 7. Evidence-ledger addendum (metadata-only, no candidate PDF ingestion)
+
+The companion machine-readable register is:
+[score-v2-1f-bls-wpu0561-2026-source-boundary-review-v10-evidence.json](score-v2-1f-bls-wpu0561-2026-source-boundary-review-v10-evidence.json).
+
+This register has 10 independent gates (unknown/HOLD/not authorized), 18 adversarial rejection cases, explicit no-network/no-value authorizations, and an unresolved exact PDF URL. It is inert data: it must not be treated as a new source selector or a runnable workflow.
+
+Metadata evidence distinctions:
+
+| Question | Established in existing official publication metadata? | May it be used for an April 2026 index-level value? |
+| --- | --- | --- |
+| BLS lists an April 2026 Detailed Report PDF | Yes, archive listing only | No |
+| BLS April 2026 PPI release was dated May 13, 2026 | Yes, archived news release | No |
+| BLS defines Table 9 as a detailed commodity/service index table | Yes, table directory | No |
+| An **earlier March 2026 PDF** Table 9 exposes unadjusted index columns | Search-indexed example only: https://www.bls.gov/ppi/detailed-report/ppi-detailed-report-march-2026.pdf | No — other month |
+| Exact April 2026 PDF href and first-release immutability | Not established | No |
+| The specific April Table 9 WPU0561 direct-commodity row exists | Not established | No |
+| Matching historical-vintage unadjusted level exists and is comparable to 2013 | Not established | No |
+
+**Series-label discrepancy requiring an explicit owner adjudication.** The BLS/FRED-hosted series metadata page https://fred.stlouisfed.org/series/WPU0561 calls WPU0561 "Crude Petroleum (Domestic Production)." The consumed v9 candidate is the exact shorter string "Crude petroleum," and its no-broadening rule explicitly prohibits *switching to a domestic-production variant* merely to discover an index-level field. Matching digits or a FRED label does not settle semantic identity or authorize a label substitution. The earlier proven 0561 identifier remains proven as originally scoped; its equivalence to a differently titled PDF row is a separate unresolved question. FRED may be referenced as a **warning about metadata naming**, never as a price source or a way to recover values.
+
+**Do not assume Table 9 resolves the issue.** The indexed March PDF shows a *type* of layout but provides no proof that the exact April PDF has the target series or that the archived PDF is a date-frozen original copy. The official BLS archive also warns that reported indexes may differ from later revised releases. If those questions cannot be settled with bounded evidence, retain v9 infeasibility.
+
+## 8. Pre-registration of negative outcomes (review-only)
+
+The following scenarios must fail closed rather than trigger wider or repeated searching:
+
+- Unverified or patterned PDF URL; link redirects to current/latest report; wrong or corrected edition.
+- Target appears only as a footnote, different commodity label, domestic-production concept without adjudication, extraction, transportation, pipeline, or stage-demand classification.
+- Missing governing Table 9 header; only a percentage-change, relative-importance or seasonally adjusted field; ambiguous OCR or split columns.
+- Multiple plausible target rows, missing code, incompatible code components, conflicting or unattributed revision markers.
+- Different 2013 vs 2026 index base/definition without separately approved comparability plan.
+- Need to parse or retain economic tokens merely to conduct a structural-only preflight, when no such read has been authorized.
+- Inability to prove the exact original-release vintage, including BLS corrections or replaced PDFs.
+- Rights gate #155 unresolved or any attempt to use BLS availability as implicit publication rights.
+- Any temptation to use current BLS series, FRED, a third-party mirror or a later release as a backfill or substitute.
+
+The numbered adversarial cases and their required HOLD outcomes are maintained in the companion evidence register; this Markdown summary is explanatory, not executable.
+
+## 9. Proposed stages and explicit decisions
+
+| Stage | Intended work | Current state | New separate approval required? |
+| --- | --- | --- | --- |
+| S0 | Record published metadata and design candidate without fetching PDF | Completed as proposal | No live access |
+| S1 | Owner decides whether one official April 2026 archived PDF may enter a new methodology design | **HOLD** | **Yes — methodology change only** |
+| S2 | Register the exact immutable BLS PDF URL, method, parser bounds and first-release provenance | **HOLD** | Yes — new contract/design review |
+| S3 | Run one bounded structural-only preflight under explicit activation/dispatch/consumption lifecycle | **NOT AUTHORIZED** | Yes — one-off live preflight |
+| S4 | Verify source-code/series identity and later any economic level | **NOT AUTHORIZED** | Yes — independently for each category of read |
+| S5 | Evaluate historical reconstruction, normalization or Score v2.1F | **NOT AUTHORIZED** | Yes — separate methodology/computation review |
+| S6 | Modify research ledger, public artifacts or Production | **NOT AUTHORIZED** | Yes — independent rights and release gates |
+
+The old v8 network allowance was already consumed. None of S1–S6 is approved by opening a draft PR or saying to continue design work. No new workflow, auth receipt, dispatch marker or BLS request has been created.
+
+## 10. Owner decision alternatives
+
+**A. Retain the v9 fixed-resource boundary:** original XLSX selected target has no index-level schema; freeze WPU0561 feasibility as failed closed in this design.
+
+**B. Authorize only a *new design phase* about the exact official BLS April 2026 Detailed Report PDF:** this permits planning further checks, but not selecting/reading the source, requesting the PDF, reading any series/value, updating Score, or releasing anything.
+
+**C. Defer the source-boundary decision:** retain v9 and PR #286 as draft; do not schedule or dispatch any preflight.
+
+Pending an explicit separate methodology decision, the operationally effective choice is **C (HOLD)**. This is not a legal determination. Issue #155 remains HOLD independently.
