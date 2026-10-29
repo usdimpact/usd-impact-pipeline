@@ -19,6 +19,86 @@ from unittest import mock
 from scripts import score_v2_1f_wpu0561_pdf_v13_transport as transport
 
 
+class V13ScopedApprovalContractTests(unittest.TestCase):
+    """Owner approval does not by itself activate a network request."""
+
+    def setUp(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        gov = root / "governance"
+        self.approval = json.loads(
+            (gov / "score-v2-1f-wpu0561-pdf-v13-owner-decision.json").read_text()
+        )
+        self.contract = json.loads(
+            (gov / "score-v2-1f-wpu0561-pdf-v13-execution-contract.json").read_text()
+        )
+
+    def test_approval_one_resource_and_no_values(self) -> None:
+        self.assertEqual(self.approval["version"], 13)
+        self.assertEqual(
+            self.approval["exact_resource"]["allowed_url"], transport.PDF_URL
+        )
+        self.assertEqual(self.approval["exact_resource"]["maximum_attempts"], 1)
+        auth = self.approval["approval"]
+        self.assertTrue(auth["transient_raw_PDF_bytes_for_only_that_structural_preflight"])
+        self.assertTrue(auth["transient_decoded_page_text_exposure_in_bounded_parser"])
+        self.assertFalse(auth["numeric_identifier_value_read"])
+        self.assertFalse(auth["economic_observation_read"])
+        self.assertFalse(auth["public_artifact_change"])
+        self.assertFalse(auth["production_change"])
+
+    def test_contract_binds_single_request_and_claim(self) -> None:
+        self.assertEqual(self.contract["version"], 13)
+        self.assertEqual(self.contract["one_off_network"]["target"], transport.PDF_URL)
+        self.assertEqual(self.contract["one_off_network"]["max_request_attempts"], 1)
+        self.assertTrue(self.contract["separation_of_duties"]["claim_must_succeed_before_http"])
+        self.assertTrue(self.contract["separation_of_duties"]["claim_must_succeed_before_http"])
+        self.assertTrue(self.contract["separation_of_duties"]["protected_main_dispatch_marker_commit_required"])
+
+    def test_initial_pending_workflow_does_not_activate(self) -> None:
+        # The exact stage is a governance record, independent of code presence.
+        state = self.contract["state"]
+        self.assertIn(state, (
+            "review_only_no_dispatch_or_live_receipt",
+            "owner_activation_pending_dispatch",
+            "approved_one_off_active",
+        ))
+        auth = self.contract["authorization_state"]
+        receipt = transport.RECEIPT.is_file()
+        dispatch = transport.DISPATCH.is_file()
+        if state == "review_only_no_dispatch_or_live_receipt":
+            self.assertFalse(auth["current_live_BLS_GET"])
+            self.assertFalse(auth["receipt_created"])
+            self.assertFalse(auth["dispatch_marker_created"])
+            self.assertFalse(receipt)
+            self.assertFalse(dispatch)
+        elif state == "owner_activation_pending_dispatch":
+            self.assertTrue(receipt)
+            self.assertFalse(dispatch)
+            self.assertTrue(auth["receipt_created"])
+            self.assertFalse(auth["current_live_BLS_GET"])
+            self.assertFalse(auth["dispatch_marker_created"])
+        else:
+            self.assertTrue(receipt)
+            self.assertTrue(dispatch)
+            self.assertTrue(auth["current_live_BLS_GET"])
+            self.assertTrue(auth["receipt_created"])
+            self.assertTrue(auth["dispatch_marker_created"])
+        for field in (
+            "identifier_read", "economic_value_read", "score_or_reconstruction",
+            "research_ledger_change", "public_write", "production_change",
+        ):
+            self.assertFalse(auth[field])
+
+    def test_old_v8_receipt_never_reactivated(self) -> None:
+        p = Path(__file__).resolve().parents[1] / "governance"
+        self.assertFalse(
+            (p / "score-v2-1f-bls-wpu0561-ambiguity-diagnostics-preflight-authorization.json").exists()
+        )
+        self.assertFalse(
+            (p / "score-v2-1f-bls-wpu0561-ambiguity-diagnostics-preflight-dispatch.json").exists()
+        )
+
+
 class FakeResponse:
     def __init__(self, body: bytes | None = None, *,
                  url: str = transport.PDF_URL,
