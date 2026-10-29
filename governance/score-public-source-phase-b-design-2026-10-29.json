@@ -47,9 +47,9 @@
     "writer_file_io_allowed": false
   },
   "source_rights_terms": {
-    "federal_reserve": "Board page content generally public domain unless indicated otherwise; attribution and third-party exceptions; exact Broad Index source must be confirmed.",
+    "federal_reserve": "Board page content generally public domain unless indicated otherwise; attribution and third-party exceptions; exact Broad Index source must be confirmed. Board's July 16, 2026 DDP transition notice says historical XML remains downloadable on statistical release pages; future API/series and usage rights remain unverified.",
     "eia": "Government-created EIA data generally reusable with acknowledgment; privately contributed material exceptions; only WPSR surveyed crude inventories candidate, never infer Refinitiv WTI spot clearance.",
-    "treasury": "Treasury par-yield rates are official government-published calculations from indicative market bid quotations; exact commercial transport, retention and third-party rights require counsel/source review.",
+    "treasury": "Data.gov nominal Daily Treasury Yield Curve Rates catalog entry 015-DO-020 displays CC0 1.0 (metadata modified 2025-02-11). This is positive catalog-level evidence, not clearance of exact two tenors, source transport, upstream FRBNY market quotations, commercial retention, third-party rights or public derivative outputs. Treasury authors the par CMT curve; the Board republishes CMT information in H.15; FRED is a separate St. Louis Fed delivery platform. Historical publication-time/vintage parity is unverified.",
     "none_of_four_authorized_for_real_observation_retrieval": true
   },
   "sources": [
@@ -61,7 +61,8 @@
       "cite": [
         "https://www.federalreserve.gov/disclaimer.htm",
         "https://www.federalreserve.gov/releases/h10/",
-        "https://www.federalreserve.gov/datadownload/Choose.aspx?rel=H10"
+        "https://www.federalreserve.gov/datadownload/Choose.aspx?rel=H10",
+        "https://www.federalreserve.gov/data/data-download-fred-information.htm"
       ],
       "rights": "CONDITIONAL_GOVERNMENT_SITE_LICENSE_CHECK",
       "third_party": "Board site explicitly excepts copyrighted non-Board sources; inspect exact index release and metadata.",
@@ -72,7 +73,7 @@
         "zone": "America/New_York",
         "holiday_rule": "Following business day; actual date/time override mandatory",
         "revisions": "Observed Aug 10 H.10 release included errors corrected Aug 12, 2026",
-        "current_transport": "Board release and official XML; avoid automatic FRED fallback",
+        "current_transport": "Board H.10 release-page historical XML remains available per the July 16, 2026 Board DDP notice; exact future series, programmatic transport and rights are unverified. Never substitute FRED automatically.",
         "risk": "Board DDP Build Your Package scheduled for removal during week of 2026-11-09"
       },
       "parity": "NOT_ICE_DXY",
@@ -111,7 +112,9 @@
       "cite": [
         "https://home.treasury.gov/treasury-daily-interest-rate-xml-feed",
         "https://home.treasury.gov/policy-issues/financing-the-government/interest-rate-statistics/treasury-yield-curve-methodology",
-        "https://home.treasury.gov/developer-notice-xml-changes"
+        "https://home.treasury.gov/developer-notice-xml-changes",
+        "https://catalog.data.gov/dataset/interest-rate-statistics-daily-treasury-yield-curve-rates",
+        "https://home.treasury.gov/policy-issues/financing-the-government/interest-rate-statistics/interest-rates-frequently-asked-questions"
       ],
       "rights": "TREASURY_RIGHTS_UPSTREAM_REVIEW",
       "third_party": "Curve is constructed from indicative market quotations; status of upstream quote rights and commercial storage/derivative use unresolved.",
@@ -136,7 +139,8 @@
       "cite": [
         "https://home.treasury.gov/treasury-daily-interest-rate-xml-feed",
         "https://home.treasury.gov/policy-issues/financing-the-government/interest-rate-statistics/treasury-yield-curve-methodology",
-        "https://home.treasury.gov/policy-issues/financing-the-government/interest-rate-statistics/interest-rates-frequently-asked-questions"
+        "https://home.treasury.gov/policy-issues/financing-the-government/interest-rate-statistics/interest-rates-frequently-asked-questions",
+        "https://catalog.data.gov/dataset/interest-rate-statistics-daily-treasury-yield-curve-rates"
       ],
       "rights": "TREASURY_RIGHTS_UPSTREAM_REVIEW",
       "third_party": "Potential upstream quotation rights and redistribution retention restrictions unresolved.",
@@ -227,6 +231,76 @@
     {
       "url": "https://www.eia.gov/analysis/handbook/pdf/STEO_Crude_Oil_Price.pdf",
       "claim": "EIA separately republishes licensed private WTI spot data; exclude this as survey-statistics reuse"
+    },
+    {
+      "url": "https://catalog.data.gov/dataset/interest-rate-statistics-daily-treasury-yield-curve-rates",
+      "claim": "Treasury nominal Daily Treasury Yield Curve Rates Data.gov dataset 015-DO-020 carries a CC0 1.0 catalog license entry; does not constitute exact-tenor/transport/upstream commercial rights clearance"
+    },
+    {
+      "url": "https://www.federalreserve.gov/data/data-download-fred-information.htm",
+      "claim": "Board July 16, 2026 DDP transition notice: Build Your Package removal week of November 9, 2026; historical XML remains on publisher statistical release pages, with no implied FRED reuse rights or future programmatic transport guarantee"
+    },
+    {
+      "url": "https://home.treasury.gov/policy-issues/financing-the-government/interest-rate-statistics/interest-rates-frequently-asked-questions",
+      "claim": "Treasury creates daily CMT yields and the Board publishes them in H.15; no equality or inequality of first-published vintages established"
     }
-  ]
+  ],
+  "research_correction_2026_10_29": {
+    "status": "DOCUMENTATION_ONLY_NO_SOURCE_OR_RELEASE_AUTHORIZATION",
+    "evidence": {
+      "treasury_catalog": {
+        "dataset_id": "015-DO-020",
+        "title": "Interest Rate Statistics - Daily Treasury Yield Curve Rates",
+        "catalog_url": "https://catalog.data.gov/dataset/interest-rate-statistics-daily-treasury-yield-curve-rates",
+        "license_entry": "CC0-1.0",
+        "catalog_metadata_modified": "2025-02-11",
+        "interpretation": "POSITIVE_CATALOG_EVIDENCE_ONLY",
+        "exact_series_commercial_storage_and_derived_publication_cleared": false,
+        "upstream_indicative_quote_rights_cleared": false
+      },
+      "fed_direct_xml": {
+        "board_notice_url": "https://www.federalreserve.gov/data/data-download-fred-information.htm",
+        "historical_release_page_xml_documented": true,
+        "future_machine_transport_verified": false,
+        "fred_substitution_authorized": false,
+        "exact_h10_series_and_commercial_reuse_cleared": false
+      },
+      "timing_and_cmt_provenance": {
+        "treasury_usual_publication_time": "by 18:00 America/New_York, may be delayed",
+        "treasury_17_00_assumption_rejected": true,
+        "treasury_actual_first_seen_required": true,
+        "original_daily_par_cmt_calculator": "U.S. Treasury",
+        "h15_publisher": "Federal Reserve Board",
+        "fred_delivery_provider": "Federal Reserve Bank of St. Louis",
+        "historical_value_and_vintage_parity_proven": false
+      }
+    },
+    "rejected_research_proposals": [
+      "Do not set approved/cleared true for H.10, EIA inventories or either Treasury tenor based on general federal-site or Data.gov CC0 labels",
+      "Do not schedule a 17:00 ET Treasury retrieval or treat the usual 18:00 ET availability as a verified first-release receipt",
+      "Do not assume Treasury and H.15 CMT values must be either different or equal without as-published/vintage comparison",
+      "Do not record future November legal, owner or provider reviews as completed",
+      "Do not create duplicate synthetic Supabase evidence writes where offline validated fixtures already exist",
+      "Do not treat EIA WPSR inventory survey reuse evidence as permission for Refinitiv-sourced WTI/Brent spot prices or assume corrections are impossible",
+      "Do not carry ICE/S&P/Cboe/CME/Yahoo licenses as automatic prerequisites for a genuinely separate four-signal model that never processes their series; keep original eight-driver Score rights HOLD unchanged"
+    ],
+    "independent_product_rights": {
+      "existing_eight_driver_score": {
+        "gate": "HOLD",
+        "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
+        "legacy_provider_rights_review_required": true,
+        "covered_by_four_source_catalog_evidence": false
+      },
+      "proposed_distinct_four_signal_study": {
+        "gate": "RESEARCH_ONLY_HOLD",
+        "exact_series_and_transport_decisions_required": true,
+        "methodology_weights_and_name_approved": false,
+        "real_observation_retrieval_approved": false,
+        "retention_approved": false,
+        "public_derived_output_approved": false,
+        "production_approved": false
+      }
+    },
+    "no_live_downloads_no_database_writes_no_production_change": true
+  }
 }
