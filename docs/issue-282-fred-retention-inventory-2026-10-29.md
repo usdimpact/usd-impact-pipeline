@@ -106,6 +106,31 @@ Cloudflare's [official Pages preview documentation](https://developers.cloudflar
 
 This is a **security decision packet**, not Cloudflare Access activation or permission to modify Production.
 
+## Verified Cloudflare preview Access activation — 2026-10-29
+
+**Owner action:** The project owner enabled the dashboard control **Settings > General > Preview access > Restrict previews**. The subsequent dashboard screenshot displays: "Preview deployments are restricted by a Cloudflare Access policy." This is a recorded owner action, not an API mutation by the audit.
+
+**Independent read-only configuration verification:**
+
+- Cloudflare Access app name: `usd-impact-pipeline - Cloudflare Pages`; self-hosted domain pattern `*.usd-impact-pipeline.pages.dev`; **24-hour** session duration.
+- Policy: `Allow Members - Cloudflare Pages`, decision `allow`; **one specific-email include rule**, zero excludes, zero additional requirements. Identity/address intentionally not copied into the repository. No "Everyone" rule was observed in the inspected application policy.
+- Pages project still has Production branch `main` and its two root domains. No Score/source/deployment settings or public endpoint routes were changed by this audit.
+
+**Independent anonymous URL verification, immediately after activation:**
+
+| Previously tested surface | Post-activation result |
+|---|---|
+| `https://ca9ec248.usd-impact-pipeline.pages.dev/data/score_repro_bundle_latest.json` | `login_required`, no provider data returned |
+| `https://c7a03949.usd-impact-pipeline.pages.dev/data/weekly_input_latest.json` | `login_required`, no provider data returned |
+| `https://score.usd-impact.com/data/weekly_input_latest.json` | JSON still anonymously readable |
+| `https://usd-impact-pipeline.pages.dev/data/weekly_input_latest.json` | JSON still anonymously readable |
+
+The two old preview URL tests demonstrate protection beyond only future previews, **for these sampled URLs**. They do not prove every historical URL, third-party mirror, cache, local runner artifact or Git history has been remediated. `*.usd-impact-pipeline.pages.dev` Access policy scope explicitly excludes the root `usd-impact-pipeline.pages.dev` host and `score.usd-impact.com`.
+
+**Operational follow-up:** Confirm the owner's intended account can complete login (without sharing passcodes), verify any additional QA reviewers are separately allowed, and establish an Access policy change/rollback procedure. A sign-in requirement can block legitimate previews until reviewer permissions are correct. Keep the root-domain/Production data rights decision separate, coordinated with Issue #155 and approved private-evidence/public-safe schema work.
+
+**Status:** preview protection **verified on sampled old URLs**; Production/root public data exposure **unresolved**. No additional Cloudflare settings were changed, no data deleted, and no rights/publication decision inferred.
+
 ## Scope not yet verified
 
 - Complete historic GitHub Actions run logs, artifacts, cache inventories, runner-local retention and cleanup proofs; Cloudflare cache coverage/TTL and alternate domain variants; Vercel/Supabase downstream copies; object storage/backups; old Git history/reflogs and third-party mirrors. The workflow commands and selected live Pages endpoints were verified above.
