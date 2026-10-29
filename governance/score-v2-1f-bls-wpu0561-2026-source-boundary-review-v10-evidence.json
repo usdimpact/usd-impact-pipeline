@@ -1,0 +1,266 @@
+{
+  "version": 10,
+  "state": "design_only_proposal_hold",
+  "decision_type": "candidate_source_boundary_review_not_authorization",
+  "issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/258",
+  "rights_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
+  "draft_pr": "https://github.com/usdimpact/usd-impact-pipeline/pull/286",
+  "baseline_main_commit": "0c420f495e6196d34d195d441edf7b707da4f35a",
+  "v8_consumed_run": "https://github.com/usdimpact/usd-impact-pipeline/actions/runs/40901086765",
+  "authoritative_existing_design_version": 9,
+  "earlier_identity_proof_preserved": true,
+  "current_fixed_resource_pair_feasible": false,
+  "candidate": {
+    "id": "C1",
+    "source_owner": "U.S. Bureau of Labor Statistics",
+    "document_name": "April 2026 Producer Price Index Detailed Report, PDF",
+    "reference_month": "2026-04",
+    "official_archive_landing_page": "https://www.bls.gov/ppi/detailed-report/",
+    "official_table_directory": "https://www.bls.gov/ppi/tables/home.htm",
+    "official_april_release": "https://www.bls.gov/news.release/archives/ppi_05132026.htm",
+    "april_release_date": "2026-05-13",
+    "exact_pdf_resource_url": "https://www.bls.gov/ppi/detailed-report/ppi-detailed-report-april-2026.pdf",
+    "exact_pdf_href_verified": true,
+    "document_fetched_for_this_proposal": false,
+    "document_content_parsed_for_this_proposal": false,
+    "table_candidate": "Table 9",
+    "april_table_9_schema_verified": false,
+    "april_wpu0561_row_verified": false,
+    "unadjusted_index_level_verified": false,
+    "original_release_pdf_provenance_verified": false,
+    "publication_rights_cleared": false,
+    "selected_as_methodology_source": false,
+    "exact_pdf_href_basis": "Absolute PDF href extracted from the April 2026 PDF link in official BLS archived report index HTML; link target NOT followed.",
+    "pdf_response_status_verified": false,
+    "pdf_headers_inspected": false,
+    "pdf_downloaded": false,
+    "pdf_first_release_immutability_verified": false
+  },
+  "indexed_metadata_observations": [
+    {
+      "claim": "The official archive index lists April 2026 PDF and XLSX reports",
+      "source": "https://www.bls.gov/ppi/detailed-report/",
+      "status": "verified_april_report_listing_and_exact_pdf_href_only"
+    },
+    {
+      "claim": "The official BLS tables directory describes Table 9 as commodity/service indexes",
+      "source": "https://www.bls.gov/ppi/tables/home.htm",
+      "status": "verified_general_table_purpose_only"
+    },
+    {
+      "claim": "The April 2026 archived news release is dated May 13, 2026",
+      "source": "https://www.bls.gov/news.release/archives/ppi_05132026.htm",
+      "status": "verified_news_release_date_not_pdf_vintage"
+    },
+    {
+      "claim": "An indexed March 2026 PDF Table 9 displays an unadjusted-index schema",
+      "source": "https://www.bls.gov/ppi/detailed-report/ppi-detailed-report-march-2026.pdf",
+      "status": "other_month_reference_only"
+    },
+    {
+      "claim": "FRED labels WPU0561 Crude Petroleum (Domestic Production)",
+      "source": "https://fred.stlouisfed.org/series/WPU0561",
+      "status": "external_title_warning_only_not_candidate_source_or_identity_approval"
+    }
+  ],
+  "concept_label_review": {
+    "frozen_v9_target_label": "Crude petroleum",
+    "external_metadata_title": "Crude Petroleum (Domestic Production)",
+    "identity_equivalence_status": "not_adjudicated",
+    "substitution_allowed": false,
+    "governing_rule": "Do not broaden from the exact target to domestic production or related variants to find an index field without a new owner methodology decision",
+    "current_series_code_from_consumed_identity_evidence": "0561",
+    "current_proven_identity_not_invalidated": true
+  },
+  "gates": [
+    {
+      "id": "G01",
+      "requirement": "Exact official BLS PDF href recorded from archive listing",
+      "status": "metadata_href_verified_only",
+      "fail_closed_rule": "Official archive HTML href is verified, but the PDF has not been requested, inspected or accepted as an immutable original-release document."
+    },
+    {
+      "id": "G02",
+      "requirement": "April 2026 document edition and May 13, 2026 publication provenance",
+      "status": "unknown",
+      "fail_closed_rule": "News release date alone does not prove PDF publication or first-release immutability"
+    },
+    {
+      "id": "G03",
+      "requirement": "Archived PDF correction, replacement, and revision provenance",
+      "status": "unknown",
+      "fail_closed_rule": "If original edition is unavailable or corrections unresolved, fail closed"
+    },
+    {
+      "id": "G04",
+      "requirement": "Governing April PDF Table 9 header has an unadjusted index-level column",
+      "status": "unknown",
+      "fail_closed_rule": "Another month's Table 9 does not prove April schema"
+    },
+    {
+      "id": "G05",
+      "requirement": "Unique exact-series WPU0561 commodity identity proven in relevant table",
+      "status": "unknown",
+      "fail_closed_rule": "Code, label, section, units, adjustment and underlying concept must agree"
+    },
+    {
+      "id": "G06",
+      "requirement": "Short Crude petroleum label versus domestic-production title adjudicated",
+      "status": "unknown",
+      "fail_closed_rule": "FRED naming alone never authorizes variant acceptance; owner methodology ruling required"
+    },
+    {
+      "id": "G07",
+      "requirement": "2013 HTML and 2026 PDF values refer to comparable series, bases and observation months",
+      "status": "unknown",
+      "fail_closed_rule": "No silent rebase, semantic transformation or vintage blending"
+    },
+    {
+      "id": "G08",
+      "requirement": "Parser can perform an audited bounded structural-only preflight without unauthorized economic-value reads",
+      "status": "unknown",
+      "fail_closed_rule": "No PDF/text extraction before a separately authorized contract"
+    },
+    {
+      "id": "G09",
+      "requirement": "Legal/redistribution review for Score public surface",
+      "status": "hold",
+      "fail_closed_rule": "Issue #155 remains unresolved"
+    },
+    {
+      "id": "G10",
+      "requirement": "One-off live structural preflight separately preregistered and approved",
+      "status": "not_authorized",
+      "fail_closed_rule": "Consumed v8 receipt cannot be reused"
+    }
+  ],
+  "adversarial_rejection_cases": [
+    {
+      "id": "N01",
+      "trigger": "A PDF URL is inferred from a naming pattern rather than verified on the official archive",
+      "required_outcome": "hold_no_substitution_no_value_read"
+    },
+    {
+      "id": "N02",
+      "trigger": "A generic or current PPI PDF redirects to the latest month",
+      "required_outcome": "hold_no_substitution_no_value_read"
+    },
+    {
+      "id": "N03",
+      "trigger": "The PDF has the wrong reference month or no first-release provenance",
+      "required_outcome": "hold_no_substitution_no_value_read"
+    },
+    {
+      "id": "N04",
+      "trigger": "The April PDF is replaced or corrected and its first-release edition is not independently established",
+      "required_outcome": "hold_no_substitution_no_value_read"
+    },
+    {
+      "id": "N05",
+      "trigger": "Table 9 does not exist, has no governing header, or exposes only percent-change fields",
+      "required_outcome": "hold_no_substitution_no_value_read"
+    },
+    {
+      "id": "N06",
+      "trigger": "Only a seasonally adjusted series, relative importance, or a non-index measure is available",
+      "required_outcome": "hold_no_substitution_no_value_read"
+    },
+    {
+      "id": "N07",
+      "trigger": "Multiple rows plausibly map to the target series without deterministic disambiguation",
+      "required_outcome": "hold_no_substitution_no_value_read"
+    },
+    {
+      "id": "N08",
+      "trigger": "The row is an unrelated extraction, stage-demand, transport, pipeline, or domestic-production variant without approved identity reconciliation",
+      "required_outcome": "hold_no_substitution_no_value_read"
+    },
+    {
+      "id": "N09",
+      "trigger": "The target code appears only in a footnote or unrelated container",
+      "required_outcome": "hold_no_substitution_no_value_read"
+    },
+    {
+      "id": "N10",
+      "trigger": "A row matches by label but the commodity identifier or series scope conflicts",
+      "required_outcome": "hold_no_substitution_no_value_read"
+    },
+    {
+      "id": "N11",
+      "trigger": "2013 and 2026 indexes use incompatible base periods, units or series definitions",
+      "required_outcome": "hold_no_substitution_no_value_read"
+    },
+    {
+      "id": "N12",
+      "trigger": "Revision/preliminary tags conflict or cannot be attributed to the eligible observation",
+      "required_outcome": "hold_no_substitution_no_value_read"
+    },
+    {
+      "id": "N13",
+      "trigger": "PDF text is rasterized, OCR ambiguous, a header is split or columns cannot be aligned unambiguously",
+      "required_outcome": "hold_no_substitution_no_value_read"
+    },
+    {
+      "id": "N14",
+      "trigger": "The parsing step would materialize, log or persist unapproved economic values",
+      "required_outcome": "hold_no_substitution_no_value_read"
+    },
+    {
+      "id": "N15",
+      "trigger": "The proposed workflow scans other source paths or retries network requests without bounded authorization",
+      "required_outcome": "hold_no_substitution_no_value_read"
+    },
+    {
+      "id": "N16",
+      "trigger": "Source-value confirmation is obtained from current BLS database, FRED or a third-party mirror instead of the approved historical BLS primary document",
+      "required_outcome": "hold_no_substitution_no_value_read"
+    },
+    {
+      "id": "N17",
+      "trigger": "The rights gate is interpreted as resolved by source availability or indexing feasibility",
+      "required_outcome": "hold_no_substitution_no_value_read"
+    },
+    {
+      "id": "N18",
+      "trigger": "Approval of design is treated as authorization for live preflight, Score computation or publication",
+      "required_outcome": "hold_no_substitution_no_value_read"
+    }
+  ],
+  "authorizations": {
+    "metadata_only_offline_review": true,
+    "methodology_change_approved": false,
+    "pdf_network_request": false,
+    "pdf_document_retrieval": false,
+    "header_or_series_value_read": false,
+    "numeric_identifier_read": false,
+    "economic_value_read": false,
+    "historical_reconstruction": false,
+    "score_calculation": false,
+    "source_substitution": false,
+    "research_ledger_write": false,
+    "public_artifact_write": false,
+    "production_change": false
+  },
+  "next_permitted_step": "owner_review_of_single_candidate_methodology_boundary_design_only_no_network",
+  "no_request_budget_or_network_dispatch_defined": true,
+  "source_boundary_design_authorization": {
+    "owner_approved_design_only": true,
+    "approval_date": "2026-10-29",
+    "new_pdf_resource_adopted": false,
+    "bls_pdf_request_permitted": false,
+    "identifiers_permitted": false,
+    "economic_values_permitted": false,
+    "reconstruction_permitted": false,
+    "production_permitted": false
+  },
+  "backup_and_restore": {
+    "baseline_branch": "backup/score-v2-1f-v9-hold-2026-10-29",
+    "baseline_sha": "0c420f495e6196d34d195d441edf7b707da4f35a",
+    "draft_review_branch": "backup/score-v2-1f-v10-review-2026-10-29",
+    "draft_review_sha": "698fb0c0d069c598909cc10e875a28cb711d1ea5",
+    "recovery_manifest": "governance/score-v2-1f-wpu0561-v10-recovery-manifest.json",
+    "offline_recovery_workflow": ".github/workflows/score-v2-1f-wpu0561-recovery-drill.yml",
+    "non_mutating_only": true,
+    "production_restore_authorized": false
+  }
+}

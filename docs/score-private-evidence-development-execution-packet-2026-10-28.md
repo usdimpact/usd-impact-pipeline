@@ -1,6 +1,45 @@
 # Score private evidence — Development execution packet — 2026-10-28
 
-Status: **review-only / not yet provisioned / not merged / synthetic-only**.
+Historical status at initial authoring (2026-10-28): **review-only / not yet provisioned / not merged / synthetic-only**. This historical status is superseded by the dated live checkpoint below.
+
+## Superseding live checkpoint — 2026-10-29 (read-only verification)
+
+**Development synthetic rehearsal status: PASS.** The originally planned bucket creation, broker deployment, and initial write/read have already been completed by earlier approved work; **do not provision a second bucket, redeploy a duplicate function, or rerun the create-only write**. This checkpoint is a new dated read-only inspection and does not backdate the original packet.
+
+### Supabase current state
+
+- Project `usd-impact-publication-guard-development` (`xakayexlzyrazuunqlxe`), region `eu-central-1`: **ACTIVE_HEALTHY**.
+- Exactly one `storage.buckets` entry for `score-private-evidence`: `public=false`, 1 MiB (`1048576`) file limit, only `application/json` MIME allowed.
+- Exactly one `storage.objects` entry in that bucket, `rehearsal/score-v2/archive/2099-01-02/repro_bundle.json`, recorded 2026-10-28 01:48 UTC, size **1,748 bytes** and MIME `application/json`. Only object metadata were queried; no private object bytes were exported.
+- Public schema base tables: **zero**. Supabase security-advisor lints: **zero** at time checked.
+- Edge Function `score-private-evidence-broker`: **ACTIVE, version 1**, with `verify_jwt=false`; the code itself verifies GitHub OIDC JWT signature and claims, so this Supabase setting is intentional rather than permission to bypass application authentication.
+- The three deployed source files `index.ts`, `broker-core.mjs` and `github-oidc.mjs` were retrieved read-only and compared to `provisioning/score-private-evidence-development/function/` on current GitHub main. **All three exact content strings matched.** No function configuration or code was altered.
+
+### GitHub Actions acceptance receipts (2026-10-28)
+
+| Run | Verified outcome |
+|---|---|
+| [Synthetic write run #40617195348](https://github.com/usdimpact/usd-impact-pipeline/actions/runs/40617195348) | PASS: reviewed main checkout, HOLD checks, synthetic fixture, write-bound OIDC, create-only broker write and temporary cleanup |
+| [Duplicate write attempt #40617289043](https://github.com/usdimpact/usd-impact-pipeline/actions/runs/40617289043) | **Expected rejection**: broker returned HTTP 409 instead of replacing the object; cleanup succeeded. Do not mistake this deliberate write-once failure for missing infrastructure |
+| [Synthetic read run #40617383435](https://github.com/usdimpact/usd-impact-pipeline/actions/runs/40617383435) | PASS: week-bound OIDC, private read, fixture marker/hash validation and temporary cleanup |
+| [Private research + locked reader compatibility run #40620133144](https://github.com/usdimpact/usd-impact-pipeline/actions/runs/40620133144) | PASS: private read, synthetic source/aggregate adapter, locked reader compatibility and temporary cleanup |
+
+The successful read workflow validates the private bundle's synthetic marker, `do_not_publish`, exact week and zeroed synthetic provenance hashes. This audit did not pull down the object body. The clean-up steps delete runner-temporary inputs and tokens, **not** the already stored synthetic fixture.
+
+### Active governance and stop conditions
+
+`governance/score-private-research-migration-contract.json` currently records `development_synthetic_rehearsal_authorized=true`, while `production_change_authorized=false`, `real_provider_evidence_authorized=false`, and `public_replacement_authorized=false`. The separate Score gate `governance/score-publication-rights-gate.json` is still `state=hold` without a decision receipt.
+
+**Therefore:**
+1. Do not repeat the create-only write: the exact fixture path is occupied and correct behavior is HTTP 409.
+2. Do not read, write or backfill real FRED, Yahoo or other provider-derived strict evidence into Development Storage based on this synthetic acceptance.
+3. Do not activate private-backed production readers, change public root/archived Score artifacts, grant public bucket access, expose signed URLs, or delete the synthetic audit object.
+4. Next permissible work without new rights clearance: **read-only** source/consumer dependency inventory, offline synthetic-only compatibility tests, and provider/counsel decision documentation.
+5. Before any Development reader migration or Production public-schema change, require the respective governance approvals, explicit scope, backup/rollback plan, exact-head CI and independent verification.
+
+The original planning sequence below is preserved as historical instructions/evidence. It is **not** a current deployment runbook.
+
+---
 
 Related:
 - issue #155 — Score rights HOLD;

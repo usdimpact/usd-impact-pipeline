@@ -35,7 +35,7 @@ jobs:
           echo "Prospective Score evidence review is HOLD under issue #155; frozen open research PRs are preserved without new-week freshness enforcement." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Set up Python 3.11
-        if: steps.rights.outputs.hold != 'true'
+        if: steps.rights.outputs.hold == 'false'
         uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: '3.11'
@@ -43,14 +43,14 @@ jobs:
           cache-dependency-path: runtime/requirements-2026-10-05.lock
 
       - name: Install locked validation dependencies
-        if: steps.rights.outputs.hold != 'true'
+        if: steps.rights.outputs.hold == 'false'
         run: |
           python -m pip install --upgrade pip==26.2.1
           python -m pip install -r runtime/requirements-2026-10-05.lock
           python -m pip check
 
       - name: Capture open evidence PR metadata
-        if: steps.rights.outputs.hold != 'true'
+        if: steps.rights.outputs.hold == 'false'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -62,7 +62,7 @@ jobs:
             > "$RUNNER_TEMP/open-score-evidence-prs.json"
 
       - name: Check review-gated evidence state
-        if: steps.rights.outputs.hold != 'true'
+        if: steps.rights.outputs.hold == 'false'
         id: health
         continue-on-error: true
         run: |
@@ -71,7 +71,7 @@ jobs:
             --report "$RUNNER_TEMP/score-research-evidence-health.md"
 
       - name: Record claim-safe health summary
-        if: steps.rights.outputs.hold != 'true' && always()
+        if: steps.rights.outputs.hold == 'false' && always()
         run: |
           if [ -f "$RUNNER_TEMP/score-research-evidence-health.md" ]; then
             cat "$RUNNER_TEMP/score-research-evidence-health.md" >> "$GITHUB_STEP_SUMMARY"
@@ -82,7 +82,7 @@ jobs:
           fi
 
       - name: Fail when evidence needs review or investigation
-        if: steps.rights.outputs.hold != 'true' && steps.health.outcome == 'failure'
+        if: steps.rights.outputs.hold == 'false' && steps.health.outcome == 'failure'
         run: |
           echo "Score research evidence requires review or investigation. Production Score v2 is unaffected."
           exit 1

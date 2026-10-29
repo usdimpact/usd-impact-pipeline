@@ -25,13 +25,13 @@ class ResearchValidationWorkflowTests(unittest.TestCase):
         self.assertIn('Check upstream weekly release readiness', workflow)
         self.assertIn("ready = current_week == expected_week", workflow)
         self.assertIn(
-            "if: steps.rights.outputs.hold != 'true' && "
+            "if: steps.rights.outputs.hold == 'false' && "
             "steps.upstream.outputs.ready != 'true'",
             workflow,
         )
         self.assertIn('Research publication deferred:', workflow)
         self.assertIn(
-            "if: steps.rights.outputs.hold != 'true' && "
+            "if: steps.rights.outputs.hold == 'false' && "
             "steps.upstream.outputs.ready == 'true'",
             workflow,
         )

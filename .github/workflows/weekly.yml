@@ -56,7 +56,7 @@ jobs:
 
       - name: Decide whether the expected week is already immutable
         id: decision
-        if: steps.rights.outputs.hold != 'true'
+        if: steps.rights.outputs.hold == 'false'
         run: |
           python -m scripts.weekly_publication_preflight \
             --root . \
@@ -75,7 +75,7 @@ jobs:
 
   run-pipeline:
     needs: preflight
-    if: needs.preflight.outputs.rights_hold != 'true' && needs.preflight.outputs.action == 'generate'
+    if: needs.preflight.outputs.rights_hold == 'false' && needs.preflight.outputs.action == 'generate'
     runs-on: ubuntu-latest
     timeout-minutes: 30
 

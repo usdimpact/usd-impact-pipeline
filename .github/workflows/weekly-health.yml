@@ -37,7 +37,7 @@ jobs:
 
       - name: Check workflow, data, and dashboards
         id: health
-        if: steps.rights.outputs.hold != 'true'
+        if: steps.rights.outputs.hold == 'false'
         continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -50,7 +50,7 @@ jobs:
             --report weekly-health-report.md
 
       - name: Open or update health issue
-        if: steps.rights.outputs.hold != 'true' && steps.health.outcome == 'failure'
+        if: steps.rights.outputs.hold == 'false' && steps.health.outcome == 'failure'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_TITLE: Weekly USD Impact pipeline requires attention
@@ -75,7 +75,7 @@ jobs:
           fi
 
       - name: Close recovered health issue
-        if: steps.rights.outputs.hold != 'true' && steps.health.outcome == 'success'
+        if: steps.rights.outputs.hold == 'false' && steps.health.outcome == 'success'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_TITLE: Weekly USD Impact pipeline requires attention
