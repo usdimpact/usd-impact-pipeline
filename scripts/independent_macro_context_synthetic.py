@@ -26,6 +26,59 @@ from scripts.score_public_source_phase_b_synthetic import (
 PANEL_ID = "INDEPENDENT_FEDERAL_MACRO_CONTEXT_V0_SYNTHETIC_ONLY"
 DIALS = ("dollar_breadth", "crude_inventory", "treasury_curve_level",
          "treasury_curve_direction")
+# Exact invented result vocabulary. This is a formatting/safety contract, not
+# evidence of an approved methodology, source rights or a publication license.
+DIAL_LABEL_VALUES = {
+    "dollar_breadth": frozenset({"UP", "DOWN", "UNCHANGED"}),
+    "crude_inventory": frozenset({"BUILD", "DRAW", "UNCHANGED"}),
+    "treasury_curve_level": frozenset({"POSITIVE", "FLAT", "INVERTED"}),
+    "treasury_curve_direction": frozenset({"STEEPENING", "FLATTENING", "UNCHANGED"}),
+}
+SOURCE_BLOCKER_CODES = frozenset({
+    "MISSING_SYNTHETIC_RECEIPT",
+    "NOT_FIRST_SEEN_BY_CUTOFF",
+    "NO_MATCHING_VISIBLE_SYNTHETIC_VALUE",
+})
+WEEK_BLOCKER_CODES = frozenset({
+    "INCOMPLETE_FOUR_SOURCE_SET",
+    "TREASURY_CURVE_SNAPSHOT_MISMATCH",
+    "TREASURY_CURVE_REVISION_MISMATCH",
+    "TREASURY_CURVE_INITIAL_RELEASE_MISMATCH",
+    "TREASURY_CURVE_VERSION_PUBLICATION_MISMATCH",
+    "TREASURY_CURVE_FIRST_SEEN_MISMATCH",
+})
+
+
+def _canonical_synthetic_friday(value: str) -> date:
+    """Require a strict ISO Friday in 2099+, never a historical source date."""
+    if type(value) is not str:
+        raise ValueError("synthetic preview week must be a canonical ISO date")
+    try:
+        week = date.fromisoformat(value)
+    except ValueError as exc:
+        raise ValueError("synthetic preview week must be a canonical ISO date") from exc
+    if (
+        week.isoformat() != value
+        or week.year < MIN_SYNTHETIC_YEAR
+        or week.weekday() != 4
+    ):
+        raise ValueError("synthetic preview requires canonical 2099+ Fridays")
+    return week
+
+
+def _valid_panel_blocker(value: str, weeks: frozenset[str]) -> bool:
+    """Only the offline evaluator's bounded, contextual HOLD reasons are valid."""
+    if type(value) is not str or len(value) > 180:
+        return False
+    week, sep, detail = value.partition(":")
+    if not sep or week not in weeks:
+        return False
+    if detail in WEEK_BLOCKER_CODES:
+        return True
+    source_id, sep, code = detail.partition(":")
+    return bool(sep and source_id in REQUIRED_IDS and code in SOURCE_BLOCKER_CODES)
+
+
 SOURCE_UNITS = {
     "fed_h10_nominal_broad": "index",
     "eia_crude_stocks_weekly": "thousand_barrels",
@@ -82,17 +135,50 @@ class SyntheticContextPanel:
     production_authorized: bool = False
 
     def __post_init__(self) -> None:
-        if (
-            self.rights_cleared
-            or self.real_data_fetch_authorized
-            or self.publish_authorized
-            or self.production_authorized
+        # A preview may be constructed directly; no caller can turn optional
+        # bool-like values into an implied rights or publication decision.
+        if any(
+            getattr(self, name) is not False
+            for name in (
+                "rights_cleared",
+                "real_data_fetch_authorized",
+                "publish_authorized",
+                "production_authorized",
+            )
         ):
             raise ValueError("synthetic context panel cannot grant real-data or publication rights")
         if self.panel_id != PANEL_ID or self.fixture_marker != SYNTHETIC_MARKER:
             raise ValueError("unrecognized synthetic panel")
         if self.status not in {"SYNTHETIC_ONLY_HOLD", "SYNTHETIC_ONLY_COMPLETE"}:
             raise ValueError("invalid synthetic-only state")
+
+        current = _canonical_synthetic_friday(self.reference_week)
+        previous = _canonical_synthetic_friday(self.previous_week)
+        if previous != current - timedelta(days=7):
+            raise ValueError("synthetic preview weeks must be consecutive Fridays")
+        if type(self.dial_labels) is not tuple or any(
+            type(item) is not tuple or len(item) != 2
+            for item in self.dial_labels
+        ):
+            raise ValueError("synthetic preview labels must be immutable pairs")
+        if type(self.blockers) is not tuple or len(self.blockers) > 40:
+            raise ValueError("synthetic preview blockers must be bounded tuples")
+
+        if self.status == "SYNTHETIC_ONLY_COMPLETE":
+            if self.blockers or len(self.dial_labels) != len(DIALS):
+                raise ValueError("complete synthetic preview requires four labels and no blockers")
+            for (name, label), expected_name in zip(self.dial_labels, DIALS):
+                if name != expected_name or type(label) is not str or label not in DIAL_LABEL_VALUES[expected_name]:
+                    raise ValueError("unrecognized synthetic preview label or dial order")
+        else:
+            if self.dial_labels or not self.blockers:
+                raise ValueError("synthetic HOLD must have blockers and no labels")
+            allowed_weeks = frozenset((self.reference_week, self.previous_week))
+            if (
+                self.blockers != tuple(sorted(set(self.blockers)))
+                or not all(_valid_panel_blocker(item, allowed_weeks) for item in self.blockers)
+            ):
+                raise ValueError("synthetic HOLD contains invalid or unscoped blockers")
 
 
 def _validate_observation(obs: SyntheticObservation, weeks: set[date]) -> None:
