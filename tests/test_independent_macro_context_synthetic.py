@@ -181,6 +181,37 @@ class IndependentMacroContextSyntheticTests(unittest.TestCase):
         self.assertIn("TREASURY_CURVE_SNAPSHOT_MISMATCH", " ".join(result.blockers))
         self.assertFalse(result.dial_labels)
 
+    def test_both_reference_fridays_require_coherent_treasury_receipt_times(self) -> None:
+        # The qualitative panel must suppress ALL labels if either Friday's
+        # nominal Treasury curve falsely claims one snapshot with two receipt
+        # timelines.  This uses fictitious 2099 receipts and observations.
+        for changed_week in (PREV, WEEK):
+            for field, seconds, expected in (
+                ("initial_release_at", -30, "TREASURY_CURVE_INITIAL_RELEASE_MISMATCH"),
+                ("version_published_at", 30, "TREASURY_CURVE_VERSION_PUBLICATION_MISMATCH"),
+                ("first_seen_at", 30, "TREASURY_CURVE_FIRST_SEEN_MISMATCH"),
+            ):
+                with self.subTest(week=changed_week, field=field):
+                    receipts, observations = fixture()
+                    idx = next(
+                        idx for idx, rec in enumerate(receipts)
+                        if rec.reference_week == changed_week
+                        and rec.source_id == "treasury_direct_10yr_par"
+                    )
+                    ten = receipts[idx]
+                    receipts[idx] = replace(
+                        ten, **{field: getattr(ten, field) + timedelta(seconds=seconds)}
+                    )
+                    result = evaluate_synthetic_context(
+                        receipts, observations, WEEK, stamp(17, 11, 0)
+                    )
+                    self.assertEqual(result.status, "SYNTHETIC_ONLY_HOLD")
+                    self.assertEqual(result.dial_labels, ())
+                    self.assertIn(
+                        f"{changed_week}:{expected}", result.blockers
+                    )
+                    self.assertFalse(result.publish_authorized)
+
     def test_future_H10_correction_does_not_leak_to_old_cutoff(self) -> None:
         r, o = fixture()
         original = next(x for x in r if

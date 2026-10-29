@@ -40,7 +40,7 @@ A future as-of version may be evaluated only when:
 - `initial_release_at <= version_published_at <= first_seen_at <= as_of_at`, all timezone-aware and independently evidenced;
 - the intended Friday reference period and exact source match;
 - the latest **available as of cutoff** revision is chosen (later corrections cannot backfill earlier knowledge);
-- Treasury 2Y and 10Y share the exact curve snapshot ID and revision;
+- Treasury 2Y and 10Y share the exact curve snapshot ID and revision **and one coherent immutable release/detection timeline**: their independently evidenced `initial_release_at`, `version_published_at` and `first_seen_at` must represent the same UTC instants. Different timezone encodings of the same instant are valid; contradictions in any one of these three fields are **HOLD** with no descriptive labels. Reusing an identical snapshot ID is not sufficient to assert that two tenors came from the same contemporaneously available publisher version;
 - absent, contradictory, unauthorized, naive or stale receipts are **HOLD**.
 
 **No calendar-only release guess** may stand in for actual source release and first-seen evidence. A future storage mechanism for real version receipts also needs explicit rights and preservation approval.
@@ -48,7 +48,7 @@ A future as-of version may be evaluated only when:
 ## Synthetic-only technical acceptance
 
 - [Pure standard-library validator](../scripts/score_public_source_phase_b_synthetic.py) accepts only **2099+ Friday-week metadata records** with `SYNTHETIC_DO_NOT_PUBLISH` and `SYNTHETIC:` ID prefixes. No market values, HTTP calls, provider scripts, open-file operations, credentials or persistence.
-- [Synthetic tests](../tests/test_score_public_source_phase_b_synthetic.py) cover Friday/Monday/Wednesday lookahead, synthetic holiday shifts, delayed first-seen, correction vintages, Treasury same-curve integrity, DST, wrong source/week/markers, duplicate/reordered revision IDs, missing/noncausal timestamps and rights guards.
+- [Synthetic tests](../tests/test_score_public_source_phase_b_synthetic.py) cover Friday/Monday/Wednesday lookahead, synthetic holiday shifts, delayed first-seen, correction vintages, Treasury same-curve ID/revision/**UTC timestamp** integrity, DST, wrong source/week/markers, duplicate/reordered revision IDs, missing/noncausal timestamps and rights guards. The [independent panel synthetic tests](../tests/test_independent_macro_context_synthetic.py) suppress all four qualitative labels if either of two Fridays has a mixed Treasury receipt timeline.
 - A successful fictional eligibility check returns `SYNTHETIC_ONLY_COMPLETE` plus **snapshot identifiers only**. It expressly returns `publish_authorized=false` and `real_source_retrieval_authorized=false`. Four synthetically available receipts do not prove a complete real dataset, legal entitlement, historical parity, model validity or public release permission.
 
 ## Phase B go/no-go and independent approvals

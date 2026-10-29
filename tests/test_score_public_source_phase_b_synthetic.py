@@ -174,6 +174,41 @@ class SyntheticAsOfAvailabilityTests(unittest.TestCase):
         out = evaluate_synthetic_asof(f, FRIDAY, stamp(11, 9, 0))
         self.assertIn("TREASURY_CURVE_REVISION_MISMATCH", out.blockers)
 
+    def test_same_curve_ids_with_different_release_or_first_seen_times_hold(self) -> None:
+        # Identical snapshot/revision labels cannot launder different event
+        # timelines into one historical curve vintage. Every date is invented.
+        cases = (
+            ("initial_release_at", -30, "TREASURY_CURVE_INITIAL_RELEASE_MISMATCH"),
+            ("version_published_at", 30, "TREASURY_CURVE_VERSION_PUBLICATION_MISMATCH"),
+            ("first_seen_at", 30, "TREASURY_CURVE_FIRST_SEEN_MISMATCH"),
+        )
+        for attr, seconds, expected in cases:
+            with self.subTest(timestamp=attr):
+                inputs = four()
+                ten = inputs[-1]
+                inputs[-1] = replace(
+                    ten, **{attr: getattr(ten, attr) + timedelta(seconds=seconds)}
+                )
+                result = evaluate_synthetic_asof(inputs, FRIDAY, stamp(11, 9, 0))
+                self.assertEqual(result.status, "SYNTHETIC_ONLY_HOLD")
+                self.assertIn(expected, result.blockers)
+                self.assertFalse(result.publish_authorized)
+                self.assertFalse(result.real_source_retrieval_authorized)
+
+    def test_same_curve_timestamp_encoded_as_utc_does_not_false_block(self) -> None:
+        inputs = four()
+        ten = inputs[-1]
+        inputs[-1] = replace(
+            ten,
+            initial_release_at=ten.initial_release_at.astimezone(timezone.utc),
+            version_published_at=ten.version_published_at.astimezone(timezone.utc),
+            first_seen_at=ten.first_seen_at.astimezone(timezone.utc),
+        )
+        result = evaluate_synthetic_asof(inputs, FRIDAY, stamp(11, 9, 0))
+        self.assertEqual(result.status, "SYNTHETIC_ONLY_COMPLETE")
+        self.assertEqual(result.blockers, ())
+        self.assertFalse(result.publish_authorized)
+
     def test_missing_unverified_release_or_first_seen_fails_closed(self) -> None:
         for key in ("initial_release_at", "version_published_at", "first_seen_at"):
             with self.subTest(field=key):
