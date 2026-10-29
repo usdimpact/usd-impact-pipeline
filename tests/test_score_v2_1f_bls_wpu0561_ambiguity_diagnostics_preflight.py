@@ -10,19 +10,20 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class ScoreV21FWpu0561AmbiguityDiagnosticsTests(unittest.TestCase):
-    def test_v5_candidate_context_consumed_state_is_fail_closed(self) -> None:
+    def test_v6_exact_label_context_design_is_hold(self) -> None:
         report = validator.validate(ROOT)
         self.assertEqual(report["status"], "passed")
         self.assertEqual(
             report["state"],
-            "ambiguity_diagnostics_v5_candidate_context_consumed_fail_closed",
+            "ambiguity_diagnostics_v6_exact_label_context_design_only_hold",
         )
-        self.assertEqual(report["design_version"], 5)
-        self.assertEqual(report["request_attempt_count"], 2)
-        self.assertEqual(report["economic_observation_count"], 0)
-        self.assertEqual(report["identifier_value_count"], 0)
-        self.assertEqual(report["html_candidate_count"], 3)
-        self.assertEqual(report["xlsx_candidate_count"], 29)
+        self.assertEqual(report["design_version"], 6)
+        self.assertEqual(report["v5_html_candidates"], 3)
+        self.assertEqual(report["v5_xlsx_candidates"], 29)
+        self.assertEqual(report["v6_html_exact_label_survivors"], 1)
+        self.assertEqual(report["v6_xlsx_exact_label_survivors"], 2)
+        self.assertEqual(report["v6_xlsx_direct_commodity_survivors"], 1)
+        self.assertEqual(report["v6_xlsx_stage_demand_survivors"], 1)
         self.assertFalse(report["active_receipt_present"])
         self.assertFalse(report["dispatch_present"])
         self.assertFalse(report["live_request_authorized"])
@@ -207,6 +208,94 @@ class ScoreV21FWpu0561AmbiguityDiagnosticsTests(unittest.TestCase):
         rows = [["Crude petroleum"] for _ in range(33)]
         with self.assertRaisesRegex(RuntimeError, "exceeds 32"):
             diagnostic.candidate_context_inventory(rows)
+
+    def test_v6_exact_label_filter_rejects_footnotes_and_concept_variants(self) -> None:
+        accepted = (
+            "Crude petroleum",
+            "Crude petroleum(<num>)",
+            "Crude petroleum ( <num> )",
+        )
+        rejected = (
+            "Includes crude petroleum.",
+            "Excludes crude petroleum.",
+            "Crude petroleum (domestic production)",
+            "Crude petroleum extraction",
+            "Extraction of crude petroleum, including lease condensate",
+            "Pipeline transportation of crude petroleum",
+        )
+        for value in accepted:
+            self.assertTrue(diagnostic.is_exact_target_label(value), value)
+        for value in rejected:
+            self.assertFalse(diagnostic.is_exact_target_label(value), value)
+
+    def test_v6_consumed_html_shape_narrows_three_to_one_by_label_only(self) -> None:
+        rows = [
+            ["Footnotes (<num>) Includes crude petroleum. (<num>) Excludes crude petroleum."],
+            ["Crude petroleum"],
+            ["Footnotes (<num>) Includes crude petroleum. (<num>) Excludes crude petroleum."],
+        ]
+        self.assertEqual(diagnostic.exact_target_rows(rows), (2,))
+
+    def test_v6_xlsx_direct_commodity_context_is_distinct_from_stage_demand(self) -> None:
+        direct_rows = [
+            ["Raw milk"],
+            ["Hay and hayseeds(<num>)"],
+            ["Oilseeds"],
+            ["Raw cane sugar and byproducts(<num>)"],
+            ["Unprocessed nonfood materials"],
+            ["Raw cotton(<num>)"],
+            ["Coal(<num>)"],
+            ["Natural gas(<num>)"],
+            ["Crude petroleum(<num>)"],
+        ]
+        stage_rows = [
+            ["Stage <num> intermediate demand"],
+            ["Stage <num> intermediate demand goods"],
+            ["Corn"],
+            ["Oilseeds"],
+            ["Prepared animal feeds"],
+            ["Coal(<num>)"],
+            ["Natural gas(<num>)"],
+            ["Natural gas liquids(<num>)"],
+            ["Crude petroleum(<num>)"],
+        ]
+        direct = diagnostic.classify_exact_target_context(direct_rows, 9)
+        stage = diagnostic.classify_exact_target_context(stage_rows, 9)
+        self.assertEqual(direct["context_status"], "commodity_unprocessed_nonfood_context")
+        self.assertTrue(direct["unprocessed_nonfood_context"])
+        self.assertFalse(direct["stage_intermediate_demand_context"])
+        self.assertEqual(stage["context_status"], "stage_intermediate_demand_context")
+        self.assertTrue(stage["stage_intermediate_demand_context"])
+        self.assertFalse(stage["unprocessed_nonfood_context"])
+
+    def test_v6_context_discriminator_fails_closed_on_mixed_or_unknown_context(self) -> None:
+        mixed_rows = [
+            ["Unprocessed nonfood materials"],
+            ["Stage <num> intermediate demand goods"],
+            ["Crude petroleum(<num>)"],
+        ]
+        unknown_rows = [
+            ["Coal"],
+            ["Natural gas"],
+            ["Crude petroleum(<num>)"],
+        ]
+        mixed = diagnostic.classify_exact_target_context(mixed_rows, 3)
+        unknown = diagnostic.classify_exact_target_context(unknown_rows, 3)
+        self.assertEqual(mixed["context_status"], "ambiguous_mixed_context")
+        self.assertEqual(unknown["context_status"], "exact_label_unclassified_context")
+
+    def test_v6_context_discriminator_does_not_use_row_number_as_semantics(self) -> None:
+        first = [
+            ["Unprocessed nonfood materials"],
+            ["Coal"],
+            ["Natural gas"],
+            ["Crude petroleum(<num>)"],
+        ]
+        shifted = [["Unrelated title"]] * 20 + first
+        self.assertEqual(
+            diagnostic.classify_exact_target_context(first, 4)["context_status"],
+            diagnostic.classify_exact_target_context(shifted, 24)["context_status"],
+        )
 
     def test_identifier_normalization_is_conservative_but_handles_structural_variants(self) -> None:
         for value in ("05-61", "05 61", "0561", "561", "WPU0561", "05–61"):

@@ -1,5 +1,5 @@
 {
-  "version": 5,
+  "version": 6,
   "state": "design_only_hold",
   "methodology_version": "2.1F-design-candidate",
   "owner_decision_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/258",
@@ -22,7 +22,7 @@
       "expected_format": "xlsx"
     }
   ],
-  "objective": "Diagnose persistent no_local_header_anchor without reading economic or identifier values by collecting bounded, candidate-first, numeric-redacted text context around Crude petroleum occurrences.",
+  "objective": "Use only consumed v5 numeric-redacted context to preregister an exact-label candidate filter and semantic context discriminator that separates direct commodity context from stage/intermediate-demand context without reading identifiers or economic values.",
   "known_consumed_evidence": {
     "issue_244_html_crude_petroleum_matches": 3,
     "issue_244_xlsx_crude_petroleum_matches": 29,
@@ -34,7 +34,21 @@
     "issue_258_v4_recheck_run": "https://github.com/usdimpact/usd-impact-pipeline/actions/runs/40792259680",
     "issue_258_v4_html_reason": "no_local_header_anchor",
     "issue_258_v4_xlsx_reason": "no_local_header_anchor",
-    "standalone_code_compatibility_resolved_anchor_failure": false
+    "standalone_code_compatibility_resolved_anchor_failure": false,
+    "issue_258_v5_run": "https://github.com/usdimpact/usd-impact-pipeline/actions/runs/40794631448",
+    "issue_258_v5_html_candidate_count": 3,
+    "issue_258_v5_xlsx_candidate_count": 29,
+    "issue_258_v5_identifier_value_count": 0,
+    "issue_258_v5_economic_observation_count": 0,
+    "v5_exact_label_html_survivors": 1,
+    "v5_exact_label_xlsx_survivors": 2,
+    "v5_html_exact_label_coordinate": "table 4 row 226",
+    "v5_xlsx_exact_label_coordinates": [
+      "xl/worksheets/sheet3.xml row 289",
+      "xl/worksheets/sheet3.xml row 527"
+    ],
+    "v5_xlsx_row_289_context": "Unprocessed nonfood materials -> Raw cotton -> Coal -> Natural gas -> Crude petroleum",
+    "v5_xlsx_row_527_context": "Stage <num> intermediate demand -> Stage <num> intermediate demand goods -> commodity list -> Crude petroleum"
   },
   "future_live_budget": {
     "request_budget": 2,
@@ -196,7 +210,7 @@
     "public_artifact_replacement": false,
     "production": false
   },
-  "next_gate": "new_explicit_owner_authorization_under_issue_258_required_before_any_live_candidate_context_inventory",
+  "next_gate": "new_explicit_owner_authorization_under_issue_258_required_before_any_live_v6_structural_verification_or_identifier/value_read",
   "execution_environment_policy": {
     "preferred_environment": "github_actions_protected_main_lifecycle",
     "rationale": "prior protected GitHub Actions BLS preflights completed HTTP retrieval while the later local runtime encountered DNS resolution failure; future live execution should use the auditable environment with demonstrated BLS reachability",
@@ -242,6 +256,42 @@
     "economic_values": "forbidden",
     "response_body_persistence": false,
     "output_goal": "reveal unknown header vocabulary, header-row distance, or split-row structure causing no_local_header_anchor without exposing numeric data",
-    "live_verification_status": "not_yet_authorized"
+    "live_verification_status": "v5_completed_consumed"
+  },
+  "exact_label_candidate_policy": {
+    "state": "design_only_not_live_authorized",
+    "input": "numeric-redacted candidate text persisted by consumed v5 run",
+    "regex": "^Crude\\s+petroleum(?:\\s*\\(\\s*<num>\\s*\\))?$",
+    "case_sensitive": false,
+    "purpose": "exclude footnote mentions and concept variants such as domestic production, extraction, and pipeline transportation before any identifier or value read",
+    "row_number_as_selector": false,
+    "expected_html_narrowing": "3 -> 1",
+    "expected_xlsx_narrowing": "29 -> 2",
+    "identity_proven_by_this_rule": false
+  },
+  "xlsx_context_discriminator_policy": {
+    "state": "design_only_not_live_authorized",
+    "input": "at most 8 preceding numeric-redacted rows already persisted by consumed v5 run",
+    "lookback_rows": 8,
+    "direct_commodity_marker": "Unprocessed nonfood materials",
+    "stage_demand_marker": "Stage <num> intermediate demand",
+    "stage_demand_marker_variant": "Stage <num> intermediate demand goods",
+    "classifications": {
+      "direct_commodity": "commodity_unprocessed_nonfood_context",
+      "stage_demand": "stage_intermediate_demand_context",
+      "mixed": "ambiguous_mixed_context",
+      "neither": "exact_label_unclassified_context"
+    },
+    "decision_rule": "A stage/intermediate-demand context is not the preregistered direct-commodity candidate. A direct-commodity marker with no stage marker is the sole preferred structural candidate. Both or neither remain ambiguous.",
+    "expected_consumed_v5_classification": {
+      "xl/worksheets/sheet3.xml row 289": "commodity_unprocessed_nonfood_context",
+      "xl/worksheets/sheet3.xml row 527": "stage_intermediate_demand_context"
+    },
+    "expected_direct_commodity_survivors": 1,
+    "row_number_as_selector": false,
+    "identifier_read_required": false,
+    "economic_value_read_required": false,
+    "identity_proven_by_this_rule": false,
+    "live_verification_status": "not_authorized"
   }
 }
