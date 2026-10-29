@@ -1,0 +1,127 @@
+{
+  "version": 1,
+  "state": "design_only_recovery_hold",
+  "repository": "usdimpact/usd-impact-pipeline",
+  "purpose": "Recover a documented known-good Git tree by a new reviewed PR; never force-push or automatically roll back live services.",
+  "owner_approval_scope": "design_only_candidate_bls_pdf_methodology_and_offline_recovery_preparation",
+  "owner_approval_date": "2026-10-29",
+  "source_boundary_change_authorized": false,
+  "live_bls_or_pdf_retrieval_authorized": false,
+  "rights_gate_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
+  "research_gate_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/258",
+  "baseline": {
+    "immutable_commit": "0c420f495e6196d34d195d441edf7b707da4f35a",
+    "reference_branch": "backup/score-v2-1f-v9-hold-2026-10-29",
+    "expected_git_compare": "identical",
+    "description": "Pre-v10 protected-main v9 hold; safe baseline for recovery of governance and workflows."
+  },
+  "review_snapshot": {
+    "immutable_commit": "698fb0c0d069c598909cc10e875a28cb711d1ea5",
+    "reference_branch": "backup/score-v2-1f-v10-review-2026-10-29",
+    "expected_git_compare": "identical",
+    "description": "PR #286 draft before this approved design-only continuation."
+  },
+  "governed_hold_blobs": {
+    "governance/score-v2-1f-bls-wpu0561-ambiguity-diagnostics-preflight-authorization.template.json": "d8d51d68449d10162b14814a15b8aa3ddce8d358",
+    "governance/score-v2-1f-bls-wpu0561-ambiguity-diagnostics-v8-container-header-band-consumption-2026-10-29.json": "1ab84b3c4c540615b0a91261033239765b00d309",
+    "governance/score-v2-1f-bls-wpu0561-ambiguity-diagnostics-preflight-design.json": "4f1b956b90df1b686e31bc8e3943dd60910e5ed6",
+    "governance/score-v2-1f-bls-wpu0561-ambiguity-diagnostics-preflight-execution-contract.json": "ad853606c94b470cde0eccdadfe612b3072713a0",
+    "governance/score-publication-rights-gate.json": "990203f004ca9c42a0497e16cca7b091192e6484",
+    ".github/workflows/score-v2-1f-bls-wpu0561-ambiguity-diagnostics-preflight.yml": "2dcc819e55ac4a4749a13e009fc2fd06f80edc06"
+  },
+  "forbidden_active_artifacts": [
+    "governance/score-v2-1f-bls-wpu0561-ambiguity-diagnostics-preflight-authorization.json",
+    "governance/score-v2-1f-bls-wpu0561-ambiguity-diagnostics-preflight-dispatch.json"
+  ],
+  "stage": "not_authorized_for_live_work",
+  "comparison_policy": "Only compare prior immutable commit snapshots and current Git tree; do not read external BLS content or print any response payload.",
+  "recovery_procedure": "new_reviewed_pr_never_direct_write_to_protected_main",
+  "allowlist_changed_paths": [
+    "governance/score-v2-1f-bls-wpu0561-2026-source-boundary-review-v10-evidence.json",
+    "governance/score-v2-1f-bls-wpu0561-2026-source-boundary-review-v10-proposal.md",
+    "governance/score-v2-1f-wpu0561-v10-recovery-manifest.json",
+    "docs/recovery/score-v2-1f-wpu0561-v10-backup-and-restore.md",
+    "scripts/validate_score_v2_1f_wpu0561_recovery.py",
+    "tests/test_score_v2_1f_wpu0561_recovery.py",
+    ".github/workflows/score-v2-1f-wpu0561-recovery-drill.yml",
+    "governance/score-v2-1f-bls-wpu0561-pdf-structural-preflight-v11-design.json",
+    "scripts/validate_score_v2_1f_wpu0561_pdf_v11.py",
+    "tests/test_score_v2_1f_wpu0561_pdf_v11.py",
+    "governance/score-v2-1f-bls-wpu0561-pdf-parser-security-v12-design.json",
+    "governance/score-v2-1f-wpu0561-pdf-v12-parser.lock",
+    "scripts/score_v2_1f_wpu0561_pdf_v12_synthetic.py",
+    "tests/test_score_v2_1f_wpu0561_pdf_v12.py",
+    "governance/score-v2-1f-wpu0561-pdf-v13-owner-decision.json",
+    "governance/score-v2-1f-wpu0561-pdf-v13-execution-contract.json",
+    "scripts/score_v2_1f_wpu0561_pdf_v13_transport.py",
+    "scripts/score_v2_1f_wpu0561_pdf_v13_parser.py",
+    "tests/test_score_v2_1f_wpu0561_pdf_v13.py",
+    ".github/workflows/score-v2-1f-wpu0561-pdf-v13-oneoff.yml",
+    "governance/score-v2-1f-wpu0561-pdf-v13-live-authorization.json",
+    "governance/score-v2-1f-wpu0561-pdf-v13-dispatch.json"
+  ],
+  "authorizations": {
+    "bLS_live_request": false,
+    "candidate_PDF_download": false,
+    "numeric_identifier_read": false,
+    "economic_value_read": false,
+    "source_substitution": false,
+    "scorer_run": false,
+    "publication": false,
+    "github_main_write": false,
+    "production_rollback": false,
+    "provider_restoration": false
+  },
+  "validated_immutable_snapshot_refs_in_github": "Both branches were compare-verified identical against pinned commit SHAs before creating this manifest.",
+  "supports": [
+    "git_tree_recovery_ref",
+    "isolated_synthetic_restore_drill",
+    "read_only_bls_metadata_design"
+  ],
+  "does_not_support": [
+    "supabase_database_backup",
+    "cloudflare_worker_version_backup",
+    "vercel_runtime_recovery",
+    "secret_recovery",
+    "provider_data_restore"
+  ],
+  "proposed_next_gate": {
+    "name": "offline_only_pdf_structure_design_v11",
+    "status": "preregistered_draft_not_executable",
+    "design_file": "governance/score-v2-1f-bls-wpu0561-pdf-structural-preflight-v11-design.json",
+    "validator": "scripts/validate_score_v2_1f_wpu0561_pdf_v11.py",
+    "tests": "tests/test_score_v2_1f_wpu0561_pdf_v11.py",
+    "request_budget_now": 0,
+    "new_live_receipt_present": false,
+    "source_selection_approved": false
+  },
+  "parser_security_v12": {
+    "status": "owner_approved_design_only_live_hold",
+    "design": "governance/score-v2-1f-bls-wpu0561-pdf-parser-security-v12-design.json",
+    "pinned_wheel": "governance/score-v2-1f-wpu0561-pdf-v12-parser.lock",
+    "fixtures_only_module": "scripts/score_v2_1f_wpu0561_pdf_v12_synthetic.py",
+    "synthetic_test_module": "tests/test_score_v2_1f_wpu0561_pdf_v12.py",
+    "runner_job": "isolated-pdf-synthetic-only",
+    "live_parser_authorized": false,
+    "PDF_download_authorized": false,
+    "rights_issue_155_closed": false
+  },
+  "v13": {
+    "state": "one_off_scope_owner_approved_but_unactivated",
+    "owner_approval": "governance/score-v2-1f-wpu0561-pdf-v13-owner-decision.json",
+    "execution_contract": "governance/score-v2-1f-wpu0561-pdf-v13-execution-contract.json",
+    "one_off_workflow": ".github/workflows/score-v2-1f-wpu0561-pdf-v13-oneoff.yml",
+    "transport": "scripts/score_v2_1f_wpu0561_pdf_v13_transport.py",
+    "parser": "scripts/score_v2_1f_wpu0561_pdf_v13_parser.py",
+    "test": "tests/test_score_v2_1f_wpu0561_pdf_v13.py",
+    "claim_ref": "refs/tags/score-v2-1f-wpu0561-pdf-v13-oneoff-2026-10-29",
+    "activation_file_exists": false,
+    "dispatch_file_exists": false,
+    "live_request_executed": false,
+    "request_budget_remaining_now": 0,
+    "real_PDF_looked_at": false,
+    "rights_155_still_hold": true,
+    "public_changed": false,
+    "production_changed": false
+  }
+}
