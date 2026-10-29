@@ -14,7 +14,7 @@ import unicodedata
 from dataclasses import dataclass
 
 IDENTIFIER_HEADERS = ("commodity code", "series code", "series id", "item code")
-BARE_CODE_HEADER_RE = re.compile(r"\\bcode\\b")
+BARE_CODE_HEADER_RE = re.compile(r"\bcode\b")
 DESCRIPTION_HEADERS = ("commodity", "item", "description")
 REVISION_CONTEXT_TERMS = ("preliminary", "final", "revised", "corrected")
 TRANSPORT_REASON_CODES = ("transport_dns_failure", "http_access_control")
