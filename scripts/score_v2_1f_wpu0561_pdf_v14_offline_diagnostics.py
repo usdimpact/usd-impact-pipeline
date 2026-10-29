@@ -10,6 +10,7 @@ Historical v13 execution is deliberately immutable in this module.
 
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 from typing import Any
@@ -95,6 +96,19 @@ def validate_consumed_state(root: Path | None = None) -> dict[str, Any]:
 
     _require(design.get("version") == 14 and design.get("state") == "owner_approved_design_only_hold",
              "v14_no_longer_design_only")
+    parser_source = root / design.get("exact_root_cause_evidence", {}).get(
+        "source_file", "scripts/score_v2_1f_wpu0561_pdf_v13_parser.py"
+    )
+    _require(parser_source.is_file(), "v13_parser_source_absent")
+    parser_bytes = parser_source.read_bytes()
+    parser_git_blob = hashlib.sha1(
+        b"blob " + str(len(parser_bytes)).encode("ascii") + b"\x00" + parser_bytes
+    ).hexdigest()
+    _require(
+        parser_git_blob == design.get("exact_root_cause_evidence", {}).get("source_file_blob_sha")
+        == "8a70409b0b5928e99de04930714dfc25774631ae",
+        "v13_original_parser_changed",
+    )
     _require(design.get("exact_root_cause_evidence", {}).get("max_pages_at_v13") == PAGE_LIMIT_V13,
              "v14_page_ceiling_changed")
     _require(design.get("exact_root_cause_evidence", {}).get("actual_pdf_page_count") is None,
