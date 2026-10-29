@@ -9,18 +9,18 @@ from unittest import mock
 from scripts import run_score_v2_1f_bls_wpu0561_ambiguity_diagnostics_preflight as runner
 
 
-class ScoreV21FWpu0561HeaderGapRunnerTests(unittest.TestCase):
-    def test_consumed_state_refuses_before_network(self) -> None:
+class ScoreV21FWpu0561HeaderBandRunnerTests(unittest.TestCase):
+    def test_activation_state_refuses_before_network_without_dispatch(self) -> None:
         with mock.patch.object(
             runner,
             "_request_once",
-            side_effect=AssertionError("network request occurred after consumption"),
+            side_effect=AssertionError("network request occurred before dispatch"),
         ) as request:
-            with self.assertRaisesRegex(RuntimeError, "authorization is not active"):
+            with self.assertRaisesRegex(RuntimeError, "dispatch is not active"):
                 runner.run_preflight()
             request.assert_not_called()
 
-    def test_v7_selects_one_html_and_direct_xlsx_candidate(self) -> None:
+    def test_v8_selects_html_and_direct_xlsx_containers_semantically(self) -> None:
         html = [
             ("table 1", [["Includes crude petroleum."]]),
             (
@@ -28,7 +28,8 @@ class ScoreV21FWpu0561HeaderGapRunnerTests(unittest.TestCase):
                 [
                     ["Commodity", "Series code", "Index"],
                     [""],
-                    ["Unprocessed nonfood materials"],
+                    ["Crude materials for further processing"],
+                    ["Crude nonfood materials"],
                     ["Coal"],
                     ["Natural gas"],
                     ["Crude petroleum"],
@@ -41,6 +42,7 @@ class ScoreV21FWpu0561HeaderGapRunnerTests(unittest.TestCase):
                 [
                     ["Commodity", "Series code", "Index"],
                     [""],
+                    ["Unprocessed goods for intermediate demand"],
                     ["Unprocessed nonfood materials"],
                     ["Raw cotton(<num>)"],
                     ["Coal(<num>)"],
@@ -55,13 +57,13 @@ class ScoreV21FWpu0561HeaderGapRunnerTests(unittest.TestCase):
                 ],
             )
         ]
-        html_selected, xlsx_selected = runner._select_v7_candidates(html, xlsx)
+        html_selected, xlsx_selected = runner._select_v8_containers(html, xlsx)
         self.assertEqual(html_selected[0], "table 2")
-        self.assertEqual(html_selected[1], 6)
         self.assertEqual(xlsx_selected[0], "xl/worksheets/sheet3.xml")
-        self.assertEqual(xlsx_selected[1], 7)
+        self.assertIn(["Crude petroleum"], html_selected[1])
+        self.assertIn(["Unprocessed nonfood materials"], xlsx_selected[1])
 
-    def test_v7_prerequisites_fail_closed_when_xlsx_shape_differs(self) -> None:
+    def test_v8_prerequisites_fail_closed_when_xlsx_shape_differs(self) -> None:
         html = [("table 1", [["Crude petroleum"]])]
         xlsx = [
             (
@@ -73,26 +75,23 @@ class ScoreV21FWpu0561HeaderGapRunnerTests(unittest.TestCase):
             )
         ]
         with self.assertRaisesRegex(runner.SemanticStop, "xlsx_exact_label"):
-            runner._select_v7_candidates(html, xlsx)
+            runner._select_v8_containers(html, xlsx)
 
-    def test_header_gap_result_contains_only_sanitized_structural_text(self) -> None:
+    def test_header_band_result_contains_only_sanitized_structural_text(self) -> None:
         rows = [
-            ["Table title <num>"],
+            ["Producer Price Index detailed table <num>"],
             ["Commodity", "Series code", "Index"],
             [""],
             ["Unprocessed nonfood materials"],
-            ["Coal"],
-            ["Natural gas"],
             ["Crude petroleum(<num>)"],
         ]
-        report = runner._header_gap_result(
+        report = runner._header_band_result(
             runner.XLSX_PATH,
-            ("sheet3.xml", 7, rows),
+            ("sheet3.xml", rows),
         )
         encoded = json.dumps(report, sort_keys=True)
-        self.assertEqual(report["candidate_row"], 7)
-        self.assertEqual(report["nearest_recognized_header_row"], 2)
-        self.assertEqual(report["nearest_recognized_header_distance"], 5)
+        self.assertEqual(report["band_start_row"], 1)
+        self.assertEqual(report["band_end_row"], 5)
         self.assertIn("Commodity", encoded)
         self.assertIn("Series code", encoded)
         self.assertIn("Index", encoded)
@@ -147,9 +146,9 @@ class ScoreV21FWpu0561HeaderGapRunnerTests(unittest.TestCase):
         self.assertNotIn('"561"', encoded)
         self.assertNotIn("252.4", encoded)
 
-    def test_header_gap_bounds_and_request_budget_are_hard_capped(self) -> None:
-        self.assertEqual(runner.MAX_HEADER_GAP_ROWS, 32)
-        self.assertEqual(runner.MAX_HEADER_GAP_CELLS, 128)
+    def test_header_band_bounds_and_request_budget_are_hard_capped(self) -> None:
+        self.assertEqual(runner.MAX_HEADER_BAND_ROWS, 32)
+        self.assertEqual(runner.MAX_HEADER_BAND_CELLS, 128)
         budget = runner.RequestBudget()
         budget.consume()
         budget.consume()
