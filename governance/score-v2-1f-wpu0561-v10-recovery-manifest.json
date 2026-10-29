@@ -46,7 +46,11 @@
     ".github/workflows/score-v2-1f-wpu0561-recovery-drill.yml",
     "governance/score-v2-1f-bls-wpu0561-pdf-structural-preflight-v11-design.json",
     "scripts/validate_score_v2_1f_wpu0561_pdf_v11.py",
-    "tests/test_score_v2_1f_wpu0561_pdf_v11.py"
+    "tests/test_score_v2_1f_wpu0561_pdf_v11.py",
+    "governance/score-v2-1f-bls-wpu0561-pdf-parser-security-v12-design.json",
+    "governance/score-v2-1f-wpu0561-pdf-v12-parser.lock",
+    "scripts/score_v2_1f_wpu0561_pdf_v12_synthetic.py",
+    "tests/test_score_v2_1f_wpu0561_pdf_v12.py"
   ],
   "authorizations": {
     "bLS_live_request": false,
@@ -82,5 +86,16 @@
     "request_budget_now": 0,
     "new_live_receipt_present": false,
     "source_selection_approved": false
+  },
+  "parser_security_v12": {
+    "status": "owner_approved_design_only_live_hold",
+    "design": "governance/score-v2-1f-bls-wpu0561-pdf-parser-security-v12-design.json",
+    "pinned_wheel": "governance/score-v2-1f-wpu0561-pdf-v12-parser.lock",
+    "fixtures_only_module": "scripts/score_v2_1f_wpu0561_pdf_v12_synthetic.py",
+    "synthetic_test_module": "tests/test_score_v2_1f_wpu0561_pdf_v12.py",
+    "runner_job": "isolated-pdf-synthetic-only",
+    "live_parser_authorized": false,
+    "PDF_download_authorized": false,
+    "rights_issue_155_closed": false
   }
 }
