@@ -86,6 +86,29 @@ class ScorePublicationRightsWorkflowTests(unittest.TestCase):
                     workflow,
                 )
 
+    def test_reproduction_rehearsal_is_gated_before_live_provider_fetch(self) -> None:
+        workflow = self.read(".github/workflows/repro-rehearsal.yml")
+        self.assertLess(
+            workflow.index("Evaluate Score publication rights gate"),
+            workflow.index("Rehearse full release bundle and archive path"),
+        )
+        for step in (
+            "Set up Python 3.11",
+            "Install locked dependencies",
+            "Verify machine-readable methodology contract",
+            "Rehearse full release bundle and archive path",
+        ):
+            with self.subTest(step=step):
+                self.assertIn(
+                    f"- name: {step}" + chr(10) + "        if: steps.rights.outputs.hold == 'false'",
+                    workflow,
+                )
+        self.assertIn("no provider retrieval", workflow)
+        self.assertIn("python usd_impact_score_v2.py", workflow)
+        self.assertIn(
+            "if: steps.rights.outputs.hold == 'false' && always()", workflow
+        )
+
     def test_health_checks_do_not_raise_false_freshness_incidents(self) -> None:
         weekly = self.read(".github/workflows/weekly-health.yml")
         self.assertIn("Record rights-review health hold", weekly)
