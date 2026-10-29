@@ -10,19 +10,16 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class ScoreV21FWpu0561AmbiguityDiagnosticsTests(unittest.TestCase):
-    def test_v4_recheck_consumed_state_is_fail_closed(self) -> None:
+    def test_v5_candidate_context_design_is_hold(self) -> None:
         report = validator.validate(ROOT)
         self.assertEqual(report["status"], "passed")
-        self.assertEqual(report["state"], "ambiguity_diagnostics_v4_recheck_consumed_fail_closed")
-        self.assertEqual(report["design_version"], 4)
-        self.assertEqual(report["request_attempt_count"], 2)
-        self.assertEqual(report["economic_observation_count"], 0)
-        self.assertEqual(report["html_reason"], "no_local_header_anchor")
-        self.assertEqual(report["xlsx_reason"], "no_local_header_anchor")
-        self.assertFalse(report["standalone_code_resolved"])
+        self.assertEqual(report["state"], "ambiguity_diagnostics_v5_design_only_hold")
+        self.assertEqual(report["design_version"], 5)
+        self.assertTrue(report["prior_v4_recheck_consumed"])
+        self.assertFalse(report["candidate_context_live_authorized"])
+        self.assertEqual(report["max_economic_observations_total"], 0)
         self.assertFalse(report["active_receipt_present"])
         self.assertFalse(report["dispatch_present"])
-        self.assertFalse(report["live_request_authorized"])
         self.assertFalse(report["production_authorized"])
         self.assertTrue(report["rights_hold"])
 
@@ -150,6 +147,55 @@ class ScoreV21FWpu0561AmbiguityDiagnosticsTests(unittest.TestCase):
     def test_code_substring_is_not_treated_as_identifier(self) -> None:
         self.assertIsNone(diagnostic.header_role("Barcode"))
         self.assertIsNone(diagnostic.header_role("Decode"))
+
+    def test_candidate_context_inventory_works_without_header_anchor(self) -> None:
+        rows = [
+            ["Producer Price Index detailed table"],
+            ["Product class", "Series key", "Reference period 2010=100"],
+            ["Crude petroleum", "WPU0561", "252.4"],
+        ]
+        inventory = diagnostic.candidate_context_inventory(rows)
+        self.assertEqual(len(inventory), 1)
+        self.assertEqual(inventory[0]["candidate_row"], 3)
+        encoded = repr(inventory)
+        self.assertIn("Product class", encoded)
+        self.assertIn("Series key", encoded)
+        self.assertIn("Reference period <num>=<num>", encoded)
+        self.assertIn("Crude petroleum", encoded)
+        self.assertNotIn("WPU0561", encoded)
+        self.assertNotIn("252.4", encoded)
+
+    def test_candidate_context_omits_numeric_and_identifier_only_cells(self) -> None:
+        rows = [
+            ["Header", "05-61", "123.45", "WPU0561"],
+            ["Crude petroleum", "561", "3.2", "Dec2025"],
+        ]
+        inventory = diagnostic.candidate_context_inventory(rows)
+        encoded = repr(inventory)
+        self.assertIn("Header", encoded)
+        self.assertIn("Crude petroleum", encoded)
+        self.assertNotIn("05-61", encoded)
+        self.assertNotIn("123.45", encoded)
+        self.assertNotIn("WPU0561", encoded)
+        self.assertNotIn("'561'", encoded)
+        self.assertNotIn("3.2", encoded)
+        self.assertNotIn("Dec2025", encoded)
+
+    def test_candidate_context_window_is_bounded_to_eight_preceding_rows(self) -> None:
+        rows = [[f"row {i} label"] for i in range(1, 12)]
+        rows.append(["Crude petroleum"])
+        inventory = diagnostic.candidate_context_inventory(rows)
+        self.assertEqual(inventory[0]["candidate_row"], 12)
+        self.assertEqual(inventory[0]["window_start_row"], 4)
+        self.assertEqual(inventory[0]["window_end_row"], 12)
+        encoded = repr(inventory)
+        self.assertNotIn("row <num> label", repr(inventory[0]["cells"][:0]))
+        self.assertNotIn("row 1 label", encoded)
+
+    def test_candidate_context_fails_closed_above_32_candidates(self) -> None:
+        rows = [["Crude petroleum"] for _ in range(33)]
+        with self.assertRaisesRegex(RuntimeError, "exceeds 32"):
+            diagnostic.candidate_context_inventory(rows)
 
     def test_identifier_normalization_is_conservative_but_handles_structural_variants(self) -> None:
         for value in ("05-61", "05 61", "0561", "561", "WPU0561", "05–61"):
