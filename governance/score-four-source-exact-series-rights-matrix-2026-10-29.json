@@ -250,15 +250,16 @@
       "publisher": "U.S. Department of the Treasury / Office of Debt Management",
       "originating_publication": "Daily Treasury Par Yield Curve Rates",
       "exact_series_identity": {
-        "publisher_native_series_key": "daily_treasury_yield_curve:2YR",
-        "native_key_verified_from_publisher_metadata": true,
+        "publisher_native_series_key": null,
+        "native_key_verified_from_publisher_metadata": false,
         "candidate_feed_field": "BC_2YEAR",
         "candidate_feed_field_metadata_verified": false,
         "series_label": "2-year nominal par constant maturity yield",
         "units": "percent per annum (bond-equivalent yield)",
         "curve_family": "nominal_par_curve",
         "requires_same_curve_snapshot_as": "treasury_direct_10yr_par",
-        "parity_to_fred_dgs2_asof": false
+        "parity_to_fred_dgs2_asof": false,
+        "internal_candidate_selector": "daily_treasury_yield_curve:2YR"
       },
       "transport": {
         "publisher_owned": "Treasury XML yield-curve endpoint with year/month-selectors",
@@ -347,15 +348,16 @@
       "publisher": "U.S. Department of the Treasury / Office of Debt Management",
       "originating_publication": "Daily Treasury Par Yield Curve Rates",
       "exact_series_identity": {
-        "publisher_native_series_key": "daily_treasury_yield_curve:10YR",
-        "native_key_verified_from_publisher_metadata": true,
+        "publisher_native_series_key": null,
+        "native_key_verified_from_publisher_metadata": false,
         "candidate_feed_field": "BC_10YEAR",
         "candidate_feed_field_metadata_verified": false,
         "series_label": "10-year nominal par constant maturity yield",
         "units": "percent per annum (bond-equivalent yield)",
         "curve_family": "nominal_par_curve",
         "requires_same_curve_snapshot_as": "treasury_direct_2yr_par",
-        "parity_to_fred_dgs10_asof": false
+        "parity_to_fred_dgs10_asof": false,
+        "internal_candidate_selector": "daily_treasury_yield_curve:10YR"
       },
       "transport": {
         "publisher_owned": "Treasury XML yield-curve endpoint with year/month-selectors",
