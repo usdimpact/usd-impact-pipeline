@@ -345,7 +345,7 @@ class SyntheticAsOfAvailabilityTests(unittest.TestCase):
                     replace(complete, selected=selected)
 
         with self.assertRaisesRegex(ValueError, "unique and sorted"):
-            replace(complete, selected=complete.selected + complete.selected[:1])
+            replace(complete, selected=complete.selected[:-1] + complete.selected[:1])
         with self.assertRaisesRegex(ValueError, "unique and sorted"):
             replace(complete, selected=tuple(reversed(complete.selected)))
 
@@ -378,7 +378,7 @@ class SyntheticAsOfAvailabilityTests(unittest.TestCase):
             ("eia_crude_stocks_weekly:BUY",),
             ("TREASURY_CURVE_UNKNOWN",),
             ("eia_crude_stocks_weekly:MISSING_SYNTHETIC_RECEIPT",) * 2,
-            ("TREASURY_CURVE_SNAPSHOT_MISMATCH", "eia_crude_stocks_weekly:MISSING_SYNTHETIC_RECEIPT"),
+            ("eia_crude_stocks_weekly:MISSING_SYNTHETIC_RECEIPT", "TREASURY_CURVE_SNAPSHOT_MISMATCH"),
             ("not-a-code" * 90,),
             (None,),
             ([],),
