@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate Issue #258 v5 design-only candidate-context inventory state."""
+"""Validate activated-but-not-dispatched Issue #258 design-v5 candidate-context inventory."""
 
 from __future__ import annotations
 
@@ -17,6 +17,13 @@ DISPATCH = ROOT / "governance/score-v2-1f-bls-wpu0561-ambiguity-diagnostics-pref
 CONTRACT = ROOT / "governance/score-v2-1f-bls-wpu0561-ambiguity-diagnostics-preflight-execution-contract.json"
 V4_CONSUMPTION = ROOT / "governance/score-v2-1f-bls-wpu0561-ambiguity-diagnostics-v4-recheck-consumption-2026-10-29.json"
 WORKFLOW = ROOT / ".github/workflows/score-v2-1f-bls-wpu0561-ambiguity-diagnostics-preflight.yml"
+APPROVAL_COMMENT = 6484353947
+APPROVED_AT = "2026-10-29T00:24:35Z"
+EXPECTED_UA = "USD-Impact-Score-v2.1F-WPU0561-candidate-context/1.0 (contact: support@usd-impact.com)"
+EXPECTED_RESOURCES = [
+    "/news.release/archives/ppi_05152013.htm",
+    "/ppi/detailed-report/ppi-detailed-report-april-2026.xlsx",
+]
 
 
 def _load(path: Path) -> dict[str, Any]:
@@ -30,14 +37,18 @@ def validate(repo_root: Path | None = None) -> dict[str, Any]:
     root = (repo_root or ROOT).resolve()
     design = _load(root / DESIGN.relative_to(ROOT))
     template = _load(root / TEMPLATE.relative_to(ROOT))
+    receipt_path = root / RECEIPT.relative_to(ROOT)
+    dispatch_path = root / DISPATCH.relative_to(ROOT)
     contract = _load(root / CONTRACT.relative_to(ROOT))
     v4 = _load(root / V4_CONSUMPTION.relative_to(ROOT))
     rights = _load(root / "governance/score-publication-rights-gate.json")
     workflow = (root / WORKFLOW.relative_to(ROOT)).read_text(encoding="utf-8")
 
-    for relative in (RECEIPT.relative_to(ROOT), DISPATCH.relative_to(ROOT)):
-        if (root / relative).exists():
-            raise RuntimeError(f"v5 design-only state must not retain {relative}")
+    if not receipt_path.exists():
+        raise RuntimeError("active v5 receipt must exist after activation")
+    if dispatch_path.exists():
+        raise RuntimeError("dispatch must remain absent before separate review")
+    receipt = _load(receipt_path)
 
     if rights.get("state") != "hold":
         raise RuntimeError("Issue #155 rights gate must remain HOLD")
@@ -64,18 +75,10 @@ def validate(repo_root: Path | None = None) -> dict[str, Any]:
     if design.get("future_live_budget", {}).get("max_economic_observations_total") != 0:
         raise RuntimeError("economic observation budget changed")
     if any(design.get("current_authorizations", {}).values()):
-        raise RuntimeError("all v5 design authorization flags must remain false")
-
-    header_compat = design.get("header_compatibility_policy", {})
-    if header_compat.get("standalone_code_token_role") != "identifier":
-        raise RuntimeError("standalone Code compatibility changed")
-    if header_compat.get("mixed_index_code_role") != "ambiguous":
-        raise RuntimeError("Index code must remain ambiguous")
-    if header_compat.get("live_verification_status") != "v4_recheck_completed_no_resolution":
-        raise RuntimeError("v4 header compatibility result not preserved")
+        raise RuntimeError("frozen v5 design authorization flags must remain false")
 
     inventory = design.get("candidate_context_inventory_policy", {})
-    expected = {
+    expected_inventory = {
         "state": "design_only_not_authorized",
         "maximum_candidates_per_resource": 32,
         "preceding_rows_per_candidate": 8,
@@ -86,7 +89,7 @@ def validate(repo_root: Path | None = None) -> dict[str, Any]:
         "response_body_persistence": False,
         "live_verification_status": "not_yet_authorized",
     }
-    for key, value in expected.items():
+    for key, value in expected_inventory.items():
         if inventory.get(key) != value:
             raise RuntimeError(f"candidate context policy changed: {key}")
     if "<num>" not in inventory.get("numeric_token_policy", ""):
@@ -94,33 +97,97 @@ def validate(repo_root: Path | None = None) -> dict[str, Any]:
     if "<alnum-redacted>" not in inventory.get("alphanumeric_numeric_token_policy", ""):
         raise RuntimeError("alphanumeric-token redaction changed")
 
-    if contract.get("version") != 8:
-        raise RuntimeError("consumed contract version changed")
-    if contract.get("state") != "ambiguity_diagnostics_v4_recheck_consumed_fail_closed":
-        raise RuntimeError("contract must remain consumed/fail-closed")
-    if contract.get("active_authorization_receipt_expected_now") is not False:
-        raise RuntimeError("active receipt must not be expected")
+    if receipt.get("decision_status") != "approved":
+        raise RuntimeError("active v5 receipt must be approved")
+    if receipt.get("issue") != ISSUE:
+        raise RuntimeError("receipt issue changed")
+    if receipt.get("execution_scope") != "bls_wpu0561_ambiguity_diagnostics_preflight_only":
+        raise RuntimeError("receipt scope changed")
+    if receipt.get("request_budget") != 2:
+        raise RuntimeError("receipt request budget changed")
+    if receipt.get("max_economic_observations_total") != 0:
+        raise RuntimeError("receipt economic observation budget changed")
+    if receipt.get("max_economic_observations_per_resource") != 0:
+        raise RuntimeError("receipt per-resource observation budget changed")
+    if receipt.get("allowed_host") != "www.bls.gov":
+        raise RuntimeError("receipt host changed")
+    if receipt.get("fixed_resources") != EXPECTED_RESOURCES:
+        raise RuntimeError("receipt resources changed")
+    if receipt.get("contact_user_agent") != EXPECTED_UA:
+        raise RuntimeError("receipt User-Agent changed")
+    if receipt.get("approved_by") != "usdimpact owner via Issue #258 approval comment 6484353947":
+        raise RuntimeError("receipt approval identity changed")
+    if receipt.get("approved_at") != APPROVED_AT:
+        raise RuntimeError("receipt approval timestamp changed")
+
+    auth = receipt.get("authorizations", {})
+    if auth.get("response_body_ephemeral_retrieval") is not True:
+        raise RuntimeError("ephemeral retrieval must be authorized")
+    if auth.get("ambiguity_diagnostics_preflight") is not True:
+        raise RuntimeError("candidate-context preflight must be authorized")
+    for field in (
+        "numeric_identifier_field_read",
+        "economic_value_read",
+        "full_historical_reconstruction",
+        "candidate_score_computation",
+        "research_ledger_mutation",
+        "public_artifact_replacement",
+        "production",
+    ):
+        if auth.get(field) is not False:
+            raise RuntimeError(f"{field} must remain false")
+
+    if contract.get("version") != 9:
+        raise RuntimeError("activation contract version changed")
+    if contract.get("state") != "ambiguity_diagnostics_v5_candidate_context_authorized_pending_dispatch":
+        raise RuntimeError("contract must be active but pending dispatch")
+    if contract.get("owner_approval_comment_id") != APPROVAL_COMMENT:
+        raise RuntimeError("contract approval comment changed")
+    if contract.get("owner_approval_timestamp") != APPROVED_AT:
+        raise RuntimeError("contract approval timestamp changed")
+    if contract.get("active_authorization_receipt_expected_now") is not True:
+        raise RuntimeError("active receipt must be expected")
     if contract.get("dispatch_marker_expected_now") is not False:
-        raise RuntimeError("dispatch marker must not be expected")
-    if any(contract.get("current_state", {}).values()):
-        raise RuntimeError("all contract authorization flags must remain false")
-    if contract.get("production_authorized") is not False:
-        raise RuntimeError("Production must remain unauthorized")
+        raise RuntimeError("dispatch must remain absent")
+    if contract.get("request_budget") != 2 or contract.get("max_economic_observations_total") != 0:
+        raise RuntimeError("contract budgets changed")
+
+    current = contract.get("current_state", {})
+    if current.get("response_body_ephemeral_retrieval_authorized") is not True:
+        raise RuntimeError("ephemeral retrieval must be active")
+    if current.get("ambiguity_diagnostics_preflight_authorized") is not True:
+        raise RuntimeError("candidate-context preflight must be active")
+    for field in (
+        "numeric_identifier_field_read_authorized",
+        "economic_value_read_authorized",
+        "full_historical_reconstruction_authorized",
+        "candidate_score_computation_authorized",
+        "research_ledger_mutation_authorized",
+        "public_artifact_replacement_authorized",
+        "production_authorized",
+    ):
+        if current.get(field) is not False:
+            raise RuntimeError(f"{field} must remain false")
 
     if ("if: $" + "{{ false }}") not in workflow:
-        raise RuntimeError("workflow must remain inert")
+        raise RuntimeError("activation workflow must remain inert")
     if "push:" in workflow:
-        raise RuntimeError("v5 design-only workflow must not have a push trigger")
+        raise RuntimeError("activation workflow must not have a push trigger")
 
     return {
         "status": "passed",
-        "state": "ambiguity_diagnostics_v5_design_only_hold",
+        "state": "ambiguity_diagnostics_v5_candidate_context_authorized_pending_dispatch",
         "design_version": 5,
-        "prior_v4_recheck_consumed": True,
-        "candidate_context_live_authorized": False,
+        "request_budget": 2,
         "max_economic_observations_total": 0,
-        "active_receipt_present": False,
+        "max_candidates_per_resource": 32,
+        "preceding_rows_per_candidate": 8,
+        "max_cells_per_candidate": 64,
+        "active_receipt_present": True,
         "dispatch_present": False,
+        "live_request_authorized": False,
+        "identifier_value_read_authorized": False,
+        "economic_value_read_authorized": False,
         "production_authorized": False,
         "rights_hold": True,
     }
