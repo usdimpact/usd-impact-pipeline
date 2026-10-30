@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive,nosnippet">
+  <meta name="referrer" content="no-referrer">
+  <meta name="color-scheme" content="dark">
+  <title>Macro Context — synthetic review only | USD Impact</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #eaf0f6;
+      --muted: #a7b6c5;
+      --dim: #8296ab;
+      --paper: #0b1725;
+      --surface: #122336;
+      --elevated: #172b40;
+      --border: #34465a;
+      --gold: #efcc85;
+      --gold-soft: #403522;
+      --sea: #8fd6cf;
+      --sky: #a9c5f6;
+      --violet: #c9b8ff;
+      --radius: 18px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 85% 0%, #223c53 0, transparent 28rem),
+        linear-gradient(180deg, #0c1928 0%, var(--paper) 63%, #101d2b 100%);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 16px;
+      line-height: 1.55;
+    }
+    a { color: var(--sky); }
+    a:focus-visible { outline: 3px solid var(--gold); outline-offset: 5px; border-radius: 3px; }
+    .skip {
+      position: absolute; left: 1rem; top: -5rem; z-index: 10;
+      background: var(--gold); color: #12202f; padding: .55rem 1rem; font-weight: 700;
+    }
+    .skip:focus { top: .5rem; }
+    .review-band {
+      border-bottom: 1px solid #71623f;
+      background: #2a251c;
+      color: #f7e6c0;
+      padding: .72rem 1rem;
+      text-align: center;
+      font-size: .78rem;
+      font-weight: 800;
+      line-height: 1.45;
+      letter-spacing: .11em;
+      text-transform: uppercase;
+    }
+    .frame { max-width: 1160px; margin: 0 auto; padding: 0 clamp(1.15rem, 4vw, 3rem); }
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between; gap: 1.2rem;
+      padding: 1.7rem 0;
+    }
+    .brand { display: flex; align-items: center; gap: .85rem; }
+    .brand-mark {
+      display: grid; place-items: center; width: 43px; height: 43px; flex: 0 0 auto;
+      border: 1px solid var(--gold); border-radius: 12px;
+      color: var(--gold); font: 800 1.2rem/1 Georgia, serif;
+    }
+    .brand-text { display: flex; flex-direction: column; }
+    .brand-text strong { font-size: .91rem; letter-spacing: .14em; }
+    .brand-text span { color: var(--dim); font-size: .75rem; }
+    .project-tag {
+      border: 1px solid var(--border); border-radius: 999px;
+      padding: .5rem .85rem; color: var(--muted);
+      font-size: .73rem; font-weight: 700; letter-spacing: .06em;
+      white-space: nowrap;
+    }
+    .hero { padding: clamp(2.8rem, 8vw, 5.3rem) 0 2.6rem; max-width: 880px; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: .6rem;
+      color: var(--gold); font-size: .73rem; letter-spacing: .19em;
+      text-transform: uppercase; font-weight: 800;
+    }
+    .eyebrow::before { content: ""; display: block; width: 20px; height: 1px; background: currentColor; }
+    h1 {
+      font-family: Georgia, "Times New Roman", serif;
+      font-weight: 500; font-size: clamp(2.8rem, 7vw, 5.4rem);
+      letter-spacing: -.045em; line-height: 1.05;
+      margin: 1.05rem 0 1.3rem;
+    }
+    h1 em { color: var(--gold); font-weight: 400; }
+    .hero p { max-width: 690px; color: #b9c9d8; font-size: clamp(1rem, 1.8vw, 1.17rem); }
+    .facts {
+      display: flex; gap: .9rem 2.7rem; flex-wrap: wrap;
+      margin: 2.2rem 0 0; border-top: 1px solid var(--border);
+      padding: 1.2rem 0 0;
+    }
+    .facts div { display: flex; flex-direction: column; gap: .1rem; }
+    .facts dt {
+      color: var(--dim); text-transform: uppercase; letter-spacing: .1em;
+      font-weight: 700; font-size: .69rem;
+    }
+    .facts dd { margin: 0; font-size: .92rem; font-weight: 650; }
+    .section-head {
+      display: flex; align-items: end; justify-content: space-between; gap: 1rem;
+      margin: 2.75rem 0 1.2rem;
+    }
+    .section-head h2 {
+      margin: 0; font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(1.55rem, 3vw, 2.15rem); font-weight: 500;
+    }
+    .section-head p { margin: 0; color: var(--dim); font-size: .85rem; }
+    .dials {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1.15rem;
+    }
+    .dial {
+      position: relative; overflow: hidden; min-height: 224px;
+      border: 1px solid var(--border); border-radius: var(--radius);
+      background: linear-gradient(160deg, var(--elevated), var(--surface));
+      padding: clamp(1.2rem, 3vw, 1.8rem);
+    }
+    .dial::after {
+      content: ""; position: absolute; height: 130px; width: 130px;
+      right: -55px; top: -60px; border: 1px solid currentColor;
+      opacity: .14; border-radius: 50%;
+    }
+    .dial-head {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      gap: 1rem; margin-bottom: 1.25rem;
+    }
+    .dial-name { margin: 0; font-weight: 700; font-size: 1rem; }
+    .dial-index { color: var(--dim); font-size: .7rem; font-weight: 800; letter-spacing: .14em; }
+    .reading { display: inline-block; font-size: clamp(1.4rem, 3vw, 2.1rem); letter-spacing: -.025em; font-weight: 750; line-height: 1.1; }
+    .reading.gold { color: var(--gold); }
+    .reading.sea { color: var(--sea); }
+    .reading.sky { color: var(--sky); }
+    .reading.violet { color: var(--violet); }
+    .dial p { margin: .9rem 0 0; color: var(--muted); max-width: 45ch; font-size: .91rem; }
+    .dial-foot { margin-top: 1.2rem; font-size: .69rem; color: var(--dim); text-transform: uppercase; letter-spacing: .11em; font-weight: 800; }
+    .review-layout {
+      display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(280px, .8fr);
+      gap: 1.1rem; margin-top: 1.1rem;
+    }
+    .card {
+      border: 1px solid var(--border); border-radius: var(--radius);
+      background: #101f30; padding: clamp(1.3rem, 3vw, 2rem);
+    }
+    .card h2 { font-family: Georgia, "Times New Roman", serif; font-size: 1.5rem; font-weight: 500; margin: 0 0 .7rem; }
+    .card p { color: var(--muted); margin: .65rem 0; font-size: .9rem; }
+    .guardrail { border-color: #7d653e; background: linear-gradient(160deg, #29291e, #1a2430); }
+    .guardrail strong { color: var(--gold); }
+    .steps { margin: 1.25rem 0 0; padding: 0; list-style: none; }
+    .steps li {
+      padding: .7rem 0 .7rem 1rem; border-left: 2px solid var(--border);
+      color: var(--muted); font-size: .9rem;
+    }
+    .steps li + li { border-top: 1px solid #283a4b; }
+    .steps strong { color: var(--ink); }
+    .steps li:last-child { border-left-color: var(--gold); }
+    footer { margin-top: 3rem; padding: 2rem 0 2.6rem; border-top: 1px solid var(--border); }
+    .footer-grid { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+    footer p { margin: 0; font-size: .79rem; color: var(--dim); }
+    .marker {
+      color: var(--gold); font-size: .7rem; font-weight: 800;
+      letter-spacing: .08em; overflow-wrap: anywhere;
+    }
+    @media (max-width: 740px) {
+      .topbar { align-items: flex-start; }
+      .project-tag { white-space: normal; text-align: right; max-width: 135px; }
+      .dials, .review-layout { grid-template-columns: minmax(0, 1fr); }
+      .section-head { align-items: flex-start; flex-direction: column; }
+      .hero { padding-top: 2.4rem; }
+      .dial { min-height: 190px; }
+      .facts { gap: .85rem 1.4rem; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+    }
+    @media print {
+      body { background: #0b1725; }
+      .skip { display: none; }
+      .dial, .card { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to mock content</a>
+  <div class="review-band" role="note">SYNTHETIC — NOT MARKET DATA — NOT PUBLISHED</div>
+  <div class="frame">
+    <header class="topbar">
+      <div class="brand" aria-label="USD Impact educational prototype">
+        <div class="brand-mark" aria-hidden="true">U</div>
+        <div class="brand-text">
+          <strong>USD IMPACT</strong>
+          <span>Independent research concept</span>
+        </div>
+      </div>
+      <div class="project-tag">UNRELEASED / REVIEW ONLY</div>
+    </header>
+    <main id="main">
+      <section class="hero" aria-labelledby="page-title">
+        <span class="eyebrow">Independent Macro Context</span>
+        <h1 id="page-title">Four dials.<br><em>One considered view.</em></h1>
+        <p>An isolated layout study using made-up qualitative readings. It demonstrates where explanations might appear without using prices, source observations, or a live calculation.</p>
+        <dl class="facts" aria-label="Fictional reference metadata">
+          <div><dt>Invented reference Friday</dt><dd><time datetime="2099-06-12">12 June 2099</time></dd></div>
+          <div><dt>Invented comparison Friday</dt><dd><time datetime="2099-06-05">05 June 2099</time></dd></div>
+          <div><dt>Data connection</dt><dd>None</dd></div>
+          <div><dt>Publication status</dt><dd>HOLD · Mock only</dd></div>
+        </dl>
+      </section>
+      <section aria-labelledby="dials-title">
+        <div class="section-head">
+          <h2 id="dials-title">The four conceptual dials</h2>
+          <p>Labels shown are entirely fictional</p>
+        </div>
+        <div class="dials">
+          <article class="dial">
+            <div class="dial-head"><h3 class="dial-name">Dollar breadth</h3><span class="dial-index">DIAL A</span></div>
+            <div class="reading gold">UP</div>
+            <p>Invented directional classification to illustrate the layout. No currency index or exchange-rate series is connected.</p>
+            <div class="dial-foot">Synthetic label / not observed</div>
+          </article>
+          <article class="dial">
+            <div class="dial-head"><h3 class="dial-name">Crude inventories</h3><span class="dial-index">DIAL B</span></div>
+            <div class="reading sea">DRAW</div>
+            <p>Invented inventory-change category. No petroleum statistics or commodity prices have been retrieved.</p>
+            <div class="dial-foot">Synthetic label / not observed</div>
+          </article>
+          <article class="dial">
+            <div class="dial-head"><h3 class="dial-name">Treasury curve level</h3><span class="dial-index">DIAL C</span></div>
+            <div class="reading sky">POSITIVE</div>
+            <p>Hypothetical classification of a nominal yield curve. No yields, spreads or market measurements are shown.</p>
+            <div class="dial-foot">Synthetic label / not observed</div>
+          </article>
+          <article class="dial">
+            <div class="dial-head"><h3 class="dial-name">Treasury curve direction</h3><span class="dial-index">DIAL D</span></div>
+            <div class="reading violet">FLATTENING</div>
+            <p>Invented change classification for an imagined comparison. It does not imply a forecast or trading action.</p>
+            <div class="dial-foot">Synthetic label / not observed</div>
+          </article>
+        </div>
+      </section>
+      <section class="review-layout" aria-label="Interpretation and release conditions">
+        <div class="card">
+          <h2>How a future educational view might work</h2>
+          <p>Independent source families could eventually contribute transparent, non-price qualitative context. Their exact identities, publication times, correction policy, retention, and use rights must be verified separately before any real implementation.</p>
+          <ol class="steps">
+            <li><strong>Start with source identity.</strong> Establish the publisher, definition and permitted uses.</li>
+            <li><strong>Check provenance and timing.</strong> Verify the original release and historical corrections before interpreting a comparison.</li>
+            <li><strong>Explain limitations.</strong> Show what each category does and does not mean; avoid signals or recommendations.</li>
+          </ol>
+        </div>
+        <aside class="card guardrail" aria-labelledby="safety-title">
+          <h2 id="safety-title">Release and safety boundary</h2>
+          <p><strong>Not the original Weekly Score.</strong> This mock has no licensed data, no eight-driver Score history, no real measurement, and no customer entitlement.</p>
+          <p>All source-rights, methodology, access and Production approvals remain pending. A future protected preview would require a separate authorization.</p>
+        </aside>
+      </section>
+    </main>
+    <footer>
+      <div class="footer-grid">
+        <p>Educational layout study only. Not financial advice or a trading recommendation.</p>
+        <p class="marker">SYNTHETIC_DO_NOT_PUBLISH</p>
+      </div>
+    </footer>
+  </div>
+</body>
+</html>
