@@ -1,0 +1,214 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:usd-impact:internal:independent-macro-context-synthetic-preview-v0",
+  "title": "Independent Macro Context: INTERNAL synthetic-only preview result (NO RELEASE)",
+  "description": "Review-only serialization boundary for invented year-2099+ results; NOT a public data schema, source receipt, proof of rights, real-data adapter or production interface. A valid document is not authentic and is never authorization.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "status",
+    "reference_week",
+    "previous_week",
+    "panel_id",
+    "dial_labels",
+    "blockers",
+    "fixture_marker",
+    "rights_cleared",
+    "real_data_fetch_authorized",
+    "publish_authorized",
+    "production_authorized"
+  ],
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": [
+        "SYNTHETIC_ONLY_HOLD",
+        "SYNTHETIC_ONLY_COMPLETE"
+      ]
+    },
+    "reference_week": {
+      "type": "string",
+      "pattern": "^(?:2099|2[1-9][0-9]{2}|[3-9][0-9]{3})-[0-9]{2}-[0-9]{2}$",
+      "description": "Syntactic year-2099+ date only; semantic Friday/adjacency checked by the Python constructor."
+    },
+    "previous_week": {
+      "type": "string",
+      "pattern": "^(?:2099|2[1-9][0-9]{2}|[3-9][0-9]{3})-[0-9]{2}-[0-9]{2}$",
+      "description": "Syntactic year-2099+ date only; semantic Friday/adjacency checked by the Python constructor."
+    },
+    "panel_id": {
+      "type": "string",
+      "const": "INDEPENDENT_FEDERAL_MACRO_CONTEXT_V0_SYNTHETIC_ONLY"
+    },
+    "dial_labels": {
+      "type": "array",
+      "description": "Ordered four qualitative labels only for synthetic COMPLETE; empty when HOLD.",
+      "minItems": 0,
+      "maxItems": 4,
+      "prefixItems": [
+        {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "prefixItems": [
+            {
+              "type": "string",
+              "const": "dollar_breadth"
+            },
+            {
+              "type": "string",
+              "enum": [
+                "UP",
+                "DOWN",
+                "UNCHANGED"
+              ]
+            }
+          ],
+          "items": false
+        },
+        {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "prefixItems": [
+            {
+              "type": "string",
+              "const": "crude_inventory"
+            },
+            {
+              "type": "string",
+              "enum": [
+                "BUILD",
+                "DRAW",
+                "UNCHANGED"
+              ]
+            }
+          ],
+          "items": false
+        },
+        {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "prefixItems": [
+            {
+              "type": "string",
+              "const": "treasury_curve_level"
+            },
+            {
+              "type": "string",
+              "enum": [
+                "POSITIVE",
+                "INVERTED",
+                "FLAT"
+              ]
+            }
+          ],
+          "items": false
+        },
+        {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "prefixItems": [
+            {
+              "type": "string",
+              "const": "treasury_curve_direction"
+            },
+            {
+              "type": "string",
+              "enum": [
+                "STEEPENING",
+                "FLATTENING",
+                "UNCHANGED"
+              ]
+            }
+          ],
+          "items": false
+        }
+      ],
+      "items": false
+    },
+    "blockers": {
+      "type": "array",
+      "description": "Bounded and unique synthetic blocker codes. Source/week specificity and alphabetical order checked by Python.",
+      "minItems": 0,
+      "maxItems": 32,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 150,
+        "pattern": "^(?:2099|2[1-9][0-9]{2}|[3-9][0-9]{3})-[0-9]{2}-[0-9]{2}:(?:(?:fed_h10_nominal_broad|eia_crude_stocks_weekly|treasury_direct_2yr_par|treasury_direct_10yr_par):(?:MISSING_SYNTHETIC_RECEIPT|NOT_FIRST_SEEN_BY_CUTOFF|NO_MATCHING_VISIBLE_SYNTHETIC_VALUE)|(?:TREASURY_CURVE_SNAPSHOT_MISMATCH|TREASURY_CURVE_REVISION_MISMATCH|TREASURY_CURVE_INITIAL_RELEASE_MISMATCH|TREASURY_CURVE_VERSION_PUBLICATION_MISMATCH|TREASURY_CURVE_FIRST_SEEN_MISMATCH|INCOMPLETE_FOUR_SOURCE_SET))$"
+      }
+    },
+    "fixture_marker": {
+      "type": "string",
+      "const": "SYNTHETIC_DO_NOT_PUBLISH"
+    },
+    "rights_cleared": {
+      "type": "boolean",
+      "const": false
+    },
+    "real_data_fetch_authorized": {
+      "type": "boolean",
+      "const": false
+    },
+    "publish_authorized": {
+      "type": "boolean",
+      "const": false
+    },
+    "production_authorized": {
+      "type": "boolean",
+      "const": false
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "SYNTHETIC_ONLY_HOLD"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "dial_labels": {
+            "maxItems": 0
+          },
+          "blockers": {
+            "minItems": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "SYNTHETIC_ONLY_COMPLETE"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "dial_labels": {
+            "minItems": 4,
+            "maxItems": 4
+          },
+          "blockers": {
+            "maxItems": 0
+          }
+        }
+      }
+    }
+  ],
+  "$comment": "No live-source proof, no licensing, no calendar adjacency guarantee. The Python SyntheticContextPanel constructor remains the authoritative in-memory synthetic-only validator."
+}
