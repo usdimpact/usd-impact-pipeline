@@ -1,0 +1,392 @@
+{
+  "format": "usd-impact-score-v2-public-schema-and-retention-review-v1",
+  "review_date": "2026-10-30",
+  "decision_state": "DRAFT_SYNTHETIC_ONLY_RIGHTS_HOLD",
+  "controlling_issues": {
+    "public_distribution": "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
+    "historical_retention": "https://github.com/usdimpact/usd-impact-pipeline/issues/282",
+    "distinct_macro_panel": "https://github.com/usdimpact/usd-impact-pipeline/issues/313"
+  },
+  "controlling_policy": "governance/score-publication-rights-gate.json",
+  "historical_metadata_inventory": "governance/score-current-tree-exposure-inventory-2026-10-29.json",
+  "scope": {
+    "docs_only_and_synthetic_tests": true,
+    "original_engine_modified": false,
+    "research_engine_modified": false,
+    "public_artifact_modified": false,
+    "publication_workflow_modified": false,
+    "production_configuration_modified": false,
+    "real_provider_data_used": false,
+    "provider_permission_granted": false
+  },
+  "aggregate_candidate": {
+    "status": "PROTOTYPE_ONLY_NOT_LICENSE_CLEARED",
+    "schema": "schemas/score_public_safe.schema.json",
+    "schema_version": "score-public-v2-safe-1",
+    "schema_id": "https://usd-impact.com/schemas/score-public-v2-safe-1.json",
+    "builder": "scripts/build_score_public_safe_artifact.py",
+    "existing_synthetic_contract_tests": "tests/test_score_public_safe_contract_synthetic.py",
+    "public_url": null,
+    "public_route_authorized": false,
+    "production_builder_wired": false,
+    "proposal_field_sets": {
+      "root": [
+        "schema_version",
+        "metadata",
+        "latest",
+        "history",
+        "release_evidence"
+      ],
+      "metadata": [
+        "pipeline",
+        "generated_at_utc",
+        "n_weeks",
+        "weights"
+      ],
+      "latest": [
+        "week_ending",
+        "score",
+        "regime",
+        "week_over_week_change",
+        "four_week_change"
+      ],
+      "history_item": [
+        "date",
+        "score",
+        "regime"
+      ],
+      "release_evidence": [
+        "aggregate_history_sha256"
+      ]
+    },
+    "proposed_field_groups": [
+      {
+        "id": "schema_label",
+        "paths": [
+          "schema_version"
+        ],
+        "rights_review": "PENDING"
+      },
+      {
+        "id": "technical_metadata",
+        "paths": [
+          "metadata.pipeline",
+          "metadata.generated_at_utc",
+          "metadata.n_weeks"
+        ],
+        "rights_review": "PENDING"
+      },
+      {
+        "id": "methodology_weights",
+        "paths": [
+          "metadata.weights"
+        ],
+        "rights_review": "PENDING"
+      },
+      {
+        "id": "week_dates",
+        "paths": [
+          "latest.week_ending",
+          "history[].date"
+        ],
+        "rights_review": "PENDING"
+      },
+      {
+        "id": "aggregate_scores_and_changes",
+        "paths": [
+          "latest.score",
+          "latest.week_over_week_change",
+          "latest.four_week_change",
+          "history[].score"
+        ],
+        "rights_review": "PENDING"
+      },
+      {
+        "id": "aggregate_regimes",
+        "paths": [
+          "latest.regime",
+          "history[].regime"
+        ],
+        "rights_review": "PENDING"
+      },
+      {
+        "id": "aggregate_history_fingerprint",
+        "paths": [
+          "release_evidence.aggregate_history_sha256"
+        ],
+        "rights_review": "PENDING"
+      }
+    ],
+    "forbidden_public_data_fields": [
+      "component_zscore_revisions",
+      "contribution",
+      "driver_levels",
+      "mean",
+      "normalization",
+      "observation_date",
+      "provider",
+      "provider_code",
+      "sample_std_ddof_1",
+      "series",
+      "source_archive_path",
+      "source_provenance",
+      "source_provenance_version",
+      "source_url",
+      "weekly_level",
+      "z",
+      "z_clipped",
+      "z_unclipped"
+    ],
+    "aggregate_is_not_automatically_license_safe": true,
+    "s_and_p_paid_license_requirement_unfunded": true
+  },
+  "source_and_transport_distinction": {
+    "treasury_h15_origin": "US_TREASURY_ORIGIN_AND_FEDERAL_RESERVE_H15_REPUBLICATION_REQUIRE_SEPARATE_REVIEW",
+    "current_treasury_transport": "FRED_DGS2_DGS10",
+    "yahoo_transport": "YFINANCE_YAHOO_UPSTREAM_OWNERS_REQUIRE_INDIVIDUAL_REVIEW",
+    "fred_public_domain_tag_not_storage_permission": true,
+    "fred_retention_and_disposal_not_cleared": true,
+    "no_direct_h15_substitution_approved": true,
+    "no_paid_license_budget_approved": true
+  },
+  "snapshot_counts": {
+    "dated_class_c": 50,
+    "latest_class_c": 4,
+    "current_tree_class_c_total": 54,
+    "dated_archive_directories": 27,
+    "git_only_weekly_bridges": 15,
+    "dated_html_en_es": 54,
+    "research_class_d": 1,
+    "research_class_e": 1,
+    "research_class_f": 3
+  },
+  "inventory_categories": [
+    {
+      "id": "latest_class_c",
+      "class": "C",
+      "evidence": "CURRENT_TREE_PATHS",
+      "count": 4,
+      "paths": [
+        "public/data/score_repro_bundle_latest.json",
+        "public/data/usd_impact_score_v2.csv",
+        "public/data/usd_impact_score_v2.json",
+        "public/data/weekly_input_latest.json"
+      ],
+      "disposition": "NO_CHANGE_PENDING_SOURCE_RIGHTS"
+    },
+    {
+      "id": "dated_score",
+      "class": "C",
+      "evidence": "CURRENT_TREE_PATHS",
+      "count": 27,
+      "pattern": "public/archive/YYYY-MM-DD/score.json",
+      "disposition": "NO_CHANGE_PENDING_SOURCE_RIGHTS"
+    },
+    {
+      "id": "dated_weekly_input",
+      "class": "C",
+      "evidence": "CURRENT_TREE_PATHS",
+      "count": 14,
+      "pattern": "public/archive/YYYY-MM-DD/weekly_input.json",
+      "disposition": "NO_CHANGE_PENDING_SOURCE_RIGHTS"
+    },
+    {
+      "id": "dated_reproduction",
+      "class": "C",
+      "evidence": "CURRENT_TREE_PATHS",
+      "count": 9,
+      "pattern": "public/archive/YYYY-MM-DD/repro_bundle.json",
+      "disposition": "NO_CHANGE_PENDING_SOURCE_RIGHTS"
+    },
+    {
+      "id": "git_only_weekly_bridges",
+      "class": "UNREVIEWED_GIT",
+      "evidence": "CURRENT_TREE_PATHS",
+      "count": 15,
+      "pattern": "data/weekly_input_*.json",
+      "disposition": "NO_CHANGE_PENDING_SOURCE_RIGHTS"
+    },
+    {
+      "id": "dated_archive_html",
+      "class": "HTML_GIT",
+      "evidence": "CURRENT_TREE_PATHS",
+      "count": 54,
+      "patterns": [
+        "public/archive/YYYY-MM-DD/en.html",
+        "public/archive/YYYY-MM-DD/es.html"
+      ],
+      "disposition": "NO_CHANGE_PENDING_SOURCE_RIGHTS"
+    },
+    {
+      "id": "research_d",
+      "class": "D",
+      "evidence": "CURRENT_TREE_PATHS",
+      "count": 1,
+      "paths": [
+        "public/data/research/score_v2_point_in_time_latest.json"
+      ],
+      "disposition": "NO_CHANGE_PENDING_SOURCE_RIGHTS"
+    },
+    {
+      "id": "research_e",
+      "class": "E",
+      "evidence": "CURRENT_TREE_PATHS",
+      "count": 1,
+      "paths": [
+        "public/data/research/score_v2_robustness_latest.json"
+      ],
+      "disposition": "NO_CHANGE_PENDING_SOURCE_RIGHTS"
+    },
+    {
+      "id": "research_f",
+      "class": "F",
+      "evidence": "CURRENT_TREE_PATHS",
+      "count": 3,
+      "paths": [
+        "public/data/research/score_v2_vintage_comparison_latest.csv",
+        "public/data/research/score_v2_vintage_comparison_latest.html",
+        "public/data/research/score_v2_vintage_comparison_latest.json"
+      ],
+      "disposition": "NO_CHANGE_PENDING_SOURCE_RIGHTS"
+    },
+    {
+      "id": "git_history_old_blobs",
+      "class": "HISTORICAL_GIT",
+      "evidence": "PARTIAL_METADATA_ONLY",
+      "count": null,
+      "disposition": "NO_REWRITE_OR_DELETE_PENDING_COUNSEL"
+    },
+    {
+      "id": "cloudflare_deployments_cdn_and_previews",
+      "class": "REMOTE_DELIVERY",
+      "evidence": "PARTIAL_METADATA_ONLY",
+      "count": null,
+      "disposition": "NO_PURGE_OR_REDEPLOY_PENDING_COUNSEL"
+    },
+    {
+      "id": "github_actions_logs_artifacts_caches",
+      "class": "AUTOMATION_RESIDUE",
+      "evidence": "PARTIAL_METADATA_ONLY",
+      "count": null,
+      "disposition": "NO_COPY_OR_PURGE_PENDING_COUNSEL"
+    },
+    {
+      "id": "local_parquet_logs_and_runner_temporary",
+      "class": "LOCAL_OR_EPHEMERAL",
+      "evidence": "SOURCE_PATHS_ONLY",
+      "count": null,
+      "disposition": "NO_NEW_COPIES_PENDING_COUNSEL"
+    },
+    {
+      "id": "private_storage_backups_external_clones",
+      "class": "OTHER_COPIES",
+      "evidence": "UNVERIFIED",
+      "count": null,
+      "disposition": "NO_NEW_COPIES_OR_DELETION_PENDING_COUNSEL"
+    }
+  ],
+  "open_decision_questions": [
+    {
+      "id": "upstream_owner_and_transport",
+      "reviewer": "PROVIDER_AND_COUNSEL",
+      "state": "PENDING",
+      "receipt": null
+    },
+    {
+      "id": "commercial_internal_calculation",
+      "reviewer": "PROVIDER_AND_COUNSEL",
+      "state": "PENDING",
+      "receipt": null
+    },
+    {
+      "id": "s_and_p_paid_license_or_separate_methodology",
+      "reviewer": "OWNER_AND_COUNSEL",
+      "state": "PENDING",
+      "receipt": null
+    },
+    {
+      "id": "aggregate_and_historical_derived_distribution",
+      "reviewer": "PROVIDER_AND_COUNSEL",
+      "state": "PENDING",
+      "receipt": null
+    },
+    {
+      "id": "methodology_and_attribution",
+      "reviewer": "PROVIDER_AND_COUNSEL",
+      "state": "PENDING",
+      "receipt": null
+    },
+    {
+      "id": "fred_services_api_storage_and_disposal",
+      "reviewer": "PROVIDER_AND_COUNSEL",
+      "state": "PENDING",
+      "receipt": null
+    },
+    {
+      "id": "fred_cryptographic_receipts_and_aggregate_retention",
+      "reviewer": "PROVIDER_AND_COUNSEL",
+      "state": "PENDING",
+      "receipt": null
+    },
+    {
+      "id": "public_git_old_history_and_releases",
+      "reviewer": "OWNER_AND_COUNSEL",
+      "state": "PENDING",
+      "receipt": null
+    },
+    {
+      "id": "cloudflare_cache_old_deployments_and_external_copies",
+      "reviewer": "OWNER_AND_COUNSEL",
+      "state": "PENDING",
+      "receipt": null
+    },
+    {
+      "id": "github_actions_logs_caches_and_backups",
+      "reviewer": "OWNER_AND_COUNSEL",
+      "state": "PENDING",
+      "receipt": null
+    },
+    {
+      "id": "ai_ml_use_and_restricted_provider_data",
+      "reviewer": "PROVIDER_AND_COUNSEL",
+      "state": "PENDING",
+      "receipt": null
+    },
+    {
+      "id": "lawful_private_evidence_storage_or_disposal",
+      "reviewer": "OWNER_AND_COUNSEL",
+      "state": "PENDING",
+      "receipt": null
+    },
+    {
+      "id": "reader_migration_and_methodology_reproduction_claims",
+      "reviewer": "TECHNICAL_REVIEW_AND_OWNER",
+      "state": "PENDING",
+      "receipt": null
+    },
+    {
+      "id": "versioned_public_route_and_legal_safe_rollback",
+      "reviewer": "TECHNICAL_REVIEW_AND_OWNER",
+      "state": "PENDING",
+      "receipt": null
+    }
+  ],
+  "authorization_gates": {
+    "source_specific_commercial_processing_cleared": false,
+    "exact_transport_and_retention_cleared": false,
+    "aggregate_distribution_cleared": false,
+    "public_field_groups_approved": false,
+    "private_evidence_or_disposal_plan_approved": false,
+    "historical_git_and_cloudflare_treatment_approved": false,
+    "research_consumers_reconciled": false,
+    "replication_claims_reconciled": false,
+    "versioned_public_route_approved": false,
+    "exact_head_ci_passed_for_release": false,
+    "nonproduction_preview_approved": false,
+    "owner_production_release_approved": false,
+    "provider_fetch_allowed": false,
+    "public_artifact_mutation_allowed": false,
+    "historical_deletion_or_purge_allowed": false
+  },
+  "interpretation": "A schema/aggregate-only transform is not a license. All historic copies and old public component-derived fields require source-specific legal disposition; nothing is authorized by this decision draft."
+}
