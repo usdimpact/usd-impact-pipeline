@@ -12,8 +12,9 @@ from __future__ import annotations
 import math
 import re
 from dataclasses import dataclass
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, datetime, time, timedelta, timezone
 from typing import Iterable
+from zoneinfo import ZoneInfo
 
 from scripts.score_public_source_phase_b_synthetic import (
     MIN_SYNTHETIC_YEAR,
@@ -51,6 +52,25 @@ SOURCE_BASIS_IDS = {
 # Closed internal result vocabulary. These are invented test labels only:
 # never a trading signal, provider attribution, license, public schema, or
 # an approved customer-facing product.
+# Candidate-only lower bounds for invented first-publication receipts.
+# A weekly H.10/EIA observation for a Friday-ending reference period cannot
+# truthfully be published before that period has ended. Treasury's daily
+# Friday curve cannot be published before the Friday observation date starts.
+# These are logical guards, NOT a forecast of publisher release hours, a
+# verified live-feed identity, or any permission to process source values.
+_POST_PERIOD_CANDIDATES = frozenset((
+    "fed_h10_nominal_broad", "eia_crude_stocks_weekly",
+))
+_CANDIDATE_SOURCE_TIMEZONE = ZoneInfo("America/New_York")
+
+
+def _candidate_release_floor(source_id: str, week: date) -> datetime:
+    first_possible_day = week + timedelta(days=1) if source_id in _POST_PERIOD_CANDIDATES else week
+    return datetime.combine(
+        first_possible_day, time.min, tzinfo=_CANDIDATE_SOURCE_TIMEZONE,
+    ).astimezone(timezone.utc)
+
+
 DIAL_VALUES = {
     "dollar_breadth": frozenset(("UP", "DOWN", "UNCHANGED")),
     "crude_inventory": frozenset(("BUILD", "DRAW", "UNCHANGED")),
@@ -271,6 +291,23 @@ def evaluate_synthetic_context(
             raise ValueError("only synthetic source receipts allowed")
         if receipt.reference_week not in expected_weeks:
             raise ValueError("source receipt references an unexpected week")
+        # The Phase-B as-of selector validates chronology and first-seen
+        # cutoffs, but a self-declared invented receipt can be internally
+        # ordered while claiming to precede the reference period. Reject such
+        # logically impossible synthetic first-publication records here.
+        released = receipt.initial_release_at
+        if (
+            receipt.source_id in REQUIRED_IDS
+            and isinstance(released, datetime)
+            and released.tzinfo is not None
+            and released.utcoffset() is not None
+            and released.astimezone(timezone.utc) < _candidate_release_floor(
+                receipt.source_id, receipt.reference_week,
+            )
+        ):
+            raise ValueError(
+                "synthetic source first publication predates reference-period availability"
+            )
 
     seen: dict[tuple[date, str, str], float] = {}
     for item in observations:
