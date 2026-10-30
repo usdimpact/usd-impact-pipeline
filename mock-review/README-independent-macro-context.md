@@ -15,7 +15,7 @@
 | `independent-macro-context/vercel.json` | Static noindex/no-store and strict Content Security Policy headers **for a separately authorized future Preview only** |
 | `../README-independent-macro-context.md` | This operator-only review and security record; **must not be uploaded** |
 
-**Deployable root contains **exactly** `index.html`, `robots.txt`, and `vercel.json`; it must contain no README, dotfiles, runtime packages, JavaScript, remote fonts, images, scripts, fetch/XHR, analytics, cookies, market-data feeds, source-provider URLs, auth bypass tokens or service environment variables.** The static source directory does not use any files from existing site Production, original Score archives or FRED source transports. There is no `package.json`, Git integration, deployment script, Vercel project association file or generated output.
+****No JavaScript.** The deployable root contains **exactly** `index.html`, `robots.txt`, and `vercel.json`; it must contain no README, dotfiles, runtime packages, JavaScript, remote fonts, images, scripts, fetch/XHR, analytics, cookies, market-data feeds, source-provider URLs, auth bypass tokens or service environment variables.** The static source directory does not use any files from existing site Production, original Score archives or FRED source transports. There is no `package.json`, Git integration, deployment script, Vercel project association file or generated output.
 
 ## Fixed fictional labels, never real source readings
 
