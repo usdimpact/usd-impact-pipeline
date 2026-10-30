@@ -18,12 +18,12 @@ SOURCE = ROOT / "mock-review" / "independent-macro-context"
 HTML_PATH = SOURCE / "index.html"
 ROBOTS_PATH = SOURCE / "robots.txt"
 CONFIG_PATH = SOURCE / "vercel.json"
-README_PATH = SOURCE / "README.md"
+README_PATH = ROOT / "mock-review" / "README-independent-macro-context.md"
 RIGHTS_PATH = ROOT / "governance" / "independent-macro-context-fallback-draft-2026-10-30.json"
 SCORE_RIGHTS_PATH = ROOT / "governance" / "score-publication-rights-gate.json"
 SOURCE_SCHEMA_PATH = ROOT / "schemas" / "independent_macro_context_synthetic_preview.schema.json"
 
-EXPECTED_FILES = {"index.html", "robots.txt", "vercel.json", "README.md"}
+EXPECTED_FILES = {"index.html", "robots.txt", "vercel.json"}
 EXPECTED_DIALS = (
     ("Dollar breadth", "UP"),
     ("Crude inventories", "DRAW"),
@@ -183,6 +183,11 @@ class StandaloneMacroContextMockTests(unittest.TestCase):
 
     def test_exact_self_contained_inventory_and_no_imported_credentials(self) -> None:
         self.assertEqual({p.name for p in SOURCE.iterdir()}, EXPECTED_FILES)
+        # The upload root contains no documentation or hidden metadata.
+        # The operator handoff belongs outside the deployable bundle.
+        self.assertTrue(README_PATH.exists())
+        self.assertEqual(README_PATH.parent, SOURCE.parent)
+        self.assertFalse((SOURCE / "README.md").exists())
         for path in SOURCE.iterdir():
             self.assertTrue(path.is_file())
             self.assertLess(path.stat().st_size, 100_000)
@@ -190,6 +195,7 @@ class StandaloneMacroContextMockTests(unittest.TestCase):
                              for f in (".env", "package.json", "package-lock.json",
                                        ".vercel", "sitemap.xml", "manifest.json")))
         self.assertIn("SYNTHETIC_DO_NOT_PUBLISH", self.html)
+        self.assertNotIn(".md", " ".join(p.name for p in SOURCE.iterdir()))
 
     def test_accessible_scriptless_html_with_only_invented_periods(self) -> None:
         p = parse_and_check_markup(self.html)
@@ -273,7 +279,7 @@ class StandaloneMacroContextMockTests(unittest.TestCase):
             "P3 static mock source", "P4", "NOT STARTED",
             "No JavaScript", "No remote", "SYNTHETIC_DO_NOT_PUBLISH",
             "prj_oQ3dGEvHmWRBMYAnQaRYIsY6URu1",
-            "Do not", "Preview-only",
+            "Do not", "Preview-only", "UPLOAD SCOPE",
         ):
             self.assertIn(phrase.lower(), text.lower())
         self.assertNotIn("VERCEL_TOKEN=", text)
