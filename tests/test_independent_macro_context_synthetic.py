@@ -9,7 +9,7 @@ import ast
 import json
 import unittest
 from dataclasses import asdict, replace
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -108,6 +108,83 @@ class IndependentMacroContextSyntheticTests(unittest.TestCase):
             self.assertNotIn(item, output)
         self.assertIn(SYNTHETIC_MARKER, output)
         self.assertNotIn('"score":', output)
+
+    def test_pre_reference_week_publication_cannot_fake_synthetic_availability(self) -> None:
+        # Invented receipts may be chronologically self-consistent yet claim
+        # their full Friday period was published before it had ended.
+        for week in (PREV, WEEK):
+            for source in sorted(REQUIRED_IDS):
+                with self.subTest(reference_week=week, source=source):
+                    receipts, observations = fixture()
+                    if source in {"fed_h10_nominal_broad", "eia_crude_stocks_weekly"}:
+                        invalid = datetime.combine(week, time(23, 59, 59), tzinfo=ET)
+                    else:
+                        invalid = datetime.combine(
+                            week - timedelta(days=1), time(23, 59, 59), tzinfo=ET,
+                        )
+                    idx = next(
+                        i for i, r in enumerate(receipts)
+                        if r.reference_week == week and r.source_id == source
+                    )
+                    receipts[idx] = replace(
+                        receipts[idx],
+                        initial_release_at=invalid,
+                        version_published_at=invalid,
+                        first_seen_at=invalid + timedelta(minutes=1),
+                    )
+                    with self.assertRaisesRegex(
+                        ValueError, "predates reference-period availability"
+                    ):
+                        evaluate_synthetic_context(
+                            receipts, observations, WEEK, stamp(17, 11),
+                        )
+
+    def test_synthetic_candidate_floor_accepts_boundary_not_guessed_schedule(self) -> None:
+        # These are candidate-only logical period bounds, never claims of
+        # actual H.10 Monday, EIA Wednesday or Treasury market release clocks.
+        for week in (PREV, WEEK):
+            for source in ("fed_h10_nominal_broad", "eia_crude_stocks_weekly"):
+                with self.subTest(week=week, source=source):
+                    receipts, observations = fixture()
+                    boundary = datetime.combine(
+                        week + timedelta(days=1), time.min, tzinfo=ET,
+                    )
+                    idx = next(
+                        i for i, r in enumerate(receipts)
+                        if r.reference_week == week and r.source_id == source
+                    )
+                    receipts[idx] = replace(
+                        receipts[idx], initial_release_at=boundary,
+                        version_published_at=boundary,
+                        first_seen_at=boundary + timedelta(minutes=1),
+                    )
+                    result = evaluate_synthetic_context(
+                        receipts, observations, WEEK, stamp(17, 11),
+                    )
+                    self.assertEqual(result.status, "SYNTHETIC_ONLY_COMPLETE")
+                    self.assertFalse(result.publish_authorized)
+        # Both Treasury tenors remain one fictitious publisher snapshot.
+        receipts, observations = fixture()
+        release = datetime.combine(WEEK, time.min, tzinfo=ET)
+        for idx, record in enumerate(receipts):
+            if (
+                record.reference_week == WEEK
+                and record.source_id in {
+                    "treasury_direct_2yr_par", "treasury_direct_10yr_par",
+                }
+            ):
+                receipts[idx] = replace(
+                    record, initial_release_at=release.astimezone(timezone.utc),
+                    version_published_at=release.astimezone(timezone.utc),
+                    first_seen_at=(release + timedelta(minutes=1)).astimezone(
+                        timezone.utc
+                    ),
+                )
+        result = evaluate_synthetic_context(
+            receipts, observations, WEEK, stamp(17, 11),
+        )
+        self.assertEqual(result.status, "SYNTHETIC_ONLY_COMPLETE")
+        self.assertFalse(result.rights_cleared)
 
     def test_not_complete_before_wednesday_first_seen(self) -> None:
         r, o = fixture()
