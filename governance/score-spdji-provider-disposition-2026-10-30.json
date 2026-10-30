@@ -1,0 +1,77 @@
+{
+  "schema_version": "score-spdji-provider-disposition-review-v1",
+  "recorded_date": "2026-10-30",
+  "provider_reply_date_utc": "2026-10-29",
+  "review_state": "PROVIDER_PAID_LICENSE_REQUIRED_NO_BUDGET_HOLD",
+  "source_relationship_id": "sp_dji_sp500",
+  "provider_family": "S&P Dow Jones Indices / S&P 500",
+  "source_evidence_location": "existing_private_correspondence_only",
+  "private_correspondence_copied_to_repository": false,
+  "sender_name_case_number_or_private_contact_included": false,
+  "original_request_scope": {
+    "operator": "USD Impact educational/commercial web product",
+    "index_use": "S&P 500 observations as one of the original eight weekly Score inputs",
+    "commercial_internal_calculation_inquiry": true,
+    "proposed_public_output": [
+      "week_ending_date",
+      "non_reconstructible_aggregate_score",
+      "regime_label",
+      "aggregate_score_history"
+    ],
+    "proposed_excluded_public_fields": [
+      "source_levels",
+      "component_normalized_values",
+      "component_z_scores",
+      "component_contributions",
+      "normalization_moments"
+    ],
+    "requested_no_fee_possibility": true
+  },
+  "provider_reply": {
+    "categorization": "PAID_LICENSE_REQUIRED_FOR_DESCRIBED_USE_CASE",
+    "paid_license_required_for_described_request": true,
+    "separate_internal_vs_public_license_exemptions_expressly_resolved": false,
+    "written_no_fee_aggregate_permission_received": false,
+    "paid_license_executed": false,
+    "separately_scoped_component_rights_approved": false,
+    "historic_artifact_remediation_direction_received": false
+  },
+  "economics": {
+    "authorized_additional_market_data_license_budget_usd": 0,
+    "paid_license_purchase_authorized": false,
+    "original_eight_driver_score_zero_budget_release_viable": false,
+    "separately_licensed_future_path_may_be_reviewed_by_owner": true,
+    "independent_four_signal_panel_is_not_legacy_score": true
+  },
+  "linked_prior_status_snapshots": [
+    "governance/score-provider-rights-followup-queue-2026-10-29.json",
+    "governance/score-rights-seven-provider-coverage-2026-10-29.json",
+    "governance/score-v2-successor-rights-readiness-2026-10-29.json"
+  ],
+  "controlling_issues": [
+    "https://github.com/usdimpact/usd-impact-pipeline/issues/155",
+    "https://github.com/usdimpact/usd-impact-pipeline/issues/282",
+    "https://github.com/usdimpact/usd-impact-pipeline/issues/313"
+  ],
+  "interpretation": [
+    "This is a scoped negative commercial answer to the described use case, not a positive grant or legal opinion on unasked use cases.",
+    "Earlier dated contact snapshots remain historical evidence and must not be mistaken for the latest response.",
+    "An aggregate-only technical schema does not waive S&P commercial or derived-data licensing.",
+    "No paid budget or executed contract exists; no substitution, archive deletion, new fetch or publication is authorized.",
+    "Other upstream source owners, FRED transport retention and the separate Macro Context Panel remain under their own decisions."
+  ],
+  "authorizations": {
+    "existing_score_publication": false,
+    "aggregate_score_publication": false,
+    "score_source_switch": false,
+    "original_engine_or_weight_change": false,
+    "provider_fetch_or_data_copy": false,
+    "new_paid_license_contract": false,
+    "market_data_purchase": false,
+    "historical_artifact_delete_or_purge": false,
+    "historical_retention_or_private_storage": false,
+    "independent_macro_context_panel_release": false,
+    "website_or_cloudflare_deployment": false,
+    "rights_gate_allow": false
+  }
+}
