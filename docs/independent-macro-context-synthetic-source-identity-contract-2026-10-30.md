@@ -37,3 +37,23 @@ Only these four existing/new files change in the review PR:
 All 2099 numeric values remain invented. The output stays qualitative (no source numeric values, unit strings, or basis identifiers). Full protected quality, CodeQL and frozen-research validation is required before any merge; `[CF-Pages-Skip]` prevents an unnecessary Pages deployment. This does not enable live source adapters, research storage, website/member UI, historical archive modification, licensing expenditure or Production.
 
 **Status after a technically successful review remains: 56/56 candidate source rights denied; 14 external authorities denied; source data, historical as-of, legal permissions, and public publication all HOLD.**
+
+
+## Follow-up: impossible pre-period synthetic release interlock (Oct 30, 2026)
+
+**Finding.** The earlier pure invented-receipt evaluator correctly enforced version `initial_release <= version_published <= first_seen` and the as-of cutoff. An internally consistent *invented* receipt could nonetheless label a full Friday-ending H.10/EIA source period as already published **before that Friday had ended**, or represent Friday Treasury data as published **on Thursday**. Those impossible period claims could influence a fully fabricated `SYNTHETIC_ONLY_COMPLETE` candidate result. They are not genuine publisher timing receipts.
+
+**Conservative local constraint.** The dormant panel evaluator now fails before selecting any synthetic source observation if an invented **initial** release violates these minimal *reference-period chronology* floors (interpreted in `America/New_York`, compared as UTC instants):
+
+| Candidate source family | Synthetic-only earliest possible period floor | Why this is only a floor |
+| --- | --- | --- |
+| H.10 weekly Friday reference and EIA weekly ending inventories | **Saturday 00:00 ET after** the reference Friday | A completed Friday-ending reference period cannot be known before it ends. H.10/EIA actual release is normally later; this does **not** infer Monday/Wednesday delivery or rights |
+| Treasury nominal 2Y and 10Y daily Friday observations | **Friday 00:00 ET on** the reference date | No Friday observation can be reported as already published on Thursday. Actual Treasury publication is normally later, and both maturities still require one verified coherent curve snapshot |
+
+The guard is checked independently for **both** consecutive invented 2099+ Fridays. It uses only standard-library timezone handling and never moves/changes actual timestamps. It **does not** assume a release is available on Saturday or at Friday midnight: the existing first-seen, coherent Treasury-pair, version visibility, and no-lookahead checks remain mandatory. The all-false rights/Production fields are untouched.
+
+Two new adversarial test methods (multiple subcases) cover all four source IDs on both weeks, fabricated causally ordered but pre-period published receipts, admissible candidate floor-boundary examples, and equivalent UTC timestamps for the Treasury pair. All numerical fixtures remain deliberately invented in year 2099, not observations.
+
+**External scheduling caution.** The Board's [2026-07-16 DDP announcement](https://www.federalreserve.gov/data/data-download-fred-information.htm) confirms its custom “Build Your Package” facility is scheduled for retirement during the **week of November 9, 2026**. Direct Board XML continuity, exact source identity, copyrights, actual publisher-first-release times and retention permissions remain unresolved. The candidate lower-bound validator is **not** a replacement for any of those decisions, and FRED is **not** authorized as an automatic alternative.
+
+**Scope:** This isolated follow-up modifies only `scripts/independent_macro_context_synthetic.py`, `tests/test_independent_macro_context_synthetic.py`, and this existing explanatory record. It does not change the original frozen eight-driver Score or its histories, active site, synthetic rights matrix, workflows, external requests, evidence storage, private emails, or public outputs. Issue #313 remains source/methodology/legal **HOLD**, separate from Score #155 and FRED retention #282. A protected exact-head CI review and non-deploy merge convention are mandatory.
