@@ -32,6 +32,7 @@ STOP_CODES = frozenset((
     "MALFORMED_LINEAGE", "NO_CONSENSUS", "INSUFFICIENT_HISTORY",
     "NORMALIZATION_LEAKAGE", "SCORE_V2_SOURCE_BOUNDARY",
     "UNAUTHORIZED_NETWORK", "INSUFFICIENT_DATA", "REVERSE_CAUSALITY",
+    "MANIFEST_MISMATCH", "REQUIRED_SOURCE_MISSING", "UNDECLARED_SOURCE",
 ))
 _HEX = re.compile(r"[0-9a-f]{64}\Z")
 _DECISION_ISSUER = object()
@@ -216,6 +217,140 @@ class Decision:
             raise ValueError("synthetic HOLD cannot select snapshots")
 
 
+@dataclass(frozen=True, slots=True)
+class SourceScope:
+    """Exact fictional input identity, excluding revisions and snapshot IDs."""
+
+    source_registry_id: str
+    series_id: str
+    economy: str
+    indicator_family: str
+    measure: str
+    frequency: str
+    period_start: date
+    period_end: date
+    unit: str
+    adjustment: str
+    release_id: str
+    target_series_id: str | None = None
+
+    def __post_init__(self) -> None:
+        if not all(_id(x) for x in (self.source_registry_id, self.series_id, self.release_id)):
+            raise SyntheticStop("SCORE_V2_SOURCE_BOUNDARY")
+        if self.economy not in AREAS or self.indicator_family not in FAMILIES or self.measure not in MEASURES:
+            raise SyntheticStop("MIXED_MEASURES")
+        if self.frequency not in FREQUENCIES or self.adjustment not in ADJUSTMENTS:
+            raise SyntheticStop("MIXED_FREQUENCY")
+        if type(self.unit) is not str or self.unit not in {"pct", "index", "bp", "ratio", "units"}:
+            raise SyntheticStop("INVALID_UNIT")
+        if (type(self.period_start) is not date or type(self.period_end) is not date
+                or self.period_start.year < 2099 or self.period_end < self.period_start):
+            raise SyntheticStop("AMBIGUOUS_TIMESTAMP")
+        if self.frequency == "M" and not (
+            self.period_start == date(self.period_end.year, self.period_end.month, 1)
+            and self.period_end.day == calendar.monthrange(self.period_end.year, self.period_end.month)[1]
+        ):
+            raise SyntheticStop("MIXED_FREQUENCY")
+        if self.frequency == "D" and self.period_start != self.period_end:
+            raise SyntheticStop("MIXED_FREQUENCY")
+        if self.frequency == "Q" and not (
+            self.period_start.month in (1, 4, 7, 10) and self.period_start.day == 1
+            and self.period_end.month == self.period_start.month + 2
+            and self.period_end.year == self.period_start.year
+            and self.period_end.day == calendar.monthrange(self.period_end.year, self.period_end.month)[1]
+        ):
+            raise SyntheticStop("MIXED_FREQUENCY")
+        if self.indicator_family in {"CONSENSUS", "EXPECTED_PATH"}:
+            if not _id(self.target_series_id) or self.target_series_id == self.series_id:
+                raise SyntheticStop("MIXED_MEASURES")
+        elif self.target_series_id is not None:
+            raise SyntheticStop("MIXED_MEASURES")
+
+    @classmethod
+    def from_receipt(cls, r: Receipt) -> SourceScope:
+        if type(r) is not Receipt:
+            raise SyntheticStop("SCORE_V2_SOURCE_BOUNDARY")
+        return cls(r.source_registry_id, r.series_id, r.economy,
+                   r.indicator_family, r.measure, r.frequency,
+                   r.period_start, r.period_end, r.unit, r.adjustment,
+                   r.release_id, r.target_series_id)
+
+
+@dataclass(frozen=True, slots=True)
+class ScopeManifest:
+    """Caller-supplied, immutable 2099+ test scope; NOT signed source authority."""
+
+    version_id: str
+    as_of: datetime
+    valid_from: datetime
+    valid_until: datetime
+    required: tuple[SourceScope, ...]
+    optional: tuple[SourceScope, ...] = ()
+    fixture_marker: str = MARKER
+    synthetic_only: bool = True
+    rights_cleared: bool = False
+    real_data_retrieval_authorized: bool = False
+    publish_authorized: bool = False
+    production_authorized: bool = False
+
+    def __post_init__(self) -> None:
+        if not _id(self.version_id) or self.fixture_marker != MARKER or self.synthetic_only is not True:
+            raise ValueError("synthetic scope version and marker required")
+        if any(v is not False for v in (self.rights_cleared,
+                self.real_data_retrieval_authorized, self.publish_authorized,
+                self.production_authorized)):
+            raise ValueError("scope cannot grant source or release authority")
+        start, cutoff, end = (_clock(x) for x in
+                              (self.valid_from, self.as_of, self.valid_until))
+        if start > cutoff or cutoff > end:
+            raise SyntheticStop("MANIFEST_MISMATCH")
+        if (type(self.required) is not tuple or type(self.optional) is not tuple
+                or not self.required or len(self.required) + len(self.optional) > 128):
+            raise SyntheticStop("MANIFEST_MISMATCH")
+        entries = self.required + self.optional
+        if any(type(x) is not SourceScope for x in entries) or len(set(entries)) != len(entries):
+            raise SyntheticStop("MANIFEST_MISMATCH")
+
+
+@dataclass(frozen=True, slots=True)
+class ScopedDecision:
+    """No global completeness claim; no operational or publishing authority."""
+
+    status: str
+    selected: tuple[str, ...]
+    blockers: tuple[str, ...]
+    manifest_id: str
+    required_count: int
+    fixture_marker: str = MARKER
+    rights_cleared: bool = False
+    real_data_retrieval_authorized: bool = False
+    publish_authorized: bool = False
+    production_authorized: bool = False
+    _issuer: object = field(default=None, repr=False, compare=False)
+
+    def __post_init__(self) -> None:
+        if self._issuer is not _DECISION_ISSUER:
+            raise ValueError("direct construction cannot certify scope coverage")
+        if not _id(self.manifest_id) or type(self.required_count) is not int or self.required_count < 1:
+            raise ValueError("invalid synthetic manifest reference")
+        if self.fixture_marker != MARKER or any(x is not False for x in (
+                self.rights_cleared, self.real_data_retrieval_authorized,
+                self.publish_authorized, self.production_authorized)):
+            raise ValueError("scope result cannot grant operational authority")
+        if self.status not in {"SYNTHETIC_ONLY_HOLD", "SYNTHETIC_ONLY_SCOPED_COMPLETE"}:
+            raise ValueError("invalid scoped status")
+        if (type(self.selected) is not tuple or self.selected != tuple(sorted(set(self.selected)))
+                or any(not _id(x) for x in self.selected)):
+            raise ValueError("invalid scoped selected IDs")
+        if (type(self.blockers) is not tuple or self.blockers != tuple(sorted(set(self.blockers)))
+                or any(x not in STOP_CODES for x in self.blockers)):
+            raise ValueError("invalid scoped blockers")
+        if (self.status == "SYNTHETIC_ONLY_SCOPED_COMPLETE") != bool(self.selected and not self.blockers):
+            raise ValueError("invalid scoped completion assertion")
+        if self.status == "SYNTHETIC_ONLY_HOLD" and self.selected:
+            raise ValueError("scoped HOLD must not expose partial snapshots")
+
+
 def _versions(items: Iterable[Receipt]) -> tuple[Receipt, ...]:
     rows = tuple(items)
     if len(rows) > 128 or any(type(r) is not Receipt for r in rows):
@@ -290,6 +425,43 @@ def select_asof(receipts: Iterable[Receipt], as_of: datetime) -> Decision:
     selected_tuple = () if blockers_tuple else tuple(sorted(set(selected)))
     status = "SYNTHETIC_ONLY_COMPLETE" if selected_tuple and not blockers_tuple else "SYNTHETIC_ONLY_HOLD"
     return Decision(status, selected_tuple, blockers_tuple, _issuer=_DECISION_ISSUER)
+
+
+def select_required_asof(
+    receipts: Iterable[Receipt], manifest: ScopeManifest, as_of: datetime
+) -> ScopedDecision:
+    """Strict coverage of an explicitly declared fictional source universe.
+
+    The regular select_asof remains generic. This wrapper does NOT certify that
+    the caller's scope is economically complete, signed, licensed, or public.
+    """
+    if type(manifest) is not ScopeManifest:
+        raise SyntheticStop("MANIFEST_MISMATCH")
+    cutoff = _clock(as_of)
+    if cutoff != _clock(manifest.as_of):
+        return ScopedDecision("SYNTHETIC_ONLY_HOLD", (), ("MANIFEST_MISMATCH",),
+                              manifest.version_id, len(manifest.required),
+                              _issuer=_DECISION_ISSUER)
+    rows = _versions(receipts)
+    actual = {SourceScope.from_receipt(r) for r in rows}
+    required = set(manifest.required)
+    allowed = required | set(manifest.optional)
+    blockers: set[str] = set()
+    if required - actual:
+        blockers.add("REQUIRED_SOURCE_MISSING")
+    if actual - allowed:
+        blockers.add("UNDECLARED_SOURCE")
+    if blockers:
+        return ScopedDecision("SYNTHETIC_ONLY_HOLD", (), tuple(sorted(blockers)),
+                              manifest.version_id, len(manifest.required),
+                              _issuer=_DECISION_ISSUER)
+    # The existing R9 atomic HOLD guard still applies to every supplied row.
+    result = select_asof(rows, cutoff)
+    status = ("SYNTHETIC_ONLY_SCOPED_COMPLETE"
+              if result.status == "SYNTHETIC_ONLY_COMPLETE" else "SYNTHETIC_ONLY_HOLD")
+    return ScopedDecision(status, result.selected, result.blockers,
+                          manifest.version_id, len(manifest.required),
+                          _issuer=_DECISION_ISSUER)
 
 
 def compare(left: Receipt, right: Receipt, as_of: datetime) -> float:
