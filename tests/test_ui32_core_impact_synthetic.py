@@ -23,7 +23,8 @@ FIRST = date(2099, 6, 30)
 def fixture(*, series: str = "CPI", measure: str = "CORE", value: float = 3.2,
             period_end: date = FIRST, economy: str = "US", revision: int = 0,
             published: datetime | None = None, initial: datetime | None = None,
-            seen: datetime | None = None, previous_digest: str | None = None) -> Receipt:
+            seen: datetime | None = None, previous_digest: str | None = None,
+            target_series_id: str | None = None) -> Receipt:
     if published is None:
         month = period_end.month % 12 + 1
         year = period_end.year + (1 if period_end.month == 12 else 0)
@@ -43,7 +44,7 @@ def fixture(*, series: str = "CPI", measure: str = "CORE", value: float = 3.2,
         first_seen_at=seen, ingested_at=seen + timedelta(minutes=1),
         snapshot_id=PREFIX + tag + f":V{revision}",
         content_digest=f"{revision + 1:064x}", previous_digest=previous_digest,
-        value=value,
+        value=value, target_series_id=target_series_id,
     )
 
 
@@ -233,6 +234,77 @@ class Ui32AdversarialCases(unittest.TestCase):
             fingerprint([fixture()], CUTOFF)
             conn.assert_not_called()
             url.assert_not_called()
+
+    def test_period_floor_full_month_quarter_and_daily_exception(self):
+        early = datetime(2099, 6, 30, 12, tzinfo=UTC)
+        row = fixture()
+        self.stop("AMBIGUOUS_TIMESTAMP", lambda: replace(
+            row, initial_release_at=early, version_published_at=early,
+            revision_effective_at=early, first_seen_at=early + timedelta(minutes=1),
+            ingested_at=early + timedelta(minutes=2)))
+        self.stop("AMBIGUOUS_TIMESTAMP", lambda: replace(
+            row, frequency="Q", period_start=date(2099, 4, 1),
+            initial_release_at=early, version_published_at=early,
+            revision_effective_at=early, first_seen_at=early + timedelta(minutes=1),
+            ingested_at=early + timedelta(minutes=2)))
+        daily = replace(row, frequency="D", period_start=FIRST,
+            initial_release_at=early, version_published_at=early,
+            revision_effective_at=early, first_seen_at=early + timedelta(minutes=1),
+            ingested_at=early + timedelta(minutes=2))
+        self.assertEqual(select_asof([daily], CUTOFF).status, "SYNTHETIC_ONLY_COMPLETE")
+
+    def test_ingestion_after_cutoff_never_appears_as_known(self):
+        row = fixture()
+        later = replace(row, ingested_at=datetime(2099, 10, 1, tzinfo=UTC))
+        self.assertEqual(select_asof([later], CUTOFF).blockers, ("UNAVAILABLE_VINTAGE",))
+        self.assertEqual(select_asof([row], CUTOFF).selected, (row.snapshot_id,))
+        self.stop("UNAVAILABLE_VINTAGE", lambda: compare(row, later, CUTOFF))
+
+    def test_consensus_binds_exact_inflation_series_and_vintage(self):
+        actual = fixture()
+        pre_release = datetime(2099, 7, 6, 13, tzinfo=UTC)
+        consensus = fixture(series="CONSENSUS", value=2.8, published=pre_release,
+                            target_series_id=actual.series_id)
+        self.assertAlmostEqual(surprise(actual, consensus, CUTOFF), 0.4)
+        self.stop("NO_CONSENSUS", lambda: surprise(actual, replace(
+            consensus, target_series_id=PREFIX + "US:PCE:CORE"), CUTOFF))
+        self.stop("NO_CONSENSUS", lambda: surprise(actual, replace(
+            consensus, first_seen_at=actual.first_seen_at + timedelta(minutes=10),
+            ingested_at=actual.first_seen_at + timedelta(minutes=11)), CUTOFF))
+        self.stop("NO_CONSENSUS", lambda: surprise(actual, replace(
+            consensus, ingested_at=actual.initial_release_at + timedelta(minutes=1)), CUTOFF))
+        self.stop("MIXED_MEASURES", lambda: fixture(series="CONSENSUS"))
+
+    def test_expectations_bound_to_current_policy_series(self):
+        current = fixture(series="POLICY", measure="CURRENT")
+        expected = fixture(series="EXPECTED_PATH", measure="EXPECTED", value=2.7,
+                           target_series_id=current.series_id)
+        self.assertEqual(policy_parts(current, expected, CUTOFF), (3.2, 2.7))
+        self.assertEqual(policy_parts(current, replace(expected,
+            target_series_id=PREFIX + "US:OTHER_POLICY:CURRENT"), CUTOFF), (3.2, None))
+        self.assertEqual(policy_parts(current, replace(expected, adjustment="NSA"), CUTOFF),
+                         (3.2, None))
+        self.stop("MIXED_MEASURES", lambda: fixture(series="EXPECTED_PATH"))
+        self.stop("UNAVAILABLE_VINTAGE", lambda: policy_parts(fixture(), None, CUTOFF))
+
+    def test_trend_is_directional_not_second_derivative(self):
+        rows = [fixture(value=3.0), fixture(period_end=date(2099, 7, 31), value=2.0),
+                fixture(period_end=date(2099, 8, 31), value=1.5)]
+        self.assertEqual(trend(rows, CUTOFF), "DECELERATING")
+        self.assertEqual(trend(rows[:-1] + [replace(rows[-1], value=3.0)], CUTOFF), "MIXED")
+        self.assertEqual(trend(rows[:-1] + [replace(rows[-1], value=2.0)], CUTOFF), "MIXED")
+        self.assertEqual(trend([replace(r, value=3.0) for r in rows], CUTOFF), "STABLE")
+
+    def test_normalization_is_order_independent_and_rejects_gaps(self):
+        rows = [fixture(value=2.0), fixture(period_end=date(2099, 7, 31), value=3.0),
+                fixture(period_end=date(2099, 8, 31), value=5.0)]
+        self.assertEqual(normalization(rows, CUTOFF), normalization(list(reversed(rows)), CUTOFF))
+        self.stop("INSUFFICIENT_HISTORY", lambda: normalization([rows[0], rows[2],
+            fixture(period_end=date(2099, 9, 30), value=6.0,
+                    published=datetime(2099, 10, 7, tzinfo=UTC))],
+            datetime(2099, 10, 10, tzinfo=UTC)))
+        self.stop("MIXED_MEASURES", lambda: trend([rows[0], replace(rows[1],
+            source_registry_id=PREFIX + "ALT:SOURCE"), rows[2]], CUTOFF))
 
     def test_static_source_boundary_stdlib_and_no_imports_of_score(self):
         source = Path(__file__).resolve().parents[1] / "scripts" / "ui32_core_impact_synthetic.py"
