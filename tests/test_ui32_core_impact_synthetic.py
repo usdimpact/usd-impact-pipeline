@@ -189,6 +189,57 @@ class Ui32AdversarialCases(unittest.TestCase):
         self.stop("NORMALIZATION_LEAKAGE", lambda: normalization([
             fixture(value=2.0), fixture(period_end=date(2099, 7, 31), value=3.0), future], CUTOFF))
 
+    def test_T26_mixed_available_and_missing_atomic_hold(self):
+        # Fictional missing source: no partial IDs may escape a HOLD.
+        eligible = fixture()
+        missing = replace(fixture(economy="EA"), value=None,
+                          missing_reason="INSUFFICIENT_DATA")
+        result = select_asof([eligible, missing], CUTOFF)
+        self.assertEqual(result.status, "SYNTHETIC_ONLY_HOLD")
+        self.assertEqual(result.blockers, ("INSUFFICIENT_DATA",))
+        self.assertEqual(result.selected, ())
+        self.assertFalse(result.rights_cleared)
+        self.assertFalse(result.publish_authorized)
+
+    def test_T27_late_collector_receipt_blocks_otherwise_available_source(self):
+        eligible = fixture()
+        later = datetime(2099, 10, 5, tzinfo=UTC)
+        delayed = replace(fixture(economy="EA"), first_seen_at=later,
+                          ingested_at=later + timedelta(minutes=1))
+        result = select_asof([eligible, delayed], CUTOFF)
+        self.assertEqual(result.status, "SYNTHETIC_ONLY_HOLD")
+        self.assertEqual(result.blockers, ("FUTURE_FIRST_SEEN",))
+        self.assertEqual(result.selected, ())
+
+    def test_T28_late_ingestion_blocks_otherwise_available_source(self):
+        eligible = fixture()
+        stored_later = replace(fixture(economy="EA"),
+                               ingested_at=datetime(2099, 10, 5, tzinfo=UTC))
+        result = select_asof([eligible, stored_later], CUTOFF)
+        self.assertEqual(result.status, "SYNTHETIC_ONLY_HOLD")
+        self.assertEqual(result.blockers, ("UNAVAILABLE_VINTAGE",))
+        self.assertEqual(result.selected, ())
+
+    def test_T29_future_publisher_release_blocks_all_selection(self):
+        eligible = fixture()
+        next_month = fixture(economy="EA",
+                             published=datetime(2099, 10, 7, tzinfo=UTC))
+        result = select_asof([eligible, next_month], CUTOFF)
+        self.assertEqual(result.status, "SYNTHETIC_ONLY_HOLD")
+        self.assertEqual(result.blockers, ("FUTURE_RELEASE",))
+        self.assertEqual(result.selected, ())
+
+    def test_T30_invented_missing_month_never_forward_filled(self):
+        # INVENTED 2099 example only. No 2025 BLS observations are present.
+        september = fixture(period_end=date(2099, 9, 30), value=3.0)
+        october = replace(fixture(period_end=date(2099, 10, 31)),
+                          value=None, missing_reason="INSUFFICIENT_DATA")
+        cutoff = datetime(2099, 12, 1, tzinfo=UTC)
+        result = select_asof([september, october], cutoff)
+        self.assertEqual(result.status, "SYNTHETIC_ONLY_HOLD")
+        self.assertEqual(result.blockers, ("INSUFFICIENT_DATA",))
+        self.assertEqual(result.selected, ())
+
     def test_positive_two_source_selection_and_eight_areas(self):
         self.assertEqual(len(AREAS), 8)
         rows = [fixture(economy=e) for e in sorted(AREAS)]
