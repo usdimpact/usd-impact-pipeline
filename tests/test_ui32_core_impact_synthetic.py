@@ -11,7 +11,8 @@ from zoneinfo import ZoneInfo
 from scripts.ui32_core_impact_synthetic import (
     AREAS, MARKER, PREFIX, Decision, Receipt, SyntheticStop, assert_independent,
     assert_upstream_causality, compare, fingerprint, normalization, policy_parts,
-    require_offline, rights_mock, select_asof, surprise, trend,
+    ScopeManifest, ScopedDecision, SourceScope, require_offline, rights_mock,
+    select_asof, select_required_asof, surprise, trend,
 )
 
 UTC = timezone.utc
@@ -45,6 +46,19 @@ def fixture(*, series: str = "CPI", measure: str = "CORE", value: float = 3.2,
         snapshot_id=PREFIX + tag + f":V{revision}",
         content_digest=f"{revision + 1:064x}", previous_digest=previous_digest,
         value=value, target_series_id=target_series_id,
+    )
+
+
+def declared_scope(*required: Receipt, optional: tuple[Receipt, ...] = (),
+                   cutoff: datetime = CUTOFF) -> ScopeManifest:
+    # Deliberately caller-declared; a synthetic scope is never a source licence.
+    return ScopeManifest(
+        version_id=PREFIX + "MANIFEST:2099:R12",
+        as_of=cutoff,
+        valid_from=datetime(2099, 1, 1, tzinfo=UTC),
+        valid_until=datetime(2100, 1, 1, tzinfo=UTC),
+        required=tuple(SourceScope.from_receipt(row) for row in required),
+        optional=tuple(SourceScope.from_receipt(row) for row in optional),
     )
 
 
@@ -239,6 +253,139 @@ class Ui32AdversarialCases(unittest.TestCase):
         self.assertEqual(result.status, "SYNTHETIC_ONLY_HOLD")
         self.assertEqual(result.blockers, ("INSUFFICIENT_DATA",))
         self.assertEqual(result.selected, ())
+
+    def test_T31_missing_declared_source_yields_scoped_hold(self):
+        us, ea = fixture(), fixture(economy="EA")
+        result = select_required_asof([us], declared_scope(us, ea), CUTOFF)
+        self.assertEqual(result.status, "SYNTHETIC_ONLY_HOLD")
+        self.assertEqual(result.blockers, ("REQUIRED_SOURCE_MISSING",))
+        self.assertEqual(result.selected, ())
+        self.assertFalse(result.rights_cleared)
+        self.assertFalse(result.publish_authorized)
+
+    def test_T32_wrong_source_substitution_cannot_satisfy_manifest(self):
+        us, ea = fixture(), fixture(economy="EA")
+        wrong = replace(ea, source_registry_id=PREFIX + "UNDECLARED:SOURCE")
+        result = select_required_asof([us, wrong], declared_scope(us, ea), CUTOFF)
+        self.assertEqual(result.status, "SYNTHETIC_ONLY_HOLD")
+        self.assertEqual(result.blockers, ("REQUIRED_SOURCE_MISSING", "UNDECLARED_SOURCE"))
+        self.assertEqual(result.selected, ())
+
+    def test_T33_empty_receipt_set_cannot_be_complete(self):
+        row = fixture()
+        result = select_required_asof([], declared_scope(row), CUTOFF)
+        self.assertEqual(result.status, "SYNTHETIC_ONLY_HOLD")
+        self.assertEqual(result.blockers, ("REQUIRED_SOURCE_MISSING",))
+        self.assertEqual(result.selected, ())
+
+    def test_T34_optional_absence_explicit_scope_and_present_failure(self):
+        us, ea = fixture(), fixture(economy="EA")
+        manifest = declared_scope(us, optional=(ea,))
+        just_required = select_required_asof([us], manifest, CUTOFF)
+        self.assertEqual(just_required.status, "SYNTHETIC_ONLY_SCOPED_COMPLETE")
+        self.assertEqual(just_required.selected, (us.snapshot_id,))
+        self.assertEqual(just_required.manifest_id, manifest.version_id)
+        self.assertEqual(just_required.required_count, 1)
+        self.assertFalse(just_required.production_authorized)
+        all_present = select_required_asof([us, ea], manifest, CUTOFF)
+        self.assertEqual(all_present.status, "SYNTHETIC_ONLY_SCOPED_COMPLETE")
+        self.assertEqual(len(all_present.selected), 2)
+        missing_optional_value = replace(ea, value=None, missing_reason="INSUFFICIENT_DATA")
+        blocked = select_required_asof([us, missing_optional_value], manifest, CUTOFF)
+        self.assertEqual(blocked.status, "SYNTHETIC_ONLY_HOLD")
+        self.assertEqual(blocked.blockers, ("INSUFFICIENT_DATA",))
+        self.assertEqual(blocked.selected, ())
+
+    def test_T35_wrong_cutoff_or_stale_manifest_fails_closed(self):
+        us = fixture()
+        manifest = declared_scope(us)
+        different_cutoff = datetime(2099, 9, 21, tzinfo=UTC)
+        result = select_required_asof([us], manifest, different_cutoff)
+        self.assertEqual(result.status, "SYNTHETIC_ONLY_HOLD")
+        self.assertEqual(result.blockers, ("MANIFEST_MISMATCH",))
+        self.assertEqual(result.selected, ())
+        self.stop("MANIFEST_MISMATCH", lambda: replace(
+            manifest, valid_until=datetime(2099, 8, 1, tzinfo=UTC)))
+        self.stop("MANIFEST_MISMATCH", lambda: replace(
+            manifest, optional=manifest.required))
+
+    def test_T36_unapproved_source_or_fallback_rejected(self):
+        required, extra = fixture(), fixture(economy="JP")
+        manifest = declared_scope(required)
+        result = select_required_asof([required, extra], manifest, CUTOFF)
+        self.assertEqual(result.status, "SYNTHETIC_ONLY_HOLD")
+        self.assertEqual(result.blockers, ("UNDECLARED_SOURCE",))
+        self.assertEqual(result.selected, ())
+
+    def test_T37_manifest_cannot_grant_privileged_authority(self):
+        row = fixture()
+        manifest = declared_scope(row)
+        with self.assertRaises(ValueError):
+            replace(manifest, rights_cleared=True)
+        with self.assertRaises(ValueError):
+            replace(manifest, real_data_retrieval_authorized=True)
+        with self.assertRaises(ValueError):
+            replace(manifest, production_authorized=True)
+        with self.assertRaisesRegex(ValueError, "direct construction"):
+            ScopedDecision("SYNTHETIC_ONLY_SCOPED_COMPLETE", (row.snapshot_id,),
+                           (), manifest.version_id, 1)
+        self.stop("AMBIGUOUS_TIMESTAMP", lambda: replace(
+            SourceScope.from_receipt(row), period_start=date(2026, 6, 1)))
+        scoped = select_required_asof([row], manifest, CUTOFF)
+        self.assertFalse(scoped.rights_cleared)
+        self.assertFalse(scoped.real_data_retrieval_authorized)
+        self.assertFalse(scoped.publish_authorized)
+
+    def test_T38_publisher_release_not_historic_collector_receipt(self):
+        delayed = fixture(seen=datetime(2099, 10, 5, tzinfo=UTC))
+        manifest = declared_scope(delayed)
+        result = select_required_asof([delayed], manifest, CUTOFF)
+        self.assertEqual(result.status, "SYNTHETIC_ONLY_HOLD")
+        self.assertEqual(result.blockers, ("FUTURE_FIRST_SEEN",))
+        self.assertEqual(result.selected, ())
+
+    def test_T39_manifest_rejects_colliding_revision_lineage_scopes(self):
+        original = fixture()
+        scope = SourceScope.from_receipt(original)
+        conflicting = replace(scope, measure="HEADLINE")
+        self.stop("MANIFEST_MISMATCH", lambda: replace(
+            declared_scope(original), required=(scope, conflicting)))
+        self.stop("MANIFEST_MISMATCH", lambda: replace(
+            declared_scope(original), optional=(conflicting,)))
+
+    def test_T40_revisions_cannot_change_source_scope_identity(self):
+        original = fixture()
+        later = datetime(2099, 8, 7, 13, 30, tzinfo=UTC)
+        mismatched_revision = replace(
+            original, revision=1, measure="HEADLINE",
+            previous_digest=original.content_digest, content_digest="f" * 64,
+            snapshot_id=original.snapshot_id + ":REVISION",
+            version_published_at=later, revision_effective_at=later,
+            first_seen_at=later + timedelta(minutes=1),
+            ingested_at=later + timedelta(minutes=2))
+        result = select_required_asof(
+            [original, mismatched_revision], declared_scope(original), CUTOFF)
+        self.assertEqual(result.status, "SYNTHETIC_ONLY_HOLD")
+        self.assertEqual(result.blockers, ("MALFORMED_LINEAGE",))
+        self.assertEqual(result.selected, ())
+        self.assertFalse(result.rights_cleared)
+
+    def test_T41_legitimate_revision_preserves_scoped_completeness(self):
+        original = fixture()
+        later = datetime(2099, 8, 7, 13, 30, tzinfo=UTC)
+        revised = replace(
+            original, revision=1,
+            previous_digest=original.content_digest, content_digest="f" * 64,
+            snapshot_id=original.snapshot_id + ":REVISION",
+            version_published_at=later, revision_effective_at=later,
+            first_seen_at=later + timedelta(minutes=1),
+            ingested_at=later + timedelta(minutes=2))
+        result = select_required_asof(
+            [revised, original], declared_scope(original), CUTOFF)
+        self.assertEqual(result.status, "SYNTHETIC_ONLY_SCOPED_COMPLETE")
+        self.assertEqual(result.selected, (revised.snapshot_id,))
+        self.assertEqual(result.required_count, 1)
+        self.assertFalse(result.production_authorized)
 
     def test_positive_two_source_selection_and_eight_areas(self):
         self.assertEqual(len(AREAS), 8)
