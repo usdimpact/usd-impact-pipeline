@@ -310,6 +310,15 @@ class ScopeManifest:
         entries = self.required + self.optional
         if any(type(x) is not SourceScope for x in entries) or len(set(entries)) != len(entries):
             raise SyntheticStop("MANIFEST_MISMATCH")
+        # Two declared scopes cannot share one revision lineage while claiming
+        # different economies, measures, adjustments or target series.
+        lineage_scopes: dict[tuple[object, ...], SourceScope] = {}
+        for scope in entries:
+            key = (scope.source_registry_id, scope.series_id,
+                   scope.period_start, scope.period_end, scope.release_id)
+            if key in lineage_scopes and lineage_scopes[key] != scope:
+                raise SyntheticStop("MANIFEST_MISMATCH")
+            lineage_scopes[key] = scope
 
 
 @dataclass(frozen=True, slots=True)
@@ -443,7 +452,18 @@ def select_required_asof(
                               manifest.version_id, len(manifest.required),
                               _issuer=_DECISION_ISSUER)
     rows = _versions(receipts)
-    actual = {SourceScope.from_receipt(r) for r in rows}
+    # A version chain must not silently change the economic identity of its
+    # series. Otherwise one selected revision could stand in for two scopes.
+    lineage_scopes: dict[tuple[object, ...], SourceScope] = {}
+    for row in rows:
+        key = row.identity[:-1]
+        scope = SourceScope.from_receipt(row)
+        if key in lineage_scopes and lineage_scopes[key] != scope:
+            return ScopedDecision("SYNTHETIC_ONLY_HOLD", (), ("MALFORMED_LINEAGE",),
+                                  manifest.version_id, len(manifest.required),
+                                  _issuer=_DECISION_ISSUER)
+        lineage_scopes[key] = scope
+    actual = set(lineage_scopes.values())
     required = set(manifest.required)
     allowed = required | set(manifest.optional)
     blockers: set[str] = set()
