@@ -1,0 +1,48 @@
+name: UI-32 independent synthetic research (no release)
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scripts/ui32_core_impact_synthetic.py'
+      - 'tests/test_ui32_core_impact_synthetic.py'
+      - 'docs/ui32-core-impact-stage-r2-synthetic-2026-10-31.md'
+      - '.github/workflows/ui32-core-impact-synthetic.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  offline-research-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout the exact PR head (not an inferred merge)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Python 3.11 (no package installation)
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.11'
+      - name: Verify exact event commit
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+      - name: Run 2099+ synthetic-only offline tests
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+          PYTHONNOUSERSITE: '1'
+        run: |
+          python -B -m unittest discover -s tests -p 'test_ui32_core_impact_synthetic.py' -v
+      - name: Reaffirm default-deny and not-a-release status
+        run: |
+          python -B - <<'PY'
+          from scripts.ui32_core_impact_synthetic import MARKER, PROTOCOL, rights_mock
+          assert MARKER == 'SYNTHETIC_DO_NOT_PUBLISH'
+          assert PROTOCOL == 'UI32-R2-SYNTHETIC-V0-DRAFT'
+          assert rights_mock() == 'SOURCE_RIGHTS_UNKNOWN'
+          print('UI-32 OFFLINE RESEARCH ONLY; NO SOURCE RIGHTS OR RELEASE AUTHORITY')
+          PY
