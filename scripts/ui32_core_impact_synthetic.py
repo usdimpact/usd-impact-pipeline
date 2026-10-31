@@ -86,6 +86,7 @@ class Receipt:
     missing_reason: str | None = None
     local_published_at: datetime | None = None
     local_zone: str | None = None
+    target_series_id: str | None = None
     fixture_marker: str = MARKER
     synthetic_only: bool = True
     rights_cleared: bool = False
@@ -107,6 +108,13 @@ class Receipt:
             raise SyntheticStop("MIXED_FREQUENCY")
         if type(self.unit) is not str or self.unit not in {"pct", "index", "bp", "ratio", "units"}:
             raise SyntheticStop("INVALID_UNIT")
+        # Mock consensus and path receipts must name the exact fictional
+        # series they forecast. Same economy/unit alone is not evidence.
+        if self.indicator_family in {"CONSENSUS", "EXPECTED_PATH"}:
+            if not _id(self.target_series_id) or self.target_series_id == self.series_id:
+                raise SyntheticStop("MIXED_MEASURES")
+        elif self.target_series_id is not None:
+            raise SyntheticStop("MIXED_MEASURES")
         for value in (self.source_registry_id, self.series_id, self.release_id, self.snapshot_id):
             if not _id(value):
                 raise SyntheticStop("SCORE_V2_SOURCE_BOUNDARY")
@@ -139,7 +147,12 @@ class Receipt:
             self.first_seen_at, self.ingested_at))
         if not initial <= published <= effective <= seen <= ingested:
             raise SyntheticStop("MALFORMED_LINEAGE")
-        if initial < datetime.combine(self.period_end, time.min, tzinfo=timezone.utc):
+        # Full monthly/quarterly reference periods cannot be known
+        # before their last UTC calendar day is complete. A daily period
+        # may publish on its own date. This is a candidate logical floor,
+        # never a statement of actual publisher schedules or rights.
+        if (initial.date() < self.period_end if self.frequency == "D"
+                else initial.date() <= self.period_end):
             raise SyntheticStop("AMBIGUOUS_TIMESTAMP")
         if self.local_published_at is not None or self.local_zone is not None:
             if not isinstance(self.local_zone, str) or self.local_published_at is None:
@@ -234,8 +247,11 @@ def _versions(items: Iterable[Receipt]) -> tuple[Receipt, ...]:
 
 def visible(r: Receipt, as_of: datetime) -> bool:
     cutoff = _clock(as_of)
+    # Ingestion must also be complete by the cutoff. An earlier
+    # fictional first-seen receipt cannot backdate a later stored value.
     return all(_clock(x) <= cutoff for x in (r.initial_release_at, r.version_published_at,
-                                           r.revision_effective_at, r.first_seen_at))
+                                           r.revision_effective_at, r.first_seen_at,
+                                           r.ingested_at))
 
 
 def select_asof(receipts: Iterable[Receipt], as_of: datetime) -> Decision:
@@ -256,8 +272,14 @@ def select_asof(receipts: Iterable[Receipt], as_of: datetime) -> Decision:
             else:
                 selected.append(winner.snapshot_id)
         else:
-            blockers.add("FUTURE_RELEASE" if _clock(versions[0].initial_release_at) > cutoff
-                         else "FUTURE_FIRST_SEEN")
+            first = versions[0]
+            if (_clock(first.initial_release_at) > cutoff
+                    or _clock(first.version_published_at) > cutoff):
+                blockers.add("FUTURE_RELEASE")
+            elif _clock(first.first_seen_at) > cutoff:
+                blockers.add("FUTURE_FIRST_SEEN")
+            else:
+                blockers.add("UNAVAILABLE_VINTAGE")  # stored after cutoff
     selected_tuple = tuple(sorted(set(selected)))
     blockers_tuple = tuple(sorted(blockers))
     status = "SYNTHETIC_ONLY_COMPLETE" if selected_tuple and not blockers_tuple else "SYNTHETIC_ONLY_HOLD"
@@ -279,15 +301,19 @@ def compare(left: Receipt, right: Receipt, as_of: datetime) -> float:
 
 
 def surprise(actual: Receipt, consensus: Receipt | None, as_of: datetime) -> float:
+    if actual.indicator_family not in {"CPI", "PCE", "HICP"}:
+        raise SyntheticStop("MIXED_MEASURES")
     if not visible(actual, as_of):
         raise SyntheticStop("UNAVAILABLE_VINTAGE")
     if consensus is None or consensus.value is None or not visible(consensus, as_of):
         raise SyntheticStop("NO_CONSENSUS")
     if (consensus.indicator_family != "CONSENSUS" or consensus.measure != actual.measure
+        or consensus.target_series_id != actual.series_id
         or consensus.economy != actual.economy or consensus.frequency != actual.frequency
         or consensus.unit != actual.unit or consensus.adjustment != actual.adjustment
         or (consensus.period_start, consensus.period_end) != (actual.period_start, actual.period_end)
-        or _clock(consensus.first_seen_at) > _clock(actual.initial_release_at)):
+        or _clock(consensus.first_seen_at) > _clock(actual.initial_release_at)
+        or _clock(consensus.ingested_at) > _clock(actual.initial_release_at)):
         raise SyntheticStop("NO_CONSENSUS")
     if actual.value is None:
         raise SyntheticStop("INSUFFICIENT_DATA")
@@ -295,10 +321,14 @@ def surprise(actual: Receipt, consensus: Receipt | None, as_of: datetime) -> flo
 
 
 def policy_parts(current: Receipt, expected: Receipt | None, as_of: datetime) -> tuple[float, float | None]:
-    if current.indicator_family != "POLICY" or not visible(current, as_of) or current.value is None:
+    if (current.indicator_family != "POLICY" or current.measure != "CURRENT"
+            or not visible(current, as_of) or current.value is None):
         raise SyntheticStop("UNAVAILABLE_VINTAGE")
     future = (expected.value if expected is not None and expected.indicator_family == "EXPECTED_PATH"
+              and expected.measure == "EXPECTED"
+              and expected.target_series_id == current.series_id
               and expected.economy == current.economy and expected.unit == current.unit
+              and expected.adjustment == current.adjustment
               and visible(expected, as_of) else None)
     return current.value, future
 
@@ -307,7 +337,8 @@ def trend(values: Iterable[Receipt], as_of: datetime, count: int = 3) -> str:
     rows = sorted(tuple(values), key=lambda r: r.period_end)
     if count < 3 or len(rows) < count or any(not visible(r, as_of) or r.value is None for r in rows):
         raise SyntheticStop("INSUFFICIENT_HISTORY")
-    if len({(r.series_id, r.indicator_family, r.measure, r.frequency, r.unit, r.adjustment) for r in rows}) != 1:
+    if len({(r.source_registry_id, r.economy, r.series_id, r.indicator_family,
+             r.measure, r.frequency, r.unit, r.adjustment) for r in rows}) != 1:
         raise SyntheticStop("MIXED_MEASURES")
     if len({r.period_end for r in rows}) != len(rows):
         raise SyntheticStop("INSUFFICIENT_HISTORY")
@@ -317,21 +348,33 @@ def trend(values: Iterable[Receipt], as_of: datetime, count: int = 3) -> str:
         for before, after in zip(rows[-count:], rows[-count + 1:])
     ):
         raise SyntheticStop("INSUFFICIENT_HISTORY")
-    slope1 = rows[-2].value - rows[-3].value
-    slope2 = rows[-1].value - rows[-2].value
-    return "ACCELERATING" if slope2 > slope1 else "DECELERATING" if slope2 < slope1 else "STABLE"
+    # A simple candidate direction across at least three releases,
+    # NOT an approved economic acceleration/second-derivative model.
+    recent = rows[-count:]
+    changes = [after.value - before.value for before, after in zip(recent, recent[1:])]
+    if all(change > 0 for change in changes):
+        return "ACCELERATING"
+    if all(change < 0 for change in changes):
+        return "DECELERATING"
+    return "STABLE" if all(change == 0 for change in changes) else "MIXED"
 
 
 def normalization(values: Iterable[Receipt], as_of: datetime) -> float:
-    rows = tuple(values)
+    rows = tuple(sorted(values, key=lambda r: r.period_end))
     if any(not visible(r, as_of) for r in rows):
         raise SyntheticStop("NORMALIZATION_LEAKAGE")
     if len(rows) < 3 or any(r.value is None for r in rows):
         raise SyntheticStop("INSUFFICIENT_HISTORY")
-    if len({(r.series_id, r.indicator_family, r.measure, r.unit,
-             r.frequency, r.adjustment) for r in rows}) != 1:
+    if len({(r.source_registry_id, r.economy, r.series_id, r.indicator_family,
+             r.measure, r.unit, r.frequency, r.adjustment) for r in rows}) != 1:
         raise SyntheticStop("MIXED_MEASURES")
     if len({r.period_end for r in rows}) != len(rows):
+        raise SyntheticStop("INSUFFICIENT_HISTORY")
+    if rows[-1].frequency == "M" and any(
+        (after.period_end.year * 12 + after.period_end.month)
+        - (before.period_end.year * 12 + before.period_end.month) != 1
+        for before, after in zip(rows, rows[1:])
+    ):
         raise SyntheticStop("INSUFFICIENT_HISTORY")
     mean = sum(r.value for r in rows) / len(rows)
     variance = sum((r.value - mean) ** 2 for r in rows) / len(rows)
