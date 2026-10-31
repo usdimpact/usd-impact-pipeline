@@ -210,6 +210,10 @@ class Decision:
             raise ValueError("invalid synthetic blockers")
         if (self.status == "SYNTHETIC_ONLY_COMPLETE") != bool(self.selected and not self.blockers):
             raise ValueError("invalid synthetic completion assertion")
+        # A blocked evaluation may describe failures but must not expose
+        # partially selected IDs to a caller that ignores its HOLD status.
+        if self.status == "SYNTHETIC_ONLY_HOLD" and self.selected:
+            raise ValueError("synthetic HOLD cannot select snapshots")
 
 
 def _versions(items: Iterable[Receipt]) -> tuple[Receipt, ...]:
@@ -280,8 +284,10 @@ def select_asof(receipts: Iterable[Receipt], as_of: datetime) -> Decision:
                 blockers.add("FUTURE_FIRST_SEEN")
             else:
                 blockers.add("UNAVAILABLE_VINTAGE")  # stored after cutoff
-    selected_tuple = tuple(sorted(set(selected)))
     blockers_tuple = tuple(sorted(blockers))
+    # Fail closed atomically across all fictional sources. Any blocker means
+    # NO snapshot IDs may escape a HOLD, even if some rows were eligible.
+    selected_tuple = () if blockers_tuple else tuple(sorted(set(selected)))
     status = "SYNTHETIC_ONLY_COMPLETE" if selected_tuple and not blockers_tuple else "SYNTHETIC_ONLY_HOLD"
     return Decision(status, selected_tuple, blockers_tuple, _issuer=_DECISION_ISSUER)
 
