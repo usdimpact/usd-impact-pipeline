@@ -344,6 +344,49 @@ class Ui32AdversarialCases(unittest.TestCase):
         self.assertEqual(result.blockers, ("FUTURE_FIRST_SEEN",))
         self.assertEqual(result.selected, ())
 
+    def test_T39_manifest_rejects_colliding_revision_lineage_scopes(self):
+        original = fixture()
+        scope = SourceScope.from_receipt(original)
+        conflicting = replace(scope, measure="HEADLINE")
+        self.stop("MANIFEST_MISMATCH", lambda: replace(
+            declared_scope(original), required=(scope, conflicting)))
+        self.stop("MANIFEST_MISMATCH", lambda: replace(
+            declared_scope(original), optional=(conflicting,)))
+
+    def test_T40_revisions_cannot_change_source_scope_identity(self):
+        original = fixture()
+        later = datetime(2099, 8, 7, 13, 30, tzinfo=UTC)
+        mismatched_revision = replace(
+            original, revision=1, measure="HEADLINE",
+            previous_digest=original.content_digest, content_digest="f" * 64,
+            snapshot_id=original.snapshot_id + ":REVISION",
+            version_published_at=later, revision_effective_at=later,
+            first_seen_at=later + timedelta(minutes=1),
+            ingested_at=later + timedelta(minutes=2))
+        result = select_required_asof(
+            [original, mismatched_revision], declared_scope(original), CUTOFF)
+        self.assertEqual(result.status, "SYNTHETIC_ONLY_HOLD")
+        self.assertEqual(result.blockers, ("MALFORMED_LINEAGE",))
+        self.assertEqual(result.selected, ())
+        self.assertFalse(result.rights_cleared)
+
+    def test_T41_legitimate_revision_preserves_scoped_completeness(self):
+        original = fixture()
+        later = datetime(2099, 8, 7, 13, 30, tzinfo=UTC)
+        revised = replace(
+            original, revision=1,
+            previous_digest=original.content_digest, content_digest="f" * 64,
+            snapshot_id=original.snapshot_id + ":REVISION",
+            version_published_at=later, revision_effective_at=later,
+            first_seen_at=later + timedelta(minutes=1),
+            ingested_at=later + timedelta(minutes=2))
+        result = select_required_asof(
+            [revised, original], declared_scope(original), CUTOFF)
+        self.assertEqual(result.status, "SYNTHETIC_ONLY_SCOPED_COMPLETE")
+        self.assertEqual(result.selected, (revised.snapshot_id,))
+        self.assertEqual(result.required_count, 1)
+        self.assertFalse(result.production_authorized)
+
     def test_positive_two_source_selection_and_eight_areas(self):
         self.assertEqual(len(AREAS), 8)
         rows = [fixture(economy=e) for e in sorted(AREAS)]
