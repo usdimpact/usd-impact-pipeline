@@ -1,0 +1,24 @@
+name: F2 independent-source synthetic fixture QA (DRAFT)
+on:
+  pull_request:
+    paths:
+      - 'tools/f2/**'
+      - '.github/workflows/f2-trusted-source-draft-fixtures.yml'
+permissions:
+  contents: read
+jobs:
+  f2-draft-fixtures:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '24.x'
+      - name: Run local nonprivileged fixtures
+        run: |
+          node --check tools/f2/f2-trusted-git-tree-review.mjs
+          node --check tools/f2/test-f2-trusted-git-tree-review.mjs
+          node tools/f2/test-f2-trusted-git-tree-review.mjs
