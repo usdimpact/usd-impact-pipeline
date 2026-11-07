@@ -32,8 +32,8 @@
       "zero_budget_candidate": "FRED SP500",
       "official_source": "S&P Dow Jones Indices via FRED",
       "exact_semantic_replacement": false,
-      "reason": "FRED redistributes the S&P 500 under a separate agreement and marks the series copyrighted/pre-approval required; FRED access does not resolve USD Impact commercial/derived-use rights.",
-      "disposition": "rights_unresolved_not_zero_budget_safe"
+      "reason": "The written 2026-10-29 S&P DJI reply requires a paid license for the described original eight-driver commercial use, including proposed non-reconstructible aggregate publication. FRED SP500 delivery is not a no-cost workaround.",
+      "disposition": "paid_license_required_no_budget"
     },
     {
       "driver": "VIX",
@@ -65,25 +65,59 @@
     {
       "driver": "UST_2Y",
       "current_series": "DGS2",
-      "zero_budget_candidate": "retain current FRED path pending rights confirmation",
-      "official_source": "FRED / U.S. Treasury-derived series",
+      "zero_budget_candidate": "No authorized FRED retention route; direct original-publisher sourcing remains a separate unapproved study",
+      "official_source": "U.S. Treasury / Board H.15 original publication; FRED is separate delivery with separate terms",
       "exact_semantic_replacement": true,
-      "reason": "No replacement is currently needed if FRED confirms acceptable use.",
-      "disposition": "retain_if_rights_confirmed"
+      "reason": "FRED's conditional 2026-10-29 response did not clear storage, caching, archives, or disposal. Exact Treasury/H.15 direct-source transport, economic parity, permissions and historical treatment remain unapproved under #282.",
+      "disposition": "rights_and_retention_unresolved"
     },
     {
       "driver": "UST_10Y",
       "current_series": "DGS10",
-      "zero_budget_candidate": "retain current FRED path pending rights confirmation",
-      "official_source": "FRED / U.S. Treasury-derived series",
+      "zero_budget_candidate": "No authorized FRED retention route; direct original-publisher sourcing remains a separate unapproved study",
+      "official_source": "U.S. Treasury / Board H.15 original publication; FRED is separate delivery with separate terms",
       "exact_semantic_replacement": true,
-      "reason": "No replacement is currently needed if FRED confirms acceptable use.",
-      "disposition": "retain_if_rights_confirmed"
+      "reason": "FRED's conditional 2026-10-29 response did not clear storage, caching, archives, or disposal. Exact Treasury/H.15 direct-source transport, economic parity, permissions and historical treatment remain unapproved under #282.",
+      "disposition": "rights_and_retention_unresolved"
     }
   ],
   "conclusion": {
     "exact_v2_zero_budget_path_confirmed": false,
-    "likely_outcome": "If paid provider licenses are required, preserving Score v2 exactly is unlikely under a zero-budget constraint. A separately reviewed v2.1 methodology would be required for any free-source substitutions.",
-    "next_allowed_step": "wait_for_provider_rights_responses_or_prepare_methodology_change_options_only"
+    "likely_outcome": "The original eight-driver Score cannot be resumed as a zero-budget publication on current evidence: the described S&P use requires a paid license. The separately held government-source Macro Context Panel is a different educational candidate, not a rebased Score.",
+    "next_allowed_step": "review_existing_independent_panel_rights_and_methodology_only"
+  },
+  "last_reviewed_utc": "2026-11-07",
+  "score_publication_authorized": false,
+  "archive_remediation_authorized": false,
+  "paid_license_purchase_authorized": false,
+  "provider_evidence": {
+    "s_and_p": {
+      "provider_reply_date": "2026-10-29",
+      "disposition": "PAID_LICENSE_REQUIRED_FOR_DESCRIBED_USE_CASE",
+      "written_no_fee_aggregate_permission_received": false,
+      "paid_license_executed": false,
+      "source": "governance/score-spdji-provider-disposition-2026-10-30.json",
+      "scope_note": "Original eight-driver commercial Score and proposed public non-reconstructible aggregate; distinct internal-only exceptions and historical treatment remain unanswered"
+    },
+    "fred_delivery": {
+      "state": "RETENTION_AND_TRANSPORT_HOLD",
+      "fred_content_retention_cleared": false,
+      "direct_treasury_or_h15_substitution_approved": false,
+      "source_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/282"
+    }
+  },
+  "independent_alternative": {
+    "existing_design": "governance/independent-macro-context-fallback-draft-2026-10-30.json",
+    "governing_issue": "https://github.com/usdimpact/usd-impact-pipeline/issues/313",
+    "category": "INDEPENDENT_THREE_DIAL_CONTEXT_NOT_LEGACY_SCORE",
+    "license_budget_usd": 0,
+    "synthetic_only": true,
+    "old_score_history_compatible": false,
+    "owner_methodology_approved": false,
+    "real_data_access_approved": false,
+    "all_source_rights_cleared": false,
+    "public_schema_approved": false,
+    "publication_approved": false,
+    "production_approved": false
   }
 }
