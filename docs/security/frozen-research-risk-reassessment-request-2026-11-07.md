@@ -88,3 +88,51 @@ Keep the original expire-at-November-5 condition in force until a properly autho
 **Advisory timeline correction.** Official project [GHSA-xvh5-g6gv-559v](https://github.com/python-pillow/Pillow/security/advisories/GHSA-xvh5-g6gv-559v) is dated **2026-10-17**, and the formal CVE ID appeared **2026-11-05**. In other words, a prior-acceptance *coverage gap* is possible even though the later automated feed began reporting the CVE in November. No currently authorized full frozen pip-audit scan has been run. Do **not** add an alias to the accepted set just because a static source scan suggested the research workers are non-image-oriented. The library is pinned to 12.3.0, while the upstream fixed version is 13.0.0.
 
 **Unchanged decisions:** R01/R02/R05 are evidence collection only; R03 fresh scan, R04 diff, R05 complete dynamic/independent reachability, R07 scoped disposition, R08 human approval and R09 optional future control patch are still **PENDING / DENY**. No expiry, risk acceptance, protected lock, research data, source retrieval or publication gate changed.
+
+
+## 7. 2026-11-07 targeted remediation decisions — verified lock comparison, still unsigned
+
+**Purpose:** narrow what must be decided before a future frozen-research security acceptance can be considered. **Not an extension of the expired waiver, not a new frozen image, and not an instruction to execute a scanner now.**
+
+### A. The current locks cover two separate environments
+
+| Package / control | Frozen `requirements.lock` | Separate active online `runtime/requirements-2026-10-05.lock` | Evidence |
+| --- | --- | --- | --- |
+| Pillow | `12.3.0` — affected by GHSA-xvh5-g6gv-559v | `13.0.0` — upstream patched version | Exact Git lock contents; [official advisory](https://github.com/python-pillow/Pillow/security/advisories/GHSA-xvh5-g6gv-559v) |
+| certifi | `2026.7.22` | `2026.10.23` | Exact Git lock contents; historical PySec review |
+| urllib3 | `2.7.0` | `2.8.0` | Exact Git lock contents; historical PySec review |
+| Frozen provenance | SHA-256 `a4c6fb90909a04eb267057d3e31049c7fc38b12e8a7d556e79c0141aa0d52db6` | A **different lock**, not a substitute for a historical research freeze | `runtime/frozen-research-wheelhouse.json`, `runtime/active-environment.json` |
+
+Frozen Git blob: `ddf0049a5c294729a653302cbe9feec2316bb951`. Online lock Git blob: `df9b144a58b2e6fa4aec31e96c378efd87ccfc2f`. The online environment is *declared* active, and [PR #338 security run](https://github.com/usdimpact/usd-impact-pipeline/actions/runs/42383397265) recorded ordinary online dependency audit and CodeQL **PASS**; its frozen residual-risk job **FAIL**. An online result does not permit executing the frozen root lock.
+
+### B. There are two independent blockers, not just an expiry date
+
+1. **Expired acceptance:** `.github/workflows/python-security.yml` currently hard-stops at `accepted_until = 2026-11-05`.
+2. **Unreviewed finding-set gap:** the workflow expects **43 historic exact tuples** (39 Pillow, 3 urllib3, 1 certifi). Neither `GHSA-xvh5-g6gv-559v` nor `CVE-2026-112902` is an explicitly accepted Pillow tuple. The [official GitHub advisory](https://github.com/python-pillow/Pillow/security/advisories/GHSA-xvh5-g6gv-559v) reports publication **October 17, 2026**; an advisory aggregator's GitHub-reviewed record is dated October 21, and the formal CVE identifier was published **November 5**. That creates a possible **coverage gap in the October 26 review**, not proof the historical pip-audit tool emits a distinct finding. Fresh raw-ID and alias evidence is required.
+3. **Exploit preconditions:** the original advisory involves attacker-influenced TIFF metadata **being re-encoded via libtiff**. Static review of the frozen ingestion entrypoints did not identify an exercised TIFF save, but does not prove full transitive reachability absence. The repository also contains dormant provider-fetch and PNG-rendering helpers. No runtime execution or compiled-library test has been performed.
+4. **Separate legal boundary:** accepting a scoped dependency risk does not grant provider-derived Score rights under [#155](https://github.com/usdimpact/usd-impact-pipeline/issues/155) or FRED retention permission under [#282](https://github.com/usdimpact/usd-impact-pipeline/issues/282).
+
+**Never add a new advisory to an allowlist or extend the date solely to make CI green.** Both controls must remain fail-closed.
+
+### C. One-time security review specification — not execution authority
+
+After a separate item-specific authorization, an independent read-only audit must record the exact 31 pinned packages, Git head, verified lock digest, platform, pinned pip-audit version, UTC advisory snapshot time, complete **raw** immutable JSON and its hash, current exact IDs and aliases, fixed-version differences and added/removed/changed findings against the original 43 tuples. A nonzero exit status is expected when scanning a vulnerable frozen lock and **must not be swallowed as PASS**. Do not install or execute the frozen dependencies to perform a static advisory comparison; no Score market-data observation is needed.
+
+The reviewer must separately verify *runtime enforcement* of network-none, read-only mounts, restricted modes, privilege/resource bounds, authorized output/export and all image parsing/encoding call paths, including transitive libraries. If there is no independent reviewer in this solo-owner project, explicitly disclose that limitation; do not invent a second human approval.
+
+**Pending reviewer identity, fresh advisory scan, dynamic reachability, evidence digest, counsel/provider rights and new residual-risk acceptance are all DENY/UNAVAILABLE.** The existing document and this Draft do not authorize audit dispatch, paid external tools, container or provider network access, protected workflow edits, a new research lock, waiver or public publication.
+
+### D. Future alternatives, each requiring separate approval
+
+| Option | Condition | Present state |
+| --- | --- | --- |
+| Keep frozen research stopped | No complete and accepted fresh review | **DEFAULT HOLD** |
+| New separately versioned research freeze | Approved research migration with an exact new lock, scientific/provenance parity, isolated tests and rollback; original historical lock retained | **DESIGN-ONLY / NOT APPROVED** |
+| Narrow, time-bound residual acceptance | Complete fresh audit, per-advisory reachability/mitigation review, explicit item-specific owner/security disposition and expiry | **NOT APPROVED** |
+| Public Score / independent Panel release | Distinct provider/counsel/source permissions and separate Production owner authorization | **RIGHTS HOLD** regardless of Python outcome |
+
+### E. Website publication state has since changed
+
+[Website PR #1204](https://github.com/usdimpact/usd-impact-site/pull/1204) is **now merged**, not Draft: owner-approved historical *copy-only* change to site main `585511f0f149f40f5f9e42d8bc0d33e3254c7e9c`, Vercel Production READY `dpl_G8dBP9xV3X4XrTfjg9Z7RzKmKfcF`, live page status verified. Its copy correction does **not** license Score-derived values or authorize frozen research, and both Score rights gates remain HOLD. The older wording in section 5 records a prior checkpoint. Pipeline Drafts #338 and #339 remain unmerged.
+
+**Latest security disposition: NO-GO for frozen research acceptance, NO-GO for original Score data access and publication.**
