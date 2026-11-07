@@ -136,3 +136,56 @@ The reviewer must separately verify *runtime enforcement* of network-none, read-
 [Website PR #1204](https://github.com/usdimpact/usd-impact-site/pull/1204) is **now merged**, not Draft: owner-approved historical *copy-only* change to site main `585511f0f149f40f5f9e42d8bc0d33e3254c7e9c`, Vercel Production READY `dpl_G8dBP9xV3X4XrTfjg9Z7RzKmKfcF`, live page status verified. Its copy correction does **not** license Score-derived values or authorize frozen research, and both Score rights gates remain HOLD. The older wording in section 5 records a prior checkpoint. Pipeline Drafts #338 and #339 remain unmerged.
 
 **Latest security disposition: NO-GO for frozen research acceptance, NO-GO for original Score data access and publication.**
+
+
+## 8. 2026-11-07 actual two-feed audit result — confirmed negative decision, not a waiver
+
+**Read-only auditor was explicitly approved by owner for this isolated security investigation**, not for accepting the findings or releasing frozen research. [Exact audit workflow run #42389910149](https://github.com/usdimpact/usd-impact-pipeline/actions/runs/42389910149) executed on ephemeral draft head `6668c5ece44635ba1918ac7bc5c5499ad8789d62` and **FAILED CLOSED INTENTIONALLY** due to newly discovered findings. This is now direct November 7 evidence, superseding earlier text that said the fresh scan had not been performed. The currently pending *human security disposition* is a separate action.
+
+### 8.1 Reproducible execution boundary and provenance
+
+- **Scan UTC:** `2026-11-07T16:10:20.794481+00:00`.
+- Runner used Python **3.11.18** and installed **only the pinned auditor `pip-audit==2.10.1` and its own tooling**, not any of the 31 vulnerable root-lock dependencies. Both scans used `--no-deps --disable-pip --requirement requirements.lock`. No Score computation, provider market-data GET/HEAD, Docker frozen research, model output, historical data access, migration, public publication or Production action occurred.
+- The preflight recomputed frozen lock SHA-256 `a4c6fb90909a04eb267057d3e31049c7fc38b12e8a7d556e79c0141aa0d52db6`, verified **31 distinct exact pins**, and verified the original Score canonical rights gate remained `hold` with null approvals.
+- Both vulnerability services **PyPI** and **OSV** responded and each `pip-audit` returned code **1** (known findings; not an internal auditor error). Raw JSON was held **only in ephemeral runner temporary files**, **not uploaded** to GitHub artifacts or user file storage, and destroyed with that runner. Raw result SHA-256 hashes below are objective log receipts, **not recoverable private raw evidence**. Do not claim to have an immutable retained audit JSON or completed private custody; that still needs explicit storage/retention approval if a signed risk decision requires it.
+- The one-time additional `.github/workflows/frozen-advisory-readonly-snapshot-pr339.yml` file was **removed from the branch after execution** by commit `4c586d5751db9b1db5e773462ea07a7f3cef489a`. The workflow remains in Git commit history as an audit recipe and the run logs remain linked, but the net PR diff again contains **only this documentation file**. The pre-existing `.github/workflows/python-security.yml`, residual expiry, root and online locks, permissions and all release gates were **never changed**. A temporary job failure is expected evidence, not a CI bypass.
+
+### 8.2 Precise finding-set results
+
+| Source | Old 43 normalized findings still present | Current findings | New relative to old 43 | Missing old findings | Per-package count |
+| --- | ---: | ---: | ---: | ---: | --- |
+| PyPI `pip-audit 2.10.1` | 43/43 | **43** | **0** | **0** | Pillow 39, certifi 1, urllib3 3 |
+| OSV `pip-audit 2.10.1` | 43/43 | **45** | **2** | **0** | Pillow 41, certifi 1, urllib3 3 |
+
+- PyPI raw JSON SHA-256 (ephemeral evidence receipt): `543960bcee461d15c81e1baae089f7e9d5fce40c42e2b2e6d1add925d4a1783e`.
+- OSV raw JSON SHA-256 (ephemeral evidence receipt): `dfc3143432f8427b2af31d5e10e70fd8656aae293ad7007b166e80e035d3d45f`.
+- Audit step explicitly reported `FINDING_DELTA pypi new 0 missing 0 unobserved_known_pillow_advisory True`, and `FINDING_DELTA osv new 2 missing 0 unobserved_known_pillow_advisory False`.
+- **The two new OSV records are actual additional unreviewed vulnerabilities, not just remapped aliases**. They are `CVE-2026-112898` and `CVE-2026-112902`, both affecting frozen `pillow==12.3.0` and both reporting **13.0.0** as fixed. The previously reviewed 43 set does not include them.
+
+### 8.3 Advisory-specific initial reachability assessment (static, incomplete)
+
+| Advisory | Upstream precondition | Impact and upstream fixed version | Project evidence so far | Provisional security decision |
+| --- | --- | --- | --- | --- |
+| [`CVE-2026-112898` / GHSA-rfgq-q3w2-pmv2](https://github.com/python-pillow/Pillow/security/advisories/GHSA-rfgq-q3w2-pmv2) | `Image.quantize()` with an **empty attacker-controlled palette**; returned PNG/GIF can disclose uninitialized stack data | **Moderate**, potential memory disclosure; fixed in Pillow **13.0.0** | GitHub code search on current pipeline main for `Image.quantize`, `quantize(`, and `palette` found no first-party callsites. Existing frozen entrypoint source traces read JSON evidence; this is **not** proof of full imported/transitive callgraph or runtime behavior. | **UNREVIEWED / HOLD** |
+| [`CVE-2026-112902` / GHSA-xvh5-g6gv-559v](https://github.com/python-pillow/Pillow/security/advisories/GHSA-xvh5-g6gv-559v) | Malformed/attacker-controlled TIFF tags when a Pillow image is **re-saved/converted through TIFF/libtiff**, including some metadata-forwarding paths | **High**, process-memory disclosure or crash; fixed in Pillow **13.0.0** | GitHub code search on current main for `Image.open(`, `Image.save(` and `tiff` found no first-party image-processing entrypoint; prior frozen imports include dormant provider-fetch and PNG rendering helpers and unreviewed third-party dependencies. No runtime proof of nonreachability. | **UNREVIEWED / HOLD** |
+
+Both advisories were externally visible by October 2026, before the previous October 26 residual-risk review. The October acceptance cannot be treated as an assessment of these findings; a newly published formal CVE identifier is not the same as a newly discovered vulnerability.
+
+**Important:** The raw vulnerability JSON was not retained, so the SHA-256 receipts prove what a later saved copy would need to match but are not themselves a complete reprocessable raw finding artifact. The currently printed per-finding IDs/fix versions and this evidence packet suffice for a preliminary NO-GO; formal acceptance would require an approved fresh, retained audit record plus complete reachability checks.
+
+### 8.4 Decision receipt — denied, not owner-signed
+
+| Decision | Current recorded outcome |
+| --- | --- |
+| Full frozen dependency security clearance | **NO-GO** |
+| Renew expired 2026-11-05 acceptance | **DENIED / NOT DONE** |
+| Add `CVE-2026-112898` or `CVE-2026-112902` to accepted aliases | **DENIED / NOT DONE** |
+| Treat PyPI-only 43 result as sufficient | **DENIED** — independent OSV finds 45 |
+| Patch root historical frozen lock | **NOT AUTHORIZED**; changes scientific/provenance boundary |
+| Use separately patched online lock as proof frozen research is safe | **DENIED** |
+| Full transitive reachability / actually enforced container isolation | **NOT PROVED** |
+| Reviewer identity, independent review and future expiration | **PENDING / NONE**; solo-owner limitation remains |
+| Original Score/provider data use and public release | **RIGHTS HOLD / NO-GO** |
+| Public site historic status correction | **Previously released and independently verified**; unrelated permission |
+
+**Next smallest responsible action:** commission or perform a newly scoped static/full import-callgraph review of the two Pillow APIs and actual container constraints, then obtain an item-specific, documented owner/security assessment of freeze-preserving mitigation or a separate versioned future research environment. Until then, keep frozen research in DENY; do not merge Draft #338 or alter the existing protected security workflow. The live website remains unaffected.
